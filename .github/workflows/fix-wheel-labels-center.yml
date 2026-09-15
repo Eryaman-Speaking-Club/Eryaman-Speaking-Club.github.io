@@ -1,0 +1,226 @@
+name: Fix wheel labels and center
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-wheel-labels-center.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Make labels horizontal and keep center static
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('truth-or-dare/app.js')
+          text = path.read_text(encoding='utf-8')
+
+          if 'let labelAnimations = [];' not in text:
+              text = text.replace('  let wheelAnimation = null;\n', '  let wheelAnimation = null;\n  let labelAnimations = [];\n', 1)
+
+          install = r'''  function installWheelEnhancements() {
+    if ($('wheelEnhancementStyles')) return;
+    const style = document.createElement('style');
+    style.id = 'wheelEnhancementStyles';
+    style.textContent = `
+      .player-wheel{overflow:visible;background:#fff!important}
+      .wheel-rotor{position:absolute;inset:0;border-radius:50%;overflow:hidden;z-index:1;will-change:transform}
+      .wheel-name-layer{position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:50%}
+      .wheel-name{position:absolute;transform:translate(-50%,-50%) rotate(var(--counter-rotation,0deg));transform-origin:center;color:#fff;font-weight:950;line-height:1.05;letter-spacing:-.02em;text-align:center;text-shadow:0 2px 6px rgba(0,0,0,.38);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:4px 6px;pointer-events:none;z-index:3}
+      .wheel-rotor .wheel-ring{z-index:1}
+      .wheel-center{z-index:5!important;width:39.2%!important;height:39.2%!important;padding:12px!important;position:relative}
+      .wheel-center strong.logo-mode{width:96px;height:96px;margin-top:7px;display:block;overflow:hidden;border-radius:50%;position:relative}
+      .wheel-logo-symbol{position:absolute;display:block;height:165px;width:auto;max-width:none;left:50%;top:-7px;transform:translateX(-50%)}
+      .player-wheel.is-spinning{will-change:auto}
+      @media(max-width:560px){.wheel-name{font-size:9px!important}.wheel-center{width:40%!important;height:40%!important;padding:8px!important}.wheel-center strong.logo-mode{width:68px;height:68px}.wheel-logo-symbol{height:117px;top:-5px}}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function centerLogo()'''
+
+          text, n = re.subn(r"  function installWheelEnhancements\(\) \{.*?\n  \}\n\n  function centerLogo\(\)", install, text, count=1, flags=re.S)
+          if n != 1:
+              raise SystemExit('installWheelEnhancements replacement failed')
+
+          render = r'''  function ensureWheelRotor() {
+    const wheel = $('playerWheel');
+    let rotor = wheel.querySelector('.wheel-rotor');
+    if (rotor) return rotor;
+
+    rotor = document.createElement('div');
+    rotor.className = 'wheel-rotor';
+    const center = wheel.querySelector('.wheel-center');
+    Array.from(wheel.children).filter((child) => child.classList && child.classList.contains('wheel-ring')).forEach((ring) => rotor.appendChild(ring));
+    wheel.insertBefore(rotor, center || null);
+    return rotor;
+  }
+
+  function renderWheel() {
+    const wheel = $('playerWheel');
+    if (!wheel) return;
+    const rotor = ensureWheelRotor();
+
+    let layer = rotor.querySelector('.wheel-name-layer');
+    if (!layer) {
+      layer = document.createElement('div');
+      layer.className = 'wheel-name-layer';
+      rotor.appendChild(layer);
+    }
+    layer.replaceChildren();
+
+    const names = state.names.slice();
+    if (!names.length) return;
+
+    const segment = 360 / names.length;
+    const gap = Math.min(2.4, Math.max(1.0, segment * 0.055));
+    const gradient = [];
+    names.forEach((name, index) => {
+      const start = index * segment;
+      const colorStart = start + gap / 2;
+      const colorEnd = (index + 1) * segment - gap / 2;
+      const end = (index + 1) * segment;
+      const color = WHEEL_COLORS[index % WHEEL_COLORS.length];
+      gradient.push(`#fff ${start.toFixed(3)}deg ${colorStart.toFixed(3)}deg`);
+      gradient.push(`${color} ${colorStart.toFixed(3)}deg ${colorEnd.toFixed(3)}deg`);
+      gradient.push(`#fff ${colorEnd.toFixed(3)}deg ${end.toFixed(3)}deg`);
+
+      const angle = -90 + (index + 0.5) * segment;
+      const radians = angle * Math.PI / 180;
+      const radius = names.length > 12 ? 38 : names.length > 8 ? 37.5 : 37;
+      const x = 50 + Math.cos(radians) * radius;
+      const y = 50 + Math.sin(radians) * radius;
+      const label = document.createElement('span');
+      label.className = 'wheel-name';
+      label.textContent = name;
+      label.title = name;
+      label.style.left = `${x}%`;
+      label.style.top = `${y}%`;
+      label.style.maxWidth = names.length > 12 ? '14%' : names.length > 8 ? '18%' : '27%';
+      label.style.fontSize = names.length > 12 ? '9px' : names.length > 8 ? '11px' : '13px';
+      label.style.setProperty('--counter-rotation', `${-wheelRotation}deg`);
+      layer.appendChild(label);
+    });
+
+    rotor.style.background = `conic-gradient(${gradient.join(',')})`;
+    rotor.style.transform = `rotate(${wheelRotation}deg)`;
+  }
+
+  function showScreen'''
+
+          text, n = re.subn(r"  function renderWheel\(\) \{.*?\n  \}\n\n  function showScreen", render, text, count=1, flags=re.S)
+          if n != 1:
+              raise SystemExit('renderWheel replacement failed')
+
+          spin = r'''  function spinPlayer() {
+    const button = $('spinPlayer');
+    if (state.names.length < 2 || button.disabled) return;
+
+    const wheel = $('playerWheel');
+    const rotor = ensureWheelRotor();
+    const label = $('wheelLabel');
+    selectedPlayer = choosePlayer();
+    const selectedIndex = Math.max(0, state.names.indexOf(selectedPlayer));
+    const segment = 360 / state.names.length;
+    const selectedCenter = (selectedIndex + 0.5) * segment;
+    const desiredModulo = (360 - selectedCenter) % 360;
+    const currentModulo = ((wheelRotation % 360) + 360) % 360;
+    const alignmentDelta = (desiredModulo - currentModulo + 360) % 360;
+    const targetRotation = wheelRotation + 1440 + alignmentDelta;
+    const spinDuration = 2350;
+    const easing = 'cubic-bezier(.12,.72,.13,1)';
+
+    getAudio();
+    playClick();
+    button.disabled = true;
+    wheel.classList.remove('winner');
+    wheel.classList.add('is-spinning');
+    label.textContent = 'SPINNING';
+    centerLogo();
+
+    if (wheelAnimation) wheelAnimation.cancel();
+    labelAnimations.forEach((animation) => animation.cancel());
+    labelAnimations = [];
+
+    wheelAnimation = rotor.animate(
+      [
+        { transform: `rotate(${wheelRotation}deg)` },
+        { transform: `rotate(${targetRotation}deg)` }
+      ],
+      { duration: spinDuration, easing, fill: 'forwards' }
+    );
+
+    rotor.querySelectorAll('.wheel-name').forEach((nameLabel) => {
+      const animation = nameLabel.animate(
+        [
+          { transform: `translate(-50%,-50%) rotate(${-wheelRotation}deg)` },
+          { transform: `translate(-50%,-50%) rotate(${-targetRotation}deg)` }
+        ],
+        { duration: spinDuration, easing, fill: 'forwards' }
+      );
+      labelAnimations.push(animation);
+    });
+
+    let ticks = 0;
+    clearInterval(spinTimer);
+    spinTimer = setInterval(() => playTick(ticks++), 82);
+
+    wheelAnimation.onfinish = () => {
+      clearInterval(spinTimer);
+      wheelRotation = targetRotation;
+      rotor.style.transform = `rotate(${wheelRotation}deg)`;
+      rotor.querySelectorAll('.wheel-name').forEach((nameLabel) => {
+        nameLabel.style.setProperty('--counter-rotation', `${-wheelRotation}deg`);
+      });
+      labelAnimations.forEach((animation) => animation.cancel());
+      labelAnimations = [];
+      wheelAnimation.cancel();
+      wheelAnimation = null;
+      wheel.classList.remove('is-spinning');
+      wheel.classList.add('winner');
+      centerSelectedName(selectedPlayer);
+      label.textContent = 'SELECTED';
+
+      if (state.settings.fairRotation && !state.history.names.includes(selectedPlayer)) state.history.names.push(selectedPlayer);
+      saveState();
+      vibrate([45, 45, 90]);
+      playReveal('truth');
+      button.disabled = false;
+
+      setTimeout(() => {
+        $('selectedPlayer').textContent = `${selectedPlayer}!`;
+        showScreen('choice');
+      }, 850);
+    };
+  }
+
+  function randomFrom'''
+
+          text, n = re.subn(r"  function spinPlayer\(\) \{.*?\n  \}\n\n  function randomFrom", spin, text, count=1, flags=re.S)
+          if n != 1:
+              raise SystemExit('spinPlayer replacement failed')
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Commit fix
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add truth-or-dare/app.js
+          git diff --cached --quiet && exit 0
+          git commit -m "Keep wheel labels horizontal and shrink static center"
+          git push
