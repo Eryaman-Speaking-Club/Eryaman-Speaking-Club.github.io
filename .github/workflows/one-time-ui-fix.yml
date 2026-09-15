@@ -1,0 +1,135 @@
+name: One-time UI fix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/one-time-ui-fix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: ${{ !contains(github.event.head_commit.message || '', '[ui-fix]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch logo, size and sounds
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          index = Path('index.html')
+          html = index.read_text(encoding='utf-8')
+          logo = './51a64254-0651-4c02-8235-bef5325d7947%20(1).png'
+          updated, count = re.subn(
+              r'<img src="data:image/webp;base64,[^"]+" alt="Eryaman Speaking Club">',
+              f'<img src="{logo}" alt="Eryaman Speaking Club">',
+              html,
+              count=1,
+          )
+          if count != 1:
+              raise SystemExit('Could not find embedded logo in index.html')
+          index.write_text(updated, encoding='utf-8')
+
+          css_path = Path('styles.css')
+          css = css_path.read_text(encoding='utf-8')
+          replacements = {
+              '.site-header{min-height:116px;': '.site-header{min-height:128px;',
+              '.logo-button img{width:305px;height:112px;': '.logo-button img{width:340px;height:124px;',
+              '.site-header{min-height:102px}': '.site-header{min-height:112px}',
+              '.logo-button img{width:230px;height:90px}': '.logo-button img{width:255px;height:98px}',
+              'main{min-height:calc(100dvh - 114px)}': 'main{min-height:calc(100dvh - 124px)}',
+              '.logo-button img{width:210px;height:86px}': '.logo-button img{width:230px;height:90px}',
+          }
+          for old, new in replacements.items():
+              if old not in css:
+                  raise SystemExit(f'CSS target not found: {old}')
+              css = css.replace(old, new, 1)
+          css_path.write_text(css, encoding='utf-8')
+
+          app_path = Path('app.js')
+          app = app_path.read_text(encoding='utf-8')
+          old_audio = '''  function tone(frequency, duration = 0.05, delay = 0, volume = 0.02) {
+            const ctx = getAudio();
+            if (!ctx) return;
+            const oscillator = ctx.createOscillator();
+            const gain = ctx.createGain();
+            oscillator.type = 'triangle';
+            oscillator.frequency.value = frequency;
+            gain.gain.setValueAtTime(0.0001, ctx.currentTime + delay);
+            gain.gain.exponentialRampToValueAtTime(volume, ctx.currentTime + delay + 0.008);
+            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay + duration);
+            oscillator.connect(gain).connect(ctx.destination);
+            oscillator.start(ctx.currentTime + delay);
+            oscillator.stop(ctx.currentTime + delay + duration + 0.02);
+          }
+
+          function playClick() {
+            tone(320, 0.045, 0, 0.018);
+            tone(470, 0.05, 0.025, 0.014);
+          }
+
+          function playDraw() {
+            [0, 1, 2, 3].forEach((step) => tone(190 + step * 55, 0.045, step * 0.055, 0.015));
+          }
+
+          function playReveal() {
+            tone(390, 0.09, 0, 0.024);
+            tone(590, 0.11, 0.055, 0.019);
+            tone(790, 0.15, 0.11, 0.014);
+          }'''
+          old_audio = '\n'.join(line[10:] if line.startswith('          ') else line for line in old_audio.splitlines())
+          new_audio = '''  function tone(frequency, duration = 0.05, delay = 0, volume = 0.02, type = 'sine') {
+            const ctx = getAudio();
+            if (!ctx) return;
+            const oscillator = ctx.createOscillator();
+            const gain = ctx.createGain();
+            oscillator.type = type;
+            oscillator.frequency.setValueAtTime(frequency, ctx.currentTime + delay);
+            gain.gain.setValueAtTime(0.0001, ctx.currentTime + delay);
+            gain.gain.exponentialRampToValueAtTime(volume, ctx.currentTime + delay + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay + duration);
+            oscillator.connect(gain).connect(ctx.destination);
+            oscillator.start(ctx.currentTime + delay);
+            oscillator.stop(ctx.currentTime + delay + duration + 0.03);
+          }
+
+          function playClick() {
+            tone(659.25, 0.04, 0, 0.014, 'sine');
+            tone(987.77, 0.055, 0.028, 0.010, 'sine');
+          }
+
+          function playDraw() {
+            [392.00, 493.88, 587.33, 698.46].forEach((note, step) =>
+              tone(note, 0.055, step * 0.045, 0.013, 'triangle')
+            );
+          }
+
+          function playReveal() {
+            tone(523.25, 0.09, 0, 0.020, 'sine');
+            tone(659.25, 0.11, 0.045, 0.016, 'sine');
+            tone(783.99, 0.14, 0.09, 0.012, 'sine');
+          }'''
+          new_audio = '\n'.join(line[10:] if line.startswith('          ') else line for line in new_audio.splitlines())
+          if old_audio not in app:
+              raise SystemExit('Could not find current audio block in app.js')
+          app = app.replace(old_audio, new_audio, 1)
+          app = app.replace('    playClick();\n    playDraw();', '    playDraw();', 1)
+          app_path.write_text(app, encoding='utf-8')
+
+      - name: Commit fixes
+        run: |
+          git config user.name "idris6155"
+          git config user.email "idris.danismaz@birsenkimya.com"
+          git add index.html styles.css app.js
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Fix logo display, size and game sounds [ui-fix]"
+          git push
