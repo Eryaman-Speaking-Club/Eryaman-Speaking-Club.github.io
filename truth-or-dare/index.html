@@ -7,6 +7,28 @@
   <meta name="description" content="Eryaman Speaking Club Truth or Dare game">
   <title>Truth or Dare · Eryaman Speaking Club</title>
   <link rel="stylesheet" href="./styles.css">
+  <style>
+    .player-wheel.wheel-click-target{cursor:pointer;touch-action:manipulation;user-select:none}
+    .player-wheel.wheel-click-target:hover{filter:brightness(1.025)}
+    .player-wheel.wheel-click-target:focus-visible{outline:4px solid rgba(242,163,41,.42);outline-offset:8px}
+    .players-button{white-space:nowrap}
+    .volume-control{width:min(430px,92vw);margin:16px auto 0;padding:12px 16px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.82);box-shadow:0 8px 24px rgba(11,47,91,.06)}
+    .volume-control label{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;color:var(--navy);font-size:12px;font-weight:900}
+    .volume-control output{color:var(--navy2);font-variant-numeric:tabular-nums}
+    .volume-control input[type="range"]{width:100%;accent-color:var(--navy);cursor:pointer}
+    .names-dialog textarea{width:100%;min-height:260px;resize:vertical;border:1px solid var(--line);border-radius:14px;background:#fff;color:var(--ink);padding:14px;outline:none;line-height:1.5}
+    .names-dialog textarea:focus{border-color:#9bb4cc;box-shadow:0 0 0 3px rgba(23,75,130,.09)}
+    .names-dialog .quick-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .names-dialog .quick-actions .primary-button{flex:1 1 180px}
+    .names-dialog .quick-actions .secondary-button,.names-dialog .quick-actions .danger-button{flex:0 1 auto}
+    .names-note{margin:7px 0 14px!important;font-size:12px}
+    @media(max-width:680px){
+      .header-actions{flex-wrap:wrap;justify-content:flex-end}
+      .admin-button{padding:0 11px}
+      .admin-button span{display:none}
+      .volume-control{margin-top:14px}
+    }
+  </style>
 </head>
 <body>
   <div id="app">
@@ -16,6 +38,7 @@
       </button>
       <div class="header-actions">
         <button id="sound" class="icon-button" aria-label="Toggle sound" title="Sound">🔊</button>
+        <button id="players" class="admin-button players-button" aria-label="Edit player names" title="Players"><span>Players</span> 👥</button>
         <button id="admin" class="admin-button" aria-label="Edit game"><span>Edit game</span> ⚙</button>
       </div>
     </header>
@@ -58,6 +81,10 @@
           <button id="newRound" class="secondary-button">New round</button>
         </div>
         <div id="roundStatus" class="round-status"></div>
+        <div class="volume-control">
+          <label for="volumeSlider"><span>Sound level</span><output id="volumeValue" for="volumeSlider">200%</output></label>
+          <input id="volumeSlider" type="range" min="0" max="300" step="10" value="200" aria-label="Sound level">
+        </div>
       </section>
 
       <section id="choiceScreen" class="game-screen" hidden>
@@ -109,7 +136,7 @@
       <div id="adminLogin" class="admin-login">
         <div class="panel-tag">ORGANISER</div>
         <h2>Enter the edit password</h2>
-        <p>Only club organisers can change names and questions.</p>
+        <p>Questions, protected settings, backups and reset tools require the organiser password. Player names can be edited without a password.</p>
         <label class="field-label" for="adminPassword">Password</label>
         <input id="adminPassword" type="password" autocomplete="current-password" placeholder="Password">
         <button id="adminLoginButton" class="primary-button full-width">Unlock</button>
@@ -177,6 +204,19 @@
       </div>
     </dialog>
 
+    <dialog id="namesPanel" class="mini-dialog names-dialog">
+      <button id="closeNames" class="close-button" aria-label="Close">×</button>
+      <div class="panel-tag">PLAYERS · NO PASSWORD</div>
+      <h2>Player names</h2>
+      <p class="names-note">Add or edit names freely. Use one name per line. Saving refreshes the game so the wheel uses the new list immediately.</p>
+      <textarea id="quickNamesEditor" spellcheck="false" placeholder="İdris\nYağmur\n..." aria-label="Player names"></textarea>
+      <div class="quick-actions">
+        <button id="saveQuickNames" class="primary-button">Save names</button>
+        <button id="restoreQuickNames" class="secondary-button">Restore samples</button>
+        <button id="clearQuickNames" class="danger-button">Remove all</button>
+      </div>
+    </dialog>
+
     <dialog id="passwordPanel" class="mini-dialog">
       <button id="closePassword" class="close-button" aria-label="Close">×</button>
       <div class="panel-tag">PASSWORD</div>
@@ -194,6 +234,158 @@
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
   </div>
   <script src="./questions.js"></script>
+  <script>
+    (() => {
+      const VOLUME_KEY = 'esc-truth-dare-volume-percent-v1';
+      const stored = Number(localStorage.getItem(VOLUME_KEY));
+      window.ESC_SOUND_PERCENT = Number.isFinite(stored) && stored >= 0 ? Math.min(300, stored) : 200;
+
+      const NativeAudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!NativeAudioContext) return;
+
+      const scaleValue = (value) => {
+        const multiplier = Math.max(0, Number(window.ESC_SOUND_PERCENT) || 0) / 100;
+        const scaled = Number(value) * multiplier;
+        return Math.max(0.000001, scaled);
+      };
+
+      function wrapContext(context) {
+        const nativeCreateGain = context.createGain.bind(context);
+        context.createGain = function createBoostedGain() {
+          const node = nativeCreateGain();
+          const param = node.gain;
+          ['setValueAtTime', 'linearRampToValueAtTime', 'exponentialRampToValueAtTime'].forEach((method) => {
+            if (typeof param[method] !== 'function') return;
+            const nativeMethod = param[method].bind(param);
+            try {
+              param[method] = (value, time) => nativeMethod(scaleValue(value), time);
+            } catch (_) {
+              // If a browser does not allow method replacement, keep the native AudioParam.
+            }
+          });
+          return node;
+        };
+        return context;
+      }
+
+      function BoostedAudioContext(...args) {
+        return wrapContext(new NativeAudioContext(...args));
+      }
+
+      try {
+        BoostedAudioContext.prototype = NativeAudioContext.prototype;
+        Object.setPrototypeOf(BoostedAudioContext, NativeAudioContext);
+      } catch (_) {}
+
+      if (window.AudioContext) window.AudioContext = BoostedAudioContext;
+      if (window.webkitAudioContext) window.webkitAudioContext = BoostedAudioContext;
+    })();
+  </script>
   <script src="./app.js"></script>
+  <script>
+    (() => {
+      const STATE_KEY = 'esc-truth-dare-v1';
+      const VOLUME_KEY = 'esc-truth-dare-volume-percent-v1';
+      const $ = (id) => document.getElementById(id);
+
+      const wheel = $('playerWheel');
+      const spinButton = $('spinPlayer');
+      if (wheel && spinButton) {
+        wheel.classList.add('wheel-click-target');
+        wheel.setAttribute('role', 'button');
+        wheel.setAttribute('tabindex', '0');
+        wheel.setAttribute('aria-label', 'Spin for a player');
+        wheel.setAttribute('title', 'Click the wheel to spin');
+
+        const triggerSpin = () => {
+          if (spinButton.disabled || wheel.classList.contains('spinning') || wheel.classList.contains('winner')) return;
+          spinButton.click();
+        };
+
+        wheel.addEventListener('click', triggerSpin);
+        wheel.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            triggerSpin();
+          }
+        });
+      }
+
+      const volumeSlider = $('volumeSlider');
+      const volumeValue = $('volumeValue');
+      const syncVolume = (raw) => {
+        const value = Math.max(0, Math.min(300, Number(raw) || 0));
+        window.ESC_SOUND_PERCENT = value;
+        localStorage.setItem(VOLUME_KEY, String(value));
+        if (volumeSlider) volumeSlider.value = String(value);
+        if (volumeValue) volumeValue.textContent = `${Math.round(value)}%`;
+      };
+      syncVolume(window.ESC_SOUND_PERCENT ?? 200);
+      if (volumeSlider) volumeSlider.addEventListener('input', (event) => syncVolume(event.currentTarget.value));
+
+      const defaultState = () => {
+        const defaults = window.ESC_TRUTH_DARE_DEFAULTS || { names: [], truths: [], dares: [] };
+        return {
+          names: [],
+          truths: Array.isArray(defaults.truths) ? defaults.truths.map((item) => item.text) : [],
+          dares: Array.isArray(defaults.dares) ? defaults.dares.map((item) => item.text) : [],
+          settings: { fairRotation: true, noRepeat: true, sound: true, vibration: true },
+          history: { names: [], truths: [], dares: [] }
+        };
+      };
+
+      const loadState = () => {
+        try {
+          const raw = localStorage.getItem(STATE_KEY);
+          return raw ? JSON.parse(raw) : defaultState();
+        } catch (_) {
+          return defaultState();
+        }
+      };
+
+      const uniqueNames = (text) => {
+        const seen = new Set();
+        return String(text || '').split(/\r?\n/).map((name) => name.trim()).filter((name) => {
+          const key = name.toLocaleLowerCase('en');
+          if (!name || seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+      };
+
+      const namesPanel = $('namesPanel');
+      const namesEditor = $('quickNamesEditor');
+
+      const openNamesPanel = () => {
+        const current = loadState();
+        namesEditor.value = Array.isArray(current.names) ? current.names.join('\n') : '';
+        namesPanel.showModal();
+        setTimeout(() => namesEditor.focus(), 40);
+      };
+
+      const persistNames = (names) => {
+        const current = loadState();
+        current.names = names;
+        current.history = current.history && typeof current.history === 'object' ? current.history : { names: [], truths: [], dares: [] };
+        current.history.names = [];
+        localStorage.setItem(STATE_KEY, JSON.stringify(current));
+        window.location.reload();
+      };
+
+      if ($('players')) $('players').onclick = openNamesPanel;
+      if ($('openNames')) $('openNames').onclick = openNamesPanel;
+      if ($('closeNames')) $('closeNames').onclick = () => namesPanel.close();
+      if ($('saveQuickNames')) $('saveQuickNames').onclick = () => persistNames(uniqueNames(namesEditor.value));
+      if ($('restoreQuickNames')) $('restoreQuickNames').onclick = () => {
+        const defaults = window.ESC_TRUTH_DARE_DEFAULTS || { names: [] };
+        const sampleNames = Array.isArray(defaults.names) ? defaults.names.slice() : [];
+        persistNames(sampleNames);
+      };
+      if ($('clearQuickNames')) $('clearQuickNames').onclick = () => {
+        if (confirm('Remove all player names?')) persistNames([]);
+      };
+      if (namesPanel) namesPanel.addEventListener('click', (event) => { if (event.target === namesPanel) namesPanel.close(); });
+    })();
+  </script>
 </body>
 </html>
