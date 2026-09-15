@@ -1,0 +1,88 @@
+.esc-brand{
+  display:flex!important;
+  align-items:center!important;
+  gap:16px!important;
+  min-width:0!important;
+  border:0!important;
+  background:transparent!important;
+  padding:0!important;
+  color:#0b2f5b!important;
+  text-decoration:none!important;
+  box-shadow:none!important;
+}
+
+.esc-brand-mark{
+  width:94px;
+  height:94px;
+  flex:0 0 94px;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  border-radius:28px;
+  background:#fff;
+  box-shadow:0 10px 28px rgba(11,47,91,.11), inset 0 0 0 1px rgba(11,47,91,.04);
+}
+
+.esc-brand-mark img{
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  display:block!important;
+  object-fit:cover!important;
+  object-position:center!important;
+  border-radius:inherit!important;
+  background:#fff!important;
+  box-shadow:none!important;
+}
+
+.esc-brand-title{
+  display:block;
+  color:#0b2f5b;
+  font-size:clamp(27px,3vw,42px);
+  line-height:.98;
+  font-weight:950;
+  letter-spacing:-.035em;
+  white-space:nowrap;
+}
+
+.site-header,
+.topbar{
+  min-height:116px!important;
+  align-items:center!important;
+}
+
+.topbar .esc-brand,
+.site-header .esc-brand{
+  flex:0 1 auto;
+}
+
+@media(max-width:760px){
+  .esc-brand{gap:11px!important}
+  .esc-brand-mark{
+    width:64px;
+    height:64px;
+    flex-basis:64px;
+    border-radius:20px;
+  }
+  .esc-brand-title{
+    font-size:clamp(20px,5.5vw,28px);
+    letter-spacing:-.03em;
+  }
+  .site-header,
+  .topbar{
+    min-height:92px!important;
+  }
+}
+
+@media(max-width:520px){
+  .esc-brand{gap:9px!important}
+  .esc-brand-mark{
+    width:58px;
+    height:58px;
+    flex-basis:58px;
+    border-radius:18px;
+  }
+  .esc-brand-title{
+    font-size:clamp(18px,5.4vw,24px);
+  }
+}
