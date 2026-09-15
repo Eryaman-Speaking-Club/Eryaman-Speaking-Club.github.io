@@ -1,0 +1,40 @@
+name: Fix player spin audio
+
+on:
+  push:
+    paths:
+      - ".github/workflows/fix-player-spin-audio.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sync player wheel sound to real segment crossings
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("truth-or-dare/app.js")
+          text = path.read_text(encoding="utf-8")
+          old = """    let ticks = 0;
+              clearInterval(spinTimer);
+              spinTimer = setInterval(() => playTick(ticks++), 82);
+          """
+          new = """    clearInterval(spinTimer);
+              spinTimer = 0;
+          """
+          if old not in text:
+              raise SystemExit("Expected fixed player-wheel tick block not found")
+          path.write_text(text.replace(old, new, 1), encoding="utf-8")
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add truth-or-dare/app.js
+          git commit -m "Sync player wheel sound to segment crossings" || exit 0
+          git push
