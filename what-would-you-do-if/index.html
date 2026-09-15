@@ -35,10 +35,11 @@
     .toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:var(--navy);color:#fff;padding:10px 14px;border-radius:13px;font-size:12px;font-weight:800;transition:.25s ease;z-index:60}.toast.show{opacity:1;transform:translate(-50%,0)}
     @media(max-width:650px){.shell{padding-top:14px}.brand img{width:270px;height:98px;max-width:72vw}.icon-btn{width:44px;height:44px;flex:0 0 44px}.filters{justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap;padding-bottom:3px}.chip{flex:0 0 auto}.scenario{min-height:385px;border-radius:27px;padding:28px 24px}.actions{grid-template-columns:1fr 1fr}.actions .btn.primary{grid-column:1/-1;grid-row:1}.mode-strip{grid-template-columns:1fr}.mode-strip .mini:nth-child(n+2){display:none}}
   </style>
+  <link rel="stylesheet" href="../esc-brand.css">
 </head>
 <body>
   <div class="shell">
-    <header class="topbar"><a class="brand" href="../"><img src="../51a64254-0651-4c02-8235-bef5325d7947%20(1).png" alt="Eryaman Speaking Club"></a><button class="icon-btn" id="soundBtn" aria-label="Sound level" title="Sound level">🔊</button></header>
+    <header class="topbar"><a class="brand esc-brand" href="../"><span class="esc-brand-mark"><img src="../esc-center-symbol.webp" alt=""></span><span class="esc-brand-title">Eryaman Speaking Club</span></a><button class="icon-btn" id="soundBtn" aria-label="Sound level" title="Sound level">🔊</button></header>
     <section class="hero"><div class="eyebrow">⚡ Situation Game</div><h1>What Would You Do If...?</h1><p class="subtitle">You get the situation. You make the call. Explain what you would do — and why.</p></section>
     <nav class="filters" id="filters"></nav>
     <main class="game-wrap">
