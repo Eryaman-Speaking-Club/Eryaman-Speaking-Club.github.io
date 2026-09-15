@@ -330,9 +330,8 @@
       labelAnimations.push(animation);
     });
 
-    let ticks = 0;
     clearInterval(spinTimer);
-    spinTimer = setInterval(() => playTick(ticks++), 82);
+    spinTimer = 0;
 
     wheelAnimation.onfinish = () => {
       clearInterval(spinTimer);
