@@ -77,46 +77,45 @@
     if (!audio || !audioBus) return;
 
     const now = audio.currentTime;
-    const loudness = Math.pow(v, 0.52);
-    const root = 392.0;
+    const loudness = Math.pow(v, 0.56);
+    const base = strong ? 330 : 370;
 
     const filter = audio.createBiquadFilter();
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(1500, now);
-    filter.Q.value = 0.45;
+    filter.frequency.setValueAtTime(1350, now);
+    filter.Q.value = 0.35;
     filter.connect(audioBus);
 
-    const body = audio.createOscillator();
-    const bodyGain = audio.createGain();
-    body.type = 'sine';
-    body.frequency.setValueAtTime(root, now);
-    body.frequency.exponentialRampToValueAtTime(root * 0.94, now + 0.085);
-    bodyGain.gain.setValueAtTime((strong ? 0.28 : 0.20) * loudness, now);
-    bodyGain.gain.exponentialRampToValueAtTime(0.0001, now + (strong ? 0.13 : 0.095));
-    body.connect(bodyGain).connect(filter);
-    body.start(now);
-    body.stop(now + 0.14);
+    const tone = audio.createOscillator();
+    const toneGain = audio.createGain();
+    tone.type = 'sine';
+    tone.frequency.setValueAtTime(base * 1.06, now);
+    tone.frequency.exponentialRampToValueAtTime(base, now + 0.045);
+    toneGain.gain.setValueAtTime((strong ? 0.34 : 0.24) * loudness, now);
+    toneGain.gain.exponentialRampToValueAtTime(0.0001, now + (strong ? 0.16 : 0.115));
+    tone.connect(toneGain).connect(filter);
+    tone.start(now);
+    tone.stop(now + 0.17);
 
-    const wood = audio.createOscillator();
-    const woodGain = audio.createGain();
-    wood.type = 'triangle';
-    wood.frequency.setValueAtTime(root * 1.5, now);
-    wood.frequency.exponentialRampToValueAtTime(root * 1.32, now + 0.055);
-    woodGain.gain.setValueAtTime((strong ? 0.11 : 0.075) * loudness, now);
-    woodGain.gain.exponentialRampToValueAtTime(0.0001, now + (strong ? 0.08 : 0.06));
-    wood.connect(woodGain).connect(filter);
-    wood.start(now);
-    wood.stop(now + 0.09);
+    const softBody = audio.createOscillator();
+    const softBodyGain = audio.createGain();
+    softBody.type = 'triangle';
+    softBody.frequency.setValueAtTime(base / 2, now);
+    softBodyGain.gain.setValueAtTime((strong ? 0.14 : 0.09) * loudness, now);
+    softBodyGain.gain.exponentialRampToValueAtTime(0.0001, now + (strong ? 0.14 : 0.10));
+    softBody.connect(softBodyGain).connect(filter);
+    softBody.start(now);
+    softBody.stop(now + 0.15);
 
-    const warmth = audio.createOscillator();
-    const warmthGain = audio.createGain();
-    warmth.type = 'sine';
-    warmth.frequency.setValueAtTime(root / 2, now);
-    warmthGain.gain.setValueAtTime((strong ? 0.095 : 0.055) * loudness, now);
-    warmthGain.gain.exponentialRampToValueAtTime(0.0001, now + (strong ? 0.12 : 0.085));
-    warmth.connect(warmthGain).connect(filter);
-    warmth.start(now);
-    warmth.stop(now + 0.13);
+    const bell = audio.createOscillator();
+    const bellGain = audio.createGain();
+    bell.type = 'sine';
+    bell.frequency.setValueAtTime(base * 2.5, now);
+    bellGain.gain.setValueAtTime((strong ? 0.05 : 0.03) * loudness, now);
+    bellGain.gain.exponentialRampToValueAtTime(0.0001, now + (strong ? 0.095 : 0.07));
+    bell.connect(bellGain).connect(filter);
+    bell.start(now);
+    bell.stop(now + 0.10);
 
     pointerKick();
   }
