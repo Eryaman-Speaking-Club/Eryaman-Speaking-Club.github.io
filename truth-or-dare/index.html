@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b2f5b">
+  <meta name="description" content="Eryaman Speaking Club Truth or Dare game">
+  <title>Truth or Dare · Eryaman Speaking Club</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div id="app">
+    <header class="site-header">
+      <button id="homeLogo" class="logo-button" aria-label="Restart game">
+        <img src="../51a64254-0651-4c02-8235-bef5325d7947%20(1).png" alt="Eryaman Speaking Club">
+      </button>
+      <div class="header-actions">
+        <button id="sound" class="icon-button" aria-label="Toggle sound" title="Sound">🔊</button>
+        <button id="admin" class="admin-button" aria-label="Edit game"><span>Edit game</span> ⚙</button>
+      </div>
+    </header>
+
+    <main>
+      <nav class="steps" aria-label="Game progress">
+        <div class="step active" data-step="player"><span>1</span><b>Player</b></div>
+        <i></i>
+        <div class="step" data-step="choice"><span>2</span><b>Truth or Dare</b></div>
+        <i></i>
+        <div class="step" data-step="question"><span>3</span><b>Question</b></div>
+      </nav>
+
+      <section id="playerScreen" class="game-screen">
+        <div class="screen-copy">
+          <div class="eyebrow">WHO'S NEXT?</div>
+          <h1>Spin for a player</h1>
+          <p>Everyone gets a turn before a name can appear again.</p>
+        </div>
+
+        <div class="wheel-stage">
+          <div class="wheel-pointer" aria-hidden="true"></div>
+          <div id="playerWheel" class="player-wheel" aria-live="polite">
+            <div class="wheel-ring ring-one"></div>
+            <div class="wheel-ring ring-two"></div>
+            <div class="wheel-center">
+              <span id="wheelLabel">READY</span>
+              <strong id="wheelName">?</strong>
+            </div>
+          </div>
+        </div>
+
+        <div id="emptyPlayers" class="empty-card" hidden>
+          <strong>Add at least 2 names to start playing.</strong>
+          <button id="openNames" class="link-button">Add names</button>
+        </div>
+
+        <div class="screen-actions">
+          <button id="spinPlayer" class="primary-button">Spin for a player</button>
+          <button id="newRound" class="secondary-button">New round</button>
+        </div>
+        <div id="roundStatus" class="round-status"></div>
+      </section>
+
+      <section id="choiceScreen" class="game-screen" hidden>
+        <div class="player-pill">IT'S YOUR TURN</div>
+        <h2 id="selectedPlayer">Player!</h2>
+        <p class="choice-prompt">Truth or dare?</p>
+
+        <div class="choice-grid">
+          <button id="chooseTruth" class="choice-card truth-card">
+            <span class="choice-icon">T</span>
+            <strong>Truth</strong>
+            <small>Answer honestly</small>
+          </button>
+          <button id="chooseDare" class="choice-card dare-card">
+            <span class="choice-icon">D</span>
+            <strong>Dare</strong>
+            <small>Take the challenge</small>
+          </button>
+        </div>
+        <button id="skipPlayer" class="text-action">Skip this player</button>
+      </section>
+
+      <section id="questionScreen" class="game-screen" hidden>
+        <div id="questionType" class="type-pill truth">TRUTH</div>
+        <h2 id="questionFor">Truth for Player</h2>
+
+        <div class="question-wheel-wrap">
+          <div id="questionWheel" class="question-wheel">
+            <span class="wheel-mini-dot dot-a"></span><span class="wheel-mini-dot dot-b"></span><span class="wheel-mini-dot dot-c"></span>
+            <div id="questionText" class="question-text">Question</div>
+          </div>
+        </div>
+
+        <div id="emptyQuestions" class="empty-card" hidden>
+          <strong>No questions here yet.</strong>
+          <button id="openQuestions" class="link-button">Add questions</button>
+        </div>
+
+        <div class="screen-actions question-actions">
+          <button id="nextPlayer" class="primary-button">Next player</button>
+          <button id="spinAgain" class="secondary-button">Spin again</button>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="adminPanel">
+      <button id="closeAdmin" class="close-button" aria-label="Close">×</button>
+
+      <div id="adminLogin" class="admin-login">
+        <div class="panel-tag">ORGANISER</div>
+        <h2>Enter the edit password</h2>
+        <p>Only club organisers can change names and questions.</p>
+        <label class="field-label" for="adminPassword">Password</label>
+        <input id="adminPassword" type="password" autocomplete="current-password" placeholder="Password">
+        <button id="adminLoginButton" class="primary-button full-width">Unlock</button>
+        <p id="adminError" class="error-text" hidden>Incorrect password.</p>
+      </div>
+
+      <div id="adminDashboard" hidden>
+        <div class="dashboard-head">
+          <div>
+            <div class="panel-tag">EDIT GAME</div>
+            <h2>Truth or Dare</h2>
+            <p>Lists are saved on this device and browser.</p>
+          </div>
+          <div class="save-state"><span class="save-dot"></span><span id="saveLabel">Saved</span></div>
+        </div>
+
+        <div class="stat-row">
+          <button class="stat active" data-admin-tab="names"><strong id="nameCount">0</strong><span>Names</span></button>
+          <button class="stat" data-admin-tab="truths"><strong id="truthCount">0</strong><span>Truths</span></button>
+          <button class="stat" data-admin-tab="dares"><strong id="dareCount">0</strong><span>Dares</span></button>
+        </div>
+
+        <section class="editor-section" data-tab-panel="names">
+          <div class="editor-title"><div><h3>Player names</h3><p>Paste a list — one name per line — to add many at once.</p></div><button id="restoreNames" class="small-button">Restore sample list</button></div>
+          <textarea id="namesEditor" class="list-editor" spellcheck="false" placeholder="İdris\nYağmur\n..." aria-label="Player names"></textarea>
+          <div class="editor-actions"><button id="saveNames" class="primary-button">Save names</button><button id="clearNames" class="danger-button">Remove all</button></div>
+        </section>
+
+        <section class="editor-section" data-tab-panel="truths" hidden>
+          <div class="editor-title"><div><h3>Truth questions</h3><p>One question per line.</p></div><button id="restoreTruths" class="small-button">Restore samples</button></div>
+          <textarea id="truthsEditor" class="list-editor tall" spellcheck="false" aria-label="Truth questions"></textarea>
+          <div class="editor-actions"><button id="saveTruths" class="primary-button">Save truths</button><button id="clearTruths" class="danger-button">Remove all</button></div>
+        </section>
+
+        <section class="editor-section" data-tab-panel="dares" hidden>
+          <div class="editor-title"><div><h3>Dare challenges</h3><p>One challenge per line.</p></div><button id="restoreDares" class="small-button">Restore samples</button></div>
+          <textarea id="daresEditor" class="list-editor tall" spellcheck="false" aria-label="Dare challenges"></textarea>
+          <div class="editor-actions"><button id="saveDares" class="primary-button">Save dares</button><button id="clearDares" class="danger-button">Remove all</button></div>
+        </section>
+
+        <section class="settings-card">
+          <h3>Game settings</h3>
+          <label class="setting-row"><div><strong>Fair rotation</strong><small>Everyone plays once before a name can come up again.</small></div><input id="fairRotation" type="checkbox"></label>
+          <label class="setting-row"><div><strong>No repeated questions</strong><small>Use every question before repeating one.</small></div><input id="noRepeat" type="checkbox"></label>
+          <label class="setting-row"><div><strong>Sound effects</strong><small>Ticks while the wheel spins.</small></div><input id="soundSetting" type="checkbox"></label>
+          <label class="setting-row"><div><strong>Vibration</strong><small>Supported on most Android phones.</small></div><input id="vibrationSetting" type="checkbox"></label>
+        </section>
+
+        <section class="tools-card">
+          <div><h3>Password</h3><p>Change the organiser password stored on this device.</p></div>
+          <button id="changePassword" class="secondary-button">Change password</button>
+        </section>
+
+        <section class="tools-card">
+          <div><h3>Backup</h3><p>Download a copy of all lists and settings, or load one back.</p></div>
+          <div class="tool-actions"><button id="exportBackup" class="secondary-button">Export backup</button><label class="secondary-button file-label">Import backup<input id="importBackup" type="file" accept="application/json,.json"></label></div>
+        </section>
+
+        <section class="tools-card reset-card">
+          <div><h3>Reset</h3><p>Clear round history or restore all sample content.</p></div>
+          <div class="tool-actions"><button id="clearHistory" class="secondary-button">Clear round history</button><button id="restoreAll" class="danger-button">Restore all samples</button></div>
+        </section>
+
+        <button id="adminLogout" class="text-action lock-action">Lock this device</button>
+      </div>
+    </dialog>
+
+    <dialog id="passwordPanel" class="mini-dialog">
+      <button id="closePassword" class="close-button" aria-label="Close">×</button>
+      <div class="panel-tag">PASSWORD</div>
+      <h2>Change password</h2>
+      <label class="field-label" for="currentPassword">Current password</label>
+      <input id="currentPassword" type="password" autocomplete="current-password">
+      <label class="field-label" for="newPassword">New password</label>
+      <input id="newPassword" type="password" autocomplete="new-password">
+      <label class="field-label" for="repeatPassword">Repeat password</label>
+      <input id="repeatPassword" type="password" autocomplete="new-password">
+      <p id="passwordError" class="error-text" hidden></p>
+      <button id="savePassword" class="primary-button full-width">Save password</button>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </div>
+  <script src="./questions.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

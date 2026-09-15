@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b2f5b">
+  <meta name="description" content="Eryaman Speaking Club - One for Me, One for You conversation game">
+  <title>One for Me · One for You — Eryaman Speaking Club</title>
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./logo-size.css">
+</head>
+<body>
+  <div id="app">
+    <header class="site-header">
+      <button id="homeLogo" class="logo-button" aria-label="Go to home">
+        <img src="../51a64254-0651-4c02-8235-bef5325d7947%20(1).png" alt="Eryaman Speaking Club">
+      </button>
+      <div class="header-actions">
+        <button id="sound" class="icon-button" aria-label="Toggle sound" title="Sound">🔊</button>
+        <button id="admin" class="admin-button" aria-label="Open control panel" title="Control Panel"><span>Control Panel</span> 🔒</button>
+      </div>
+    </header>
+
+    <main>
+      <section id="home" class="screen active">
+        <div id="level">B LEVEL</div>
+        <h1>One for Me.<br><span>One for You.</span></h1>
+        <p>Draw a random question. Answer one yourself, then pass the next one to someone else.</p>
+        <button id="start" class="primary-button">Start the game</button>
+      </section>
+
+      <section id="game" class="screen" hidden>
+        <div id="turn">FOR ME</div>
+        <article id="questionCard" aria-live="polite">
+          <h2 id="q">Ready?</h2>
+          <p id="f">Draw a card to start.</p>
+        </article>
+        <button id="draw" class="primary-button">Draw one for me</button>
+        <button id="next" class="primary-button" hidden>Next: FOR YOU</button>
+      </section>
+    </main>
+
+    <dialog id="adminPanel">
+      <button id="closeAdmin" class="close-button" aria-label="Close control panel">×</button>
+      <div id="adminLogin">
+        <div class="panel-tag">LOCAL ADMIN</div>
+        <h2>Control Panel</h2>
+        <p>Changes made here are saved only in this browser on this device.</p>
+        <label class="field-label" for="adminPassword">Password</label>
+        <input id="adminPassword" type="password" autocomplete="current-password" placeholder="Admin password">
+        <button id="adminLoginButton" class="primary-button full-width">Unlock Control Panel</button>
+        <p id="adminError" class="error-text" hidden>Incorrect password.</p>
+      </div>
+
+      <div id="adminDashboard" hidden>
+        <div class="dashboard-head">
+          <div>
+            <div class="panel-tag">B LEVEL · LOCAL</div>
+            <h2>Question Library</h2>
+            <p>Edit or hide built-in questions, add your own, and back up your local changes.</p>
+          </div>
+          <button id="adminLogout" class="secondary-button">Lock</button>
+        </div>
+        <div class="admin-grid">
+          <section class="admin-card">
+            <h3>Add a new question</h3>
+            <label class="field-label" for="newQuestion">Question</label>
+            <textarea id="newQuestion" placeholder="Write a new conversation question..."></textarea>
+            <label class="field-label" for="newFollowup">Follow-up</label>
+            <input id="newFollowup" placeholder="Optional follow-up question">
+            <button id="addQuestion" class="primary-button full-width">Add question</button>
+          </section>
+          <section class="admin-card editor-card">
+            <div class="editor-heading">
+              <h3>Edit selected question</h3>
+              <button id="clearEditor" class="text-button" hidden>Cancel edit</button>
+            </div>
+            <p id="editorEmpty" class="muted-copy">Select a question from the list below to edit it.</p>
+            <div id="editorFields" hidden>
+              <label class="field-label" for="editQuestion">Question</label>
+              <textarea id="editQuestion"></textarea>
+              <label class="field-label" for="editFollowup">Follow-up</label>
+              <input id="editFollowup">
+              <button id="saveEdit" class="primary-button full-width">Save changes</button>
+            </div>
+          </section>
+        </div>
+        <section class="backup-section admin-card">
+          <div>
+            <h3>Backup / Transfer</h3>
+            <p>Export your edits before changing phone or browser. Import the same file on another device.</p>
+          </div>
+          <div class="backup-actions">
+            <button id="exportBackup" class="secondary-button">Export backup</button>
+            <label class="secondary-button file-label">Import backup<input id="importBackup" type="file" accept="application/json,.json"></label>
+            <button id="resetLocal" class="danger-button">Reset local changes</button>
+          </div>
+        </section>
+        <section class="library-section">
+          <div class="library-toolbar">
+            <input id="questionSearch" type="search" placeholder="Search questions...">
+            <button id="showDisabled" class="secondary-button">Show all</button>
+          </div>
+          <div id="questionList" class="question-list"></div>
+          <div class="pagination">
+            <button id="prevPage" class="secondary-button">← Previous</button>
+            <span id="pageLabel">Page 1</span>
+            <button id="nextPage" class="secondary-button">Next →</button>
+          </div>
+        </section>
+      </div>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </div>
+  <script src="./questions.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
