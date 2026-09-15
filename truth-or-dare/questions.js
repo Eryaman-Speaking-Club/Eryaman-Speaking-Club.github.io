@@ -76,4 +76,12 @@
     truths,
     dares
   };
+
+  if (!document.querySelector('script[data-esc-wheel-feedback]')) {
+    const script = document.createElement('script');
+    script.src = './wheel-feedback.js?v=20260915c';
+    script.dataset.escWheelFeedback = '1';
+    script.async = false;
+    document.head.appendChild(script);
+  }
 })();
