@@ -1,0 +1,28 @@
+name: Apply game UI fixes v2
+
+on:
+  push:
+    paths:
+      - '.trigger-game-ui-fixes'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Patch games
+        run: python3 tools/patch_games.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sound-control.js truth-or-dare/app.js truth-or-dare/index.html one-for-me-one-for-you/index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Refine wheel layout and unify volume controls"
+          git push
