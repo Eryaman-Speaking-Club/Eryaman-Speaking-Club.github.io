@@ -77,38 +77,46 @@
     if (!audio || !audioBus) return;
 
     const now = audio.currentTime;
-    const loudness = Math.pow(v, 0.55);
-    const note = 523.25;
+    const loudness = Math.pow(v, 0.52);
+    const root = 392.0;
 
-    const main = audio.createOscillator();
-    const mainGain = audio.createGain();
-    main.type = 'triangle';
-    main.frequency.setValueAtTime(note, now);
-    mainGain.gain.setValueAtTime((strong ? 0.24 : 0.18) * loudness, now);
-    mainGain.gain.exponentialRampToValueAtTime(0.0001, now + (strong ? 0.075 : 0.055));
-    main.connect(mainGain).connect(audioBus);
-    main.start(now);
-    main.stop(now + 0.085);
+    const filter = audio.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1500, now);
+    filter.Q.value = 0.45;
+    filter.connect(audioBus);
 
-    const warm = audio.createOscillator();
-    const warmGain = audio.createGain();
-    warm.type = 'sine';
-    warm.frequency.setValueAtTime(note / 2, now);
-    warmGain.gain.setValueAtTime((strong ? 0.085 : 0.055) * loudness, now);
-    warmGain.gain.exponentialRampToValueAtTime(0.0001, now + (strong ? 0.085 : 0.060));
-    warm.connect(warmGain).connect(audioBus);
-    warm.start(now);
-    warm.stop(now + 0.095);
+    const body = audio.createOscillator();
+    const bodyGain = audio.createGain();
+    body.type = 'sine';
+    body.frequency.setValueAtTime(root, now);
+    body.frequency.exponentialRampToValueAtTime(root * 0.94, now + 0.085);
+    bodyGain.gain.setValueAtTime((strong ? 0.28 : 0.20) * loudness, now);
+    bodyGain.gain.exponentialRampToValueAtTime(0.0001, now + (strong ? 0.13 : 0.095));
+    body.connect(bodyGain).connect(filter);
+    body.start(now);
+    body.stop(now + 0.14);
 
-    const overtone = audio.createOscillator();
-    const overtoneGain = audio.createGain();
-    overtone.type = 'sine';
-    overtone.frequency.setValueAtTime(note * 2, now);
-    overtoneGain.gain.setValueAtTime((strong ? 0.045 : 0.028) * loudness, now);
-    overtoneGain.gain.exponentialRampToValueAtTime(0.0001, now + (strong ? 0.050 : 0.038));
-    overtone.connect(overtoneGain).connect(audioBus);
-    overtone.start(now);
-    overtone.stop(now + 0.060);
+    const wood = audio.createOscillator();
+    const woodGain = audio.createGain();
+    wood.type = 'triangle';
+    wood.frequency.setValueAtTime(root * 1.5, now);
+    wood.frequency.exponentialRampToValueAtTime(root * 1.32, now + 0.055);
+    woodGain.gain.setValueAtTime((strong ? 0.11 : 0.075) * loudness, now);
+    woodGain.gain.exponentialRampToValueAtTime(0.0001, now + (strong ? 0.08 : 0.06));
+    wood.connect(woodGain).connect(filter);
+    wood.start(now);
+    wood.stop(now + 0.09);
+
+    const warmth = audio.createOscillator();
+    const warmthGain = audio.createGain();
+    warmth.type = 'sine';
+    warmth.frequency.setValueAtTime(root / 2, now);
+    warmthGain.gain.setValueAtTime((strong ? 0.095 : 0.055) * loudness, now);
+    warmthGain.gain.exponentialRampToValueAtTime(0.0001, now + (strong ? 0.12 : 0.085));
+    warmth.connect(warmthGain).connect(filter);
+    warmth.start(now);
+    warmth.stop(now + 0.13);
 
     pointerKick();
   }
