@@ -1,0 +1,94 @@
+name: Tune wheel sound
+
+on:
+  push:
+    paths:
+      - ".github/workflows/tune-wheel-sound.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  tune:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Replace harsh tick with soft wheel pluck
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('truth-or-dare/wheel-feedback.js')
+          text = path.read_text(encoding='utf-8')
+
+          replacement = r'''  function clickSound(strong = false) {
+    const v = volume();
+    if (v <= 0) return;
+    const audio = getContext();
+    if (!audio || !audioBus) return;
+
+    const now = audio.currentTime;
+    const loudness = Math.pow(v, 0.55);
+    const note = 523.25;
+
+    const main = audio.createOscillator();
+    const mainGain = audio.createGain();
+    main.type = 'triangle';
+    main.frequency.setValueAtTime(note, now);
+    mainGain.gain.setValueAtTime((strong ? 0.24 : 0.18) * loudness, now);
+    mainGain.gain.exponentialRampToValueAtTime(0.0001, now + (strong ? 0.075 : 0.055));
+    main.connect(mainGain).connect(audioBus);
+    main.start(now);
+    main.stop(now + 0.085);
+
+    const warm = audio.createOscillator();
+    const warmGain = audio.createGain();
+    warm.type = 'sine';
+    warm.frequency.setValueAtTime(note / 2, now);
+    warmGain.gain.setValueAtTime((strong ? 0.085 : 0.055) * loudness, now);
+    warmGain.gain.exponentialRampToValueAtTime(0.0001, now + (strong ? 0.085 : 0.060));
+    warm.connect(warmGain).connect(audioBus);
+    warm.start(now);
+    warm.stop(now + 0.095);
+
+    const overtone = audio.createOscillator();
+    const overtoneGain = audio.createGain();
+    overtone.type = 'sine';
+    overtone.frequency.setValueAtTime(note * 2, now);
+    overtoneGain.gain.setValueAtTime((strong ? 0.045 : 0.028) * loudness, now);
+    overtoneGain.gain.exponentialRampToValueAtTime(0.0001, now + (strong ? 0.050 : 0.038));
+    overtone.connect(overtoneGain).connect(audioBus);
+    overtone.start(now);
+    overtone.stop(now + 0.060);
+
+    pointerKick();
+  }
+
+  function rotationOf'''
+
+          updated, count = re.subn(
+              r"  function clickSound\(strong = false\) \{.*?\n  \}\n\n  function rotationOf",
+              replacement,
+              text,
+              count=1,
+              flags=re.S,
+          )
+          if count != 1:
+              raise SystemExit('clickSound block not found exactly once')
+          path.write_text(updated, encoding='utf-8')
+
+          qpath = Path('truth-or-dare/questions.js')
+          qtext = qpath.read_text(encoding='utf-8')
+          qtext2 = qtext.replace("./wheel-feedback.js?v=20260915d", "./wheel-feedback.js?v=20260915e", 1)
+          if qtext2 == qtext:
+              raise SystemExit('cache-buster token not found')
+          qpath.write_text(qtext2, encoding='utf-8')
+          PY
+      - name: Commit tuning
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add truth-or-dare/wheel-feedback.js truth-or-dare/questions.js
+          git commit -m "Soften wheel segment sound" || exit 0
+          git push
