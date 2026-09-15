@@ -73,35 +73,37 @@
     return audioContext;
   }
 
-  function tone(frequency, duration = 0.05, delay = 0, volume = 0.02) {
-    const ctx = getAudio();
-    if (!ctx) return;
-    const oscillator = ctx.createOscillator();
-    const gain = ctx.createGain();
-    oscillator.type = 'triangle';
-    oscillator.frequency.value = frequency;
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime + delay);
-    gain.gain.exponentialRampToValueAtTime(volume, ctx.currentTime + delay + 0.008);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay + duration);
-    oscillator.connect(gain).connect(ctx.destination);
-    oscillator.start(ctx.currentTime + delay);
-    oscillator.stop(ctx.currentTime + delay + duration + 0.02);
-  }
+  function tone(frequency, duration = 0.05, delay = 0, volume = 0.02, type = 'sine') {
+  const ctx = getAudio();
+  if (!ctx) return;
+  const oscillator = ctx.createOscillator();
+  const gain = ctx.createGain();
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(frequency, ctx.currentTime + delay);
+  gain.gain.setValueAtTime(0.0001, ctx.currentTime + delay);
+  gain.gain.exponentialRampToValueAtTime(volume, ctx.currentTime + delay + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay + duration);
+  oscillator.connect(gain).connect(ctx.destination);
+  oscillator.start(ctx.currentTime + delay);
+  oscillator.stop(ctx.currentTime + delay + duration + 0.03);
+}
 
-  function playClick() {
-    tone(320, 0.045, 0, 0.018);
-    tone(470, 0.05, 0.025, 0.014);
-  }
+function playClick() {
+  tone(659.25, 0.04, 0, 0.014, 'sine');
+  tone(987.77, 0.055, 0.028, 0.010, 'sine');
+}
 
-  function playDraw() {
-    [0, 1, 2, 3].forEach((step) => tone(190 + step * 55, 0.045, step * 0.055, 0.015));
-  }
+function playDraw() {
+  [392.00, 493.88, 587.33, 698.46].forEach((note, step) =>
+    tone(note, 0.055, step * 0.045, 0.013, 'triangle')
+  );
+}
 
-  function playReveal() {
-    tone(390, 0.09, 0, 0.024);
-    tone(590, 0.11, 0.055, 0.019);
-    tone(790, 0.15, 0.11, 0.014);
-  }
+function playReveal() {
+  tone(523.25, 0.09, 0, 0.020, 'sine');
+  tone(659.25, 0.11, 0.045, 0.016, 'sine');
+  tone(783.99, 0.14, 0.09, 0.012, 'sine');
+}
 
   function showToast(message) {
     const toast = $('toast');
@@ -158,7 +160,6 @@
       showToast('No active questions. Open the Control Panel.');
       return;
     }
-    playClick();
     playDraw();
     const card = $('questionCard');
     card.classList.remove('revealed');
