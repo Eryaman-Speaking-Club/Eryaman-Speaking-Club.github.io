@@ -21,8 +21,8 @@
     button{cursor:pointer}
     .shell{width:min(980px,94vw);margin:0 auto;padding:22px 0 42px}
     .topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:22px}
-    .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--navy);font-weight:950;letter-spacing:-.02em}
-    .brand img{width:54px;height:54px;object-fit:contain;border-radius:16px;background:#fff;box-shadow:0 8px 24px rgba(11,47,91,.12)}
+    .brand{display:flex;align-items:center;text-decoration:none;min-width:0}
+    .brand img{width:340px;height:124px;display:block;object-fit:contain;object-position:left center;max-width:min(62vw,340px)}
     .icon-btn{width:46px;height:46px;border:1px solid var(--line);border-radius:15px;background:#fff;color:var(--navy);font-size:21px;box-shadow:0 8px 22px rgba(11,47,91,.08)}
     .hero{text-align:center;margin:12px auto 20px}
     .eyebrow{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:999px;background:#eaf5ff;color:var(--blue);font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}
@@ -55,7 +55,7 @@
     .volume-pop.open{display:block}.volume-pop b{color:var(--navy);font-size:12px}.volume-pop input{width:100%;margin-top:10px;accent-color:var(--navy)}
     .toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:var(--navy);color:#fff;padding:10px 14px;border-radius:13px;font-size:12px;font-weight:800;transition:.25s ease;z-index:60}.toast.show{opacity:1;transform:translate(-50%,0)}
     @media(max-width:650px){
-      .shell{padding-top:14px}.brand span{display:none}.brand img{width:46px;height:46px}.icon-btn{width:44px;height:44px}
+      .shell{padding-top:14px}.brand img{width:270px;height:98px;max-width:72vw}.icon-btn{width:44px;height:44px;flex:0 0 44px}
       .card{min-height:360px;border-radius:27px;padding:28px 24px 25px}.actions{grid-template-columns:1fr 1fr}.actions .btn.primary{grid-column:1/-1;grid-row:1}.filters{justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap;padding-bottom:3px}.chip{flex:0 0 auto}.history{display:none}
     }
   </style>
@@ -63,7 +63,7 @@
 <body>
   <div class="shell">
     <header class="topbar">
-      <a class="brand" href="../"><img src="../esc-center-symbol.webp" alt="ESC"><span>Eryaman Speaking Club</span></a>
+      <a class="brand" href="../"><img src="../51a64254-0651-4c02-8235-bef5325d7947%20(1).png" alt="Eryaman Speaking Club"></a>
       <button class="icon-btn" id="soundBtn" aria-label="Sound level" title="Sound level">🔊</button>
     </header>
 
