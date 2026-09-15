@@ -22,4 +22,4 @@ Because this is a static site, this password is only a convenience lock. Control
 
 ## Hosting
 
-The repository is configured for GitHub Pages using GitHub Actions. The live site is intended to publish from this repository automatically.
+The repository is configured for GitHub Pages using GitHub Actions. The live site publishes automatically from the `main` branch after GitHub Pages is enabled with **Source: GitHub Actions**.
