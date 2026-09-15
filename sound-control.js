@@ -56,6 +56,136 @@
     }
   }
 
+  function enhanceTruthOrDareWheel() {
+    const wheel = document.getElementById('playerWheel');
+    if (!wheel || document.getElementById('escWheelPolishStyles')) return;
+
+    const style = document.createElement('style');
+    style.id = 'escWheelPolishStyles';
+    style.textContent = `
+      #playerWheel{
+        border:7px solid #fff!important;
+        border-radius:50%!important;
+        background:#fff!important;
+        box-shadow:0 18px 42px rgba(11,47,91,.18)!important;
+        overflow:visible!important;
+      }
+      #playerWheel .wheel-rotor{
+        inset:0!important;
+        border-radius:50%!important;
+        overflow:hidden!important;
+      }
+      #playerWheel .wheel-rotor .wheel-ring{display:none!important}
+      #playerWheel .wheel-name-layer{position:absolute!important;inset:0!important;border-radius:50%!important;pointer-events:none!important}
+      #playerWheel .wheel-name{
+        transform:translate(-50%,-50%) rotate(var(--esc-label-angle,0deg))!important;
+        transform-origin:center!important;
+        color:#fff!important;
+        font-weight:950!important;
+        line-height:1!important;
+        letter-spacing:-.02em!important;
+        text-align:center!important;
+        text-shadow:0 2px 7px rgba(0,0,0,.34)!important;
+        white-space:nowrap!important;
+        overflow:visible!important;
+        text-overflow:clip!important;
+        padding:3px 6px!important;
+        pointer-events:none!important;
+      }
+      #playerWheel .wheel-center{
+        z-index:8!important;
+        width:27.5%!important;
+        height:27.5%!important;
+        padding:0!important;
+        border:5px solid #fff!important;
+        border-radius:50%!important;
+        background:#fff!important;
+        box-shadow:0 8px 24px rgba(11,47,91,.16)!important;
+        overflow:hidden!important;
+      }
+      #playerWheel #wheelLabel{display:none!important}
+      #playerWheel .wheel-center strong.logo-mode{
+        display:block!important;
+        position:relative!important;
+        width:100%!important;
+        height:100%!important;
+        margin:0!important;
+        border-radius:50%!important;
+        overflow:hidden!important;
+      }
+      #playerWheel .wheel-logo-symbol{
+        position:absolute!important;
+        display:block!important;
+        width:225.5%!important;
+        height:225.5%!important;
+        max-width:none!important;
+        left:50%!important;
+        top:50%!important;
+        transform:translate(-50%,-46.25%)!important;
+        object-fit:contain!important;
+      }
+      #playerWheel .wheel-center strong:not(.logo-mode){
+        display:flex!important;
+        width:100%!important;
+        height:100%!important;
+        margin:0!important;
+        align-items:center!important;
+        justify-content:center!important;
+        padding:10px!important;
+        text-align:center!important;
+        color:#0b2f5b!important;
+        font-size:clamp(16px,3.2vw,30px)!important;
+        line-height:1.05!important;
+      }
+      @media(max-width:560px){
+        #playerWheel{border-width:5px!important}
+        #playerWheel .wheel-center{width:28%!important;height:28%!important;border-width:4px!important}
+      }
+    `;
+    document.head.appendChild(style);
+
+    const refresh = () => {
+      const rotor = wheel.querySelector('.wheel-rotor');
+      if (!rotor) return;
+
+      const labels = Array.from(rotor.querySelectorAll('.wheel-name'));
+      const count = labels.length;
+      if (count) {
+        const segment = 360 / count;
+        const radius = count > 12 ? 36 : count > 8 ? 35 : 34.5;
+        labels.forEach((label, index) => {
+          const angle = -90 + (index + 0.5) * segment;
+          const radians = angle * Math.PI / 180;
+          const x = 50 + Math.cos(radians) * radius;
+          const y = 50 + Math.sin(radians) * radius;
+
+          // Wheel-of-Fortune layout: text baseline follows the radius,
+          // i.e. it is perpendicular to the tangent of the circle.
+          let readableAngle = ((angle + 180) % 360) - 180;
+          if (readableAngle > 90) readableAngle -= 180;
+          if (readableAngle < -90) readableAngle += 180;
+
+          label.style.left = `${x}%`;
+          label.style.top = `${y}%`;
+          label.style.setProperty('--esc-label-angle', `${readableAngle}deg`);
+          label.style.maxWidth = count > 12 ? '17%' : count > 8 ? '21%' : '27%';
+          label.style.fontSize = count > 12 ? '10px' : count > 8 ? '12px' : count > 6 ? '14px' : 'clamp(16px,2.2vw,23px)';
+        });
+      }
+
+      const label = document.getElementById('wheelLabel');
+      if (label) label.style.display = 'none';
+    };
+
+    refresh();
+    const observer = new MutationObserver(() => requestAnimationFrame(refresh));
+    observer.observe(wheel, { childList: true, subtree: true });
+
+    // renderWheel() can be called after settings/history changes without replacing nodes.
+    window.addEventListener('resize', refresh);
+    setInterval(refresh, 700);
+  }
+
   function mount() {
     const button = document.getElementById('sound');
     if (!button || document.getElementById('escVolumePopover')) return;
@@ -63,6 +193,7 @@
     ensureGameSoundEnabled(button);
     applyLegacyBoost();
     patchAudioContext();
+    enhanceTruthOrDareWheel();
 
     const style = document.createElement('style');
     style.id = 'escVolumeStyles';
