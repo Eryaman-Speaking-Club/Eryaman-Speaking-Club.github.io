@@ -138,12 +138,12 @@
     style.textContent = `
       .player-wheel{overflow:visible}
       .wheel-name-layer{position:absolute;inset:0;z-index:1;pointer-events:none;border-radius:50%}
-      .wheel-name{position:absolute;transform:translate(-50%,-50%);color:#fff;font-weight:950;line-height:1;letter-spacing:-.02em;text-align:center;text-shadow:0 2px 7px rgba(0,0,0,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:2px 3px;pointer-events:none}
+      .wheel-name{position:absolute;transform:translate(-50%,-50%);color:#fff;font-weight:950;line-height:1.05;letter-spacing:-.02em;text-align:center;text-shadow:0 2px 6px rgba(0,0,0,.38);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:4px 6px;pointer-events:none;z-index:2}
       .wheel-center{z-index:3;overflow:hidden}
-      .wheel-center strong.logo-mode{width:min(112px,28vw);height:min(90px,23vw);margin-top:8px;display:flex;align-items:center;justify-content:flex-start;overflow:hidden;border-radius:18px}
-      .wheel-logo-symbol{display:block;height:100%;width:auto;max-width:none;object-fit:contain;object-position:left center;flex:none}
+      .wheel-center strong.logo-mode{width:min(92px,23vw);height:min(92px,23vw);margin-top:8px;display:block;overflow:hidden;border-radius:50%;position:relative}
+      .wheel-logo-symbol{position:absolute;display:block;height:158px;width:auto;max-width:none;left:50%;top:-7px;transform:translateX(-50%)}
       .player-wheel.is-spinning{will-change:transform}
-      @media(max-width:560px){.wheel-name{font-size:9px!important}.wheel-center strong.logo-mode{width:82px;height:67px}}
+      @media(max-width:560px){.wheel-name{font-size:9px!important}.wheel-center strong.logo-mode{width:70px;height:70px}.wheel-logo-symbol{height:122px;top:-5px}}
     `;
     document.head.appendChild(style);
   }
@@ -178,7 +178,7 @@
     if (!names.length) return;
 
     const segment = 360 / names.length;
-    const gap = Math.min(3.2, Math.max(1.3, segment * 0.075));
+    const gap = Math.min(2.4, Math.max(1.0, segment * 0.055));
     const gradient = [];
     names.forEach((name, index) => {
       const start = index * segment;
@@ -192,7 +192,7 @@
 
       const angle = -90 + (index + 0.5) * segment;
       const radians = angle * Math.PI / 180;
-      const radius = names.length > 12 ? 40 : names.length > 8 ? 39 : 38;
+      const radius = names.length > 12 ? 37 : names.length > 8 ? 36.5 : 36;
       const x = 50 + Math.cos(radians) * radius;
       const y = 50 + Math.sin(radians) * radius;
       const label = document.createElement('span');
@@ -201,11 +201,11 @@
       label.title = name;
       label.style.left = `${x}%`;
       label.style.top = `${y}%`;
-      label.style.maxWidth = names.length > 12 ? '15%' : names.length > 8 ? '18%' : '23%';
-      label.style.fontSize = names.length > 12 ? '9px' : names.length > 8 ? '10px' : '12px';
+      label.style.maxWidth = names.length > 12 ? '14%' : names.length > 8 ? '18%' : '25%';
+      label.style.fontSize = names.length > 12 ? '9px' : names.length > 8 ? '11px' : '13px';
       layer.appendChild(label);
     });
-    wheel.style.background = `conic-gradient(from -90deg, ${gradient.join(',')})`;
+    wheel.style.background = `conic-gradient(${gradient.join(',')})`;
   }
 
   function showScreen(name) {
