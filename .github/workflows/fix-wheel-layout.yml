@@ -1,0 +1,84 @@
+name: Fix wheel layout once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-wheel-layout.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Align wheel names, colors and center symbol
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('truth-or-dare/app.js')
+          text = path.read_text(encoding='utf-8')
+
+          replacements = [
+              (
+                  "wheel.style.background = `conic-gradient(from -90deg, ${gradient.join(',')})`;",
+                  "wheel.style.background = `conic-gradient(${gradient.join(',')})`;"
+              ),
+              (
+                  "const gap = Math.min(3.2, Math.max(1.3, segment * 0.075));",
+                  "const gap = Math.min(2.4, Math.max(1.0, segment * 0.055));"
+              ),
+              (
+                  "const radius = names.length > 12 ? 40 : names.length > 8 ? 39 : 38;",
+                  "const radius = names.length > 12 ? 37 : names.length > 8 ? 36.5 : 36;"
+              ),
+              (
+                  "label.style.maxWidth = names.length > 12 ? '15%' : names.length > 8 ? '18%' : '23%';",
+                  "label.style.maxWidth = names.length > 12 ? '14%' : names.length > 8 ? '18%' : '25%';"
+              ),
+              (
+                  "label.style.fontSize = names.length > 12 ? '9px' : names.length > 8 ? '10px' : '12px';",
+                  "label.style.fontSize = names.length > 12 ? '9px' : names.length > 8 ? '11px' : '13px';"
+              ),
+              (
+                  ".wheel-name{position:absolute;transform:translate(-50%,-50%);color:#fff;font-weight:950;line-height:1;letter-spacing:-.02em;text-align:center;text-shadow:0 2px 7px rgba(0,0,0,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:2px 3px;pointer-events:none}",
+                  ".wheel-name{position:absolute;transform:translate(-50%,-50%);color:#fff;font-weight:950;line-height:1.05;letter-spacing:-.02em;text-align:center;text-shadow:0 2px 6px rgba(0,0,0,.38);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:4px 6px;pointer-events:none;z-index:2}"
+              ),
+              (
+                  ".wheel-center strong.logo-mode{width:min(112px,28vw);height:min(90px,23vw);margin-top:8px;display:flex;align-items:center;justify-content:flex-start;overflow:hidden;border-radius:18px}",
+                  ".wheel-center strong.logo-mode{width:min(92px,23vw);height:min(92px,23vw);margin-top:8px;display:block;overflow:hidden;border-radius:50%;position:relative}"
+              ),
+              (
+                  ".wheel-logo-symbol{display:block;height:100%;width:auto;max-width:none;object-fit:contain;object-position:left center;flex:none}",
+                  ".wheel-logo-symbol{position:absolute;display:block;height:158px;width:auto;max-width:none;left:50%;top:-7px;transform:translateX(-50%)}"
+              ),
+              (
+                  "@media(max-width:560px){.wheel-name{font-size:9px!important}.wheel-center strong.logo-mode{width:82px;height:67px}}",
+                  "@media(max-width:560px){.wheel-name{font-size:9px!important}.wheel-center strong.logo-mode{width:70px;height:70px}.wheel-logo-symbol{height:122px;top:-5px}}"
+              ),
+          ]
+
+          for old, new in replacements:
+              if old not in text:
+                  raise SystemExit(f'Marker not found: {old[:90]}')
+              text = text.replace(old, new, 1)
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Commit fix
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add truth-or-dare/app.js
+          git diff --cached --quiet && exit 0
+          git commit -m "Fix wheel segment and player label alignment"
+          git push
