@@ -84,4 +84,12 @@
     script.async = false;
     document.head.appendChild(script);
   }
+
+  if (!document.querySelector('script[data-esc-card-sound]')) {
+    const script = document.createElement('script');
+    script.src = './card-sound.js?v=20260915a';
+    script.dataset.escCardSound = '1';
+    script.async = false;
+    document.head.appendChild(script);
+  }
 })();
