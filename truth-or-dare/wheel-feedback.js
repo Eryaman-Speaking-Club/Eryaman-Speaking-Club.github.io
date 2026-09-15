@@ -3,14 +3,17 @@
 
   const VOLUME_KEY = 'esc-global-volume-v1';
   const CENTER_SYMBOL = '../esc-center-symbol.webp';
+  const NativeAudioContext = window.AudioContext || window.webkitAudioContext;
   let ctx = null;
   let clickBuffer = null;
+  let audioBus = null;
   let raf = 0;
   let tracking = false;
   let lastAngle = 0;
   let unwrapped = 0;
   let lastBoundary = 0;
   let activeIndex = -1;
+  let pointerTimer = 0;
 
   const volume = () => {
     const saved = Number(localStorage.getItem(VOLUME_KEY));
@@ -18,21 +21,40 @@
   };
 
   function getContext() {
-    const AudioCtor = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtor) return null;
-    ctx ||= new AudioCtor();
+    if (!NativeAudioContext) return null;
+    ctx ||= new NativeAudioContext();
     if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+    if (!audioBus) {
+      const compressor = ctx.createDynamicsCompressor();
+      compressor.threshold.value = -16;
+      compressor.knee.value = 8;
+      compressor.ratio.value = 7;
+      compressor.attack.value = 0.001;
+      compressor.release.value = 0.055;
+      compressor.connect(ctx.destination);
+      audioBus = compressor;
+    }
     return ctx;
   }
 
   function bufferFor(context) {
     if (clickBuffer) return clickBuffer;
-    const length = Math.floor(context.sampleRate * 0.022);
+    const length = Math.floor(context.sampleRate * 0.024);
     const buffer = context.createBuffer(1, length, context.sampleRate);
     const data = buffer.getChannelData(0);
+    let seed = 0x51a64254;
     for (let i = 0; i < length; i += 1) {
-      const fade = Math.pow(1 - i / length, 3.6);
-      data[i] = (Math.random() * 2 - 1) * fade;
+      const t = i / context.sampleRate;
+      seed ^= seed << 13;
+      seed ^= seed >>> 17;
+      seed ^= seed << 5;
+      const noise = (((seed >>> 0) / 4294967295) * 2 - 1);
+      const envelope = Math.pow(1 - i / length, 4.2);
+      const metal =
+        0.56 * Math.sin(2 * Math.PI * 2050 * t) +
+        0.27 * Math.sin(2 * Math.PI * 3180 * t) +
+        0.11 * Math.sin(2 * Math.PI * 4480 * t);
+      data[i] = Math.max(-1, Math.min(1, (0.58 * noise + 0.42 * metal) * envelope));
     }
     clickBuffer = buffer;
     return buffer;
@@ -41,41 +63,56 @@
   function pointerKick() {
     const pointer = document.querySelector('.wheel-pointer');
     if (!pointer) return;
+    clearTimeout(pointerTimer);
     pointer.classList.remove('esc-segment-tick');
     void pointer.offsetWidth;
     pointer.classList.add('esc-segment-tick');
-    setTimeout(() => pointer.classList.remove('esc-segment-tick'), 85);
+    pointerTimer = setTimeout(() => pointer.classList.remove('esc-segment-tick'), 72);
   }
 
   function clickSound(strong = false) {
     const v = volume();
     if (v <= 0) return;
     const audio = getContext();
-    if (!audio) return;
+    if (!audio || !audioBus) return;
+
     const now = audio.currentTime;
-    const src = audio.createBufferSource();
-    const filter = audio.createBiquadFilter();
-    const gain = audio.createGain();
-    src.buffer = bufferFor(audio);
-    filter.type = 'bandpass';
-    filter.frequency.value = strong ? 1850 : 1550;
-    filter.Q.value = strong ? 0.85 : 1.15;
-    gain.gain.value = (strong ? 0.60 : 0.42) * Math.pow(v, 0.72);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + (strong ? 0.040 : 0.027));
-    src.connect(filter).connect(gain).connect(audio.destination);
-    src.start(now);
-    src.stop(now + 0.045);
-    if (strong) {
-      const osc = audio.createOscillator();
-      const low = audio.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = 235;
-      low.gain.value = 0.13 * Math.pow(v, 0.72);
-      low.gain.exponentialRampToValueAtTime(0.0001, now + 0.055);
-      osc.connect(low).connect(audio.destination);
-      osc.start(now);
-      osc.stop(now + 0.06);
-    }
+    const loudness = Math.pow(v, 0.55);
+
+    const snap = audio.createBufferSource();
+    const snapFilter = audio.createBiquadFilter();
+    const snapGain = audio.createGain();
+    snap.buffer = bufferFor(audio);
+    snapFilter.type = 'bandpass';
+    snapFilter.frequency.value = strong ? 2350 : 2050;
+    snapFilter.Q.value = 0.72;
+    snapGain.gain.setValueAtTime((strong ? 0.48 : 0.37) * loudness, now);
+    snapGain.gain.exponentialRampToValueAtTime(0.0001, now + (strong ? 0.038 : 0.027));
+    snap.connect(snapFilter).connect(snapGain).connect(audioBus);
+    snap.start(now);
+    snap.stop(now + 0.045);
+
+    const body = audio.createOscillator();
+    const bodyGain = audio.createGain();
+    body.type = 'triangle';
+    body.frequency.setValueAtTime(strong ? 760 : 920, now);
+    body.frequency.exponentialRampToValueAtTime(strong ? 330 : 470, now + 0.024);
+    bodyGain.gain.setValueAtTime((strong ? 0.20 : 0.135) * loudness, now);
+    bodyGain.gain.exponentialRampToValueAtTime(0.0001, now + (strong ? 0.045 : 0.030));
+    body.connect(bodyGain).connect(audioBus);
+    body.start(now);
+    body.stop(now + 0.05);
+
+    const tap = audio.createOscillator();
+    const tapGain = audio.createGain();
+    tap.type = 'square';
+    tap.frequency.value = strong ? 1280 : 1460;
+    tapGain.gain.setValueAtTime((strong ? 0.095 : 0.072) * loudness, now);
+    tapGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.012);
+    tap.connect(tapGain).connect(audioBus);
+    tap.start(now);
+    tap.stop(now + 0.016);
+
     pointerKick();
   }
 
@@ -164,8 +201,10 @@
       const boundary = Math.floor(unwrapped / segment);
       const crossed = boundary - lastBoundary;
       if (crossed !== 0) {
-        const n = Math.min(4, Math.abs(crossed));
-        for (let i = 0; i < n; i += 1) setTimeout(() => clickSound(false), i * 8);
+        const n = Math.min(6, Math.abs(crossed));
+        for (let i = 0; i < n; i += 1) {
+          setTimeout(() => clickSound(false), i * 5);
+        }
         lastBoundary = boundary;
       }
       const pos = ((360 - current) % 360 + 360) % 360;
@@ -201,8 +240,8 @@
         fill:rgba(255,255,255,.07);stroke:#f2a329;stroke-width:1.75;stroke-linejoin:round;vector-effect:non-scaling-stroke;
       }
       body .wheel-pointer{transform-origin:50% 10%!important}
-      body .wheel-pointer.esc-segment-tick{animation:escSegmentTick .085s ease-out!important}
-      @keyframes escSegmentTick{0%{transform:translateX(-50%) rotate(0)}45%{transform:translateX(-50%) rotate(5deg)}100%{transform:translateX(-50%) rotate(0)}}
+      body .wheel-pointer.esc-segment-tick{animation:escSegmentTick .072s ease-out!important}
+      @keyframes escSegmentTick{0%{transform:translateX(-50%) rotate(0)}42%{transform:translateX(-50%) rotate(5deg)}100%{transform:translateX(-50%) rotate(0)}}
       @media(max-width:560px){body #app #playerWheel .wheel-center{width:28%!important;height:28%!important;border-width:3px!important}}
     `;
     document.head.appendChild(style);
