@@ -2,21 +2,20 @@
   'use strict';
 
   const STORAGE_KEY = 'esc-global-volume-v1';
-  const MAX_BOOST = 12;
+  const MAX_BOOST = 8;
   let masterPercent = Math.max(0, Math.min(100, Number(localStorage.getItem(STORAGE_KEY)) || 100));
   const legacyBoost = typeof window.ESC_SOUND_PERCENT !== 'undefined';
 
-  let spinAudioContext = null;
-  let spinHumNodes = [];
-  let spinTickTimer = 0;
-  let spinStopTimer = 0;
+  let spinAudio = null;
+  let spinSoundUrl = '';
+  let lastSpinStart = 0;
 
   const level = () => masterPercent / 100;
   const currentFactor = () => level() * MAX_BOOST;
 
-  const applyLegacyBoost = () => {
+  function applyLegacyBoost() {
     if (legacyBoost) window.ESC_SOUND_PERCENT = masterPercent * MAX_BOOST;
-  };
+  }
 
   function patchAudioContext() {
     if (legacyBoost || window.__ESC_MASTER_AUDIO_PATCHED__) return;
@@ -61,63 +60,97 @@
     if (/🔇/.test(button.textContent || '')) button.click();
   }
 
-  function getSpinAudio() {
-    const AudioCtor = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtor) return null;
-    spinAudioContext ||= new AudioCtor();
-    if (spinAudioContext.state === 'suspended') spinAudioContext.resume().catch(() => {});
-    return spinAudioContext;
-  }
+  function makeSpinSoundUrl() {
+    if (spinSoundUrl) return spinSoundUrl;
 
-  function directTick(step = 0) {
-    if (masterPercent <= 0) return;
-    const ctx = getSpinAudio();
-    if (!ctx) return;
+    const sampleRate = 12000;
+    const duration = 0.96;
+    const sampleCount = Math.floor(sampleRate * duration);
+    const bytesPerSample = 2;
+    const dataSize = sampleCount * bytesPerSample;
+    const buffer = new ArrayBuffer(44 + dataSize);
+    const view = new DataView(buffer);
 
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = step % 2 ? 'square' : 'triangle';
-    osc.frequency.value = 720 + (step % 6) * 75;
-    gain.gain.value = Math.min(0.32, 0.23 * level());
-    osc.connect(gain).connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.025);
+    const writeText = (offset, text) => {
+      for (let i = 0; i < text.length; i += 1) view.setUint8(offset + i, text.charCodeAt(i));
+    };
+
+    writeText(0, 'RIFF');
+    view.setUint32(4, 36 + dataSize, true);
+    writeText(8, 'WAVE');
+    writeText(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * bytesPerSample, true);
+    view.setUint16(32, bytesPerSample, true);
+    view.setUint16(34, 16, true);
+    writeText(36, 'data');
+    view.setUint32(40, dataSize, true);
+
+    let noiseSeed = 0x12345678;
+    const randomNoise = () => {
+      noiseSeed = (1664525 * noiseSeed + 1013904223) >>> 0;
+      return (noiseSeed / 0xffffffff) * 2 - 1;
+    };
+
+    for (let i = 0; i < sampleCount; i += 1) {
+      const t = i / sampleRate;
+      const clickPeriod = 0.075;
+      const phase = t % clickPeriod;
+      const envelope = Math.exp(-phase * 58);
+      const click =
+        envelope *
+        (0.62 * Math.sin(2 * Math.PI * 910 * t) +
+          0.22 * Math.sin(2 * Math.PI * 1380 * t) +
+          0.13 * randomNoise());
+      const hum =
+        0.075 * Math.sin(2 * Math.PI * 145 * t) +
+        0.045 * Math.sin(2 * Math.PI * 290 * t);
+      const pulse = 0.06 * Math.sin(2 * Math.PI * 7.5 * t);
+      const sample = Math.max(-0.96, Math.min(0.96, click + hum + pulse));
+      view.setInt16(44 + i * 2, Math.round(sample * 32767), true);
+    }
+
+    spinSoundUrl = URL.createObjectURL(new Blob([buffer], { type: 'audio/wav' }));
+    return spinSoundUrl;
   }
 
   function stopSpinAudio() {
-    clearInterval(spinTickTimer);
-    clearTimeout(spinStopTimer);
-    spinTickTimer = 0;
-    spinStopTimer = 0;
-    spinHumNodes.forEach(({ osc, gain }) => {
-      try { gain.gain.value = 0; } catch (_) {}
-      try { osc.stop(); } catch (_) {}
-    });
-    spinHumNodes = [];
+    if (!spinAudio) return;
+    try {
+      spinAudio.pause();
+      spinAudio.currentTime = 0;
+    } catch (_) {}
+    spinAudio = null;
   }
 
   function startSpinAudio() {
     if (masterPercent <= 0) return;
+
+    const now = performance.now();
+    if (now - lastSpinStart < 180) return;
+    lastSpinStart = now;
+
     stopSpinAudio();
 
-    const ctx = getSpinAudio();
-    if (!ctx) return;
+    const audio = new Audio(makeSpinSoundUrl());
+    audio.loop = true;
+    audio.preload = 'auto';
+    audio.volume = Math.max(0, Math.min(1, Math.pow(level(), 0.58)));
+    spinAudio = audio;
 
-    [145, 290].forEach((frequency, index) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = index ? 'triangle' : 'sawtooth';
-      osc.frequency.value = frequency;
-      gain.gain.value = (index ? 0.028 : 0.038) * level();
-      osc.connect(gain).connect(ctx.destination);
-      osc.start();
-      spinHumNodes.push({ osc, gain });
-    });
+    const promise = audio.play();
+    if (promise && typeof promise.catch === 'function') {
+      promise.catch(() => {});
+    }
+  }
 
-    let step = 0;
-    directTick(step++);
-    spinTickTimer = setInterval(() => directTick(step++), 68);
-    spinStopTimer = setTimeout(stopSpinAudio, 2700);
+  function updateLiveSpinVolume() {
+    if (!spinAudio) return;
+    spinAudio.volume = Math.max(0, Math.min(1, Math.pow(level(), 0.58)));
+    if (masterPercent <= 0) stopSpinAudio();
   }
 
   function enhanceTruthOrDareWheel() {
@@ -140,7 +173,12 @@
         overflow:hidden!important;
       }
       #playerWheel .wheel-rotor .wheel-ring{display:none!important}
-      #playerWheel .wheel-name-layer{position:absolute!important;inset:0!important;border-radius:50%!important;pointer-events:none!important}
+      #playerWheel .wheel-name-layer{
+        position:absolute!important;
+        inset:0!important;
+        border-radius:50%!important;
+        pointer-events:none!important;
+      }
       #playerWheel .wheel-name{
         transform:translate(-50%,-50%) rotate(var(--esc-label-angle,0deg))!important;
         transform-origin:center!important;
@@ -158,18 +196,19 @@
       }
       #playerWheel .wheel-center{
         z-index:8!important;
-        width:27.5%!important;
-        height:27.5%!important;
+        width:27%!important;
+        height:27%!important;
         padding:0!important;
         border:4px solid #fff!important;
         border-radius:50%!important;
-        box-shadow:0 8px 24px rgba(11,47,91,.16)!important;
         overflow:hidden!important;
+        box-shadow:0 8px 24px rgba(11,47,91,.16)!important;
         background-color:#fff!important;
         background-image:url('../51a64254-0651-4c02-8235-bef5325d7947%20(1).png')!important;
         background-repeat:no-repeat!important;
-        background-size:221.2% 221.2%!important;
-        background-position:50% 42.9%!important;
+        background-size:272% 272%!important;
+        background-position:35.3% 31.3%!important;
+        background-clip:padding-box!important;
       }
       #playerWheel #wheelLabel{display:none!important}
       #playerWheel .wheel-center strong.logo-mode{
@@ -194,12 +233,17 @@
         text-align:center!important;
         color:#0b2f5b!important;
         background:#fff!important;
+        border-radius:50%!important;
         font-size:clamp(16px,3.2vw,30px)!important;
         line-height:1.05!important;
       }
       @media(max-width:560px){
         #playerWheel{border-width:5px!important}
-        #playerWheel .wheel-center{width:28%!important;height:28%!important;border-width:3px!important}
+        #playerWheel .wheel-center{
+          width:28%!important;
+          height:28%!important;
+          border-width:3px!important;
+        }
       }
     `;
     document.head.appendChild(style);
@@ -210,41 +254,56 @@
 
       const labels = Array.from(rotor.querySelectorAll('.wheel-name'));
       const count = labels.length;
-      if (count) {
-        const segment = 360 / count;
-        const radius = count > 12 ? 36 : count > 8 ? 35 : 34.5;
-        labels.forEach((label, index) => {
-          const angle = -90 + (index + 0.5) * segment;
-          const radians = angle * Math.PI / 180;
-          const x = 50 + Math.cos(radians) * radius;
-          const y = 50 + Math.sin(radians) * radius;
+      if (!count) return;
 
-          let readableAngle = ((angle + 180) % 360) - 180;
-          if (readableAngle > 90) readableAngle -= 180;
-          if (readableAngle < -90) readableAngle += 180;
+      const segment = 360 / count;
+      const radius = count > 12 ? 36 : count > 8 ? 35 : 34.5;
 
-          label.style.left = `${x}%`;
-          label.style.top = `${y}%`;
-          label.style.setProperty('--esc-label-angle', `${readableAngle}deg`);
-          label.style.maxWidth = count > 12 ? '17%' : count > 8 ? '21%' : '27%';
-          label.style.fontSize = count > 12 ? '10px' : count > 8 ? '12px' : count > 6 ? '14px' : 'clamp(16px,2.2vw,23px)';
-        });
-      }
+      labels.forEach((label, index) => {
+        const angle = -90 + (index + 0.5) * segment;
+        const radians = angle * Math.PI / 180;
+        const x = 50 + Math.cos(radians) * radius;
+        const y = 50 + Math.sin(radians) * radius;
+
+        let readableAngle = ((angle + 180) % 360) - 180;
+        if (readableAngle > 90) readableAngle -= 180;
+        if (readableAngle < -90) readableAngle += 180;
+
+        label.style.left = `${x}%`;
+        label.style.top = `${y}%`;
+        label.style.setProperty('--esc-label-angle', `${readableAngle}deg`);
+        label.style.maxWidth = count > 12 ? '17%' : count > 8 ? '21%' : '27%';
+        label.style.fontSize =
+          count > 12 ? '10px' :
+          count > 8 ? '12px' :
+          count > 6 ? '14px' :
+          'clamp(16px,2.2vw,23px)';
+      });
     };
 
     refresh();
+
     const observer = new MutationObserver(() => requestAnimationFrame(refresh));
-    observer.observe(wheel, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+    observer.observe(wheel, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class']
+    });
     window.addEventListener('resize', refresh);
 
     const spinButton = document.getElementById('spinPlayer');
     const triggerSound = () => {
-      if (!spinButton || spinButton.disabled) return;
+      if (!spinButton || spinButton.disabled || masterPercent <= 0) return;
       startSpinAudio();
     };
 
     wheel.addEventListener('pointerdown', triggerSound, true);
-    if (spinButton) spinButton.addEventListener('pointerdown', triggerSound, true);
+    wheel.addEventListener('click', triggerSound, true);
+    if (spinButton) {
+      spinButton.addEventListener('pointerdown', triggerSound, true);
+      spinButton.addEventListener('click', triggerSound, true);
+    }
 
     const spinningObserver = new MutationObserver(() => {
       if (!wheel.classList.contains('is-spinning')) stopSpinAudio();
@@ -265,13 +324,48 @@
     style.id = 'escVolumeStyles';
     style.textContent = `
       .volume-control{display:none!important}
-      #escVolumePopover{position:fixed;z-index:99999;width:min(290px,calc(100vw - 24px));padding:14px 15px 13px;border:1px solid rgba(11,47,91,.14);border-radius:16px;background:rgba(255,255,255,.98);box-shadow:0 18px 50px rgba(11,47,91,.22);backdrop-filter:blur(12px);display:none}
+      #escVolumePopover{
+        position:fixed;
+        z-index:99999;
+        width:min(290px,calc(100vw - 24px));
+        padding:14px 15px 13px;
+        border:1px solid rgba(11,47,91,.14);
+        border-radius:16px;
+        background:rgba(255,255,255,.98);
+        box-shadow:0 18px 50px rgba(11,47,91,.22);
+        backdrop-filter:blur(12px);
+        display:none;
+      }
       #escVolumePopover.open{display:block}
-      #escVolumePopover .esc-volume-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;color:#0b2f5b;font-weight:900;font-size:12px}
-      #escVolumePopover .esc-volume-value{font-variant-numeric:tabular-nums;color:#174b82}
-      #escVolumePopover input[type=range]{width:100%;margin:0;accent-color:#0b2f5b;cursor:pointer}
-      #escVolumePopover .esc-volume-note{margin-top:7px;color:#718397;font-size:10px;font-weight:700}
-      #sound[aria-expanded=true]{box-shadow:0 0 0 3px rgba(23,75,130,.12),0 8px 24px rgba(11,47,91,.10)}
+      #escVolumePopover .esc-volume-head{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+        margin-bottom:10px;
+        color:#0b2f5b;
+        font-weight:900;
+        font-size:12px;
+      }
+      #escVolumePopover .esc-volume-value{
+        font-variant-numeric:tabular-nums;
+        color:#174b82;
+      }
+      #escVolumePopover input[type=range]{
+        width:100%;
+        margin:0;
+        accent-color:#0b2f5b;
+        cursor:pointer;
+      }
+      #escVolumePopover .esc-volume-note{
+        margin-top:7px;
+        color:#718397;
+        font-size:10px;
+        font-weight:700;
+      }
+      #sound[aria-expanded=true]{
+        box-shadow:0 0 0 3px rgba(23,75,130,.12),0 8px 24px rgba(11,47,91,.10);
+      }
     `;
     document.head.appendChild(style);
 
@@ -280,9 +374,13 @@
     popover.setAttribute('role', 'dialog');
     popover.setAttribute('aria-label', 'Sound level');
     popover.innerHTML = `
-      <div class="esc-volume-head"><span>Sound level</span><span class="esc-volume-value" id="escVolumeValue">${Math.round(masterPercent)}%</span></div>
-      <input id="escVolumeSlider" type="range" min="0" max="100" step="5" value="${Math.round(masterPercent)}" aria-label="Sound level">
-      <div class="esc-volume-note">100% = maximum club volume</div>
+      <div class="esc-volume-head">
+        <span>Sound level</span>
+        <span class="esc-volume-value" id="escVolumeValue">${Math.round(masterPercent)}%</span>
+      </div>
+      <input id="escVolumeSlider" type="range" min="0" max="100" step="5"
+        value="${Math.round(masterPercent)}" aria-label="Sound level">
+      <div class="esc-volume-note">100% = loud</div>
     `;
     document.body.appendChild(popover);
 
@@ -311,7 +409,7 @@
       valueLabel.textContent = `${Math.round(masterPercent)}%`;
       applyLegacyBoost();
       if (masterPercent > 0) ensureGameSoundEnabled(button);
-      if (masterPercent <= 0) stopSpinAudio();
+      updateLiveSpinVolume();
       renderIcon();
     };
 
@@ -349,6 +447,9 @@
     observer.observe(button, { childList: true, characterData: true, subtree: true });
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount, { once: true });
-  else mount();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount, { once: true });
+  } else {
+    mount();
+  }
 })();
