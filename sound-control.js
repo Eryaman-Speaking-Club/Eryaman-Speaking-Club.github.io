@@ -2,11 +2,18 @@
   'use strict';
 
   const STORAGE_KEY = 'esc-global-volume-v1';
-  const MAX_BOOST = 5; // 100% equals the former 500% loudness.
+  const MAX_BOOST = 12;
   let masterPercent = Math.max(0, Math.min(100, Number(localStorage.getItem(STORAGE_KEY)) || 100));
   const legacyBoost = typeof window.ESC_SOUND_PERCENT !== 'undefined';
 
-  const currentFactor = () => (masterPercent / 100) * MAX_BOOST;
+  let spinAudioContext = null;
+  let spinHumNodes = [];
+  let spinTickTimer = 0;
+  let spinStopTimer = 0;
+
+  const level = () => masterPercent / 100;
+  const currentFactor = () => level() * MAX_BOOST;
+
   const applyLegacyBoost = () => {
     if (legacyBoost) window.ESC_SOUND_PERCENT = masterPercent * MAX_BOOST;
   };
@@ -50,10 +57,67 @@
   }
 
   function ensureGameSoundEnabled(button) {
-    // Preserve the existing game logic but make sure old saved mute states do not block audio.
-    if (button && /🔇/.test(button.textContent || '')) {
-      button.click();
-    }
+    if (masterPercent <= 0 || !button) return;
+    if (/🔇/.test(button.textContent || '')) button.click();
+  }
+
+  function getSpinAudio() {
+    const AudioCtor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtor) return null;
+    spinAudioContext ||= new AudioCtor();
+    if (spinAudioContext.state === 'suspended') spinAudioContext.resume().catch(() => {});
+    return spinAudioContext;
+  }
+
+  function directTick(step = 0) {
+    if (masterPercent <= 0) return;
+    const ctx = getSpinAudio();
+    if (!ctx) return;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = step % 2 ? 'square' : 'triangle';
+    osc.frequency.value = 720 + (step % 6) * 75;
+    gain.gain.value = Math.min(0.32, 0.23 * level());
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.025);
+  }
+
+  function stopSpinAudio() {
+    clearInterval(spinTickTimer);
+    clearTimeout(spinStopTimer);
+    spinTickTimer = 0;
+    spinStopTimer = 0;
+    spinHumNodes.forEach(({ osc, gain }) => {
+      try { gain.gain.value = 0; } catch (_) {}
+      try { osc.stop(); } catch (_) {}
+    });
+    spinHumNodes = [];
+  }
+
+  function startSpinAudio() {
+    if (masterPercent <= 0) return;
+    stopSpinAudio();
+
+    const ctx = getSpinAudio();
+    if (!ctx) return;
+
+    [145, 290].forEach((frequency, index) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = index ? 'triangle' : 'sawtooth';
+      osc.frequency.value = frequency;
+      gain.gain.value = (index ? 0.028 : 0.038) * level();
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      spinHumNodes.push({ osc, gain });
+    });
+
+    let step = 0;
+    directTick(step++);
+    spinTickTimer = setInterval(() => directTick(step++), 68);
+    spinStopTimer = setTimeout(stopSpinAudio, 2700);
   }
 
   function enhanceTruthOrDareWheel() {
@@ -97,35 +161,30 @@
         width:27.5%!important;
         height:27.5%!important;
         padding:0!important;
-        border:5px solid #fff!important;
+        border:4px solid #fff!important;
         border-radius:50%!important;
-        background:#fff!important;
         box-shadow:0 8px 24px rgba(11,47,91,.16)!important;
         overflow:hidden!important;
+        background-color:#fff!important;
+        background-image:url('../51a64254-0651-4c02-8235-bef5325d7947%20(1).png')!important;
+        background-repeat:no-repeat!important;
+        background-size:221.2% 221.2%!important;
+        background-position:50% 42.9%!important;
       }
       #playerWheel #wheelLabel{display:none!important}
       #playerWheel .wheel-center strong.logo-mode{
         display:block!important;
-        position:relative!important;
         width:100%!important;
         height:100%!important;
         margin:0!important;
-        border-radius:50%!important;
-        overflow:hidden!important;
+        opacity:0!important;
+        pointer-events:none!important;
       }
-      #playerWheel .wheel-logo-symbol{
-        position:absolute!important;
-        display:block!important;
-        width:225.5%!important;
-        height:225.5%!important;
-        max-width:none!important;
-        left:50%!important;
-        top:50%!important;
-        transform:translate(-50%,-46.25%)!important;
-        object-fit:contain!important;
-      }
+      #playerWheel .wheel-logo-symbol{display:none!important}
       #playerWheel .wheel-center strong:not(.logo-mode){
         display:flex!important;
+        position:absolute!important;
+        inset:0!important;
         width:100%!important;
         height:100%!important;
         margin:0!important;
@@ -134,12 +193,13 @@
         padding:10px!important;
         text-align:center!important;
         color:#0b2f5b!important;
+        background:#fff!important;
         font-size:clamp(16px,3.2vw,30px)!important;
         line-height:1.05!important;
       }
       @media(max-width:560px){
         #playerWheel{border-width:5px!important}
-        #playerWheel .wheel-center{width:28%!important;height:28%!important;border-width:4px!important}
+        #playerWheel .wheel-center{width:28%!important;height:28%!important;border-width:3px!important}
       }
     `;
     document.head.appendChild(style);
@@ -159,8 +219,6 @@
           const x = 50 + Math.cos(radians) * radius;
           const y = 50 + Math.sin(radians) * radius;
 
-          // Wheel-of-Fortune layout: text baseline follows the radius,
-          // i.e. it is perpendicular to the tangent of the circle.
           let readableAngle = ((angle + 180) % 360) - 180;
           if (readableAngle > 90) readableAngle -= 180;
           if (readableAngle < -90) readableAngle += 180;
@@ -172,27 +230,35 @@
           label.style.fontSize = count > 12 ? '10px' : count > 8 ? '12px' : count > 6 ? '14px' : 'clamp(16px,2.2vw,23px)';
         });
       }
-
-      const label = document.getElementById('wheelLabel');
-      if (label) label.style.display = 'none';
     };
 
     refresh();
     const observer = new MutationObserver(() => requestAnimationFrame(refresh));
-    observer.observe(wheel, { childList: true, subtree: true });
-
-    // renderWheel() can be called after settings/history changes without replacing nodes.
+    observer.observe(wheel, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
     window.addEventListener('resize', refresh);
-    setInterval(refresh, 700);
+
+    const spinButton = document.getElementById('spinPlayer');
+    const triggerSound = () => {
+      if (!spinButton || spinButton.disabled) return;
+      startSpinAudio();
+    };
+
+    wheel.addEventListener('pointerdown', triggerSound, true);
+    if (spinButton) spinButton.addEventListener('pointerdown', triggerSound, true);
+
+    const spinningObserver = new MutationObserver(() => {
+      if (!wheel.classList.contains('is-spinning')) stopSpinAudio();
+    });
+    spinningObserver.observe(wheel, { attributes: true, attributeFilter: ['class'] });
   }
 
   function mount() {
     const button = document.getElementById('sound');
     if (!button || document.getElementById('escVolumePopover')) return;
 
-    ensureGameSoundEnabled(button);
     applyLegacyBoost();
     patchAudioContext();
+    ensureGameSoundEnabled(button);
     enhanceTruthOrDareWheel();
 
     const style = document.createElement('style');
@@ -244,6 +310,8 @@
       slider.value = String(masterPercent);
       valueLabel.textContent = `${Math.round(masterPercent)}%`;
       applyLegacyBoost();
+      if (masterPercent > 0) ensureGameSoundEnabled(button);
+      if (masterPercent <= 0) stopSpinAudio();
       renderIcon();
     };
 
