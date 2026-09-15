@@ -32,8 +32,8 @@
     const osc=a.createOscillator();
     const gain=a.createGain();
     osc.type='triangle';
-    osc.frequency.setValueAtTime(Math.max(245,475-step*24),now);
-    osc.frequency.exponentialRampToValueAtTime(Math.max(135,235-step*9),now+0.055);
+    osc.frequency.setValueAtTime(Math.max(319,618-step*31),now);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(176,306-step*12),now+0.055);
     gain.gain.setValueAtTime(strong?0.045:0.03,now);
     gain.gain.exponentialRampToValueAtTime(0.0001,now+0.06);
     osc.connect(gain).connect(a.destination);
