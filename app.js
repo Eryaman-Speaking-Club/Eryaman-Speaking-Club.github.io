@@ -1,109 +1,79 @@
 (() => {
   'use strict';
 
-  const ADMIN_PASSWORD = 'Eryaman6144.';
-  const STORAGE_KEY = 'esc-local-admin-v2';
-  const SOUND_KEY = 'esc-sound-v2';
-  const UNLOCK_KEY = 'esc-admin-unlocked-v2';
-  const PAGE_SIZE = 24;
-  const builtIns = Array.isArray(window.ESC_QUESTIONS) ? window.ESC_QUESTIONS : [];
-
-  let config = loadConfig();
-  let turn = 'me';
-  let usedIds = new Set();
-  let currentId = null;
-  let adminPage = 0;
-  let editingId = null;
-  let showDisabled = false;
-  let soundEnabled = localStorage.getItem(SOUND_KEY) !== 'off';
-  let audioContext = null;
-  let toastTimer = 0;
+  const defaults = window.ESC_TRUTH_DARE_DEFAULTS || { names: [], truths: [], dares: [] };
+  const STORAGE_KEY = 'esc-truth-dare-v1';
+  const PASSWORD_HASH_KEY = 'esc-truth-dare-password-hash-v1';
+  const ADMIN_SESSION_KEY = 'esc-truth-dare-admin-unlocked-v1';
+  const DEFAULT_PASSWORD_HASH = 'c28440d7f9de5738eddf560c79371754e9ffa41fba2afd1efaa3da1458438a52';
 
   const $ = (id) => document.getElementById(id);
+  let state = loadState();
+  let selectedPlayer = '';
+  let selectedType = 'truth';
+  let audioContext = null;
+  let spinTimer = 0;
+  let toastTimer = 0;
 
-  function defaultConfig() {
-    return { disabledIds: [], edits: {}, custom: [] };
+  function defaultState() {
+    return {
+      names: [],
+      truths: defaults.truths.map((item) => item.text),
+      dares: defaults.dares.map((item) => item.text),
+      settings: { fairRotation: true, noRepeat: true, sound: true, vibration: true },
+      history: { names: [], truths: [], dares: [] }
+    };
   }
 
-  function normalizeConfig(value) {
-    const source = value && typeof value === 'object' ? value : {};
-    const disabledIds = Array.isArray(source.disabledIds) ? source.disabledIds.filter((id) => typeof id === 'string') : [];
-    const edits = source.edits && typeof source.edits === 'object' ? source.edits : {};
-    const custom = Array.isArray(source.custom)
-      ? source.custom.filter((item) => item && typeof item.id === 'string' && typeof item.q === 'string')
-      : [];
-    return { disabledIds, edits, custom };
+  function uniqueLines(value) {
+    const seen = new Set();
+    return value.map((item) => String(item || '').trim()).filter((item) => {
+      const key = item.toLocaleLowerCase('en');
+      if (!item || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   }
 
-  function loadConfig() {
+  function normalizeState(raw) {
+    const base = defaultState();
+    const source = raw && typeof raw === 'object' ? raw : {};
+    const settings = source.settings && typeof source.settings === 'object' ? source.settings : {};
+    const history = source.history && typeof source.history === 'object' ? source.history : {};
+    return {
+      names: Array.isArray(source.names) ? uniqueLines(source.names) : base.names,
+      truths: Array.isArray(source.truths) ? uniqueLines(source.truths) : base.truths,
+      dares: Array.isArray(source.dares) ? uniqueLines(source.dares) : base.dares,
+      settings: {
+        fairRotation: settings.fairRotation !== false,
+        noRepeat: settings.noRepeat !== false,
+        sound: settings.sound !== false,
+        vibration: settings.vibration !== false
+      },
+      history: {
+        names: Array.isArray(history.names) ? uniqueLines(history.names) : [],
+        truths: Array.isArray(history.truths) ? uniqueLines(history.truths) : [],
+        dares: Array.isArray(history.dares) ? uniqueLines(history.dares) : []
+      }
+    };
+  }
+
+  function loadState() {
     try {
-      return normalizeConfig(JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'));
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? normalizeState(JSON.parse(raw)) : defaultState();
     } catch {
-      return defaultConfig();
+      return defaultState();
     }
   }
 
-  function saveConfig() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+  function saveState(message) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    updateAdminCounts();
+    updateControls();
+    if ($('saveLabel')) $('saveLabel').textContent = 'Saved';
+    if (message) showToast(message);
   }
-
-  function allCards() {
-    const editedBuiltIns = builtIns.map((card) => {
-      const edit = config.edits[card.id];
-      return edit ? { ...card, q: edit.q, f: edit.f } : card;
-    });
-    return [...editedBuiltIns, ...config.custom.map((card) => ({ ...card, custom: true }))];
-  }
-
-  function activeDeck() {
-    const disabled = new Set(config.disabledIds);
-    return allCards().filter((card) => !disabled.has(card.id));
-  }
-
-  function cardById(id) {
-    return allCards().find((card) => card.id === id);
-  }
-
-  function getAudio() {
-    if (!soundEnabled) return null;
-    const AudioCtor = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtor) return null;
-    audioContext ||= new AudioCtor();
-    if (audioContext.state === 'suspended') audioContext.resume();
-    return audioContext;
-  }
-
-  function tone(frequency, duration = 0.05, delay = 0, volume = 0.02, type = 'sine') {
-  const ctx = getAudio();
-  if (!ctx) return;
-  const oscillator = ctx.createOscillator();
-  const gain = ctx.createGain();
-  oscillator.type = type;
-  oscillator.frequency.setValueAtTime(frequency, ctx.currentTime + delay);
-  gain.gain.setValueAtTime(0.0001, ctx.currentTime + delay);
-  gain.gain.exponentialRampToValueAtTime(volume, ctx.currentTime + delay + 0.01);
-  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay + duration);
-  oscillator.connect(gain).connect(ctx.destination);
-  oscillator.start(ctx.currentTime + delay);
-  oscillator.stop(ctx.currentTime + delay + duration + 0.03);
-}
-
-function playClick() {
-  tone(659.25, 0.04, 0, 0.014, 'sine');
-  tone(987.77, 0.055, 0.028, 0.010, 'sine');
-}
-
-function playDraw() {
-  [392.00, 493.88, 587.33, 698.46].forEach((note, step) =>
-    tone(note, 0.055, step * 0.045, 0.013, 'triangle')
-  );
-}
-
-function playReveal() {
-  tone(523.25, 0.09, 0, 0.020, 'sine');
-  tone(659.25, 0.11, 0.045, 0.016, 'sine');
-  tone(783.99, 0.14, 0.09, 0.012, 'sine');
-}
 
   function showToast(message) {
     const toast = $('toast');
@@ -113,300 +83,329 @@ function playReveal() {
     toastTimer = setTimeout(() => toast.classList.remove('show'), 1900);
   }
 
-  function updateSoundButton() {
-    $('sound').textContent = soundEnabled ? '🔊' : '🔇';
-    $('sound').setAttribute('aria-label', soundEnabled ? 'Turn sound off' : 'Turn sound on');
+  function getAudio() {
+    if (!state.settings.sound) return null;
+    const AudioCtor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtor) return null;
+    audioContext ||= new AudioCtor();
+    if (audioContext.state === 'suspended') audioContext.resume();
+    return audioContext;
   }
 
-  function toggleSound() {
-    soundEnabled = !soundEnabled;
-    localStorage.setItem(SOUND_KEY, soundEnabled ? 'on' : 'off');
-    updateSoundButton();
-    if (soundEnabled) playClick();
+  function tone(frequency, duration = 0.045, delay = 0, volume = 0.018, type = 'sine') {
+    const ctx = getAudio();
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(frequency, ctx.currentTime + delay);
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime + delay);
+    gain.gain.exponentialRampToValueAtTime(volume, ctx.currentTime + delay + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay + duration);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(ctx.currentTime + delay);
+    osc.stop(ctx.currentTime + delay + duration + 0.02);
   }
 
-  function updateTurn() {
-    const isMe = turn === 'me';
-    $('turn').textContent = isMe ? 'FOR ME' : 'FOR YOU';
-    $('draw').textContent = isMe ? 'Draw one for me' : 'Draw one for you';
-    $('next').textContent = isMe ? 'Next: FOR YOU' : 'Next: FOR ME';
-    document.body.classList.toggle('you', !isMe);
+  function playClick() {
+    tone(659.25, 0.04, 0, 0.014, 'sine');
+    tone(987.77, 0.05, 0.025, 0.009, 'sine');
   }
 
-  function resetQuestionCard() {
-    currentId = null;
-    $('q').textContent = 'Ready?';
-    $('f').textContent = 'Draw a card to start.';
-    $('draw').removeAttribute('hidden');
-    $('next').setAttribute('hidden', '');
-    $('questionCard').classList.remove('revealed', 'shuffling');
+  function playTick(step = 0) {
+    tone(420 + (step % 5) * 45, 0.035, 0, 0.011, 'triangle');
   }
 
-  function chooseUnusedCard() {
-    const deck = activeDeck();
-    if (!deck.length) return null;
-    let available = deck.filter((card) => !usedIds.has(card.id));
-    if (!available.length) {
-      usedIds.clear();
-      available = deck;
-      showToast('New round shuffled.');
+  function playReveal(type) {
+    const base = type === 'dare' ? 440 : 523.25;
+    tone(base, 0.08, 0, 0.02, 'sine');
+    tone(base * 1.25, 0.1, 0.045, 0.015, 'sine');
+    tone(base * 1.5, 0.13, 0.09, 0.011, 'sine');
+  }
+
+  function vibrate(pattern) {
+    if (state.settings.vibration && navigator.vibrate) navigator.vibrate(pattern);
+  }
+
+  function showScreen(name) {
+    ['player', 'choice', 'question'].forEach((screen) => {
+      $(`${screen}Screen`).hidden = screen !== name;
+      const step = document.querySelector(`.step[data-step="${screen}"]`);
+      const order = { player: 1, choice: 2, question: 3 };
+      step.classList.toggle('active', screen === name);
+      step.classList.toggle('done', order[screen] < order[name]);
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function updateControls() {
+    const canPlay = state.names.length >= 2;
+    $('emptyPlayers').hidden = canPlay;
+    $('spinPlayer').disabled = !canPlay;
+    const used = state.settings.fairRotation ? state.history.names.filter((name) => state.names.includes(name)).length : 0;
+    $('roundStatus').textContent = state.settings.fairRotation && canPlay ? `${Math.min(used, state.names.length)} of ${state.names.length} players used this round` : `${state.names.length} players ready`;
+    $('sound').textContent = state.settings.sound ? '🔊' : '🔇';
+    $('sound').setAttribute('aria-label', state.settings.sound ? 'Turn sound off' : 'Turn sound on');
+  }
+
+  function choosePlayer() {
+    let pool = state.names.slice();
+    if (state.settings.fairRotation) {
+      const used = new Set(state.history.names);
+      pool = pool.filter((name) => !used.has(name));
+      if (!pool.length) {
+        state.history.names = [];
+        pool = state.names.slice();
+        showToast('New round started.');
+      }
     }
-    return available[Math.floor(Math.random() * available.length)] || null;
+    return pool[Math.floor(Math.random() * pool.length)] || '';
   }
 
-  function drawCard() {
-    const selected = chooseUnusedCard();
-    if (!selected) {
-      showToast('No active questions. Open the Control Panel.');
-      return;
-    }
-    playDraw();
-    const card = $('questionCard');
-    card.classList.remove('revealed');
-    card.classList.add('shuffling');
-    $('draw').disabled = true;
+  function spinPlayer() {
+    if (state.names.length < 2) return;
+    playClick();
+    const wheel = $('playerWheel');
+    const label = $('wheelLabel');
+    const name = $('wheelName');
+    const button = $('spinPlayer');
+    button.disabled = true;
+    wheel.classList.remove('winner');
+    wheel.classList.add('spinning');
+    label.textContent = 'SPINNING';
+    let ticks = 0;
+    clearInterval(spinTimer);
+    spinTimer = setInterval(() => {
+      name.textContent = state.names[Math.floor(Math.random() * state.names.length)] || '?';
+      playTick(ticks++);
+    }, 85);
+
     setTimeout(() => {
-      currentId = selected.id;
-      usedIds.add(selected.id);
-      $('q').textContent = selected.q;
-      $('f').textContent = selected.f || 'Explain your answer and give an example.';
-      $('draw').setAttribute('hidden', '');
-      $('next').removeAttribute('hidden');
-      card.classList.remove('shuffling');
-      card.classList.add('revealed');
-      $('draw').disabled = false;
-      playReveal();
-    }, 330);
+      clearInterval(spinTimer);
+      selectedPlayer = choosePlayer();
+      name.textContent = selectedPlayer;
+      label.textContent = 'SELECTED';
+      wheel.classList.remove('spinning');
+      wheel.classList.add('winner');
+      if (state.settings.fairRotation && !state.history.names.includes(selectedPlayer)) state.history.names.push(selectedPlayer);
+      saveState();
+      vibrate([45, 45, 90]);
+      playReveal('truth');
+      button.disabled = false;
+      setTimeout(() => {
+        $('selectedPlayer').textContent = `${selectedPlayer}!`;
+        showScreen('choice');
+      }, 650);
+    }, 1450);
   }
 
-  function startGame() {
-    playClick();
-    $('home').setAttribute('hidden', '');
-    $('game').removeAttribute('hidden');
-    updateTurn();
+  function randomFrom(list, historyKey) {
+    if (!list.length) return '';
+    let pool = list.slice();
+    if (state.settings.noRepeat) {
+      const used = new Set(state.history[historyKey]);
+      pool = pool.filter((item) => !used.has(item));
+      if (!pool.length) {
+        state.history[historyKey] = [];
+        pool = list.slice();
+        showToast(`All ${historyKey} used — starting again.`);
+      }
+    }
+    const selected = pool[Math.floor(Math.random() * pool.length)] || '';
+    if (selected && state.settings.noRepeat && !state.history[historyKey].includes(selected)) state.history[historyKey].push(selected);
+    return selected;
   }
 
-  function nextTurn() {
-    playClick();
-    turn = turn === 'me' ? 'you' : 'me';
-    resetQuestionCard();
-    updateTurn();
+  function setQuestionType(type) {
+    selectedType = type;
+    const isTruth = type === 'truth';
+    $('questionType').textContent = isTruth ? 'TRUTH' : 'DARE';
+    $('questionType').className = `type-pill ${isTruth ? 'truth' : 'dare'}`;
+    $('questionFor').textContent = `${isTruth ? 'Truth' : 'Dare'} for ${selectedPlayer}`;
+    $('questionWheel').classList.toggle('dare-mode', !isTruth);
   }
 
-  function goHome() {
+  function spinQuestion(type) {
+    setQuestionType(type);
+    const list = type === 'truth' ? state.truths : state.dares;
+    const historyKey = type === 'truth' ? 'truths' : 'dares';
+    const empty = $('emptyQuestions');
+    const wheel = $('questionWheel');
+    const text = $('questionText');
+    empty.hidden = list.length > 0;
+    wheel.hidden = list.length === 0;
+    $('spinAgain').disabled = list.length === 0;
+    if (!list.length) return;
+
     playClick();
-    $('game').setAttribute('hidden', '');
-    $('home').removeAttribute('hidden');
+    wheel.classList.remove('revealed');
+    wheel.classList.add('spinning-question');
+    text.textContent = type === 'truth' ? 'TRUTH' : 'DARE';
+    let ticks = 0;
+    const preview = setInterval(() => {
+      const item = list[Math.floor(Math.random() * list.length)];
+      text.textContent = item;
+      playTick(ticks++);
+    }, 95);
+
+    setTimeout(() => {
+      clearInterval(preview);
+      const picked = randomFrom(list, historyKey);
+      text.textContent = picked;
+      wheel.classList.remove('spinning-question');
+      wheel.classList.add('revealed');
+      saveState();
+      vibrate(70);
+      playReveal(type);
+    }, 900);
+  }
+
+  function chooseType(type) {
+    playClick();
+    showScreen('question');
+    setTimeout(() => spinQuestion(type), 120);
+  }
+
+  function nextPlayer() {
+    playClick();
+    selectedPlayer = '';
+    $('wheelLabel').textContent = 'READY';
+    $('wheelName').textContent = '?';
+    $('playerWheel').classList.remove('winner');
+    showScreen('player');
+    updateControls();
+  }
+
+  function newRound() {
+    playClick();
+    state.history.names = [];
+    saveState('New player round started.');
+    $('wheelLabel').textContent = 'READY';
+    $('wheelName').textContent = '?';
+    $('playerWheel').classList.remove('winner');
+  }
+
+  async function sha256(value) {
+    const bytes = new TextEncoder().encode(value);
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
+
+  function passwordHash() {
+    return localStorage.getItem(PASSWORD_HASH_KEY) || DEFAULT_PASSWORD_HASH;
   }
 
   function showAdminLogin() {
-    $('adminLogin').removeAttribute('hidden');
-    $('adminDashboard').setAttribute('hidden', '');
-    $('adminError').setAttribute('hidden', '');
+    $('adminLogin').hidden = false;
+    $('adminDashboard').hidden = true;
+    $('adminError').hidden = true;
     $('adminPassword').value = '';
   }
 
-  function showAdminDashboard() {
-    $('adminLogin').setAttribute('hidden', '');
-    $('adminDashboard').removeAttribute('hidden');
-    adminPage = 0;
-    renderLibrary();
+  function populateEditors() {
+    $('namesEditor').value = state.names.join('\n');
+    $('truthsEditor').value = state.truths.join('\n');
+    $('daresEditor').value = state.dares.join('\n');
+    $('fairRotation').checked = state.settings.fairRotation;
+    $('noRepeat').checked = state.settings.noRepeat;
+    $('soundSetting').checked = state.settings.sound;
+    $('vibrationSetting').checked = state.settings.vibration;
+    updateAdminCounts();
   }
 
-  function openAdmin() {
+  function showAdminDashboard(tab = 'names') {
+    $('adminLogin').hidden = true;
+    $('adminDashboard').hidden = false;
+    populateEditors();
+    selectAdminTab(tab);
+  }
+
+  function openAdmin(tab = 'names') {
     playClick();
     $('adminPanel').showModal();
-    if (sessionStorage.getItem(UNLOCK_KEY) === 'yes') showAdminDashboard();
-    else showAdminLogin();
+    if (sessionStorage.getItem(ADMIN_SESSION_KEY) === 'yes') showAdminDashboard(tab);
+    else {
+      showAdminLogin();
+      $('adminPanel').dataset.requestedTab = tab;
+    }
   }
 
-  function closeAdmin() {
+  async function loginAdmin() {
     playClick();
-    $('adminPanel').close();
-  }
-
-  function loginAdmin() {
-    playClick();
-    const password = $('adminPassword').value.trim();
-    if (password !== ADMIN_PASSWORD) {
-      $('adminError').removeAttribute('hidden');
+    const entered = await sha256($('adminPassword').value);
+    if (entered !== passwordHash()) {
+      $('adminError').hidden = false;
       return;
     }
-    sessionStorage.setItem(UNLOCK_KEY, 'yes');
-    $('adminError').setAttribute('hidden', '');
-    showAdminDashboard();
-    showToast('Control Panel unlocked.');
+    sessionStorage.setItem(ADMIN_SESSION_KEY, 'yes');
+    $('adminError').hidden = true;
+    const tab = $('adminPanel').dataset.requestedTab || 'names';
+    showAdminDashboard(tab);
+    showToast('Edit mode unlocked.');
   }
 
   function logoutAdmin() {
     playClick();
-    sessionStorage.removeItem(UNLOCK_KEY);
-    editingId = null;
+    sessionStorage.removeItem(ADMIN_SESSION_KEY);
     showAdminLogin();
-    showToast('Control Panel locked.');
+    showToast('Edit mode locked.');
   }
 
-  function clearEditor() {
-    editingId = null;
-    $('editorEmpty').removeAttribute('hidden');
-    $('editorFields').setAttribute('hidden', '');
-    $('clearEditor').setAttribute('hidden', '');
-    $('editQuestion').value = '';
-    $('editFollowup').value = '';
+  function selectAdminTab(tab) {
+    document.querySelectorAll('[data-admin-tab]').forEach((button) => button.classList.toggle('active', button.dataset.adminTab === tab));
+    document.querySelectorAll('[data-tab-panel]').forEach((panel) => { panel.hidden = panel.dataset.tabPanel !== tab; });
   }
 
-  function selectForEdit(id) {
-    const card = cardById(id);
-    if (!card) return;
-    playClick();
-    editingId = id;
-    $('editorEmpty').setAttribute('hidden', '');
-    $('editorFields').removeAttribute('hidden');
-    $('clearEditor').removeAttribute('hidden');
-    $('editQuestion').value = card.q;
-    $('editFollowup').value = card.f || '';
-    $('editorFields').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  function updateAdminCounts() {
+    $('nameCount').textContent = state.names.length;
+    $('truthCount').textContent = state.truths.length;
+    $('dareCount').textContent = state.dares.length;
   }
 
-  function saveSelectedEdit() {
-    if (!editingId) return;
-    const q = $('editQuestion').value.trim();
-    const f = $('editFollowup').value.trim();
-    if (!q) {
-      showToast('Question text cannot be empty.');
-      return;
-    }
-    const customIndex = config.custom.findIndex((item) => item.id === editingId);
-    if (customIndex >= 0) config.custom[customIndex] = { ...config.custom[customIndex], q, f };
-    else config.edits[editingId] = { q, f };
-    saveConfig();
-    clearEditor();
-    renderLibrary();
-    resetQuestionCard();
-    showToast('Question updated on this device.');
+  function parseEditor(id) {
+    return uniqueLines($(id).value.split(/\r?\n/));
   }
 
-  function toggleQuestion(id) {
-    playClick();
-    const disabled = new Set(config.disabledIds);
-    const isDisabled = disabled.has(id);
-    if (isDisabled) disabled.delete(id);
-    else disabled.add(id);
-    config.disabledIds = [...disabled];
-    saveConfig();
-    if (currentId === id && !isDisabled) resetQuestionCard();
-    renderLibrary();
-    showToast(isDisabled ? 'Question enabled.' : 'Question hidden on this device.');
+  function saveEditor(kind) {
+    const map = { names: 'namesEditor', truths: 'truthsEditor', dares: 'daresEditor' };
+    state[kind] = parseEditor(map[kind]);
+    state.history[kind] = [];
+    saveState(`${kind[0].toUpperCase()}${kind.slice(1)} saved.`);
+    populateEditors();
   }
 
-  function deleteCustom(id) {
-    if (!confirm('Delete this custom question permanently from this device?')) return;
-    config.custom = config.custom.filter((item) => item.id !== id);
-    config.disabledIds = config.disabledIds.filter((item) => item !== id);
-    if (editingId === id) clearEditor();
-    saveConfig();
-    renderLibrary();
-    resetQuestionCard();
-    showToast('Custom question deleted.');
+  function clearEditorList(kind) {
+    if (!confirm(`Remove all ${kind}?`)) return;
+    state[kind] = [];
+    state.history[kind] = [];
+    saveState(`All ${kind} removed.`);
+    populateEditors();
   }
 
-  function uniqueId() {
-    if (window.crypto && crypto.randomUUID) return `c-${crypto.randomUUID()}`;
-    return `c-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  function restoreList(kind) {
+    const source = kind === 'names' ? defaults.names : defaults[kind].map((item) => item.text);
+    state[kind] = source.slice();
+    state.history[kind] = [];
+    saveState(`Sample ${kind} restored.`);
+    populateEditors();
   }
 
-  function addQuestion() {
-    playClick();
-    const q = $('newQuestion').value.trim();
-    const f = $('newFollowup').value.trim();
-    if (!q) {
-      showToast('Write a question first.');
-      return;
-    }
-    config.custom.push({ id: uniqueId(), q, f, custom: true });
-    saveConfig();
-    $('newQuestion').value = '';
-    $('newFollowup').value = '';
-    renderLibrary();
-    showToast('Question added on this device.');
-  }
-
-  function searchableCards() {
-    const search = $('questionSearch').value.trim().toLocaleLowerCase('en');
-    const disabled = new Set(config.disabledIds);
-    return allCards().filter((card) => {
-      if (!showDisabled && disabled.has(card.id)) return false;
-      if (!search) return true;
-      return `${card.q} ${card.f || ''}`.toLocaleLowerCase('en').includes(search);
-    });
-  }
-
-  function renderLibrary() {
-    const cards = searchableCards();
-    const totalPages = Math.max(1, Math.ceil(cards.length / PAGE_SIZE));
-    adminPage = Math.min(adminPage, totalPages - 1);
-    const visible = cards.slice(adminPage * PAGE_SIZE, adminPage * PAGE_SIZE + PAGE_SIZE);
-    const disabled = new Set(config.disabledIds);
-    const list = $('questionList');
-    list.innerHTML = '';
-
-    if (!visible.length) {
-      const empty = document.createElement('div');
-      empty.className = 'empty-state';
-      empty.textContent = 'No questions match your search.';
-      list.appendChild(empty);
-    }
-
-    visible.forEach((card) => {
-      const row = document.createElement('div');
-      row.className = `question-row${disabled.has(card.id) ? ' disabled' : ''}`;
-
-      const copy = document.createElement('div');
-      copy.className = 'question-copy';
-      const title = document.createElement('strong');
-      title.textContent = card.q;
-      const follow = document.createElement('p');
-      follow.textContent = card.f || 'No follow-up question.';
-      copy.append(title, follow);
-
-      const actions = document.createElement('div');
-      actions.className = 'row-actions';
-      const edit = document.createElement('button');
-      edit.className = 'small-button';
-      edit.textContent = 'Edit';
-      edit.onclick = () => selectForEdit(card.id);
-
-      const toggle = document.createElement('button');
-      toggle.className = disabled.has(card.id) ? 'small-button enable' : 'small-button disable';
-      toggle.textContent = disabled.has(card.id) ? 'Enable' : 'Hide';
-      toggle.onclick = () => toggleQuestion(card.id);
-      actions.append(edit, toggle);
-
-      if (card.custom) {
-        const remove = document.createElement('button');
-        remove.className = 'small-button delete';
-        remove.textContent = 'Delete';
-        remove.onclick = () => deleteCustom(card.id);
-        actions.appendChild(remove);
-      }
-
-      row.append(copy, actions);
-      list.appendChild(row);
-    });
-
-    $('pageLabel').textContent = `Page ${adminPage + 1} of ${totalPages}`;
-    $('prevPage').disabled = adminPage === 0;
-    $('nextPage').disabled = adminPage >= totalPages - 1;
-    $('showDisabled').textContent = showDisabled ? 'Hide disabled' : 'Show all';
+  function updateSetting(key, value) {
+    state.settings[key] = value;
+    if (key === 'fairRotation') state.history.names = [];
+    if (key === 'noRepeat') { state.history.truths = []; state.history.dares = []; }
+    saveState();
+    populateEditors();
   }
 
   function exportBackup() {
-    const payload = { app: 'Eryaman Speaking Club - One for Me One for You', version: 2, exportedAt: new Date().toISOString(), config };
+    playClick();
+    const payload = { app: 'Eryaman Speaking Club Truth or Dare', version: 1, exportedAt: new Date().toISOString(), state };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'eryaman-speaking-club-backup.json';
+    link.download = 'eryaman-truth-or-dare-backup.json';
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -417,77 +416,125 @@ function playReveal() {
   async function importBackup(file) {
     try {
       const parsed = JSON.parse(await file.text());
-      config = normalizeConfig(parsed && parsed.config ? parsed.config : parsed);
-      saveConfig();
-      usedIds.clear();
-      clearEditor();
-      renderLibrary();
-      resetQuestionCard();
-      showToast('Backup imported on this device.');
+      state = normalizeState(parsed && parsed.state ? parsed.state : parsed);
+      saveState('Backup imported.');
+      populateEditors();
+      nextPlayer();
     } catch {
       showToast('Invalid backup file.');
     }
   }
 
-  function resetLocalChanges() {
-    if (!confirm('Reset all edits, hidden questions and custom questions on this device?')) return;
-    config = defaultConfig();
-    localStorage.removeItem(STORAGE_KEY);
-    usedIds.clear();
-    clearEditor();
-    adminPage = 0;
-    renderLibrary();
-    resetQuestionCard();
-    showToast('Local changes reset.');
+  function clearHistory() {
+    state.history = { names: [], truths: [], dares: [] };
+    saveState('Round history cleared.');
+  }
+
+  function restoreAll() {
+    if (!confirm('Restore all sample names, truths, dares and default settings?')) return;
+    state = defaultState();
+    state.names = defaults.names.slice();
+    saveState('All samples restored.');
+    populateEditors();
+    nextPlayer();
+  }
+
+  function openPasswordPanel() {
+    playClick();
+    $('currentPassword').value = '';
+    $('newPassword').value = '';
+    $('repeatPassword').value = '';
+    $('passwordError').hidden = true;
+    $('passwordPanel').showModal();
+  }
+
+  async function changePassword() {
+    const current = await sha256($('currentPassword').value);
+    const next = $('newPassword').value;
+    const repeat = $('repeatPassword').value;
+    const error = $('passwordError');
+    if (current !== passwordHash()) {
+      error.textContent = 'Current password is incorrect.';
+      error.hidden = false;
+      return;
+    }
+    if (next.length < 6) {
+      error.textContent = 'Use at least 6 characters.';
+      error.hidden = false;
+      return;
+    }
+    if (next !== repeat) {
+      error.textContent = 'New passwords do not match.';
+      error.hidden = false;
+      return;
+    }
+    localStorage.setItem(PASSWORD_HASH_KEY, await sha256(next));
+    error.hidden = true;
+    $('passwordPanel').close();
+    showToast('Password changed on this device.');
+  }
+
+  function restartGame() {
+    playClick();
+    selectedPlayer = '';
+    $('wheelLabel').textContent = 'READY';
+    $('wheelName').textContent = '?';
+    $('playerWheel').classList.remove('winner');
+    showScreen('player');
   }
 
   function init() {
-    updateSoundButton();
-    updateTurn();
-    $('start').onclick = startGame;
-    $('draw').onclick = drawCard;
-    $('next').onclick = nextTurn;
-    $('homeLogo').onclick = goHome;
-    $('sound').onclick = toggleSound;
-    $('admin').onclick = openAdmin;
-    $('closeAdmin').onclick = closeAdmin;
-    $('adminLoginButton').onclick = loginAdmin;
+    updateControls();
+    updateAdminCounts();
+    showScreen('player');
+
+    $('spinPlayer').onclick = spinPlayer;
+    $('newRound').onclick = newRound;
+    $('chooseTruth').onclick = () => chooseType('truth');
+    $('chooseDare').onclick = () => chooseType('dare');
+    $('skipPlayer').onclick = nextPlayer;
+    $('nextPlayer').onclick = nextPlayer;
+    $('spinAgain').onclick = () => spinQuestion(selectedType);
+    $('homeLogo').onclick = restartGame;
+    $('sound').onclick = () => { state.settings.sound = !state.settings.sound; saveState(); updateControls(); if (state.settings.sound) playClick(); };
+    $('admin').onclick = () => openAdmin('names');
+    $('openNames').onclick = () => openAdmin('names');
+    $('openQuestions').onclick = () => openAdmin(selectedType === 'truth' ? 'truths' : 'dares');
+    $('closeAdmin').onclick = () => $('adminPanel').close();
+    $('adminLoginButton').onclick = () => void loginAdmin();
+    $('adminPassword').addEventListener('keydown', (event) => { if (event.key === 'Enter') void loginAdmin(); });
     $('adminLogout').onclick = logoutAdmin;
-    $('addQuestion').onclick = addQuestion;
-    $('saveEdit').onclick = saveSelectedEdit;
-    $('clearEditor').onclick = clearEditor;
+
+    document.querySelectorAll('[data-admin-tab]').forEach((button) => { button.onclick = () => selectAdminTab(button.dataset.adminTab); });
+    $('saveNames').onclick = () => saveEditor('names');
+    $('saveTruths').onclick = () => saveEditor('truths');
+    $('saveDares').onclick = () => saveEditor('dares');
+    $('clearNames').onclick = () => clearEditorList('names');
+    $('clearTruths').onclick = () => clearEditorList('truths');
+    $('clearDares').onclick = () => clearEditorList('dares');
+    $('restoreNames').onclick = () => restoreList('names');
+    $('restoreTruths').onclick = () => restoreList('truths');
+    $('restoreDares').onclick = () => restoreList('dares');
+
+    $('fairRotation').onchange = (event) => updateSetting('fairRotation', event.currentTarget.checked);
+    $('noRepeat').onchange = (event) => updateSetting('noRepeat', event.currentTarget.checked);
+    $('soundSetting').onchange = (event) => updateSetting('sound', event.currentTarget.checked);
+    $('vibrationSetting').onchange = (event) => updateSetting('vibration', event.currentTarget.checked);
+
+    $('changePassword').onclick = openPasswordPanel;
+    $('closePassword').onclick = () => $('passwordPanel').close();
+    $('savePassword').onclick = () => void changePassword();
     $('exportBackup').onclick = exportBackup;
-    $('resetLocal').onclick = resetLocalChanges;
     $('importBackup').onchange = (event) => {
-      const file = event.target.files && event.target.files[0];
-      if (file) importBackup(file);
-      event.target.value = '';
+      const file = event.currentTarget.files && event.currentTarget.files[0];
+      if (file) void importBackup(file);
+      event.currentTarget.value = '';
     };
-    $('questionSearch').oninput = () => {
-      adminPage = 0;
-      renderLibrary();
-    };
-    $('showDisabled').onclick = () => {
-      showDisabled = !showDisabled;
-      adminPage = 0;
-      renderLibrary();
-    };
-    $('prevPage').onclick = () => {
-      playClick();
-      adminPage = Math.max(0, adminPage - 1);
-      renderLibrary();
-    };
-    $('nextPage').onclick = () => {
-      playClick();
-      adminPage += 1;
-      renderLibrary();
-    };
-    $('adminPassword').addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') loginAdmin();
-    });
-    $('adminPanel').addEventListener('click', (event) => {
-      if (event.target === $('adminPanel')) closeAdmin();
-    });
+    $('clearHistory').onclick = clearHistory;
+    $('restoreAll').onclick = restoreAll;
+
+    $('adminPanel').addEventListener('click', (event) => { if (event.target === $('adminPanel')) $('adminPanel').close(); });
+    $('passwordPanel').addEventListener('click', (event) => { if (event.target === $('passwordPanel')) $('passwordPanel').close(); });
   }
 
   init();
