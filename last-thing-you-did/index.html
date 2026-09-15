@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#0b2f5b" />
+  <title>Last Thing You Did · Eryaman Speaking Club</title>
+  <style>
+    :root{
+      --navy:#0b2f5b;--blue:#175ca8;--teal:#16a6a2;--coral:#f05f69;--orange:#f2a329;
+      --cream:#fffaf1;--ink:#16324f;--muted:#6f8193;--line:#dce5ed;--white:#fff;
+      --shadow:0 22px 70px rgba(11,47,91,.15);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}
+    body{min-height:100vh;background:
+      radial-gradient(circle at 10% 10%,rgba(22,166,162,.10),transparent 28%),
+      radial-gradient(circle at 90% 8%,rgba(240,95,105,.10),transparent 30%),
+      linear-gradient(180deg,#fff 0%,#f5f8fb 100%)}
+    button,a{font:inherit}
+    button{cursor:pointer}
+    .shell{width:min(980px,94vw);margin:0 auto;padding:22px 0 42px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:22px}
+    .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--navy);font-weight:950;letter-spacing:-.02em}
+    .brand img{width:54px;height:54px;object-fit:contain;border-radius:16px;background:#fff;box-shadow:0 8px 24px rgba(11,47,91,.12)}
+    .icon-btn{width:46px;height:46px;border:1px solid var(--line);border-radius:15px;background:#fff;color:var(--navy);font-size:21px;box-shadow:0 8px 22px rgba(11,47,91,.08)}
+    .hero{text-align:center;margin:12px auto 20px}
+    .eyebrow{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:999px;background:#eaf5ff;color:var(--blue);font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}
+    h1{margin:13px 0 8px;color:var(--navy);font-size:clamp(36px,7vw,68px);line-height:.96;letter-spacing:-.055em}
+    .subtitle{margin:0 auto;color:var(--muted);font-size:clamp(14px,2.4vw,18px);max-width:620px;line-height:1.55}
+    .filters{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:22px auto 18px}
+    .chip{border:1px solid var(--line);background:#fff;color:#52677b;border-radius:999px;padding:9px 13px;font-size:12px;font-weight:850;transition:.2s ease}
+    .chip.active{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:0 8px 20px rgba(11,47,91,.18)}
+    .chip[data-cat="Funny"].active{background:var(--orange);border-color:var(--orange);color:#3b2600}
+    .chip[data-cat="Personal"].active{background:var(--teal);border-color:var(--teal)}
+    .chip[data-cat="Spicy"].active{background:var(--coral);border-color:var(--coral)}
+    .game-wrap{position:relative;margin:0 auto;width:min(760px,100%)}
+    .counter{display:flex;justify-content:space-between;align-items:center;margin:0 5px 9px;color:var(--muted);font-size:12px;font-weight:800}
+    .card{position:relative;min-height:390px;border-radius:34px;padding:34px 34px 31px;background:#fff;border:1px solid rgba(11,47,91,.09);box-shadow:var(--shadow);display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;user-select:none}
+    .card:before{content:"";position:absolute;inset:0 0 auto 0;height:9px;background:linear-gradient(90deg,var(--blue),var(--teal),var(--orange),var(--coral))}
+    .card:after{content:"";position:absolute;width:230px;height:230px;border-radius:50%;right:-105px;bottom:-105px;background:rgba(22,166,162,.07)}
+    .card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative;z-index:2}
+    .category{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:8px 11px;background:#f0f6fb;color:var(--blue);font-size:12px;font-weight:950;text-transform:uppercase;letter-spacing:.07em}
+    .big-icon{font-size:27px}
+    .prompt{position:relative;z-index:2;margin:auto 0;font-weight:950;color:var(--navy);font-size:clamp(30px,5.2vw,51px);line-height:1.07;letter-spacing:-.042em;text-wrap:balance}
+    .hint{position:relative;z-index:2;color:#8494a4;font-size:12px;font-weight:750}
+    .actions{display:grid;grid-template-columns:1fr 1.8fr 1fr;gap:10px;margin-top:15px}
+    .btn{min-height:54px;border-radius:17px;border:1px solid var(--line);background:#fff;color:var(--navy);font-weight:900;box-shadow:0 8px 20px rgba(11,47,91,.06)}
+    .btn.primary{border:none;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;font-size:16px;box-shadow:0 14px 28px rgba(11,47,91,.22)}
+    .history{width:min(760px,100%);margin:18px auto 0;background:rgba(255,255,255,.76);border:1px solid rgba(11,47,91,.08);border-radius:20px;padding:13px 16px;backdrop-filter:blur(12px)}
+    .history-title{display:flex;justify-content:space-between;align-items:center;color:var(--navy);font-size:12px;font-weight:950;text-transform:uppercase;letter-spacing:.06em}
+    .history-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+    .history-item{max-width:100%;padding:7px 9px;border-radius:11px;background:#f2f6f9;color:#66798b;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .volume-pop{position:fixed;z-index:50;right:18px;top:76px;width:245px;padding:14px;background:#fff;border:1px solid var(--line);border-radius:17px;box-shadow:0 18px 50px rgba(11,47,91,.22);display:none}
+    .volume-pop.open{display:block}.volume-pop b{color:var(--navy);font-size:12px}.volume-pop input{width:100%;margin-top:10px;accent-color:var(--navy)}
+    .toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:var(--navy);color:#fff;padding:10px 14px;border-radius:13px;font-size:12px;font-weight:800;transition:.25s ease;z-index:60}.toast.show{opacity:1;transform:translate(-50%,0)}
+    @media(max-width:650px){
+      .shell{padding-top:14px}.brand span{display:none}.brand img{width:46px;height:46px}.icon-btn{width:44px;height:44px}
+      .card{min-height:360px;border-radius:27px;padding:28px 24px 25px}.actions{grid-template-columns:1fr 1fr}.actions .btn.primary{grid-column:1/-1;grid-row:1}.filters{justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap;padding-bottom:3px}.chip{flex:0 0 auto}.history{display:none}
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="../"><img src="../esc-center-symbol.webp" alt="ESC"><span>Eryaman Speaking Club</span></a>
+      <button class="icon-btn" id="soundBtn" aria-label="Sound level" title="Sound level">🔊</button>
+    </header>
+
+    <section class="hero">
+      <div class="eyebrow">⏳ Conversation Game</div>
+      <h1>Last Thing You Did</h1>
+      <p class="subtitle">Pick a category, draw a prompt and tell the story behind your latest moment. No overthinking — the first honest answer wins.</p>
+    </section>
+
+    <nav class="filters" id="filters"></nav>
+
+    <main class="game-wrap">
+      <div class="counter"><span id="deckInfo">Ready</span><span id="categoryInfo">All categories</span></div>
+      <section class="card" id="promptCard" tabindex="0" role="button" aria-label="Draw next prompt">
+        <div class="card-head"><span class="category" id="categoryBadge">Everyday</span><span class="big-icon" id="cardIcon">⏳</span></div>
+        <div class="prompt" id="promptText">What was the last thing you did before coming here?</div>
+        <div class="hint">Tap the card or press Space for the next prompt.</div>
+      </section>
+      <div class="actions">
+        <button class="btn" id="backBtn">↩ Previous</button>
+        <button class="btn primary" id="nextBtn">Next prompt →</button>
+        <button class="btn" id="shuffleBtn">↻ Shuffle</button>
+      </div>
+    </main>
+
+    <section class="history"><div class="history-title"><span>Recent prompts</span><span id="historyCount">0</span></div><div class="history-list" id="historyList"></div></section>
+  </div>
+
+  <div class="volume-pop" id="volumePop"><b>Sound level <span id="volumeValue">100%</span></b><input id="volumeSlider" type="range" min="0" max="100" step="5" value="100"></div>
+  <div class="toast" id="toast">Deck shuffled</div>
+
+  <script>
+    const prompts = [
+      {c:'Everyday',q:'What was the last thing you did before coming here?'},{c:'Everyday',q:'What was the last thing you ate?'},{c:'Everyday',q:'What was the last thing you drank?'},{c:'Everyday',q:'What was the last app you opened?'},{c:'Everyday',q:'What was the last photo you took?'},{c:'Everyday',q:'What was the last thing you bought?'},{c:'Everyday',q:'What was the last thing you searched for online?'},{c:'Everyday',q:'What was the last message you sent?'},{c:'Everyday',q:'What was the last video you watched?'},{c:'Everyday',q:'What was the last song you listened to?'},{c:'Everyday',q:'What was the last place you walked to?'},{c:'Everyday',q:'What was the last thing you cooked?'},{c:'Everyday',q:'What was the last thing you cleaned?'},{c:'Everyday',q:'What was the last thing you forgot?'},{c:'Everyday',q:'What was the last thing that made you late?'},{c:'Everyday',q:'What was the last thing you put in your pocket?'},{c:'Everyday',q:'What was the last website you visited?'},{c:'Everyday',q:'What was the last notification you received?'},{c:'Everyday',q:'What was the last thing you wrote by hand?'},{c:'Everyday',q:'What was the last thing you charged?'},{c:'Everyday',q:'What was the last thing you fixed?'},{c:'Everyday',q:'What was the last thing you threw away?'},{c:'Everyday',q:'What was the last thing you borrowed?'},{c:'Everyday',q:'What was the last thing you returned?'},{c:'Everyday',q:'What was the last thing you lost?'},{c:'Everyday',q:'What was the last thing you found?'},{c:'Everyday',q:'What was the last thing you did for someone else?'},{c:'Everyday',q:'What was the last thing someone did for you?'},{c:'Everyday',q:'What was the last meal you ordered?'},{c:'Everyday',q:'What was the last thing you watched on TV?'},
+      {c:'Funny',q:'What was the last thing that made you laugh out loud?'},{c:'Funny',q:'What was the last stupid mistake you made?'},{c:'Funny',q:'What was the last lie you told to avoid something?'},{c:'Funny',q:'What was the last embarrassing thing you did in public?'},{c:'Funny',q:'What was the last weird thing you Googled?'},{c:'Funny',q:'What was the last meme you sent to someone?'},{c:'Funny',q:'What was the last thing you pretended to understand?'},{c:'Funny',q:'What was the last food combination you tried that sounded wrong?'},{c:'Funny',q:'What was the last excuse you used?'},{c:'Funny',q:'What was the last thing you said to yourself out loud?'},{c:'Funny',q:'What was the last thing you blamed on someone else?'},{c:'Funny',q:'What was the last thing you did because you were bored?'},{c:'Funny',q:'What was the last thing you accidentally broke?'},{c:'Funny',q:'What was the last thing you did that looked suspicious?'},{c:'Funny',q:'What was the last awkward silence you experienced?'},{c:'Funny',q:'What was the last word you completely mispronounced?'},{c:'Funny',q:'What was the last outfit choice you regretted?'},{c:'Funny',q:'What was the last thing you ate directly from the fridge?'},{c:'Funny',q:'What was the last thing you forgot immediately after being told?'},{c:'Funny',q:'What was the last ridiculous purchase you almost made?'},{c:'Funny',q:'What was the last voice note you regretted sending?'},{c:'Funny',q:'What was the last thing you did to look busy?'},{c:'Funny',q:'What was the last thing you copied from someone else?'},{c:'Funny',q:'What was the last thing you laughed at that you probably should not have?'},{c:'Funny',q:'What was the last nickname somebody called you?'},
+      {c:'Personal',q:'Who was the last person you called?'},{c:'Personal',q:'Who was the last person you hugged?'},{c:'Personal',q:'Who was the last person you missed?'},{c:'Personal',q:'Who was the last person you apologised to?'},{c:'Personal',q:'Who was the last person you thanked properly?'},{c:'Personal',q:'Who was the last person you had a deep conversation with?'},{c:'Personal',q:'Who was the last person who surprised you?'},{c:'Personal',q:'Who was the last person who annoyed you?'},{c:'Personal',q:'What was the last compliment you received?'},{c:'Personal',q:'What was the last compliment you gave?'},{c:'Personal',q:'What was the last decision you were proud of?'},{c:'Personal',q:'What was the last thing you changed your mind about?'},{c:'Personal',q:'What was the last thing you were nervous about?'},{c:'Personal',q:'What was the last thing you felt proud of?'},{c:'Personal',q:'What was the last thing that disappointed you?'},{c:'Personal',q:'What was the last promise you made?'},{c:'Personal',q:'What was the last risk you took?'},{c:'Personal',q:'What was the last goal you worked on?'},{c:'Personal',q:'What was the last thing you did just for yourself?'},{c:'Personal',q:'What was the last thing you learned about yourself?'},{c:'Personal',q:'What was the last thing you were genuinely excited about?'},{c:'Personal',q:'What was the last thing that changed your mood completely?'},{c:'Personal',q:'What was the last conversation you replayed in your head?'},{c:'Personal',q:'What was the last boundary you set with someone?'},{c:'Personal',q:'What was the last thing you wished you had said differently?'},{c:'Personal',q:'What was the last memory that randomly came back to you?'},{c:'Personal',q:'What was the last thing you did even though you were scared?'},{c:'Personal',q:'What was the last thing you did that felt like progress?'},{c:'Personal',q:'Who was the last person you wanted to impress?'},{c:'Personal',q:'What was the last thing that made you feel lucky?'},
+      {c:'Spicy',q:'Who was the last person you had a crush on?'},{c:'Spicy',q:'Who was the last person you flirted with?'},{c:'Spicy',q:'Who was the last person you kissed?'},{c:'Spicy',q:'What was the last romantic message you sent?'},{c:'Spicy',q:'What was the last date you went on like?'},{c:'Spicy',q:'What was the last red flag you ignored?'},{c:'Spicy',q:'What was the last green flag that impressed you?'},{c:'Spicy',q:'Who was the last person you stalked on social media?'},{c:'Spicy',q:'What was the last thing you deleted because someone might see it?'},{c:'Spicy',q:'What was the last risky text you almost sent?'},{c:'Spicy',q:'What was the last secret you kept from someone you were dating?'},{c:'Spicy',q:'What was the last jealous thought you had?'},{c:'Spicy',q:'What was the last thing someone did that instantly made them more attractive?'},{c:'Spicy',q:'What was the last thing someone did that instantly gave you the ick?'},{c:'Spicy',q:'What was the last romantic decision you regretted?'},{c:'Spicy',q:'What was the last romantic decision you were glad you made?'},{c:'Spicy',q:'Who was the last person you dreamed about?'},{c:'Spicy',q:'What was the last thing you lied about on a date?'},{c:'Spicy',q:'What was the last dating app conversation you remember?'},{c:'Spicy',q:'Who was the last person you would not want your friends to know you liked?'},{c:'Spicy',q:'What was the last intimate moment that made you laugh?'},{c:'Spicy',q:'What was the last thing you did that felt a little forbidden?'},{c:'Spicy',q:'What was the last romantic situation where you thought “this is a bad idea”?'},{c:'Spicy',q:'What was the last thing you did because you were attracted to someone?'},{c:'Spicy',q:'What was the last thing you did that you would not put in the group chat?'}
+    ];
+
+    const categories=['All','Everyday','Funny','Personal','Spicy'];
+    const icons={Everyday:'⏳',Funny:'😂',Personal:'💬',Spicy:'🌶️'};
+    let selected='All', deck=[], index=-1, history=[], previous=[];
+    const $=id=>document.getElementById(id);
+    const filters=$('filters'), promptText=$('promptText'), badge=$('categoryBadge'), icon=$('cardIcon');
+
+    function tone(freq=420,dur=.07,gain=.11){
+      if(Number(localStorage.getItem('esc-global-volume-v1')??100)<=0)return;
+      const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
+      const ctx=window.__lastGameAudio||(window.__lastGameAudio=new C());if(ctx.state==='suspended')ctx.resume();
+      const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.value=freq;
+      const v=Math.max(0,Math.min(1,Number(localStorage.getItem('esc-global-volume-v1')??100)/100));
+      g.gain.setValueAtTime(gain*v,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+dur);
+      o.connect(g).connect(ctx.destination);o.start();o.stop(ctx.currentTime+dur+.01);
+    }
+    const shuffle=a=>{const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b};
+    function buildDeck(){deck=shuffle(prompts.filter(p=>selected==='All'||p.c===selected));index=-1;$('deckInfo').textContent=`${deck.length} prompts`; $('categoryInfo').textContent=selected==='All'?'All categories':selected;}
+    function show(p,save=true){if(!p)return;promptText.textContent=p.q;badge.textContent=p.c;icon.textContent=icons[p.c]||'⏳';if(save){history.unshift(p);history=history.slice(0,6);renderHistory()}tone(p.c==='Spicy'?520:440,.075,.10)}
+    function next(){if(!deck.length||index>=deck.length-1)buildDeck();index++;const p=deck[index];previous.push(p);show(p);$('deckInfo').textContent=`${Math.max(0,deck.length-index-1)} left in this deck`;}
+    function back(){if(previous.length<2)return;previous.pop();const p=previous[previous.length-1];show(p,false)}
+    function renderHistory(){$('historyCount').textContent=history.length;$('historyList').innerHTML=history.map(x=>`<span class="history-item">${x.q.replace(/</g,'&lt;')}</span>`).join('')}
+    categories.forEach(c=>{const b=document.createElement('button');b.className='chip'+(c==='All'?' active':'');b.dataset.cat=c;b.textContent=c;b.onclick=()=>{selected=c;document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('active',x.dataset.cat===c));buildDeck();next()};filters.appendChild(b)});
+    $('nextBtn').onclick=next;$('promptCard').onclick=next;$('backBtn').onclick=back;$('shuffleBtn').onclick=()=>{buildDeck();next();const t=$('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),900)};
+    document.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();next()}else if(e.code==='ArrowLeft')back();else if(e.code==='ArrowRight')next()});
+
+    const soundBtn=$('soundBtn'),pop=$('volumePop'),slider=$('volumeSlider'),value=$('volumeValue');
+    let vol=Math.max(0,Math.min(100,Number(localStorage.getItem('esc-global-volume-v1')??100)));slider.value=vol;value.textContent=vol+'%';soundBtn.textContent=vol===0?'🔇':vol<45?'🔉':'🔊';
+    soundBtn.onclick=e=>{e.stopPropagation();pop.classList.toggle('open')};document.addEventListener('click',e=>{if(!pop.contains(e.target)&&e.target!==soundBtn)pop.classList.remove('open')});
+    slider.oninput=e=>{vol=Number(e.target.value);localStorage.setItem('esc-global-volume-v1',vol);value.textContent=vol+'%';soundBtn.textContent=vol===0?'🔇':vol<45?'🔉':'🔊';tone(480,.06,.08)};
+    buildDeck();next();
+  </script>
+</body>
+</html>
