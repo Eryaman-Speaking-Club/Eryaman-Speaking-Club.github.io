@@ -26,7 +26,7 @@ jobs:
           index = Path('index.html')
           html = index.read_text(encoding='utf-8')
           logo = './51a64254-0651-4c02-8235-bef5325d7947%20(1).png'
-          updated, count = re.subn(
+          html, count = re.subn(
               r'<img src="data:image/webp;base64,[^"]+" alt="Eryaman Speaking Club">',
               f'<img src="{logo}" alt="Eryaman Speaking Club">',
               html,
@@ -34,7 +34,7 @@ jobs:
           )
           if count != 1:
               raise SystemExit('Could not find embedded logo in index.html')
-          index.write_text(updated, encoding='utf-8')
+          index.write_text(html, encoding='utf-8')
 
           css_path = Path('styles.css')
           css = css_path.read_text(encoding='utf-8')
@@ -54,36 +54,6 @@ jobs:
 
           app_path = Path('app.js')
           app = app_path.read_text(encoding='utf-8')
-          old_audio = '''  function tone(frequency, duration = 0.05, delay = 0, volume = 0.02) {
-            const ctx = getAudio();
-            if (!ctx) return;
-            const oscillator = ctx.createOscillator();
-            const gain = ctx.createGain();
-            oscillator.type = 'triangle';
-            oscillator.frequency.value = frequency;
-            gain.gain.setValueAtTime(0.0001, ctx.currentTime + delay);
-            gain.gain.exponentialRampToValueAtTime(volume, ctx.currentTime + delay + 0.008);
-            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay + duration);
-            oscillator.connect(gain).connect(ctx.destination);
-            oscillator.start(ctx.currentTime + delay);
-            oscillator.stop(ctx.currentTime + delay + duration + 0.02);
-          }
-
-          function playClick() {
-            tone(320, 0.045, 0, 0.018);
-            tone(470, 0.05, 0.025, 0.014);
-          }
-
-          function playDraw() {
-            [0, 1, 2, 3].forEach((step) => tone(190 + step * 55, 0.045, step * 0.055, 0.015));
-          }
-
-          function playReveal() {
-            tone(390, 0.09, 0, 0.024);
-            tone(590, 0.11, 0.055, 0.019);
-            tone(790, 0.15, 0.11, 0.014);
-          }'''
-          old_audio = '\n'.join(line[10:] if line.startswith('          ') else line for line in old_audio.splitlines())
           new_audio = '''  function tone(frequency, duration = 0.05, delay = 0, volume = 0.02, type = 'sine') {
             const ctx = getAudio();
             if (!ctx) return;
@@ -116,9 +86,13 @@ jobs:
             tone(783.99, 0.14, 0.09, 0.012, 'sine');
           }'''
           new_audio = '\n'.join(line[10:] if line.startswith('          ') else line for line in new_audio.splitlines())
-          if old_audio not in app:
-              raise SystemExit('Could not find current audio block in app.js')
-          app = app.replace(old_audio, new_audio, 1)
+          pattern = re.compile(
+              r"  function tone\(frequency, duration = 0\.05, delay = 0, volume = 0\.02\) \{.*?\n  function showToast",
+              re.S,
+          )
+          app, count = pattern.subn(new_audio + '\n\n  function showToast', app, count=1)
+          if count != 1:
+              raise SystemExit('Could not find current audio section in app.js')
           app = app.replace('    playClick();\n    playDraw();', '    playDraw();', 1)
           app_path.write_text(app, encoding='utf-8')
 
