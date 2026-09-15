@@ -6,6 +6,8 @@
   const PASSWORD_HASH_KEY = 'esc-truth-dare-password-hash-v1';
   const ADMIN_SESSION_KEY = 'esc-truth-dare-admin-unlocked-v1';
   const DEFAULT_PASSWORD_HASH = 'c28440d7f9de5738eddf560c79371754e9ffa41fba2afd1efaa3da1458438a52';
+  const CLUB_LOGO_URL = '../51a64254-0651-4c02-8235-bef5325d7947%20(1).png';
+  const WHEEL_COLORS = ['#123a6b', '#f74f54', '#225f9d', '#f28b45', '#0b2f5b', '#ef7e65'];
 
   const $ = (id) => document.getElementById(id);
   let state = loadState();
@@ -14,6 +16,8 @@
   let audioContext = null;
   let spinTimer = 0;
   let toastTimer = 0;
+  let wheelRotation = 0;
+  let wheelAnimation = null;
 
   function defaultState() {
     return {
@@ -88,11 +92,11 @@
     const AudioCtor = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtor) return null;
     audioContext ||= new AudioCtor();
-    if (audioContext.state === 'suspended') audioContext.resume();
+    if (audioContext.state === 'suspended') audioContext.resume().catch(() => {});
     return audioContext;
   }
 
-  function tone(frequency, duration = 0.045, delay = 0, volume = 0.018, type = 'sine') {
+  function tone(frequency, duration = 0.045, delay = 0, volume = 0.024, type = 'sine') {
     const ctx = getAudio();
     if (!ctx) return;
     const osc = ctx.createOscillator();
@@ -108,23 +112,100 @@
   }
 
   function playClick() {
-    tone(659.25, 0.04, 0, 0.014, 'sine');
-    tone(987.77, 0.05, 0.025, 0.009, 'sine');
+    tone(659.25, 0.05, 0, 0.022, 'sine');
+    tone(987.77, 0.06, 0.025, 0.014, 'sine');
   }
 
   function playTick(step = 0) {
-    tone(420 + (step % 5) * 45, 0.035, 0, 0.011, 'triangle');
+    tone(390 + (step % 7) * 42, 0.045, 0, 0.019, 'triangle');
   }
 
   function playReveal(type) {
     const base = type === 'dare' ? 440 : 523.25;
-    tone(base, 0.08, 0, 0.02, 'sine');
-    tone(base * 1.25, 0.1, 0.045, 0.015, 'sine');
-    tone(base * 1.5, 0.13, 0.09, 0.011, 'sine');
+    tone(base, 0.09, 0, 0.032, 'sine');
+    tone(base * 1.25, 0.11, 0.05, 0.024, 'sine');
+    tone(base * 1.5, 0.15, 0.1, 0.018, 'sine');
   }
 
   function vibrate(pattern) {
     if (state.settings.vibration && navigator.vibrate) navigator.vibrate(pattern);
+  }
+
+  function installWheelEnhancements() {
+    if ($('wheelEnhancementStyles')) return;
+    const style = document.createElement('style');
+    style.id = 'wheelEnhancementStyles';
+    style.textContent = `
+      .player-wheel{overflow:visible}
+      .wheel-name-layer{position:absolute;inset:0;z-index:1;pointer-events:none;border-radius:50%}
+      .wheel-name{position:absolute;transform:translate(-50%,-50%);color:#fff;font-weight:950;line-height:1;letter-spacing:-.02em;text-align:center;text-shadow:0 2px 7px rgba(0,0,0,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:2px 3px;pointer-events:none}
+      .wheel-center{z-index:3;overflow:hidden}
+      .wheel-center strong.logo-mode{width:min(112px,28vw);height:min(90px,23vw);margin-top:8px;display:flex;align-items:center;justify-content:flex-start;overflow:hidden;border-radius:18px}
+      .wheel-logo-symbol{display:block;height:100%;width:auto;max-width:none;object-fit:contain;object-position:left center;flex:none}
+      .player-wheel.is-spinning{will-change:transform}
+      @media(max-width:560px){.wheel-name{font-size:9px!important}.wheel-center strong.logo-mode{width:82px;height:67px}}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function centerLogo() {
+    const name = $('wheelName');
+    if (!name) return;
+    name.classList.add('logo-mode');
+    name.innerHTML = `<img class="wheel-logo-symbol" src="${CLUB_LOGO_URL}" alt="Eryaman Speaking Club symbol">`;
+  }
+
+  function centerSelectedName(value) {
+    const name = $('wheelName');
+    name.classList.remove('logo-mode');
+    name.textContent = value || '?';
+  }
+
+  function renderWheel() {
+    const wheel = $('playerWheel');
+    if (!wheel) return;
+
+    let layer = wheel.querySelector('.wheel-name-layer');
+    if (!layer) {
+      layer = document.createElement('div');
+      layer.className = 'wheel-name-layer';
+      const center = wheel.querySelector('.wheel-center');
+      wheel.insertBefore(layer, center || null);
+    }
+    layer.replaceChildren();
+
+    const names = state.names.slice();
+    if (!names.length) return;
+
+    const segment = 360 / names.length;
+    const gap = Math.min(3.2, Math.max(1.3, segment * 0.075));
+    const gradient = [];
+    names.forEach((name, index) => {
+      const start = index * segment;
+      const colorStart = start + gap / 2;
+      const colorEnd = (index + 1) * segment - gap / 2;
+      const end = (index + 1) * segment;
+      const color = WHEEL_COLORS[index % WHEEL_COLORS.length];
+      gradient.push(`#fff ${start.toFixed(3)}deg ${colorStart.toFixed(3)}deg`);
+      gradient.push(`${color} ${colorStart.toFixed(3)}deg ${colorEnd.toFixed(3)}deg`);
+      gradient.push(`#fff ${colorEnd.toFixed(3)}deg ${end.toFixed(3)}deg`);
+
+      const angle = -90 + (index + 0.5) * segment;
+      const radians = angle * Math.PI / 180;
+      const radius = names.length > 12 ? 40 : names.length > 8 ? 39 : 38;
+      const x = 50 + Math.cos(radians) * radius;
+      const y = 50 + Math.sin(radians) * radius;
+      const label = document.createElement('span');
+      label.className = 'wheel-name';
+      label.textContent = name;
+      label.title = name;
+      label.style.left = `${x}%`;
+      label.style.top = `${y}%`;
+      label.style.maxWidth = names.length > 12 ? '15%' : names.length > 8 ? '18%' : '23%';
+      label.style.fontSize = names.length > 12 ? '9px' : names.length > 8 ? '10px' : '12px';
+      layer.appendChild(label);
+    });
+    wheel.style.background = `conic-gradient(from -90deg, ${gradient.join(',')})`;
   }
 
   function showScreen(name) {
@@ -146,6 +227,7 @@
     $('roundStatus').textContent = state.settings.fairRotation && canPlay ? `${Math.min(used, state.names.length)} of ${state.names.length} players used this round` : `${state.names.length} players ready`;
     $('sound').textContent = state.settings.sound ? '🔊' : '🔇';
     $('sound').setAttribute('aria-label', state.settings.sound ? 'Turn sound off' : 'Turn sound on');
+    renderWheel();
   }
 
   function choosePlayer() {
@@ -163,40 +245,68 @@
   }
 
   function spinPlayer() {
-    if (state.names.length < 2) return;
-    playClick();
+    const button = $('spinPlayer');
+    if (state.names.length < 2 || button.disabled) return;
+
     const wheel = $('playerWheel');
     const label = $('wheelLabel');
-    const name = $('wheelName');
-    const button = $('spinPlayer');
+    selectedPlayer = choosePlayer();
+    const selectedIndex = Math.max(0, state.names.indexOf(selectedPlayer));
+    const segment = 360 / state.names.length;
+    const selectedCenter = (selectedIndex + 0.5) * segment;
+    const desiredModulo = (360 - selectedCenter) % 360;
+    const currentModulo = ((wheelRotation % 360) + 360) % 360;
+    const alignmentDelta = (desiredModulo - currentModulo + 360) % 360;
+    const targetRotation = wheelRotation + 1440 + alignmentDelta;
+    const spinDuration = 2350;
+
+    getAudio();
+    playClick();
     button.disabled = true;
     wheel.classList.remove('winner');
-    wheel.classList.add('spinning');
+    wheel.classList.add('is-spinning');
     label.textContent = 'SPINNING';
+    centerLogo();
+
+    if (wheelAnimation) wheelAnimation.cancel();
+    wheelAnimation = wheel.animate(
+      [
+        { transform: `rotate(${wheelRotation}deg)` },
+        { transform: `rotate(${targetRotation}deg)` }
+      ],
+      {
+        duration: spinDuration,
+        easing: 'cubic-bezier(.12,.72,.13,1)',
+        fill: 'forwards'
+      }
+    );
+
     let ticks = 0;
     clearInterval(spinTimer);
-    spinTimer = setInterval(() => {
-      name.textContent = state.names[Math.floor(Math.random() * state.names.length)] || '?';
-      playTick(ticks++);
-    }, 85);
+    spinTimer = setInterval(() => playTick(ticks++), 82);
 
-    setTimeout(() => {
+    wheelAnimation.onfinish = () => {
       clearInterval(spinTimer);
-      selectedPlayer = choosePlayer();
-      name.textContent = selectedPlayer;
-      label.textContent = 'SELECTED';
-      wheel.classList.remove('spinning');
+      wheelRotation = targetRotation;
+      wheel.style.transform = `rotate(${wheelRotation}deg)`;
+      wheelAnimation.cancel();
+      wheelAnimation = null;
+      wheel.classList.remove('is-spinning');
       wheel.classList.add('winner');
+      centerSelectedName(selectedPlayer);
+      label.textContent = 'SELECTED';
+
       if (state.settings.fairRotation && !state.history.names.includes(selectedPlayer)) state.history.names.push(selectedPlayer);
       saveState();
       vibrate([45, 45, 90]);
       playReveal('truth');
       button.disabled = false;
+
       setTimeout(() => {
         $('selectedPlayer').textContent = `${selectedPlayer}!`;
         showScreen('choice');
-      }, 650);
-    }, 1450);
+      }, 850);
+    };
   }
 
   function randomFrom(list, historyKey) {
@@ -270,7 +380,7 @@
     playClick();
     selectedPlayer = '';
     $('wheelLabel').textContent = 'READY';
-    $('wheelName').textContent = '?';
+    centerLogo();
     $('playerWheel').classList.remove('winner');
     showScreen('player');
     updateControls();
@@ -281,7 +391,7 @@
     state.history.names = [];
     saveState('New player round started.');
     $('wheelLabel').textContent = 'READY';
-    $('wheelName').textContent = '?';
+    centerLogo();
     $('playerWheel').classList.remove('winner');
   }
 
@@ -478,17 +588,20 @@
     playClick();
     selectedPlayer = '';
     $('wheelLabel').textContent = 'READY';
-    $('wheelName').textContent = '?';
+    centerLogo();
     $('playerWheel').classList.remove('winner');
     showScreen('player');
   }
 
   function init() {
+    installWheelEnhancements();
     updateControls();
     updateAdminCounts();
+    centerLogo();
     showScreen('player');
 
     $('spinPlayer').onclick = spinPlayer;
+    $('playerWheel').onclick = spinPlayer;
     $('newRound').onclick = newRound;
     $('chooseTruth').onclick = () => chooseType('truth');
     $('chooseDare').onclick = () => chooseType('dare');
