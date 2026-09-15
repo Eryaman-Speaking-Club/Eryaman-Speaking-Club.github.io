@@ -18,6 +18,7 @@
   let toastTimer = 0;
   let wheelRotation = 0;
   let wheelAnimation = null;
+  let labelAnimations = [];
 
   function defaultState() {
     return {
@@ -136,14 +137,17 @@
     const style = document.createElement('style');
     style.id = 'wheelEnhancementStyles';
     style.textContent = `
-      .player-wheel{overflow:visible}
-      .wheel-name-layer{position:absolute;inset:0;z-index:1;pointer-events:none;border-radius:50%}
-      .wheel-name{position:absolute;transform:translate(-50%,-50%);color:#fff;font-weight:950;line-height:1.05;letter-spacing:-.02em;text-align:center;text-shadow:0 2px 6px rgba(0,0,0,.38);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:4px 6px;pointer-events:none;z-index:2}
-      .wheel-center{z-index:3;overflow:hidden}
-      .wheel-center strong.logo-mode{width:min(92px,23vw);height:min(92px,23vw);margin-top:8px;display:block;overflow:hidden;border-radius:50%;position:relative}
-      .wheel-logo-symbol{position:absolute;display:block;height:158px;width:auto;max-width:none;left:50%;top:-7px;transform:translateX(-50%)}
-      .player-wheel.is-spinning{will-change:transform}
-      @media(max-width:560px){.wheel-name{font-size:9px!important}.wheel-center strong.logo-mode{width:70px;height:70px}.wheel-logo-symbol{height:122px;top:-5px}}
+      .player-wheel{overflow:visible;background:#fff!important}
+      .wheel-rotor{position:absolute;inset:0;border-radius:50%;overflow:hidden;z-index:1;will-change:transform}
+      .wheel-name-layer{position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:50%}
+      .wheel-name{position:absolute;transform:translate(-50%,-50%) rotate(var(--counter-rotation,0deg));transform-origin:center;color:#fff;font-weight:950;line-height:1.05;letter-spacing:-.02em;text-align:center;text-shadow:0 2px 6px rgba(0,0,0,.38);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:4px 6px;pointer-events:none;z-index:3}
+      .wheel-rotor .wheel-ring{z-index:1}
+      .wheel-center{z-index:5!important;width:39.2%!important;height:39.2%!important;padding:10px!important;position:relative;overflow:hidden}
+      .wheel-center strong.logo-mode{width:86px;height:86px;margin-top:5px;display:block;overflow:hidden;border-radius:50%;position:relative}
+      .wheel-logo-symbol{position:absolute;display:block;width:185px;height:185px;max-width:none;left:50%;top:50%;transform:translate(-50%,-50%);object-fit:contain}
+      .wheel-center strong:not(.logo-mode){font-size:clamp(18px,4vw,32px)!important}
+      .player-wheel.is-spinning{will-change:auto}
+      @media(max-width:560px){.wheel-name{font-size:9px!important}.wheel-center{width:40%!important;height:40%!important;padding:8px!important}.wheel-center strong.logo-mode{width:64px;height:64px}.wheel-logo-symbol{width:138px;height:138px}}
     `;
     document.head.appendChild(style);
   }
@@ -161,16 +165,31 @@
     name.textContent = value || '?';
   }
 
+  function ensureWheelRotor() {
+    const wheel = $('playerWheel');
+    let rotor = wheel.querySelector('.wheel-rotor');
+    if (rotor) return rotor;
+
+    rotor = document.createElement('div');
+    rotor.className = 'wheel-rotor';
+    const center = wheel.querySelector('.wheel-center');
+    Array.from(wheel.children)
+      .filter((child) => child.classList && child.classList.contains('wheel-ring'))
+      .forEach((ring) => rotor.appendChild(ring));
+    wheel.insertBefore(rotor, center || null);
+    return rotor;
+  }
+
   function renderWheel() {
     const wheel = $('playerWheel');
     if (!wheel) return;
+    const rotor = ensureWheelRotor();
 
-    let layer = wheel.querySelector('.wheel-name-layer');
+    let layer = rotor.querySelector('.wheel-name-layer');
     if (!layer) {
       layer = document.createElement('div');
       layer.className = 'wheel-name-layer';
-      const center = wheel.querySelector('.wheel-center');
-      wheel.insertBefore(layer, center || null);
+      rotor.appendChild(layer);
     }
     layer.replaceChildren();
 
@@ -192,7 +211,7 @@
 
       const angle = -90 + (index + 0.5) * segment;
       const radians = angle * Math.PI / 180;
-      const radius = names.length > 12 ? 37 : names.length > 8 ? 36.5 : 36;
+      const radius = names.length > 12 ? 38 : names.length > 8 ? 37.5 : 37;
       const x = 50 + Math.cos(radians) * radius;
       const y = 50 + Math.sin(radians) * radius;
       const label = document.createElement('span');
@@ -201,11 +220,14 @@
       label.title = name;
       label.style.left = `${x}%`;
       label.style.top = `${y}%`;
-      label.style.maxWidth = names.length > 12 ? '14%' : names.length > 8 ? '18%' : '25%';
+      label.style.maxWidth = names.length > 12 ? '14%' : names.length > 8 ? '18%' : '27%';
       label.style.fontSize = names.length > 12 ? '9px' : names.length > 8 ? '11px' : '13px';
+      label.style.setProperty('--counter-rotation', `${-wheelRotation}deg`);
       layer.appendChild(label);
     });
-    wheel.style.background = `conic-gradient(${gradient.join(',')})`;
+
+    rotor.style.background = `conic-gradient(${gradient.join(',')})`;
+    rotor.style.transform = `rotate(${wheelRotation}deg)`;
   }
 
   function showScreen(name) {
@@ -249,6 +271,7 @@
     if (state.names.length < 2 || button.disabled) return;
 
     const wheel = $('playerWheel');
+    const rotor = ensureWheelRotor();
     const label = $('wheelLabel');
     selectedPlayer = choosePlayer();
     const selectedIndex = Math.max(0, state.names.indexOf(selectedPlayer));
@@ -259,6 +282,7 @@
     const alignmentDelta = (desiredModulo - currentModulo + 360) % 360;
     const targetRotation = wheelRotation + 1440 + alignmentDelta;
     const spinDuration = 2350;
+    const easing = 'cubic-bezier(.12,.72,.13,1)';
 
     getAudio();
     playClick();
@@ -269,17 +293,27 @@
     centerLogo();
 
     if (wheelAnimation) wheelAnimation.cancel();
-    wheelAnimation = wheel.animate(
+    labelAnimations.forEach((animation) => animation.cancel());
+    labelAnimations = [];
+
+    wheelAnimation = rotor.animate(
       [
         { transform: `rotate(${wheelRotation}deg)` },
         { transform: `rotate(${targetRotation}deg)` }
       ],
-      {
-        duration: spinDuration,
-        easing: 'cubic-bezier(.12,.72,.13,1)',
-        fill: 'forwards'
-      }
+      { duration: spinDuration, easing, fill: 'forwards' }
     );
+
+    rotor.querySelectorAll('.wheel-name').forEach((nameLabel) => {
+      const animation = nameLabel.animate(
+        [
+          { transform: `translate(-50%,-50%) rotate(${-wheelRotation}deg)` },
+          { transform: `translate(-50%,-50%) rotate(${-targetRotation}deg)` }
+        ],
+        { duration: spinDuration, easing, fill: 'forwards' }
+      );
+      labelAnimations.push(animation);
+    });
 
     let ticks = 0;
     clearInterval(spinTimer);
@@ -288,7 +322,12 @@
     wheelAnimation.onfinish = () => {
       clearInterval(spinTimer);
       wheelRotation = targetRotation;
-      wheel.style.transform = `rotate(${wheelRotation}deg)`;
+      rotor.style.transform = `rotate(${wheelRotation}deg)`;
+      rotor.querySelectorAll('.wheel-name').forEach((nameLabel) => {
+        nameLabel.style.setProperty('--counter-rotation', `${-wheelRotation}deg`);
+      });
+      labelAnimations.forEach((animation) => animation.cancel());
+      labelAnimations = [];
       wheelAnimation.cancel();
       wheelAnimation = null;
       wheel.classList.remove('is-spinning');
