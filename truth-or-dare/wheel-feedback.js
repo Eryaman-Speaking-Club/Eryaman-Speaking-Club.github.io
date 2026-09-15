@@ -78,40 +78,37 @@
 
     const now = audio.currentTime;
     const loudness = Math.pow(v, 0.55);
+    const note = 523.25;
 
-    const snap = audio.createBufferSource();
-    const snapFilter = audio.createBiquadFilter();
-    const snapGain = audio.createGain();
-    snap.buffer = bufferFor(audio);
-    snapFilter.type = 'bandpass';
-    snapFilter.frequency.value = strong ? 2350 : 2050;
-    snapFilter.Q.value = 0.72;
-    snapGain.gain.setValueAtTime((strong ? 0.48 : 0.37) * loudness, now);
-    snapGain.gain.exponentialRampToValueAtTime(0.0001, now + (strong ? 0.038 : 0.027));
-    snap.connect(snapFilter).connect(snapGain).connect(audioBus);
-    snap.start(now);
-    snap.stop(now + 0.045);
+    const main = audio.createOscillator();
+    const mainGain = audio.createGain();
+    main.type = 'triangle';
+    main.frequency.setValueAtTime(note, now);
+    mainGain.gain.setValueAtTime((strong ? 0.24 : 0.18) * loudness, now);
+    mainGain.gain.exponentialRampToValueAtTime(0.0001, now + (strong ? 0.075 : 0.055));
+    main.connect(mainGain).connect(audioBus);
+    main.start(now);
+    main.stop(now + 0.085);
 
-    const body = audio.createOscillator();
-    const bodyGain = audio.createGain();
-    body.type = 'triangle';
-    body.frequency.setValueAtTime(strong ? 760 : 920, now);
-    body.frequency.exponentialRampToValueAtTime(strong ? 330 : 470, now + 0.024);
-    bodyGain.gain.setValueAtTime((strong ? 0.20 : 0.135) * loudness, now);
-    bodyGain.gain.exponentialRampToValueAtTime(0.0001, now + (strong ? 0.045 : 0.030));
-    body.connect(bodyGain).connect(audioBus);
-    body.start(now);
-    body.stop(now + 0.05);
+    const warm = audio.createOscillator();
+    const warmGain = audio.createGain();
+    warm.type = 'sine';
+    warm.frequency.setValueAtTime(note / 2, now);
+    warmGain.gain.setValueAtTime((strong ? 0.085 : 0.055) * loudness, now);
+    warmGain.gain.exponentialRampToValueAtTime(0.0001, now + (strong ? 0.085 : 0.060));
+    warm.connect(warmGain).connect(audioBus);
+    warm.start(now);
+    warm.stop(now + 0.095);
 
-    const tap = audio.createOscillator();
-    const tapGain = audio.createGain();
-    tap.type = 'square';
-    tap.frequency.value = strong ? 1280 : 1460;
-    tapGain.gain.setValueAtTime((strong ? 0.095 : 0.072) * loudness, now);
-    tapGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.012);
-    tap.connect(tapGain).connect(audioBus);
-    tap.start(now);
-    tap.stop(now + 0.016);
+    const overtone = audio.createOscillator();
+    const overtoneGain = audio.createGain();
+    overtone.type = 'sine';
+    overtone.frequency.setValueAtTime(note * 2, now);
+    overtoneGain.gain.setValueAtTime((strong ? 0.045 : 0.028) * loudness, now);
+    overtoneGain.gain.exponentialRampToValueAtTime(0.0001, now + (strong ? 0.050 : 0.038));
+    overtone.connect(overtoneGain).connect(audioBus);
+    overtone.start(now);
+    overtone.stop(now + 0.060);
 
     pointerKick();
   }
