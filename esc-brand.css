@@ -1,7 +1,7 @@
 .esc-brand{
   display:flex!important;
   align-items:center!important;
-  gap:13px!important;
+  gap:10px!important;
   min-width:0!important;
   border:0!important;
   background:transparent!important;
@@ -12,15 +12,15 @@
 }
 
 .esc-brand-mark{
-  width:75px;
-  height:75px;
-  flex:0 0 75px;
+  width:60px;
+  height:60px;
+  flex:0 0 60px;
   display:grid;
   place-items:center;
   overflow:hidden;
-  border-radius:22px;
+  border-radius:18px;
   background:#fff;
-  box-shadow:0 8px 22px rgba(11,47,91,.11), inset 0 0 0 1px rgba(11,47,91,.04);
+  box-shadow:0 6px 18px rgba(11,47,91,.11), inset 0 0 0 1px rgba(11,47,91,.04);
 }
 
 .esc-brand-mark img{
@@ -38,7 +38,7 @@
 .esc-brand-title{
   display:block;
   color:#0b2f5b;
-  font-size:clamp(22px,2.4vw,34px);
+  font-size:clamp(18px,1.92vw,27px);
   line-height:.98;
   font-weight:950;
   letter-spacing:-.035em;
@@ -47,7 +47,7 @@
 
 .site-header,
 .topbar{
-  min-height:93px!important;
+  min-height:74px!important;
   align-items:center!important;
 }
 
@@ -57,32 +57,32 @@
 }
 
 @media(max-width:760px){
-  .esc-brand{gap:9px!important}
+  .esc-brand{gap:7px!important}
   .esc-brand-mark{
-    width:51px;
-    height:51px;
-    flex-basis:51px;
-    border-radius:16px;
+    width:41px;
+    height:41px;
+    flex-basis:41px;
+    border-radius:13px;
   }
   .esc-brand-title{
-    font-size:clamp(16px,4.4vw,22px);
+    font-size:clamp(13px,3.52vw,18px);
     letter-spacing:-.03em;
   }
   .site-header,
   .topbar{
-    min-height:74px!important;
+    min-height:59px!important;
   }
 }
 
 @media(max-width:520px){
-  .esc-brand{gap:7px!important}
+  .esc-brand{gap:6px!important}
   .esc-brand-mark{
-    width:46px;
-    height:46px;
-    flex-basis:46px;
-    border-radius:14px;
+    width:37px;
+    height:37px;
+    flex-basis:37px;
+    border-radius:11px;
   }
   .esc-brand-title{
-    font-size:clamp(15px,4.3vw,19px);
+    font-size:clamp(12px,3.44vw,15px);
   }
 }
