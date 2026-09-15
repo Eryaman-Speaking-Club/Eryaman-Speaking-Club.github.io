@@ -17,7 +17,7 @@
         linear-gradient(#fff,#f4f7fa);color:var(--navy)
     }
     .wrap{width:min(920px,92vw);text-align:center;padding:34px 0 42px}
-    .logo{width:min(430px,84vw);height:auto;margin-bottom:12px}
+    .home-brand{justify-content:center!important;margin:0 auto 18px!important;width:max-content;max-width:100%}
     .intro{max-width:650px;margin:0 auto 28px;color:#718397;font-weight:650;line-height:1.5}
     .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
     .card{
@@ -31,12 +31,16 @@
     .card span{display:block;margin-top:8px;color:#6f8193;font-size:13px;font-weight:650;line-height:1.45}
     .card small{display:block;margin-top:18px;color:var(--accent);font-size:11px;font-weight:950;text-transform:uppercase;letter-spacing:.07em}
     .dare{--accent:var(--coral)}.me{--accent:var(--blue)}.last{--accent:var(--teal)}.whatif{--accent:var(--orange)}
-    @media(max-width:650px){.grid{grid-template-columns:1fr}.logo{width:min(370px,90vw)}.wrap{padding-top:22px}.card{padding:25px 20px 23px}}
+    @media(max-width:650px){.grid{grid-template-columns:1fr}.wrap{padding-top:22px}.card{padding:25px 20px 23px}}
   </style>
+  <link rel="stylesheet" href="./esc-brand.css">
 </head>
 <body>
   <main class="wrap">
-    <img class="logo" src="./51a64254-0651-4c02-8235-bef5325d7947%20(1).png" alt="Eryaman Speaking Club">
+    <a class="esc-brand home-brand" href="./" aria-label="Eryaman Speaking Club home">
+      <span class="esc-brand-mark"><img src="./esc-center-symbol.webp" alt=""></span>
+      <span class="esc-brand-title">Eryaman Speaking Club</span>
+    </a>
     <p class="intro">Choose a game, start talking, and let the conversation do the rest.</p>
     <div class="grid">
       <a class="card dare" href="./truth-or-dare/">
