@@ -180,6 +180,21 @@
     return rotor;
   }
 
+  function ensureWheelRotor() {
+    const wheel = $('playerWheel');
+    let rotor = wheel.querySelector('.wheel-rotor');
+    if (rotor) return rotor;
+
+    rotor = document.createElement('div');
+    rotor.className = 'wheel-rotor';
+    const center = wheel.querySelector('.wheel-center');
+    Array.from(wheel.children)
+      .filter((child) => child.classList && child.classList.contains('wheel-ring'))
+      .forEach((ring) => rotor.appendChild(ring));
+    wheel.insertBefore(rotor, center || null);
+    return rotor;
+  }
+
   function renderWheel() {
     const wheel = $('playerWheel');
     if (!wheel) return;
