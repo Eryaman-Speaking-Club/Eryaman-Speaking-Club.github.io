@@ -1,8 +1,10 @@
 # Eryaman Speaking Club — Game Hub
 
-A free, browser-based collection of speaking and party games for **Eryaman Speaking Club**. It is designed for quick group play on phones, tablets and desktop browsers.
+A free public website and browser-based collection of speaking and party games for **Eryaman Speaking Club**. The main page introduces the community; the separate Game Hub is designed for quick group play on phones, tablets and desktop browsers.
 
-**Live site:** https://eryaman-speaking-club.github.io/
+**Club website:** https://eryaman-speaking-club.github.io/
+
+**Game Hub:** https://eryaman-speaking-club.github.io/games/
 
 ## Games
 
@@ -24,7 +26,8 @@ A free, browser-based collection of speaking and party games for **Eryaman Speak
 ## How it works
 
 - Static HTML, CSS and JavaScript; there is no framework, package installation or build step.
-- `index.html` is the game hub. Each game has its own folder and `index.html` entry point.
+- `index.html`, `home.css` and `home.js` form the long-form club website.
+- `games/index.html` is the Game Hub. Each game has its own folder and `index.html` entry point.
 - Shared branding and game UI live in `esc-brand.css`, `esc-game-kit.css` and `esc-game-kit.js`.
 - `esc-depth-pass.js` adds optional voting, roster, turn and timer features to selected games.
 - `esc-content-editor.js` provides the shared local question editor for the simple game pages.

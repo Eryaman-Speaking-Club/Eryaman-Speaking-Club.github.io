@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b2f5b">
+  <meta name="description" content="Twelve free conversation and party games from Eryaman Speaking Club.">
+  <title>Game Hub · Eryaman Speaking Club</title>
+  <link rel="stylesheet" href="../esc-brand.css?v=20260916">
+  <link rel="stylesheet" href="./games.css?v=20260916">
+</head>
+<body>
+  <header>
+    <a class="esc-brand" href="../" aria-label="Back to Eryaman Speaking Club"><span class="esc-brand-mark"><img src="../esc-center-symbol.webp" alt=""></span><span class="esc-brand-title">Eryaman Speaking Club</span></a>
+    <a class="back-home" href="../">Club website <span>↗</span></a>
+  </header>
+  <main>
+    <section class="hub-hero">
+      <span class="eyebrow">ESC GAME HUB · 12 GAMES</span>
+      <h1>Pick a game.<br><em>Start talking.</em></h1>
+      <p>No downloads, no accounts and no complicated rules. Choose what fits the room and play directly in your browser.</p>
+      <div class="filter-row" role="group" aria-label="Filter games"><button class="active" data-filter="all">All games</button><button data-filter="group">Group</button><button data-filter="quick">Quick</button><button data-filter="deep">Conversation</button></div>
+    </section>
+    <section class="game-grid">
+      <a class="game-card dare" data-kind="group" href="../truth-or-dare/"><div class="top"><span>🎯</span><small>PLAYER GAME</small></div><h2>Truth or Dare</h2><p>Spin the wheel, choose Truth or Dare and let the room decide.</p><b>Play now →</b></a>
+      <a class="game-card me" data-kind="deep" href="../one-for-me-one-for-you/"><div class="top"><span>💬</span><small>QUESTION GAME</small></div><h2>One for Me · One for You</h2><p>Two-way conversation cards designed to keep both sides talking.</p><b>Play now →</b></a>
+      <a class="game-card last" data-kind="deep" href="../last-thing-you-did/"><div class="top"><span>⏳</span><small>MEMORY GAME</small></div><h2>Last Thing You Did</h2><p>Talk about the most recent thing you did, felt, sent or regretted.</p><b>Play now →</b></a>
+      <a class="game-card whatif" data-kind="deep" href="../what-would-you-do-if/"><div class="top"><span>⚡</span><small>SITUATION GAME</small></div><h2>What Would You Do If...?</h2><p>Get a situation, make a decision and explain what you would do.</p><b>Play now →</b></a>
+      <a class="game-card rather" data-kind="group" href="../would-you-rather/"><div class="top"><span>⚖️</span><small>CHOICE GAME</small></div><h2>Would You Rather?</h2><p>Choose between two options, commit to one and defend your choice.</p><b>Play now →</b></a>
+      <a class="game-card likely" data-kind="group" href="../most-likely-to/"><div class="top"><span>👀</span><small>GROUP VOTE</small></div><h2>Most Likely To</h2><p>Vote together, point at one person and let them defend themselves.</p><b>Play now →</b></a>
+      <a class="game-card hot" data-kind="quick" href="../hot-seat/"><div class="top"><span>🔥</span><small>SPEED QUESTIONS</small></div><h2>Hot Seat</h2><p>One player gets 60 seconds to answer as many questions as possible.</p><b>Play now →</b></a>
+      <a class="game-card five" data-kind="quick" href="../five-second-challenge/"><div class="top"><span>⏱️</span><small>TIMER GAME</small></div><h2>5 Second Challenge</h2><p>Name three things before the five-second timer reaches zero.</p><b>Play now →</b></a>
+      <a class="game-card flag" data-kind="group" href="../red-flag-green-flag/"><div class="top"><span>🚩</span><small>OPINION GAME</small></div><h2>Red Flag / Green Flag</h2><p>Judge the situation, choose a flag and defend your decision.</p><b>Play now →</b></a>
+      <a class="game-card taboo" data-kind="group" href="../taboo/"><div class="top"><span>🗣️</span><small>TEAM WORD GAME</small></div><h2>Taboo</h2><p>Describe the main word without using any forbidden words.</p><b>Play now →</b></a>
+      <a class="game-card debate" data-kind="deep" href="../debate-roulette/"><div class="top"><span>🎙️</span><small>DEBATE GAME</small></div><h2>Debate Roulette</h2><p>Receive a random side and defend it after a ten-second preparation.</p><b>Play now →</b></a>
+      <a class="game-card never" data-kind="deep" href="../never-have-i-ever/"><div class="top"><span>🙈</span><small>STORY GAME</small></div><h2>Never Have I Ever</h2><p>Choose I HAVE or NEVER and tell the story when you want to.</p><b>Play now →</b></a>
+    </section>
+    <section class="hub-note"><span>✨</span><div><strong>Running a meetup?</strong><p>Open a game on a phone, tablet or projector. Player lists and custom questions stay saved in that browser.</p></div></section>
+  </main>
+  <footer><p>Built for real conversations by Eryaman Speaking Club.</p><a href="../">Back to the club website ↑</a></footer>
+  <script>
+    document.querySelectorAll('[data-filter]').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('[data-filter]').forEach(item=>item.classList.toggle('active',item===button));document.querySelectorAll('.game-card').forEach(card=>card.hidden=button.dataset.filter!=='all'&&card.dataset.kind!==button.dataset.filter)}));
+  </script>
+</body>
+</html>

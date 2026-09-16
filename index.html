@@ -2,122 +2,99 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b2f5b">
-  <title>Eryaman Speaking Club Games</title>
-  <style>
-    :root{--navy:#0b2f5b;--blue:#175ca8;--teal:#16a6a2;--coral:#f05f69;--orange:#f2a329;--violet:#7057cf;--line:#dce5ed}
-    *{box-sizing:border-box}
-    body{
-      margin:0;min-height:100vh;display:grid;place-items:center;
-      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      background:
-        radial-gradient(circle at 15% 15%,rgba(22,166,162,.09),transparent 28%),
-        radial-gradient(circle at 88% 12%,rgba(240,95,105,.09),transparent 28%),
-        linear-gradient(#fff,#f4f7fa);color:var(--navy)
-    }
-    .wrap{width:min(920px,92vw);text-align:center;padding:34px 0 42px}
-    .home-brand{justify-content:center!important;margin:0 auto 18px!important;width:max-content;max-width:100%}
-    .intro{max-width:650px;margin:0 auto 28px;color:#718397;font-weight:650;line-height:1.5}
-    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
-    .card{
-      position:relative;display:block;text-decoration:none;border:1px solid var(--line);border-radius:24px;
-      padding:29px 23px 25px;background:#fff;color:var(--navy);overflow:hidden;text-align:left;
-      box-shadow:0 18px 50px rgba(11,47,91,.11);font-weight:950;font-size:23px;transition:.2s ease
-    }
-    .card:hover{transform:translateY(-3px);box-shadow:0 24px 60px rgba(11,47,91,.16)}
-    .card:before{content:"";position:absolute;left:0;top:0;width:100%;height:7px;background:var(--accent)}
-    .emoji{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:14px;background:color-mix(in srgb,var(--accent) 12%,white);font-size:22px;margin-bottom:18px}
-    .card span{display:block;margin-top:8px;color:#6f8193;font-size:13px;font-weight:650;line-height:1.45}
-    .card small{display:block;margin-top:18px;color:var(--accent);font-size:11px;font-weight:950;text-transform:uppercase;letter-spacing:.07em}
-    .dare{--accent:var(--coral)}.me{--accent:var(--blue)}.last{--accent:var(--teal)}.whatif{--accent:var(--orange)}
-    .rather{--accent:var(--violet)}.likely{--accent:#d85b90}.hot{--accent:#e86f28}.five{--accent:#00a28a}
-    .flag{--accent:#2aa878}.taboo{--accent:#e04c5d}.debate{--accent:#5f62d8}.never{--accent:#e08a26}
-    @media(max-width:650px){.grid{grid-template-columns:1fr}.wrap{padding-top:22px}.card{padding:25px 20px 23px}}
-  </style>
-  <link rel="stylesheet" href="./esc-brand.css?v=20260915-2241">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#081f3b">
+  <meta name="description" content="Eryaman Speaking Club is a friendly English speaking community in Ankara. No lessons, no pressure — just real conversation, games and good people.">
+  <title>Eryaman Speaking Club · Speak, Connect, Grow</title>
+  <link rel="stylesheet" href="./esc-brand.css?v=20260916">
+  <link rel="stylesheet" href="./home.css?v=20260916">
 </head>
 <body>
-  <main class="wrap">
-    <a class="esc-brand home-brand" href="./" aria-label="Eryaman Speaking Club home">
-      <span class="esc-brand-mark"><img src="./esc-center-symbol.webp" alt=""></span>
-      <span class="esc-brand-title">Eryaman Speaking Club</span>
-    </a>
-    <p class="intro">Choose a game, start talking, and let the conversation do the rest.</p>
-    <div class="grid">
-      <a class="card dare" href="./truth-or-dare/">
-        <div class="emoji">🎯</div>
-        Truth or Dare
-        <span>Spin the player wheel, then choose Truth or Dare.</span>
-        <small>Player game →</small>
-      </a>
-      <a class="card me" href="./one-for-me-one-for-you/">
-        <div class="emoji">💬</div>
-        One for Me · One for You
-        <span>Conversation questions designed to keep both sides talking.</span>
-        <small>Question game →</small>
-      </a>
-      <a class="card last" href="./last-thing-you-did/">
-        <div class="emoji">⏳</div>
-        Last Thing You Did
-        <span>Answer with the most recent thing you did, ate, said, felt, sent or regretted.</span>
-        <small>Memory game →</small>
-      </a>
-      <a class="card whatif" href="./what-would-you-do-if/">
-        <div class="emoji">⚡</div>
-        What Would You Do If...?
-        <span>Get a situation, make a decision and explain what you would do.</span>
-        <small>Situation game →</small>
-      </a>
-      <a class="card rather" href="./would-you-rather/">
-        <div class="emoji">⚖️</div>
-        Would You Rather?
-        <span>Choose between two options, commit to one, and defend your choice.</span>
-        <small>Choice game →</small>
-      </a>
-      <a class="card likely" href="./most-likely-to/">
-        <div class="emoji">👀</div>
-        Most Likely To
-        <span>Vote together, point at one person, then let them defend themselves.</span>
-        <small>Group vote →</small>
-      </a>
-      <a class="card hot" href="./hot-seat/">
-        <div class="emoji">🔥</div>
-        Hot Seat
-        <span>One player gets 60 seconds to answer as many rapid questions as possible.</span>
-        <small>Speed questions →</small>
-      </a>
-      <a class="card five" href="./five-second-challenge/">
-        <div class="emoji">⏱️</div>
-        5 Second Challenge
-        <span>Name three things before the five-second timer hits zero.</span>
-        <small>Timer game →</small>
-      </a>
-      <a class="card flag" href="./red-flag-green-flag/">
-        <div class="emoji">🚩</div>
-        Red Flag / Green Flag
-        <span>Judge the situation, choose a flag, then defend your decision.</span>
-        <small>Opinion game →</small>
-      </a>
-      <a class="card taboo" href="./taboo/">
-        <div class="emoji">🗣️</div>
-        Taboo
-        <span>Describe the main word without using any of the forbidden words.</span>
-        <small>Team word game →</small>
-      </a>
-      <a class="card debate" href="./debate-roulette/">
-        <div class="emoji">🎙️</div>
-        Debate Roulette
-        <span>Get a statement, receive a random side, and defend it for 45 seconds.</span>
-        <small>Debate game →</small>
-      </a>
-      <a class="card never" href="./never-have-i-ever/">
-        <div class="emoji">🙈</div>
-        Never Have I Ever
-        <span>Choose I HAVE or NEVER and tell the story when you want to.</span>
-        <small>Story game →</small>
-      </a>
-    </div>
+  <div class="page-noise" aria-hidden="true"></div>
+  <header class="site-nav" id="top">
+    <a class="esc-brand nav-brand" href="#top" aria-label="Eryaman Speaking Club home"><span class="esc-brand-mark"><img src="./esc-center-symbol.webp" alt=""></span><span class="esc-brand-title">Eryaman Speaking Club</span></a>
+    <nav class="nav-links" aria-label="Main navigation"><a href="#about">About</a><a href="#experience">How it works</a><a href="#faq">FAQ</a><a href="./games/">Games</a></nav>
+    <a class="nav-cta" href="https://www.instagram.com/eryamanspeakingclub/" target="_blank" rel="noreferrer">Join the club <span>↗</span></a>
+    <button class="menu-btn" type="button" aria-label="Open menu" aria-expanded="false">☰</button>
+  </header>
+
+  <main>
+    <section class="hero section-pad">
+      <div class="hero-orb orb-one" aria-hidden="true"></div><div class="hero-orb orb-two" aria-hidden="true"></div>
+      <div class="hero-copy reveal">
+        <div class="eyebrow"><span class="live-dot"></span> English conversations in Eryaman</div>
+        <h1>Speak English.<br><span class="rotating-word" aria-live="polite">Naturally.</span></h1>
+        <p class="hero-lead">A friendly community where English leaves the classroom and becomes part of real life. Meet new people, play, laugh and speak without the pressure to be perfect.</p>
+        <div class="hero-actions"><a class="button primary" href="https://www.instagram.com/eryamanspeakingclub/" target="_blank" rel="noreferrer">See the next meetup <span>→</span></a><a class="button ghost" href="./games/">Explore our games <span>🎲</span></a></div>
+        <div class="hero-proof"><div class="avatar-stack" aria-hidden="true"><span>H</span><span>Y</span><span>İ</span><span>+</span></div><p><strong>All levels welcome</strong><br>A2 to advanced · come as you are</p></div>
+      </div>
+      <div class="hero-visual reveal" data-delay="120">
+        <div class="conversation-stage" aria-label="A playful illustration of a speaking club conversation">
+          <div class="stage-ring ring-a"></div><div class="stage-ring ring-b"></div>
+          <div class="speech-card speech-a"><span>“What would you do if...”</span><b>Great question! ⚡</b></div>
+          <div class="speech-card speech-b"><span>No perfect grammar?</span><b>No problem. 💬</b></div>
+          <div class="center-badge"><img src="./esc-center-symbol.webp" alt="Eryaman Speaking Club"><span>REAL PEOPLE</span><strong>REAL<br>ENGLISH</strong></div>
+          <div class="floating-tag tag-one">🎯 Games</div><div class="floating-tag tag-two">☕ Coffee</div><div class="floating-tag tag-three">✨ Confidence</div>
+        </div>
+      </div>
+      <a class="scroll-cue" href="#about"><span>Scroll to discover</span><i>↓</i></a>
+    </section>
+
+    <div class="ticker" aria-label="Club values"><div class="ticker-track"><span>NO LESSONS</span><i>✦</i><span>JUST CONVERSATION</span><i>✦</i><span>NEW PEOPLE</span><i>✦</i><span>GOOD ENERGY</span><i>✦</i><span>NO LESSONS</span><i>✦</i><span>JUST CONVERSATION</span><i>✦</i><span>NEW PEOPLE</span><i>✦</i><span>GOOD ENERGY</span><i>✦</i></div></div>
+
+    <section class="about section-pad" id="about">
+      <div class="section-label reveal">01 · The idea</div>
+      <div class="about-grid">
+        <div class="about-title reveal"><h2>English is not a subject here.<br><em>It is the room.</em></h2></div>
+        <div class="about-copy reveal" data-delay="100"><p>We created Eryaman Speaking Club for people who understand English but need a real place to use it. There are no grammar lectures, exams or forced performances.</p><p>Instead, we use guided questions, small-group conversations and playful activities to make speaking easier. You participate at your own pace, meet people from different backgrounds and leave with more confidence than you arrived with.</p><div class="signature-line"><span></span> Speak freely. Listen closely. Grow together.</div></div>
+      </div>
+      <div class="principle-grid">
+        <article class="principle reveal"><div class="principle-number">01</div><div class="principle-icon">🗣️</div><h3>Speak more</h3><p>The focus is simple: less theory, more real conversation.</p></article>
+        <article class="principle reveal" data-delay="70"><div class="principle-number">02</div><div class="principle-icon">🤝</div><h3>Meet people</h3><p>New tables, new stories and a community that feels easy to join.</p></article>
+        <article class="principle reveal" data-delay="140"><div class="principle-number">03</div><div class="principle-icon">🌱</div><h3>Build confidence</h3><p>Mistakes are welcome. Every sentence is practice that counts.</p></article>
+      </div>
+    </section>
+
+    <section class="experience section-pad" id="experience">
+      <div class="experience-intro reveal"><div class="section-label light">02 · Your evening</div><h2>What happens at a meetup?</h2><p>No awkward guessing. Here is the usual rhythm.</p></div>
+      <div class="timeline">
+        <article class="timeline-step reveal"><span>18:45</span><div class="timeline-dot"></div><div><b>Arrive & settle in</b><p>Grab a drink, say hello and meet your table. Coming alone is completely normal.</p></div></article>
+        <article class="timeline-step reveal"><span>19:00</span><div class="timeline-dot"></div><div><b>Warm-up conversations</b><p>Easy prompts get everyone talking. No one is put on the spot.</p></div></article>
+        <article class="timeline-step reveal"><span>19:25</span><div class="timeline-dot"></div><div><b>Games & rotating groups</b><p>Conversation games bring energy, stories and plenty of unexpected answers.</p></div></article>
+        <article class="timeline-step reveal"><span>20:15</span><div class="timeline-dot"></div><div><b>Open conversation</b><p>Stay, chat and connect. The event ends; the conversation usually does not.</p></div></article>
+      </div>
+      <div class="experience-note reveal"><span>☕</span><div><b>A coffee, a conversation, plenty of English.</b><p>You do not need to prepare anything. Just bring your curiosity.</p></div></div>
+    </section>
+
+    <section class="games-preview section-pad" id="games">
+      <div class="section-head reveal"><div><div class="section-label">03 · Conversation starters</div><h2>Games that make talking easy.</h2></div><a href="./games/">View all 12 games <span>→</span></a></div>
+      <div class="game-showcase">
+        <a class="feature-game game-taboo reveal" href="./taboo/"><span class="game-kicker">TEAM ENERGY</span><div class="game-emoji">🗣️</div><h3>Taboo</h3><p>Describe the word. Avoid the obvious clues. Try not to panic.</p><b>Play now →</b></a>
+        <a class="feature-game game-truth reveal" data-delay="70" href="./truth-or-dare/"><span class="game-kicker">BOLD & FUN</span><div class="game-emoji">🎯</div><h3>Truth or Dare</h3><p>Spin the wheel, pick a player and let the room decide.</p><b>Play now →</b></a>
+        <a class="feature-game game-rather reveal" data-delay="140" href="./would-you-rather/"><span class="game-kicker">CHOOSE A SIDE</span><div class="game-emoji">⚖️</div><h3>Would You Rather?</h3><p>Two impossible choices. One opinion you must defend.</p><b>Play now →</b></a>
+      </div>
+      <a class="all-games-banner reveal" href="./games/"><span><small>THE ESC GAME HUB</small><strong>12 ways to start a great conversation</strong></span><i>Explore every game ↗</i></a>
+    </section>
+
+    <section class="for-you section-pad"><div class="for-you-card reveal"><div class="section-label light">04 · Is it for me?</div><h2>You belong in the room if...</h2><div class="check-grid"><p><span>✓</span>You understand English but freeze when speaking.</p><p><span>✓</span>You want to meet open-minded people in Ankara.</p><p><span>✓</span>You are tired of studying alone or only using apps.</p><p><span>✓</span>You want practice that actually feels like real life.</p><p><span>✓</span>You are A2, B1, B2, advanced—or somewhere between.</p><p><span>✓</span>You can listen respectfully and let others speak.</p></div><p class="not-required">Perfect grammar, a native accent and arriving with a friend are <strong>not required.</strong></p></div></section>
+
+    <section class="numbers section-pad" aria-label="Club at a glance"><div class="number reveal"><strong data-count="12">0</strong><span>original games</span></div><div class="number reveal" data-delay="60"><strong data-count="100">0</strong><span>percent conversation</span></div><div class="number reveal" data-delay="120"><strong data-count="0">0</strong><span>pressure to be perfect</span></div><div class="number reveal" data-delay="180"><strong>∞</strong><span>possible conversations</span></div></section>
+
+    <section class="faq section-pad" id="faq">
+      <div class="faq-head reveal"><div class="section-label">05 · Good to know</div><h2>Questions before your first meetup?</h2><p>We have probably wondered the same thing.</p></div>
+      <div class="faq-list reveal">
+        <details open><summary>What level of English do I need?<span>+</span></summary><p>If you can understand everyday English and build simple sentences, you can join. Most activities work well from A2–B2+, and nobody expects perfection.</p></details>
+        <details><summary>Can I come alone?<span>+</span></summary><p>Absolutely. Many people do. The activities and changing groups make it easy to meet others without forcing awkward introductions.</p></details>
+        <details><summary>Is this an English course?<span>+</span></summary><p>No. It is a social speaking community. We create the setting and activities; you create the conversation.</p></details>
+        <details><summary>What if I make mistakes or forget a word?<span>+</span></summary><p>That is normal—and exactly why the club exists. Explain it another way, ask for help and keep going. Communication matters more than flawless grammar.</p></details>
+        <details><summary>Where do meetups happen?<span>+</span></summary><p>We meet at selected cafés around Eryaman. The current location, day and time are announced on our Instagram page before each meetup.</p></details>
+      </div>
+    </section>
+
+    <section class="final-cta section-pad reveal"><div class="cta-spark spark-a">✦</div><div class="cta-spark spark-b">✦</div><p>YOUR NEXT CONVERSATION STARTS HERE</p><h2>Less thinking.<br>More speaking.</h2><div class="final-actions"><a class="button light-button" href="https://www.instagram.com/eryamanspeakingclub/" target="_blank" rel="noreferrer">Follow @eryamanspeakingclub ↗</a><a class="button outline-light" href="./games/">Open the Game Hub →</a></div></section>
   </main>
+
+  <footer><a class="esc-brand footer-brand" href="#top"><span class="esc-brand-mark"><img src="./esc-center-symbol.webp" alt=""></span><span class="esc-brand-title">Eryaman Speaking Club</span></a><p>Ders yok. Konuşma var.<br><span>Ankara · Eryaman</span></p><div class="footer-links"><a href="https://www.instagram.com/eryamanspeakingclub/" target="_blank" rel="noreferrer">Instagram</a><a href="https://www.tiktok.com/@eryamanspeakingclub" target="_blank" rel="noreferrer">TikTok</a><a href="./games/">Game Hub</a></div></footer>
+  <script src="./home.js?v=20260916"></script>
 </body>
 </html>
