@@ -1,0 +1,39 @@
+name: Refresh editor cache
+
+on:
+  push:
+    paths:
+      - ".github/workflows/bump-editor-cache.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refresh shared editor script version
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          version='20260916-1345'
+          paths=[
+            'last-thing-you-did/index.html','what-would-you-do-if/index.html','would-you-rather/index.html',
+            'most-likely-to/index.html','hot-seat/index.html','five-second-challenge/index.html',
+            'red-flag-green-flag/index.html','taboo/index.html','debate-roulette/index.html','never-have-i-ever/index.html'
+          ]
+          for raw in paths:
+              p=Path(raw)
+              text=p.read_text(encoding='utf-8')
+              text=re.sub(r'esc-content-editor\.js(?:\?v=[^"\']+)?',f'esc-content-editor.js?v={version}',text)
+              p.write_text(text,encoding='utf-8')
+          PY
+      - name: Commit cache refresh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add last-thing-you-did/index.html what-would-you-do-if/index.html would-you-rather/index.html most-likely-to/index.html hot-seat/index.html five-second-challenge/index.html red-flag-green-flag/index.html taboo/index.html debate-roulette/index.html never-have-i-ever/index.html
+          git commit -m "Refresh shared editor cache version" || exit 0
+          git push
