@@ -1,71 +1,74 @@
 # Eryaman Speaking Club — Game Hub
 
-A lightweight browser-based game hub built for **Eryaman Speaking Club**. The project brings conversation, speaking, party and quick-response games into one simple place that works on phones, tablets and desktop browsers.
+A free, browser-based collection of speaking and party games for **Eryaman Speaking Club**. It is designed for quick group play on phones, tablets and desktop browsers.
 
 **Live site:** https://eryaman-speaking-club.github.io/
 
-## About the project
-
-The goal is simple: make it easier for a group to start talking, keep conversations moving and add a little competition without turning the session into a complicated board game.
-
-The hub currently contains **12 games**. Some are pure conversation games, while others use players, timers, voting, teams, scores or random selection.
-
 ## Games
 
-| Game | What it does |
+| Game | Main gameplay |
 | --- | --- |
-| **Truth or Dare** | Player wheel, random selection, Truth/Dare flow and group play. |
-| **One for Me / One for You** | Alternating conversation cards for two-way or group discussion. |
-| **Last Thing You Did** | Fast prompts based on recent experiences and stories. |
-| **What Would You Do If?** | Hypothetical situations designed to create discussion and creative answers. |
-| **Would You Rather?** | Two-option dilemmas with discussion and group-vote support. |
-| **Most Likely To** | Group pointing/voting game with an optional player list. |
-| **Hot Seat** | Named players, 60-second rounds, rapid questions and answer scoring. |
-| **5 Second Challenge** | Five-second challenges with optional player rotation and scoring. |
-| **Red Flag / Green Flag** | Quick judgments with round-based group voting and counterarguments. |
-| **Taboo** | Timed word-description game with optional two-team mode, player rotation and team scores. |
-| **Debate Roulette** | Random FOR/AGAINST positions with preparation and speaking timers. |
-| **Never Have I Ever** | Story prompts with round-based group voting. |
+| **Truth or Dare** | Player wheel, fair rotation, Truth/Dare cards and local content management |
+| **One for Me / One for You** | Alternating conversation cards with local card management |
+| **Last Thing You Did** | Recent-experience prompts with categories, history and shuffle |
+| **What Would You Do If?** | Hypothetical scenarios with categories, history and shuffle |
+| **Would You Rather?** | Two-option dilemmas, keyboard controls and optional group-vote counters |
+| **Most Likely To** | 3–2–1 group vote, optional player list and per-player pick totals |
+| **Hot Seat** | Saved player list, 60-second rounds and answered-question score |
+| **5 Second Challenge** | Five-second timer, made/missed totals, optional turns and player scores |
+| **Red Flag / Green Flag** | Per-round group voting and follow-up discussion |
+| **Taboo** | Solo or two-team mode, rotating speakers, timer and team scores |
+| **Debate Roulette** | Random FOR/AGAINST side, 10-second preparation and 45-second speech |
+| **Never Have I Ever** | Per-round I HAVE/NEVER voting and story prompts |
 
-## Shared features
+## How it works
 
-- Responsive layout for mobile and desktop
-- Consistent Eryaman Speaking Club branding
-- Shared sound controls and game feedback sounds
-- Category filters where they make sense
-- Shuffled decks and repeat reduction
-- Local player/team setup for supported games
-- Local question editor for adding, editing or removing game content
-- Admin-password protection for question editing
-- No password required for normal player or team setup
-- No backend, database, API key or paid runtime service
+- Static HTML, CSS and JavaScript; there is no framework, package installation or build step.
+- `index.html` is the game hub. Each game has its own folder and `index.html` entry point.
+- Shared branding and game UI live in `esc-brand.css`, `esc-game-kit.css` and `esc-game-kit.js`.
+- `esc-depth-pass.js` adds optional voting, roster, turn and timer features to selected games.
+- `esc-content-editor.js` provides the shared local question editor for the simple game pages.
+- Truth or Dare and One for Me / One for You have their own editors and storage logic.
 
-## Question editor
+## Local editing and storage
 
-Most game pages include an **Edit questions** control. The editor can add, edit or remove prompts and saves changes in the current browser using `localStorage`.
+Question changes, player lists, team configuration and sound preferences are stored in the browser with `localStorage`. Admin unlocks last only for the current tab session through `sessionStorage`.
 
-The editor is protected by the same local admin lock used by the original ESC games. Because this is a static frontend-only project, the lock is intended to prevent casual changes during an event; it is not server-side authentication.
+This means:
 
-Player names, teams, scores or other game setup options do **not** require the admin password.
+- changes made on one device do not automatically appear on another device;
+- clearing browser/site data removes local customisations;
+- an incognito/private window has separate temporary data;
+- no game data is sent to a server.
 
-## Local data
+The editor password is a lightweight event safeguard, not secure authentication. The site is frontend-only, so anyone with repository/source access can inspect the client code. Do not store private or sensitive information in the games.
 
-The site is intentionally backend-free. Depending on the game, the browser may locally remember:
+## Run locally
 
-- edited question libraries
-- player names
-- team names
-- selected setup options
-- sound preferences
+From the repository root, start any static web server. For example:
 
-This data stays in that browser/device unless the browser storage is cleared.
+```bash
+python3 -m http.server 8000
+```
 
-## Hosting
+Then open `http://localhost:8000`. Opening files directly with `file://` is not recommended because browser security rules can differ from the deployed site.
 
-The project is hosted with **GitHub Pages** and deployed automatically from the `main` branch through GitHub Actions.
+## Deployment
 
-The site is fully static, so there is no application server or paid hosting runtime required for normal use.
+GitHub Actions deploys the repository to GitHub Pages whenever `main` is updated. The workflow is `.github/workflows/pages.yml`. There is no paid application server or runtime dependency.
 
-## Design principle
+## Maintenance checklist
 
-Keep the games **simple enough to start in seconds**, but give each one enough structure—timers, turns, voting, players, teams or scores—to feel like a real group activity rather than a plain list of questions.
+Before publishing a change:
+
+1. Open the hub and all 12 games.
+2. Test at desktop width and a narrow mobile width.
+3. Check Next/Back/Shuffle, category filters, timers and score controls.
+4. Verify player/team dialogs and local persistence after a refresh.
+5. Confirm question editing, reset-to-built-ins and wrong-password behaviour.
+6. Check the browser console for JavaScript or missing-file errors.
+7. Confirm the GitHub Pages workflow completes successfully.
+
+## Project principle
+
+Every game should be understandable in seconds, work comfortably on a phone and add only the structure the activity needs: prompts, turns, voting, players, teams, timers or scores.
