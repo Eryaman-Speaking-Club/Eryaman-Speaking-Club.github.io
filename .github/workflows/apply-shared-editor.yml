@@ -1,0 +1,53 @@
+name: Apply shared question editor
+
+on:
+  push:
+    paths:
+      - ".github/workflows/apply-shared-editor.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add editor to all non-admin games
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          paths = [
+              Path('last-thing-you-did/index.html'),
+              Path('what-would-you-do-if/index.html'),
+              Path('would-you-rather/index.html'),
+              Path('most-likely-to/index.html'),
+              Path('hot-seat/index.html'),
+              Path('five-second-challenge/index.html'),
+              Path('red-flag-green-flag/index.html'),
+              Path('taboo/index.html'),
+              Path('debate-roulette/index.html'),
+              Path('never-have-i-ever/index.html'),
+          ]
+
+          version = '20260916-1240'
+          script = f'<script src="../esc-content-editor.js?v={version}"></script>'
+
+          for path in paths:
+              text = path.read_text(encoding='utf-8')
+              text = re.sub(r'esc-brand\.css(?:\?v=[^"\']+)?', f'esc-brand.css?v={version}', text)
+              if 'esc-content-editor.js' not in text:
+                  if '</body>' not in text:
+                      raise SystemExit(f'No body close in {path}')
+                  text = text.replace('</body>', script + '</body>', 1)
+              path.write_text(text, encoding='utf-8')
+          PY
+      - name: Commit editor rollout
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add last-thing-you-did/index.html what-would-you-do-if/index.html would-you-rather/index.html most-likely-to/index.html hot-seat/index.html five-second-challenge/index.html red-flag-green-flag/index.html taboo/index.html debate-roulette/index.html never-have-i-ever/index.html
+          git commit -m "Add local question editing across ESC games" || exit 0
+          git push
