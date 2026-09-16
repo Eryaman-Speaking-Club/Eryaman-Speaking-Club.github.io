@@ -35,7 +35,7 @@
     .toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:var(--navy);color:#fff;padding:10px 14px;border-radius:13px;font-size:12px;font-weight:800;transition:.25s ease;z-index:60}.toast.show{opacity:1;transform:translate(-50%,0)}
     @media(max-width:650px){.shell{padding-top:14px}.brand img{width:270px;height:98px;max-width:72vw}.icon-btn{width:44px;height:44px;flex:0 0 44px}.filters{justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap;padding-bottom:3px}.chip{flex:0 0 auto}.scenario{min-height:385px;border-radius:27px;padding:28px 24px}.actions{grid-template-columns:1fr 1fr}.actions .btn.primary{grid-column:1/-1;grid-row:1}.mode-strip{grid-template-columns:1fr}.mode-strip .mini:nth-child(n+2){display:none}}
   </style>
-  <link rel="stylesheet" href="../esc-brand.css?v=20260915-2241">
+  <link rel="stylesheet" href="../esc-brand.css?v=20260916-1240">
 </head>
 <body>
   <div class="shell">
@@ -76,5 +76,5 @@
     const soundBtn=$('soundBtn'),pop=$('volumePop'),slider=$('volumeSlider'),value=$('volumeValue');let vol=Math.max(0,Math.min(100,Number(localStorage.getItem('esc-global-volume-v1')??100)));slider.value=vol;value.textContent=vol+'%';soundBtn.textContent=vol===0?'🔇':vol<45?'🔉':'🔊';soundBtn.onclick=e=>{e.stopPropagation();pop.classList.toggle('open')};document.addEventListener('click',e=>{if(!pop.contains(e.target)&&e.target!==soundBtn)pop.classList.remove('open')});slider.oninput=e=>{vol=Number(e.target.value);localStorage.setItem('esc-global-volume-v1',vol);value.textContent=vol+'%';soundBtn.textContent=vol===0?'🔇':vol<45?'🔉':'🔊';tone()};
     buildDeck();next();
   </script>
-</body>
+<script src="../esc-content-editor.js?v=20260916-1240"></script></body>
 </html>
