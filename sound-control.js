@@ -3,7 +3,11 @@
 
   const STORAGE_KEY = 'esc-global-volume-v1';
   const MAX_BOOST = 8;
-  let masterPercent = Math.max(0, Math.min(100, Number(localStorage.getItem(STORAGE_KEY)) || 100));
+  const savedMasterPercent = localStorage.getItem(STORAGE_KEY);
+  const parsedMasterPercent = Number(savedMasterPercent);
+  let masterPercent = savedMasterPercent === null || !Number.isFinite(parsedMasterPercent)
+    ? 100
+    : Math.max(0, Math.min(100, parsedMasterPercent));
   const legacyBoost = typeof window.ESC_SOUND_PERCENT !== 'undefined';
 
   let spinAudio = null;
