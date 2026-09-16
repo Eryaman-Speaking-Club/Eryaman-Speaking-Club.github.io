@@ -1,0 +1,209 @@
+(function(){
+  const PATH_KEY = location.pathname.replace(/\/+$/,'') || '/';
+  const STORAGE_KEY = 'esc-custom-content-v1:' + PATH_KEY;
+
+  function detectSource(){
+    try{ if(typeof items!=='undefined' && Array.isArray(items)) return {name:'items',data:items}; }catch(e){}
+    try{ if(typeof cards!=='undefined' && Array.isArray(cards)) return {name:'cards',data:cards}; }catch(e){}
+    try{ if(typeof prompts!=='undefined' && Array.isArray(prompts)) return {name:'prompts',data:prompts}; }catch(e){}
+    try{ if(typeof situations!=='undefined' && Array.isArray(situations)) return {name:'situations',data:situations}; }catch(e){}
+    try{ if(typeof statements!=='undefined' && Array.isArray(statements)) return {name:'statements',data:statements}; }catch(e){}
+    try{ if(typeof topics!=='undefined' && Array.isArray(topics)) return {name:'topics',data:topics}; }catch(e){}
+    try{ if(typeof motions!=='undefined' && Array.isArray(motions)) return {name:'motions',data:motions}; }catch(e){}
+    try{ if(typeof questions!=='undefined' && Array.isArray(questions)) return {name:'questions',data:questions}; }catch(e){}
+    try{ if(typeof challenges!=='undefined' && Array.isArray(challenges)) return {name:'challenges',data:challenges}; }catch(e){}
+    return null;
+  }
+
+  function clone(value){ return JSON.parse(JSON.stringify(value)); }
+  function safeParse(raw){ try{return JSON.parse(raw)}catch(e){return null} }
+  function uniqueCategories(data){
+    const out=[];
+    data.forEach(item=>{
+      let c='';
+      if(Array.isArray(item)) c=typeof item[0]==='string'?item[0]:'';
+      else if(item && typeof item==='object') c=item.c || item.category || item.cat || '';
+      if(c && !out.includes(c)) out.push(c);
+    });
+    return out;
+  }
+  function schemaFrom(item){
+    if(Array.isArray(item)){
+      if(item.length>=3 && Array.isArray(item[2])) return {kind:'taboo'};
+      if(item.length>=3 && typeof item[2]==='string') return {kind:'choice'};
+      return {kind:'array2'};
+    }
+    if(item && typeof item==='object'){
+      const categoryKey = 'c' in item ? 'c' : ('category' in item ? 'category' : ('cat' in item ? 'cat' : null));
+      const textKey = 'q' in item ? 'q' : ('question' in item ? 'question' : ('prompt' in item ? 'prompt' : ('text' in item ? 'text' : Object.keys(item).find(k=>k!==categoryKey))));
+      return {kind:'object',categoryKey,textKey};
+    }
+    return {kind:'array2'};
+  }
+  function categoryOf(item,schema){
+    if(schema.kind==='object') return item[schema.categoryKey] || '';
+    return Array.isArray(item) ? (item[0] || '') : '';
+  }
+  function summaryOf(item,schema){
+    if(schema.kind==='choice') return `${item[1]}  OR  ${item[2]}`;
+    if(schema.kind==='taboo') return `${item[1]} — avoid: ${(item[2]||[]).join(', ')}`;
+    if(schema.kind==='array2') return item[1] || '';
+    if(schema.kind==='object') return item[schema.textKey] || '';
+    return String(item || '');
+  }
+  function makeItem(schema,category,primary,secondary){
+    category=(category||'General').trim() || 'General';
+    primary=(primary||'').trim();
+    secondary=(secondary||'').trim();
+    if(schema.kind==='choice') return [category,primary,secondary];
+    if(schema.kind==='taboo') return [category,primary.toUpperCase(),secondary.split(',').map(x=>x.trim().toUpperCase()).filter(Boolean)];
+    if(schema.kind==='object'){
+      const obj={};
+      if(schema.categoryKey) obj[schema.categoryKey]=category;
+      obj[schema.textKey || 'q']=primary;
+      return obj;
+    }
+    return [category,primary];
+  }
+
+  function refreshGame(){
+    try{
+      if(typeof buildDeck==='function') buildDeck();
+      else if(typeof build==='function') build();
+    }catch(e){}
+    try{
+      if(typeof next==='function') next();
+      else if(typeof nextPrompt==='function') nextPrompt();
+      else if(typeof show==='function' && show.length===0) show();
+    }catch(e){}
+  }
+
+  const source=detectSource();
+  if(!source || !source.data.length) return;
+  const defaults=clone(source.data);
+  const saved=safeParse(localStorage.getItem(STORAGE_KEY));
+  if(Array.isArray(saved) && saved.length){
+    source.data.splice(0,source.data.length,...clone(saved));
+    refreshGame();
+  }
+
+  const schema=schemaFrom(source.data[0] || defaults[0]);
+  const categories=uniqueCategories(defaults);
+
+  function mount(){
+    const actionHost=document.querySelector('.game-actions') || document.querySelector('.header-actions') || document.querySelector('.topbar');
+    if(!actionHost || document.getElementById('escEditContentBtn')) return;
+
+    const btn=document.createElement('button');
+    btn.id='escEditContentBtn';
+    btn.type='button';
+    btn.className='esc-edit-content-btn';
+    btn.innerHTML='<span>Edit questions</span> ⚙';
+    btn.setAttribute('aria-label','Edit questions');
+    actionHost.appendChild(btn);
+
+    const overlay=document.createElement('div');
+    overlay.className='esc-editor-overlay';
+    overlay.id='escEditorOverlay';
+    overlay.innerHTML=`
+      <section class="esc-editor-panel" role="dialog" aria-modal="true" aria-label="Question editor">
+        <div class="esc-editor-head">
+          <div><div class="esc-editor-tag">LOCAL EDITOR</div><h2>Question Library</h2><p>Add, edit or remove questions. Changes are saved only on this browser.</p></div>
+          <button class="esc-editor-close" type="button" aria-label="Close">×</button>
+        </div>
+        <div class="esc-editor-form">
+          <label>Category<input id="escEditorCategory" list="escEditorCategories"></label>
+          <datalist id="escEditorCategories"></datalist>
+          <label class="esc-editor-primary-label">Question / Prompt<textarea id="escEditorPrimary" rows="3"></textarea></label>
+          <label class="esc-editor-secondary-wrap" hidden><span class="esc-editor-secondary-label">Second field</span><textarea id="escEditorSecondary" rows="3"></textarea></label>
+          <div class="esc-editor-form-actions">
+            <button type="button" class="esc-editor-save">Add question</button>
+            <button type="button" class="esc-editor-cancel" hidden>Cancel edit</button>
+          </div>
+        </div>
+        <div class="esc-editor-toolbar"><input id="escEditorSearch" type="search" placeholder="Search questions..."><button type="button" class="esc-editor-reset">Reset built-ins</button></div>
+        <div class="esc-editor-list"></div>
+      </section>`;
+    document.body.appendChild(overlay);
+
+    const panel=overlay.querySelector('.esc-editor-panel');
+    const close=overlay.querySelector('.esc-editor-close');
+    const category=overlay.querySelector('#escEditorCategory');
+    const categoryList=overlay.querySelector('#escEditorCategories');
+    const primary=overlay.querySelector('#escEditorPrimary');
+    const secondaryWrap=overlay.querySelector('.esc-editor-secondary-wrap');
+    const secondaryLabel=overlay.querySelector('.esc-editor-secondary-label');
+    const secondary=overlay.querySelector('#escEditorSecondary');
+    const saveBtn=overlay.querySelector('.esc-editor-save');
+    const cancelBtn=overlay.querySelector('.esc-editor-cancel');
+    const search=overlay.querySelector('#escEditorSearch');
+    const resetBtn=overlay.querySelector('.esc-editor-reset');
+    const list=overlay.querySelector('.esc-editor-list');
+    let editing=-1;
+
+    categoryList.innerHTML=categories.map(c=>`<option value="${String(c).replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"></option>`).join('');
+    if(categories[0]) category.value=categories[0];
+    if(schema.kind==='choice'){
+      overlay.querySelector('.esc-editor-primary-label').firstChild.textContent='Option A';
+      secondaryWrap.hidden=false;secondaryLabel.textContent='Option B';
+    }else if(schema.kind==='taboo'){
+      overlay.querySelector('.esc-editor-primary-label').firstChild.textContent='Main word';
+      secondaryWrap.hidden=false;secondaryLabel.textContent='Forbidden words (comma separated)';
+    }
+
+    function persist(){ localStorage.setItem(STORAGE_KEY,JSON.stringify(source.data)); }
+    function clearForm(){
+      editing=-1;primary.value='';secondary.value='';if(categories[0])category.value=categories[0];
+      saveBtn.textContent='Add question';cancelBtn.hidden=true;
+    }
+    function render(){
+      const q=search.value.trim().toLowerCase();
+      list.innerHTML='';
+      source.data.forEach((item,index)=>{
+        const text=summaryOf(item,schema),cat=categoryOf(item,schema);
+        if(q && !(text+' '+cat).toLowerCase().includes(q)) return;
+        const row=document.createElement('div');row.className='esc-editor-row';
+        const copy=document.createElement('div');copy.className='esc-editor-copy';
+        const badge=document.createElement('span');badge.className='esc-editor-cat';badge.textContent=cat || 'General';
+        const p=document.createElement('p');p.textContent=text;
+        copy.append(badge,p);
+        const actions=document.createElement('div');actions.className='esc-editor-row-actions';
+        const edit=document.createElement('button');edit.type='button';edit.textContent='Edit';edit.className='esc-editor-mini';
+        const del=document.createElement('button');del.type='button';del.textContent='Remove';del.className='esc-editor-mini danger';
+        edit.onclick=()=>{
+          editing=index;category.value=cat;
+          if(schema.kind==='choice'){primary.value=item[1]||'';secondary.value=item[2]||'';}
+          else if(schema.kind==='taboo'){primary.value=item[1]||'';secondary.value=(item[2]||[]).join(', ');}
+          else if(schema.kind==='object'){primary.value=item[schema.textKey]||'';}
+          else primary.value=item[1]||'';
+          saveBtn.textContent='Save changes';cancelBtn.hidden=false;panel.scrollTo({top:0,behavior:'smooth'});
+        };
+        del.onclick=()=>{
+          if(source.data.length<=1){alert('Keep at least one question.');return;}
+          source.data.splice(index,1);persist();render();refreshGame();
+        };
+        actions.append(edit,del);row.append(copy,actions);list.appendChild(row);
+      });
+    }
+    saveBtn.onclick=()=>{
+      if(!primary.value.trim()) return;
+      if((schema.kind==='choice'||schema.kind==='taboo') && !secondary.value.trim()) return;
+      const item=makeItem(schema,category.value,primary.value,secondary.value);
+      if(editing>=0) source.data.splice(editing,1,item); else source.data.push(item);
+      persist();clearForm();render();refreshGame();
+    };
+    cancelBtn.onclick=clearForm;
+    resetBtn.onclick=()=>{
+      if(!confirm('Reset this game to the built-in question library?')) return;
+      source.data.splice(0,source.data.length,...clone(defaults));localStorage.removeItem(STORAGE_KEY);clearForm();render();refreshGame();
+    };
+    search.oninput=render;
+    function open(){overlay.classList.add('open');render();}
+    function hide(){overlay.classList.remove('open');clearForm();}
+    btn.onclick=open;close.onclick=hide;overlay.addEventListener('click',e=>{if(e.target===overlay)hide()});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('open'))hide()});
+    render();
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',mount); else mount();
+})();
