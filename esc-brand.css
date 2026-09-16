@@ -56,6 +56,116 @@
   flex:0 1 auto;
 }
 
+/* Question counts are intentionally hidden across the game hub. */
+#deckInfo,
+#historyCount,
+#cardNo{
+  display:none!important;
+}
+#catInfo,
+#categoryInfo{
+  margin-left:auto!important;
+}
+.topbar #soundBtn{margin-left:auto}
+
+/* Shared local question editor */
+.esc-edit-content-btn{
+  min-height:44px;
+  border:1px solid #dce5ed;
+  border-radius:15px;
+  background:rgba(255,255,255,.94);
+  color:#0b2f5b;
+  padding:0 13px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  font:inherit;
+  font-size:12px;
+  font-weight:900;
+  cursor:pointer;
+  box-shadow:0 8px 22px rgba(11,47,91,.07);
+  white-space:nowrap;
+}
+.esc-edit-content-btn:hover{transform:translateY(-1px)}
+.esc-editor-overlay{
+  position:fixed;
+  inset:0;
+  z-index:10000;
+  display:none;
+  place-items:center;
+  padding:18px;
+  background:rgba(7,28,52,.48);
+  backdrop-filter:blur(7px);
+}
+.esc-editor-overlay.open{display:grid}
+.esc-editor-panel{
+  width:min(780px,96vw);
+  max-height:min(88vh,900px);
+  overflow:auto;
+  background:#fff;
+  color:#16324f;
+  border-radius:26px;
+  padding:22px;
+  box-shadow:0 28px 90px rgba(0,0,0,.28);
+  border:1px solid rgba(11,47,91,.08);
+}
+.esc-editor-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
+.esc-editor-head h2{margin:3px 0 5px;color:#0b2f5b;font-size:28px;letter-spacing:-.03em}
+.esc-editor-head p{margin:0;color:#718397;font-size:12px;line-height:1.5}
+.esc-editor-tag{font-size:10px;font-weight:950;letter-spacing:.1em;color:#175ca8}
+.esc-editor-close{
+  width:40px;height:40px;flex:0 0 40px;border:1px solid #dce5ed;border-radius:13px;background:#fff;color:#0b2f5b;font-size:25px;line-height:1;cursor:pointer
+}
+.esc-editor-form{
+  margin-top:18px;
+  padding:16px;
+  border-radius:19px;
+  background:#f6f9fc;
+  border:1px solid #e3eaf0;
+  display:grid;
+  gap:11px;
+}
+.esc-editor-form label{display:grid;gap:6px;color:#52677b;font-size:11px;font-weight:900}
+.esc-editor-form input,
+.esc-editor-form textarea,
+.esc-editor-toolbar input{
+  width:100%;
+  border:1px solid #d5e0e9;
+  border-radius:13px;
+  background:#fff;
+  color:#16324f;
+  padding:11px 12px;
+  font:inherit;
+  font-size:13px;
+  outline:none;
+}
+.esc-editor-form textarea{resize:vertical;min-height:72px}
+.esc-editor-form input:focus,
+.esc-editor-form textarea:focus,
+.esc-editor-toolbar input:focus{border-color:#8fb2d5;box-shadow:0 0 0 3px rgba(23,92,168,.08)}
+.esc-editor-form-actions,.esc-editor-toolbar,.esc-editor-row-actions{display:flex;gap:8px;align-items:center}
+.esc-editor-save,.esc-editor-cancel,.esc-editor-reset,.esc-editor-mini{
+  min-height:40px;border-radius:12px;padding:0 13px;font:inherit;font-size:11px;font-weight:900;cursor:pointer
+}
+.esc-editor-save{border:0;background:linear-gradient(135deg,#0b2f5b,#175ca8);color:#fff}
+.esc-editor-cancel,.esc-editor-reset,.esc-editor-mini{border:1px solid #dce5ed;background:#fff;color:#0b2f5b}
+.esc-editor-toolbar{margin:15px 0 10px}.esc-editor-toolbar input{flex:1}.esc-editor-reset{white-space:nowrap}
+.esc-editor-list{display:grid;gap:8px}
+.esc-editor-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:12px;
+  align-items:center;
+  padding:12px 13px;
+  border:1px solid #e2e9ef;
+  border-radius:15px;
+  background:#fff;
+}
+.esc-editor-copy{min-width:0}.esc-editor-copy p{margin:6px 0 0;color:#334e67;font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+.esc-editor-cat{display:inline-flex;padding:4px 7px;border-radius:999px;background:#eef5fb;color:#175ca8;font-size:9px;font-weight:950;text-transform:uppercase;letter-spacing:.06em}
+.esc-editor-mini{min-height:34px;padding:0 10px}.esc-editor-mini.danger{color:#a52e3a;background:#fff4f5;border-color:#ffd9dd}
+
 @media(max-width:760px){
   .esc-brand{gap:7px!important}
   .esc-brand-mark{
@@ -72,6 +182,12 @@
   .topbar{
     min-height:59px!important;
   }
+  .esc-edit-content-btn{width:44px;padding:0;font-size:16px}
+  .esc-edit-content-btn span{display:none}
+  .esc-editor-panel{padding:17px;border-radius:21px}
+  .esc-editor-row{grid-template-columns:1fr}
+  .esc-editor-row-actions{justify-content:flex-end}
+  .esc-editor-toolbar{align-items:stretch;flex-direction:column}
 }
 
 @media(max-width:520px){
