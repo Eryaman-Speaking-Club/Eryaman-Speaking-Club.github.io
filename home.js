@@ -23,6 +23,14 @@
     document.head.appendChild(nextEventStyle);
   }
 
+  if (!document.querySelector('script[data-floating-contact]')) {
+    const contactScript = document.createElement('script');
+    contactScript.src = './floating-contact.js?v=20260917-1736';
+    contactScript.dataset.floatingContact = 'true';
+    contactScript.defer = true;
+    document.head.appendChild(contactScript);
+  }
+
   const upgradePrinciples = () => {
     const cards = [...document.querySelectorAll('.principle')];
     const setups = [
