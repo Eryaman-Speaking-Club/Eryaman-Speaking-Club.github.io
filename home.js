@@ -57,8 +57,22 @@
     [...showcase.querySelectorAll('.feature-game')].slice(3).forEach((card) => card.remove());
   };
 
+  /* Keep participation pricing near the bottom of the page and remove the old duplicate payment summary. */
+  const moveParticipationToBottom = () => {
+    const main = document.querySelector('main');
+    const pricing = document.getElementById('katilim');
+    const payment = document.getElementById('odeme');
+    if (payment) payment.remove();
+    if (main && pricing) {
+      const label = pricing.querySelector('.section-label');
+      if (label) label.textContent = '08 · Katılım seçenekleri';
+      main.appendChild(pricing);
+    }
+  };
+
   upgradePrinciples();
   trimHomepageGames();
+  moveParticipationToBottom();
 
   const gameShowcase = document.querySelector('.game-showcase');
   if (gameShowcase && 'MutationObserver' in window) {
