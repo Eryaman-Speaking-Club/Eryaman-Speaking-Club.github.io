@@ -70,9 +70,33 @@
     }
   };
 
+  /* The homepage should lead visitors to the dedicated private-lessons page first.
+     WhatsApp and phone contact stay inside /ozel-dersler/. */
+  const restorePrivateLessonsPageLinks = () => {
+    const privateLessonsHref = './ozel-dersler/';
+    document.querySelectorAll('a[href*="wa.me/905422876341"]').forEach((link) => {
+      link.href = privateLessonsHref;
+      link.removeAttribute('target');
+      link.removeAttribute('rel');
+    });
+
+    const tutorCard = document.querySelector('.tutor-cta a');
+    const tutorTitle = tutorCard?.querySelector('strong');
+    if (tutorTitle) tutorTitle.textContent = 'Birebir İngilizce özel dersleri inceleyin.';
+
+    document.querySelectorAll('.final-actions a').forEach((link) => {
+      if (link.textContent.includes('Online özel ders')) link.textContent = 'Online özel dersleri incele →';
+    });
+
+    document.querySelectorAll('.faq-list a').forEach((link) => {
+      if (link.href.includes('/ozel-dersler/')) link.textContent = 'özel dersler sayfasından detayları inceleyebilirsin';
+    });
+  };
+
   upgradePrinciples();
   trimHomepageGames();
   moveParticipationToBottom();
+  restorePrivateLessonsPageLinks();
 
   const gameShowcase = document.querySelector('.game-showcase');
   if (gameShowcase && 'MutationObserver' in window) {
