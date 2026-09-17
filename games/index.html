@@ -2,44 +2,67 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#0b2f5b">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#071b34">
   <meta name="description" content="Eryaman Speaking Club tarafından hazırlanan 12 ücretsiz konuşma ve grup oyunu.">
   <title>Oyunlar · Eryaman Speaking Club</title>
   <link rel="stylesheet" href="../esc-brand.css?v=20260917">
-  <link rel="stylesheet" href="./games.css?v=20260917">
+  <link rel="stylesheet" href="./games.css?v=20260917-0848">
 </head>
 <body>
+  <div class="hub-noise" aria-hidden="true"></div>
   <header>
     <a class="esc-brand" href="../" aria-label="Eryaman Speaking Club ana sayfa"><span class="esc-brand-mark"><img src="../esc-center-symbol.webp" alt=""></span><span class="esc-brand-title">Eryaman Speaking Club</span></a>
-    <a class="back-home" href="../">Kulüp sitesi <span>↗</span></a>
+    <div class="header-actions"><button class="random-mini" type="button" data-random>🎲 <span>Rastgele oyun</span></button><a class="back-home" href="../">Kulüp sitesi <span>↗</span></a></div>
   </header>
+
   <main>
     <section class="hub-hero">
-      <span class="eyebrow">ESC GAME HUB · 12 OYUN</span>
+      <div class="hero-glow glow-a" aria-hidden="true"></div><div class="hero-glow glow-b" aria-hidden="true"></div>
+      <span class="eyebrow"><i></i> ESC GAME HUB · 12 OYUN</span>
       <h1>Bir oyun seç.<br><em>Konuşmaya başla.</em></h1>
       <p>İndirme yok, üyelik yok, karmaşık kurallar yok. Ortama uygun oyunu seç ve doğrudan tarayıcıda oyna.</p>
-      <div class="filter-row" role="group" aria-label="Oyunları filtrele"><button class="active" data-filter="all">Tüm oyunlar</button><button data-filter="group">Grup</button><button data-filter="quick">Hızlı</button><button data-filter="deep">Sohbet</button></div>
+      <div class="hero-actions"><button class="hero-random" type="button" data-random><span>🎲</span><b>Ne oynayacağımıza sen karar ver</b><i>Rastgele oyun seç →</i></button></div>
+      <div class="filter-row" role="group" aria-label="Oyunları filtrele"><button class="active" data-filter="all">Tüm oyunlar <span>12</span></button><button data-filter="group">Grup <span>4</span></button><button data-filter="quick">Hızlı <span>2</span></button><button data-filter="deep">Sohbet <span>6</span></button></div>
     </section>
+
+    <div class="grid-label"><span>OYUN KÜTÜPHANESİ</span><i>Telefon · Tablet · Projektör</i></div>
     <section class="game-grid">
-      <a class="game-card dare" data-kind="group" href="../truth-or-dare/"><div class="top"><span>🎯</span><small>OYUNCU OYUNU</small></div><h2>Truth or Dare</h2><p>Çarkı çevir, Truth veya Dare seç ve gerisini gruba bırak.</p><b>Hemen oyna →</b></a>
-      <a class="game-card me" data-kind="deep" href="../one-for-me-one-for-you/"><div class="top"><span>💬</span><small>SORU OYUNU</small></div><h2>One for Me · One for You</h2><p>İki tarafın da konuşmasını sağlayan karşılıklı sohbet kartları.</p><b>Hemen oyna →</b></a>
-      <a class="game-card last" data-kind="deep" href="../last-thing-you-did/"><div class="top"><span>⏳</span><small>HAFIZA OYUNU</small></div><h2>Last Thing You Did</h2><p>En son yaptığın, hissettiğin, gönderdiğin veya pişman olduğun şey hakkında konuş.</p><b>Hemen oyna →</b></a>
-      <a class="game-card whatif" data-kind="deep" href="../what-would-you-do-if/"><div class="top"><span>⚡</span><small>SENARYO OYUNU</small></div><h2>What Would You Do If...?</h2><p>Bir senaryo al, kararını ver ve nedenini açıkla.</p><b>Hemen oyna →</b></a>
-      <a class="game-card rather" data-kind="group" href="../would-you-rather/"><div class="top"><span>⚖️</span><small>SEÇİM OYUNU</small></div><h2>Would You Rather?</h2><p>İki seçenekten birini seç, karar ver ve fikrini savun.</p><b>Hemen oyna →</b></a>
-      <a class="game-card likely" data-kind="group" href="../most-likely-to/"><div class="top"><span>👀</span><small>GRUP OYLAMASI</small></div><h2>Most Likely To</h2><p>Grupça oy ver, birini seç ve savunmasını dinle.</p><b>Hemen oyna →</b></a>
-      <a class="game-card hot" data-kind="quick" href="../hot-seat/"><div class="top"><span>🔥</span><small>HIZLI SORULAR</small></div><h2>Hot Seat</h2><p>Bir oyuncunun 60 saniyede mümkün olduğunca çok soruya cevap vermesi gerekiyor.</p><b>Hemen oyna →</b></a>
-      <a class="game-card five" data-kind="quick" href="../five-second-challenge/"><div class="top"><span>⏱️</span><small>ZAMAN OYUNU</small></div><h2>5 Second Challenge</h2><p>Beş saniye dolmadan üç örnek söyle.</p><b>Hemen oyna →</b></a>
-      <a class="game-card flag" data-kind="group" href="../red-flag-green-flag/"><div class="top"><span>🚩</span><small>FİKİR OYUNU</small></div><h2>Red Flag / Green Flag</h2><p>Durumu değerlendir, rengini seç ve kararını savun.</p><b>Hemen oyna →</b></a>
-      <a class="game-card taboo" data-kind="group" href="../taboo/"><div class="top"><span>🗣️</span><small>TAKIM OYUNU</small></div><h2>Taboo</h2><p>Ana kelimeyi yasaklı kelimeleri kullanmadan anlat.</p><b>Hemen oyna →</b></a>
-      <a class="game-card debate" data-kind="deep" href="../debate-roulette/"><div class="top"><span>🎙️</span><small>TARTIŞMA OYUNU</small></div><h2>Debate Roulette</h2><p>Rastgele tarafını al, hazırlan ve fikrini savun.</p><b>Hemen oyna →</b></a>
-      <a class="game-card never" data-kind="deep" href="../never-have-i-ever/"><div class="top"><span>🙈</span><small>HİKÂYE OYUNU</small></div><h2>Never Have I Ever</h2><p>I HAVE veya NEVER seç; istersen hikâyeyi anlat.</p><b>Hemen oyna →</b></a>
+      <a class="game-card dare" data-kind="group" href="../truth-or-dare/"><span class="card-number">01</span><div class="top"><span>🎯</span><small>OYUNCU OYUNU</small></div><h2>Truth or Dare</h2><p>Çarkı çevir, Truth veya Dare seç ve gerisini gruba bırak.</p><div class="card-meta"><span>GRUP</span><span>ÇARK</span></div><b>Hemen oyna <i>→</i></b></a>
+      <a class="game-card me" data-kind="deep" href="../one-for-me-one-for-you/"><span class="card-number">02</span><div class="top"><span>💬</span><small>SORU OYUNU</small></div><h2>One for Me · One for You</h2><p>İki tarafın da konuşmasını sağlayan karşılıklı sohbet kartları.</p><div class="card-meta"><span>SOHBET</span><span>KARTLAR</span></div><b>Hemen oyna <i>→</i></b></a>
+      <a class="game-card last" data-kind="deep" href="../last-thing-you-did/"><span class="card-number">03</span><div class="top"><span>⏳</span><small>HAFIZA OYUNU</small></div><h2>Last Thing You Did</h2><p>En son yaptığın, hissettiğin, gönderdiğin veya pişman olduğun şey hakkında konuş.</p><div class="card-meta"><span>SOHBET</span><span>HİKÂYE</span></div><b>Hemen oyna <i>→</i></b></a>
+      <a class="game-card whatif" data-kind="deep" href="../what-would-you-do-if/"><span class="card-number">04</span><div class="top"><span>⚡</span><small>SENARYO OYUNU</small></div><h2>What Would You Do If...?</h2><p>Bir senaryo al, kararını ver ve nedenini açıkla.</p><div class="card-meta"><span>SOHBET</span><span>SENARYO</span></div><b>Hemen oyna <i>→</i></b></a>
+      <a class="game-card rather" data-kind="group" href="../would-you-rather/"><span class="card-number">05</span><div class="top"><span>⚖️</span><small>SEÇİM OYUNU</small></div><h2>Would You Rather?</h2><p>İki seçenekten birini seç, karar ver ve fikrini savun.</p><div class="card-meta"><span>GRUP</span><span>OY</span></div><b>Hemen oyna <i>→</i></b></a>
+      <a class="game-card likely" data-kind="group" href="../most-likely-to/"><span class="card-number">06</span><div class="top"><span>👀</span><small>GRUP OYLAMASI</small></div><h2>Most Likely To</h2><p>Grupça oy ver, birini seç ve savunmasını dinle.</p><div class="card-meta"><span>GRUP</span><span>OYLA</span></div><b>Hemen oyna <i>→</i></b></a>
+      <a class="game-card hot" data-kind="quick" href="../hot-seat/"><span class="card-number">07</span><div class="top"><span>🔥</span><small>HIZLI SORULAR</small></div><h2>Hot Seat</h2><p>Bir oyuncunun 60 saniyede mümkün olduğunca çok soruya cevap vermesi gerekiyor.</p><div class="card-meta"><span>HIZLI</span><span>60 SN</span></div><b>Hemen oyna <i>→</i></b></a>
+      <a class="game-card five" data-kind="quick" href="../five-second-challenge/"><span class="card-number">08</span><div class="top"><span>⏱️</span><small>ZAMAN OYUNU</small></div><h2>5 Second Challenge</h2><p>Beş saniye dolmadan üç örnek söyle.</p><div class="card-meta"><span>HIZLI</span><span>5 SN</span></div><b>Hemen oyna <i>→</i></b></a>
+      <a class="game-card flag" data-kind="group" href="../red-flag-green-flag/"><span class="card-number">09</span><div class="top"><span>🚩</span><small>FİKİR OYUNU</small></div><h2>Red Flag / Green Flag</h2><p>Durumu değerlendir, rengini seç ve kararını savun.</p><div class="card-meta"><span>GRUP</span><span>FİKİR</span></div><b>Hemen oyna <i>→</i></b></a>
+      <a class="game-card taboo" data-kind="group" href="../taboo/"><span class="card-number">10</span><div class="top"><span>🗣️</span><small>TAKIM OYUNU</small></div><h2>Taboo</h2><p>Ana kelimeyi yasaklı kelimeleri kullanmadan anlat.</p><div class="card-meta"><span>TAKIM</span><span>60 SN</span></div><b>Hemen oyna <i>→</i></b></a>
+      <a class="game-card debate" data-kind="deep" href="../debate-roulette/"><span class="card-number">11</span><div class="top"><span>🎙️</span><small>TARTIŞMA OYUNU</small></div><h2>Debate Roulette</h2><p>Rastgele tarafını al, hazırlan ve fikrini savun.</p><div class="card-meta"><span>SOHBET</span><span>DEBATE</span></div><b>Hemen oyna <i>→</i></b></a>
+      <a class="game-card never" data-kind="deep" href="../never-have-i-ever/"><span class="card-number">12</span><div class="top"><span>🙈</span><small>HİKÂYE OYUNU</small></div><h2>Never Have I Ever</h2><p>I HAVE veya NEVER seç; istersen hikâyeyi anlat.</p><div class="card-meta"><span>SOHBET</span><span>HİKÂYE</span></div><b>Hemen oyna <i>→</i></b></a>
     </section>
-    <section class="hub-note"><span>✨</span><div><strong>Bir buluşma mı yönetiyorsun?</strong><p>Oyunu telefon, tablet veya projektörde aç. Oyuncu listeleri ve eklediğin özel sorular o tarayıcıda kayıtlı kalır.</p></div></section>
+
+    <section class="hub-note"><span>✨</span><div><strong>Bir buluşma mı yönetiyorsun?</strong><p>Oyunu telefon, tablet veya projektörde aç. Oyuncu listeleri ve eklediğin özel sorular o tarayıcıda kayıtlı kalır.</p></div><a href="../#events">Kulüp ortamını gör →</a></section>
   </main>
+
+  <div class="random-toast" role="status" aria-live="polite"></div>
   <footer><p>Eryaman Speaking Club tarafından gerçek sohbetler için geliştirildi.</p><a href="../">Kulüp sitesine dön ↑</a></footer>
   <script>
-    document.querySelectorAll('[data-filter]').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('[data-filter]').forEach(item=>item.classList.toggle('active',item===button));document.querySelectorAll('.game-card').forEach(card=>card.hidden=button.dataset.filter!=='all'&&card.dataset.kind!==button.dataset.filter)}));
+    (()=>{
+      const cards=[...document.querySelectorAll('.game-card')];
+      document.querySelectorAll('[data-filter]').forEach(button=>button.addEventListener('click',()=>{
+        document.querySelectorAll('[data-filter]').forEach(item=>item.classList.toggle('active',item===button));
+        cards.forEach(card=>card.hidden=button.dataset.filter!=='all'&&card.dataset.kind!==button.dataset.filter);
+      }));
+      const toast=document.querySelector('.random-toast');
+      document.querySelectorAll('[data-random]').forEach(button=>button.addEventListener('click',()=>{
+        const visible=cards.filter(card=>!card.hidden);
+        const pick=visible[Math.floor(Math.random()*visible.length)]||cards[0];
+        const title=pick.querySelector('h2')?.textContent||'oyun';
+        toast.textContent='🎲 '+title+' seçildi';toast.classList.add('show');
+        window.setTimeout(()=>location.href=pick.href,650);
+      }));
+    })();
   </script>
 </body>
 </html>
