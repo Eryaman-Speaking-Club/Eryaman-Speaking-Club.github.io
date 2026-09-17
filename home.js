@@ -15,6 +15,14 @@
     document.head.appendChild(polish);
   }
 
+  if (!document.querySelector('link[data-next-event]')) {
+    const nextEventStyle = document.createElement('link');
+    nextEventStyle.rel = 'stylesheet';
+    nextEventStyle.href = './next-event.css?v=20260917-2';
+    nextEventStyle.dataset.nextEvent = 'true';
+    document.head.appendChild(nextEventStyle);
+  }
+
   const upgradePrinciples = () => {
     const cards = [...document.querySelectorAll('.principle')];
     const setups = [
@@ -70,14 +78,13 @@
     }
   };
 
-  /* The homepage should always open the dedicated private-lessons page first.
-     WhatsApp and phone contact stay inside /ozel-dersler/. */
+  /* The homepage always opens the dedicated private-lessons application page.
+     No teacher phone or WhatsApp contact is exposed from the homepage. */
   const restorePrivateLessonsPageLinks = () => {
     const privateLessonsHref = './ozel-dersler/';
     const shouldRouteToLessons = (link) => {
       const text = (link.textContent || '').toLocaleLowerCase('tr-TR');
-      return link.href.includes('wa.me/905422876341') ||
-        text.includes('özel dersler') ||
+      return text.includes('özel dersler') ||
         text.includes('özel dersleri incele') ||
         (link.closest('.tutor-cta') && text.includes('ingilizce'));
     };
@@ -101,13 +108,36 @@
       if (link.href.includes('/ozel-dersler/')) link.textContent = 'özel dersler sayfasından detayları inceleyebilirsin';
     });
 
-    /* Capture clicks as a second safety layer so a stale href can never open WhatsApp from the homepage. */
+    /* Capture clicks as a second safety layer so private-lesson CTAs always open the application page. */
     document.addEventListener('click', (event) => {
       const link = event.target.closest('a');
       if (!link || !shouldRouteToLessons(link)) return;
       event.preventDefault();
       window.location.assign(privateLessonsHref);
     }, true);
+  };
+
+  const mountNextEvent = () => {
+    const events = document.getElementById('events');
+    if (!events || document.querySelector('.next-event-card')) return;
+
+    const card = document.createElement('section');
+    card.className = 'next-event-card reveal';
+    card.setAttribute('aria-label', 'Bir sonraki Eryaman Speaking Club buluşması');
+    card.innerHTML = `
+      <div class="next-event-copy">
+        <span class="next-event-kicker">Bir sonraki buluşma</span>
+        <h2>Bu Pazar Eryaman’da buluşuyoruz.</h2>
+        <div class="next-event-details">
+          <span>📅 <strong>20 Eylül Pazar</strong></span>
+          <span>🕖 <strong>19:00</strong></span>
+          <span>📍 <strong>Eryaman 1-2 Coffee Lab</strong></span>
+        </div>
+        <p>Kahve, sohbet ve İngilizce pratiği. Orada görüşmek üzere.</p>
+      </div>
+      <a class="next-event-map" href="https://maps.app.goo.gl/7y8SdsCRGYzuSXnr6" target="_blank" rel="noreferrer">Konumu aç <span>↗</span></a>
+    `;
+    events.insertAdjacentElement('beforebegin', card);
   };
 
   const initConversationGame = () => {
@@ -218,6 +248,7 @@
   trimHomepageGames();
   moveParticipationToBottom();
   restorePrivateLessonsPageLinks();
+  mountNextEvent();
   initConversationGame();
 
   const gameShowcase = document.querySelector('.game-showcase');
