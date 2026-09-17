@@ -11,6 +11,10 @@
   box-shadow:none!important;
 }
 
+img[src$="esc-center-symbol.webp"]{
+  content:url("./esc-center-symbol.svg")!important;
+}
+
 .esc-brand-mark{
   width:60px;
   height:60px;
