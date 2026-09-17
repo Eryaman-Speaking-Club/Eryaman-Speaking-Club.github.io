@@ -21,7 +21,8 @@ The homepage is Turkish and includes:
 
 - club introduction and vision;
 - meetup flow and participation guidance;
-- interactive Game Hub preview;
+- premium benefit cards for speaking practice, community and confidence;
+- interactive previews for all 12 games;
 - group-focused event photo filmstrip;
 - selected event video embeds;
 - club statistics;
@@ -107,8 +108,9 @@ Because there is no backend, data does not automatically sync between devices. C
 
 - `index.html` — Turkish club website markup.
 - `home.css` — main club-site layout, branding and responsive styles.
-- `home-extra.css` — enhanced event gallery, video, game-preview and participant-feedback styling.
-- `home.js` — navigation, gallery controls, reveal animation, rotating hero copy, counters and FAQ behaviour.
+- `home-extra.css` — event gallery, video, game-preview and participant-feedback styling.
+- `home-polish.css` — premium benefit-card artwork, all-game homepage previews, media ratio cleanup and final responsive polish.
+- `home.js` — navigation, homepage enhancement mounting, 12-game preview expansion, gallery controls, reveal animation, rotating hero copy, counters and FAQ behaviour.
 - `games/index.html` — Turkish Game Hub landing page, filters and random-game selection.
 - `games/games.css` — responsive Game Hub presentation.
 - each game folder — one playable game entry point.
@@ -143,15 +145,17 @@ There is no separate build step: the repository itself is uploaded as a static P
 Before publishing a major change:
 
 1. Open the Turkish homepage at desktop and narrow mobile widths.
-2. Confirm Drive group photos and selected video previews load for a visitor account.
-3. Open the Game Hub, test all filters and try random-game selection.
-4. Open all 12 games and verify navigation back to the hub/site.
-5. Test relevant timers, scores, votes, player lists and team dialogs.
-6. Verify local setup/question persistence after a refresh where persistence is expected.
-7. Confirm question add/edit/remove/reset and wrong-password behaviour.
-8. Check sound controls at 0%, mid-range and 100%.
-9. Check the browser console for JavaScript errors and missing assets.
-10. Confirm the GitHub Pages workflow completes successfully.
+2. Confirm the three benefit cards render their illustration panels and labels.
+3. Confirm all 12 homepage game previews are visible and link to the correct game.
+4. Confirm Drive group photos and selected video previews load for a visitor account.
+5. Open the Game Hub, test all filters and try random-game selection.
+6. Open all 12 games and verify navigation back to the hub/site.
+7. Test relevant timers, scores, votes, player lists and team dialogs.
+8. Verify local setup/question persistence after a refresh where persistence is expected.
+9. Confirm question add/edit/remove/reset and wrong-password behaviour.
+10. Check sound controls at 0%, mid-range and 100%.
+11. Check the browser console for JavaScript errors and missing assets.
+12. Confirm the GitHub Pages workflow completes successfully.
 
 ## Future improvements
 
