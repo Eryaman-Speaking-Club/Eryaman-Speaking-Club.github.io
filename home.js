@@ -49,77 +49,9 @@
     });
   };
 
-  const expandGameShowcase = () => {
-    const showcase = document.querySelector('.game-showcase');
-    if (!showcase || showcase.dataset.expanded === 'true') return;
-    showcase.dataset.expanded = 'true';
-
-    const games = [
-      {
-        cls: 'game-me', href: './one-for-me-one-for-you/', kicker: 'KARŞILIKLI SOHBET', title: 'One for Me · One for You',
-        text: 'Soruyu önce sen cevapla, sonra aynı soruyu karşındakine bırak. Sohbet tek taraflı kalmasın.',
-        preview: '<div class="mini-game-preview chat-preview" aria-hidden="true"><div class="chat-card me"><small>ONE FOR ME</small>What is something you changed your mind about?</div><div class="chat-dots"><i></i><i></i><i></i></div><div class="chat-card you"><small>ONE FOR YOU</small>Now ask the same question back.</div></div>'
-      },
-      {
-        cls: 'game-last', href: './last-thing-you-did/', kicker: 'HİKÂYE BAŞLATICI', title: 'Last Thing You Did',
-        text: 'En son yaptığın küçük bir şeyden yola çık; kısa cevapları gerçek hikâyelere çevir.',
-        preview: '<div class="mini-game-preview memory-preview" aria-hidden="true"><div class="memory-line"></div><div class="memory-row">Last thing you laughed at<small>30 seconds ago</small></div><div class="memory-row">Last message you sent<small>Today</small></div><div class="memory-row">Last thing you regretted<small>Your turn</small></div></div>'
-      },
-      {
-        cls: 'game-whatif', href: './what-would-you-do-if/', kicker: 'SENARYO MODU', title: 'What Would You Do If...?',
-        text: 'Beklenmedik bir senaryo gelir. Kararını ver, sonra neden öyle düşündüğünü anlat.',
-        preview: '<div class="mini-game-preview scenario-preview" aria-hidden="true"><div class="scenario-card"><small>WHAT WOULD YOU DO IF...</small><strong>You woke up in another country with no phone?</strong><div class="scenario-actions"><span>DECIDE</span><span>EXPLAIN</span></div></div></div>'
-      },
-      {
-        cls: 'game-likely', href: './most-likely-to/', kicker: 'GRUP OYLAMASI', title: 'Most Likely To',
-        text: 'Herkes aynı anda birini seçsin. En çok oy alan kişi savunmasını yapsın.',
-        preview: '<div class="mini-game-preview likely-preview" aria-hidden="true"><div class="vote-topic">Who is most likely to miss a flight?</div><div class="avatar-vote-row"><span class="vote-avatar">A<b>1</b></span><span class="vote-avatar">Y<b>4</b></span><span class="vote-avatar">İ<b>2</b></span><span class="vote-avatar">M<b>1</b></span></div></div>'
-      },
-      {
-        cls: 'game-hot', href: './hot-seat/', kicker: '60 SANİYE', title: 'Hot Seat',
-        text: 'Bir kişi merkezde. Süre akarken hızlı sorulara mümkün olduğunca seri cevap ver.',
-        preview: '<div class="mini-game-preview hot-preview" aria-hidden="true"><div class="hot-timer">00:37</div><div class="hot-question">What is your most useless talent?</div><div class="hot-question">Coffee or tea?</div><div class="hot-question">What would you change tomorrow?</div></div>'
-      },
-      {
-        cls: 'game-five', href: './five-second-challenge/', kicker: 'HIZLI & KAOTİK', title: '5 Second Challenge',
-        text: 'Üç örnek söylemek için yalnızca beş saniyen var. Düşünmeye değil, konuşmaya odaklan.',
-        preview: '<div class="mini-game-preview five-preview" aria-hidden="true"><div class="five-ring">5</div><div class="five-prompt">NAME 3 THINGS YOU DO BEFORE WORK</div></div>'
-      },
-      {
-        cls: 'game-flag', href: './red-flag-green-flag/', kicker: 'FİKRİNİ SAVUN', title: 'Red Flag / Green Flag',
-        text: 'Durumu kırmızı veya yeşil bayrak olarak değerlendir; grubun geri kalanını ikna etmeye çalış.',
-        preview: '<div class="mini-game-preview flag-preview" aria-hidden="true"><div class="flag-side red"><span>🚩</span>RED</div><div class="flag-side green"><span>✅</span>GREEN</div><div class="flag-topic">Replies two days later — every time?</div></div>'
-      },
-      {
-        cls: 'game-debate', href: './debate-roulette/', kicker: 'RASTGELE TARAF', title: 'Debate Roulette',
-        text: 'Konu ve tarafın hazır. Kısa hazırlık süresinden sonra seçmediğin fikri bile savun.',
-        preview: '<div class="mini-game-preview debate-preview" aria-hidden="true"><div class="debate-topic">Social media makes friendships stronger.</div><div class="debate-sides"><span class="active">FOR</span><span>AGAINST</span></div><div class="debate-clock">00:45</div></div>'
-      },
-      {
-        cls: 'game-never', href: './never-have-i-ever/', kicker: 'HİKÂYE MODU', title: 'Never Have I Ever',
-        text: 'I HAVE veya NEVER seç. İstersen tek kelimelik cevabı grubun duyacağı bir hikâyeye dönüştür.',
-        preview: '<div class="mini-game-preview never-preview" aria-hidden="true"><div class="never-statement">Never have I ever sent a message and instantly regretted it.</div><div class="never-choice"><span>I HAVE</span><span>NEVER</span></div><div class="never-bars"><i></i><i></i></div></div>'
-      }
-    ];
-
-    const delaySteps = [0, 60, 120, 0, 60, 120, 0, 60, 120];
-    const html = games.map((game, index) => `
-      <a class="feature-game ${game.cls} reveal" data-delay="${delaySteps[index]}" href="${game.href}">
-        <div class="game-card-head"><span class="game-kicker">${game.kicker}</span><span class="game-status">● LIVE</span></div>
-        ${game.preview}
-        <h3>${game.title}</h3>
-        <p>${game.text}</p>
-        <b>Hemen oyna <span>→</span></b>
-      </a>`).join('');
-
-    showcase.insertAdjacentHTML('beforeend', html);
-
-    const banner = document.querySelector('.all-games-banner strong');
-    if (banner) banner.textContent = '12 oyun · tek Game Hub · sınırsız sohbet';
-  };
-
+  /* Homepage intentionally shows only the three featured games already present in index.html.
+     The complete 12-game library lives on /games/. */
   upgradePrinciples();
-  expandGameShowcase();
 
   const syncNav = () => nav && nav.classList.toggle('scrolled', window.scrollY > 24);
   syncNav();
