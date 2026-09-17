@@ -70,11 +70,20 @@
     }
   };
 
-  /* The homepage should lead visitors to the dedicated private-lessons page first.
+  /* The homepage should always open the dedicated private-lessons page first.
      WhatsApp and phone contact stay inside /ozel-dersler/. */
   const restorePrivateLessonsPageLinks = () => {
     const privateLessonsHref = './ozel-dersler/';
-    document.querySelectorAll('a[href*="wa.me/905422876341"]').forEach((link) => {
+    const shouldRouteToLessons = (link) => {
+      const text = (link.textContent || '').toLocaleLowerCase('tr-TR');
+      return link.href.includes('wa.me/905422876341') ||
+        text.includes('özel dersler') ||
+        text.includes('özel dersleri incele') ||
+        (link.closest('.tutor-cta') && text.includes('ingilizce'));
+    };
+
+    document.querySelectorAll('a').forEach((link) => {
+      if (!shouldRouteToLessons(link)) return;
       link.href = privateLessonsHref;
       link.removeAttribute('target');
       link.removeAttribute('rel');
@@ -91,12 +100,125 @@
     document.querySelectorAll('.faq-list a').forEach((link) => {
       if (link.href.includes('/ozel-dersler/')) link.textContent = 'özel dersler sayfasından detayları inceleyebilirsin';
     });
+
+    /* Capture clicks as a second safety layer so a stale href can never open WhatsApp from the homepage. */
+    document.addEventListener('click', (event) => {
+      const link = event.target.closest('a');
+      if (!link || !shouldRouteToLessons(link)) return;
+      event.preventDefault();
+      window.location.assign(privateLessonsHref);
+    }, true);
+  };
+
+  const initConversationGame = () => {
+    const stage = document.querySelector('.conversation-stage');
+    const cards = [...document.querySelectorAll('.conversation-stage .speech-card')];
+    const center = document.querySelector('.conversation-stage .center-badge');
+    if (!stage || cards.length < 2) return;
+
+    const prompts = [
+      ['What would you do if you could live anywhere?', 'Pick a place and tell us why. 🌍'],
+      ['Coffee or tea for the rest of your life?', 'Choose your side. No fence-sitting. ☕'],
+      ['What is your most useless talent?', 'This is a safe space. Probably. 😄'],
+      ['Would you rather travel alone or with friends?', 'Defend your choice. ✈️'],
+      ['What song do you never skip?', 'Bonus point: sing one line. 🎵'],
+      ['What is a tiny thing that makes your day better?', 'Small answers count. ✨'],
+      ['If you had one extra hour every day...', 'How would you spend it? ⏰'],
+      ['What food could you eat every week?', 'Be specific. We may judge. 🍕'],
+      ['What is something you want to learn?', 'Why have you not started yet? 👀'],
+      ['Mountains or beach?', 'You have 10 seconds to convince us. 🏔️'],
+      ['What app do you use too much?', 'Screen-time confession time. 📱'],
+      ['What makes someone easy to talk to?', 'Give us one real example. 💬'],
+      ['What is your ideal lazy Sunday?', 'Paint the whole picture. 🛋️'],
+      ['If you could restart one day...', 'Which day would you choose? ↩️'],
+      ['What is one unpopular opinion you have?', 'Keep it friendly. Keep it interesting. 🌶️'],
+      ['What was the last thing that made you laugh?', 'Tell the story, not just the answer. 😂'],
+      ['Would you rather be early or exactly on time?', 'Late is not an option. ⌚'],
+      ['What is one thing tourists should do in Ankara?', 'Sell us the plan. 📍'],
+      ['What is harder: starting or staying consistent?', 'Pick one and explain. 🎯'],
+      ['If your week had a title...', 'What would this week be called? 🎬']
+    ];
+
+    if (!document.querySelector('style[data-conversation-game]')) {
+      const style = document.createElement('style');
+      style.dataset.conversationGame = 'true';
+      style.textContent = `
+        .conversation-stage .speech-card{cursor:pointer;user-select:none;outline:none;transition:transform .2s ease,box-shadow .2s ease,opacity .16s ease;}
+        .conversation-stage .speech-card:hover{transform:translateY(-4px) rotate(0deg)!important;box-shadow:0 22px 45px rgba(8,31,59,.18);}
+        .conversation-stage .speech-card:focus-visible{box-shadow:0 0 0 4px rgba(24,178,173,.28),0 22px 45px rgba(8,31,59,.18);}
+        .conversation-stage .speech-card.conversation-pop{animation:conversationPop .28s ease;}
+        .conversation-stage .center-badge{cursor:pointer;transition:transform .2s ease,box-shadow .2s ease;}
+        .conversation-stage .center-badge:hover{transform:scale(1.025);box-shadow:0 24px 55px rgba(8,31,59,.18);}
+        .conversation-game-hint{position:absolute;left:50%;bottom:4%;z-index:8;transform:translateX(-50%);padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.94);border:1px solid rgba(8,31,59,.1);box-shadow:0 10px 25px rgba(8,31,59,.1);color:#52687d;font-size:10px;font-weight:950;letter-spacing:.04em;white-space:nowrap;pointer-events:none;}
+        @keyframes conversationPop{0%{opacity:.45;transform:scale(.96)}70%{transform:scale(1.025)}100%{opacity:1}}
+        @media(max-width:700px){.conversation-game-hint{bottom:1.5%;font-size:9px;padding:7px 10px}}
+        @media(prefers-reduced-motion:reduce){.conversation-stage .speech-card,.conversation-stage .center-badge{transition:none}.conversation-stage .speech-card.conversation-pop{animation:none}}
+      `;
+      document.head.appendChild(style);
+    }
+
+    const hint = document.createElement('div');
+    hint.className = 'conversation-game-hint';
+    hint.textContent = '💬 Kartlara tıkla · yeni sohbet gelsin';
+    stage.appendChild(hint);
+
+    let lastIndexes = [-1, -1];
+    const nextIndex = (slot) => {
+      let index = Math.floor(Math.random() * prompts.length);
+      let guard = 0;
+      while ((index === lastIndexes[slot] || index === lastIndexes[1 - slot]) && guard < 20) {
+        index = Math.floor(Math.random() * prompts.length);
+        guard += 1;
+      }
+      lastIndexes[slot] = index;
+      return index;
+    };
+
+    const renderCard = (card, slot) => {
+      const prompt = prompts[nextIndex(slot)];
+      const small = card.querySelector('span');
+      const strong = card.querySelector('b');
+      if (!small || !strong) return;
+      small.textContent = prompt[0];
+      strong.textContent = prompt[1];
+      card.classList.remove('conversation-pop');
+      void card.offsetWidth;
+      card.classList.add('conversation-pop');
+    };
+
+    cards.forEach((card, slot) => {
+      card.setAttribute('role', 'button');
+      card.setAttribute('tabindex', '0');
+      card.setAttribute('aria-label', 'Yeni sohbet kartı getir');
+      card.title = 'Yeni sohbet kartı için tıkla';
+      card.addEventListener('click', () => renderCard(card, slot));
+      card.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        renderCard(card, slot);
+      });
+    });
+
+    if (center) {
+      center.setAttribute('role', 'button');
+      center.setAttribute('tabindex', '0');
+      center.setAttribute('aria-label', 'İki sohbet kartını da yenile');
+      center.title = 'İki kartı da yenile';
+      const shuffleAll = () => cards.forEach((card, slot) => renderCard(card, slot));
+      center.addEventListener('click', shuffleAll);
+      center.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        shuffleAll();
+      });
+    }
   };
 
   upgradePrinciples();
   trimHomepageGames();
   moveParticipationToBottom();
   restorePrivateLessonsPageLinks();
+  initConversationGame();
 
   const gameShowcase = document.querySelector('.game-showcase');
   if (gameShowcase && 'MutationObserver' in window) {
