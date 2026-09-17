@@ -1,175 +1,197 @@
 # Eryaman Speaking Club — Website & Game Hub
 
-A free public website and browser-based game collection for **Eryaman Speaking Club**. The main page is the Turkish club website; the separate Game Hub contains 12 speaking, conversation and party games that run directly in the browser.
+A lightweight, static website and browser-game collection for **Eryaman Speaking Club**. The main site introduces the club and meetup experience; the separate Game Hub contains 12 speaking, conversation and party games that run directly in the browser.
 
-**Club website:** https://eryaman-speaking-club.github.io/
+- **Club website:** https://eryaman-speaking-club.github.io/
+- **Game Hub:** https://eryaman-speaking-club.github.io/games/
 
-**Game Hub:** https://eryaman-speaking-club.github.io/games/
+## Purpose
 
-## Project purpose
+The project has two goals:
 
-The project has two roles:
+1. explain Eryaman Speaking Club, how meetups work, participation options, events and community feedback;
+2. provide simple speaking games that can be opened instantly on a phone, tablet, laptop or projector during meetups.
 
-1. introduce Eryaman Speaking Club, its vision, meetup format, event media and participant feedback;
-2. provide simple speaking games that can be opened instantly on phones, tablets, laptops or a projector during meetups.
+The project is intentionally frontend-only. There is no backend, database, package installation or paid runtime dependency.
 
-The project is intentionally static and lightweight. There is no backend, database, package installation or paid runtime dependency.
+## Main features
 
-## Main website
+### Club website
 
-The homepage is Turkish and includes:
+- Turkish landing page for Eryaman Speaking Club
+- club introduction, vision and meetup flow
+- participation/pricing section
+- event photos, videos, statistics, feedback and FAQ
+- responsive navigation and mobile layout
+- 3 featured games on the homepage: **Taboo**, **Truth or Dare** and **Would You Rather?**
+- link to the full 12-game Game Hub
 
-- club introduction and vision;
-- meetup flow and participation guidance;
-- premium benefit cards for speaking practice, community and confidence;
-- interactive previews for all 12 games;
-- group-focused event photo filmstrip;
-- selected event video embeds;
-- club statistics;
-- anonymised and edited participant-feedback summaries;
-- FAQ and social-media calls to action.
+### Game Hub
 
-Event photos and videos are embedded from the club's Google Drive event archive. Those Drive files must remain viewable by site visitors for the media embeds to work.
-
-## Core features
-
-- Responsive layouts for phone, tablet and desktop.
-- Shared Eryaman Speaking Club visual identity across the site and games.
-- 12 browser games with category filters where relevant.
-- Game Hub filters for group, quick and conversation games.
-- Random-game selection from the currently visible Game Hub category.
-- Shared sound controls and lightweight audio feedback.
-- Shuffled decks and reduced immediate repetition in supported games.
-- Optional player lists, teams, turns, timers, scores or voting where the game needs them.
-- Local question editing without a backend.
-- GitHub Pages deployment directly from `main`.
+- 12 playable browser games
+- filters for group, quick and conversation games
+- random-game selection from the currently visible category
+- responsive cards and game previews
+- direct links to every game
 
 ## Games
 
 | Game | Main gameplay |
 | --- | --- |
-| **Truth or Dare** | Player wheel, fair rotation, Truth/Dare cards and local content management |
-| **One for Me / One for You** | Alternating conversation cards with local card management |
+| **Truth or Dare** | Player wheel, Truth/Dare cards and local content management |
+| **One for Me / One for You** | Alternating conversation cards |
 | **Last Thing You Did** | Recent-experience prompts with categories, history and shuffle |
 | **What Would You Do If?** | Hypothetical scenarios with categories, history and shuffle |
-| **Would You Rather?** | Two-option dilemmas, keyboard controls and optional group-vote counters |
-| **Most Likely To** | 3–2–1 group vote, optional player list and per-player pick totals |
+| **Would You Rather?** | Two-option dilemmas with optional group-vote counters |
+| **Most Likely To** | 3–2–1 group vote with an optional player roster and pick totals |
 | **Hot Seat** | Saved player list, 60-second rounds and answered-question score |
-| **5 Second Challenge** | Five-second timer, made/missed totals, optional turns and player scores |
-| **Red Flag / Green Flag** | Per-round group voting and follow-up discussion |
+| **5 Second Challenge** | Five-second timer, made/missed totals and optional player turns/scores |
+| **Red Flag / Green Flag** | Per-round voting and follow-up discussion |
 | **Taboo** | Solo or two-team mode, rotating speakers, timer and team scores |
 | **Debate Roulette** | Random FOR/AGAINST side, 10-second preparation and 45-second speech |
-| **Never Have I Ever** | Per-round I HAVE/NEVER voting and story prompts |
+| **Never Have I Ever** | Per-round I HAVE / NEVER voting and story prompts |
 
-## Player, team, score and reset behaviour
+## Game modes, teams and scoring
 
-Not every game needs the same amount of structure, so these systems are enabled only where they improve the activity.
+Not every game uses the same structure. Team, player, score and turn systems are enabled only where they improve the activity.
 
-- **Taboo** can run without teams or with two teams. Team names and player lists can be saved locally, turns alternate between teams, speakers rotate and each completed team turn contributes to that team's score.
-- **5 Second Challenge** can use an optional player roster, automatic turn rotation and per-player scores in addition to the round made/missed totals.
-- **Most Likely To** can use an optional player roster and record how often each player is selected.
-- Other games use round totals, votes, timers or simple next/back history where appropriate.
-- Reset controls clear the relevant in-memory score/turn state without requiring an admin password. Saved setup data is kept or cleared according to the game control being used.
+### Taboo
+
+Taboo supports both **quick play without teams** and an optional **two-team mode**.
+
+In team mode:
+
+- Team A and Team B can be renamed.
+- Each team can have its own player list.
+- Turns alternate automatically between teams.
+- The active speaker rotates through that team's player list.
+- Correct answers increase the current round score.
+- Finishing a turn adds that round score to the active team's total.
+- **Reset scores** clears team scores and speaker rotation without requiring the admin password.
+
+Team names, player lists and the selected team/quick-play mode are stored locally in the browser.
+
+### Other player/score systems
+
+- **Hot Seat:** saved player list, manual next-player control, 60-second round and answered-question count.
+- **5 Second Challenge:** optional player list, automatic turn rotation and per-player scores in addition to made/missed totals.
+- **Most Likely To:** optional player list and per-player pick totals.
+- **Would You Rather?:** optional visible vote counters.
+- **Red Flag / Green Flag** and **Never Have I Ever:** round-based vote totals.
+- **Debate Roulette:** 10-second preparation followed by a 45-second speaking round.
+
+Reset controls affect the relevant gameplay state only. Normal player/team setup never requires the admin password.
 
 ## Question editor and admin lock
 
-Simple game pages can load `esc-content-editor.js`, which detects the page's built-in question source and provides an **Edit questions** control.
+Supported game pages load `esc-content-editor.js`, which detects the game's built-in content source and adds an **Edit questions** control.
 
-The editor supports, depending on the game schema:
+Depending on the game schema, the editor can:
 
-- adding prompts;
-- editing existing prompts;
-- removing prompts while keeping at least one item;
-- searching the local library;
-- restoring the built-in question library.
+- add questions/prompts;
+- edit existing content;
+- remove content while keeping at least one item;
+- search the local question library;
+- restore the built-in library.
 
-Custom question libraries are stored only in that browser using `localStorage`.
+Edited question libraries are saved only in that browser with `localStorage`.
 
-Opening the editor requires the local admin password. The password itself is not stored as readable text in the JavaScript; the entered value is checked against a SHA-256 hash. A successful unlock is remembered only for the current browser tab with `sessionStorage`.
+Opening the editor requires the local admin password. The readable password is not stored in the JavaScript; the entered value is checked against a SHA-256 hash. A successful unlock is remembered for the current browser tab with `sessionStorage`.
 
-This is intentionally a lightweight event safeguard, **not server-side authentication**. It prevents casual editing during an event but must not be treated as protection for sensitive data.
-
-Normal player/team setup does not require the admin password.
+This is a lightweight event safeguard, **not server-side authentication** and not suitable for protecting sensitive data.
 
 ## Local data
 
-Depending on the game, the browser can locally remember:
+Depending on the game, the browser may locally remember:
 
 - edited question libraries;
 - player names;
-- team names and setup choices;
-- sound level preferences.
+- team names and mode selection;
+- sound-level preference.
 
-Scores and active-round state are generally session/gameplay state rather than permanent account data.
+Active round state and most scores are gameplay state rather than account data. Data does not sync between devices because the project has no backend. Clearing site storage removes saved local customisations.
 
-Because there is no backend, data does not automatically sync between devices. Clearing browser/site storage removes saved local customisations.
+## Technologies
+
+- HTML5
+- CSS3
+- Vanilla JavaScript
+- `localStorage` / `sessionStorage`
+- Web Audio API for lightweight game sounds
+- GitHub Actions
+- GitHub Pages
+
+There is no npm dependency, framework or build step.
 
 ## Project structure
 
-- `index.html` — Turkish club website markup.
-- `home.css` — main club-site layout, branding and responsive styles.
-- `home-extra.css` — event gallery, video, game-preview and participant-feedback styling.
-- `home-polish.css` — premium benefit-card artwork, all-game homepage previews, media ratio cleanup and final responsive polish.
-- `home.js` — navigation, homepage enhancement mounting, 12-game preview expansion, gallery controls, reveal animation, rotating hero copy, counters and FAQ behaviour.
-- `games/index.html` — Turkish Game Hub landing page, filters and random-game selection.
-- `games/games.css` — responsive Game Hub presentation.
-- each game folder — one playable game entry point.
-- `esc-brand.css` — shared ESC logo/brand styling and local question-editor styling.
-- `esc-game-kit.css` / `esc-game-kit.js` — shared game UI, sound level and audio-feedback helpers.
-- `esc-depth-pass.js` — optional voting, roster, turn and timer enhancements for selected games.
-- `esc-content-editor.js` — local question editor used by supported game pages.
-- `.github/workflows/pages.yml` — GitHub Pages deployment workflow.
+```text
+/
+├── index.html                 # Club website
+├── home.css                   # Main homepage layout/styles
+├── home-extra.css             # Gallery, media and extra homepage sections
+├── home-polish.css            # Final homepage visual polish
+├── home.js                    # Navigation, animations, counters and homepage behaviour
+├── meetup-pricing.css         # Participation/pricing section
+├── games/
+│   ├── index.html             # Full 12-game Game Hub
+│   ├── games.css              # Game Hub layout
+│   └── previews.css           # Game preview artwork
+├── taboo/                     # Individual game folders
+├── truth-or-dare/
+├── would-you-rather/
+├── ...
+├── esc-brand.css              # Shared ESC branding + editor styles
+├── esc-game-kit.css           # Shared game UI
+├── esc-game-kit.js            # Shared audio/feedback helpers
+├── esc-depth-pass.js          # Optional roster/vote/turn/timer enhancements
+├── esc-content-editor.js      # Password-protected local content editor
+└── .github/workflows/pages.yml# GitHub Pages deployment
+```
 
 ## Run locally
 
-No package installation or build command is required.
-
-From the repository root, start any static web server. For example:
+No installation or build command is required. Start any static web server from the repository root, for example:
 
 ```bash
 python3 -m http.server 8000
 ```
 
-Then open `http://localhost:8000`.
+Then open:
 
-Opening pages directly with `file://` is not recommended because browser security and storage behaviour can differ from the deployed site.
+```text
+http://localhost:8000
+```
+
+Using a local web server is preferred over opening the files directly with `file://`, because browser storage and security behaviour can differ.
 
 ## Deployment
 
-GitHub Actions deploys the repository to GitHub Pages whenever `main` is updated. The workflow is `.github/workflows/pages.yml`.
+The site is deployed with **GitHub Pages** through `.github/workflows/pages.yml`.
 
-There is no separate build step: the repository itself is uploaded as a static Pages artifact and deployed.
+Every push to `main` triggers the Pages workflow. The repository is uploaded directly as a static Pages artifact; there is no separate build stage.
 
-## Maintenance checklist
+## Basic release check
 
-Before publishing a major change:
+Before a larger update:
 
-1. Open the Turkish homepage at desktop and narrow mobile widths.
-2. Confirm the three benefit cards render their illustration panels and labels.
-3. Confirm all 12 homepage game previews are visible and link to the correct game.
-4. Confirm Drive group photos and selected video previews load for a visitor account.
-5. Open the Game Hub, test all filters and try random-game selection.
-6. Open all 12 games and verify navigation back to the hub/site.
-7. Test relevant timers, scores, votes, player lists and team dialogs.
-8. Verify local setup/question persistence after a refresh where persistence is expected.
-9. Confirm question add/edit/remove/reset and wrong-password behaviour.
-10. Check sound controls at 0%, mid-range and 100%.
-11. Check the browser console for JavaScript errors and missing assets.
-12. Confirm the GitHub Pages workflow completes successfully.
+1. Check the homepage on desktop and narrow mobile widths.
+2. Confirm the homepage shows only the 3 featured games.
+3. Confirm `/games/` shows all 12 games and its filters/random selector work.
+4. Open the affected games and test buttons, timers, scores, turns and resets.
+5. Test player/team setup and refresh persistence where applicable.
+6. Test question add/edit/remove/reset and an incorrect admin password.
+7. Check sound controls and missing assets/console errors.
+8. Confirm the GitHub Pages workflow completes successfully.
 
 ## Future improvements
 
-Useful next steps that fit the current architecture without requiring a rewrite include:
+Changes that fit the current architecture without a rewrite include:
 
-- add lightweight automated smoke tests for internal links and game entry pages;
-- add accessible keyboard/focus handling to every modal/dialog consistently;
-- improve offline/PWA support for events with unreliable Wi-Fi;
-- add optional import/export for locally edited question libraries;
-- add a simple content manifest so shared game metadata is not duplicated between the homepage, Game Hub and README;
-- optimise event-media delivery if the Drive gallery grows significantly.
+- automated smoke tests for internal links and game entry pages;
+- consistent keyboard/focus handling for every modal;
+- optional import/export for locally edited question libraries;
+- lightweight offline/PWA support for unreliable event Wi-Fi;
+- a shared metadata manifest to reduce duplicated game information.
 
-A backend should only be introduced if the project later needs shared accounts, cross-device synchronisation, central content administration or genuinely secure authentication.
-
-## Project principle
-
-The club website should feel social, clear and real. The games should remain understandable in seconds, comfortable on mobile and structured only as much as the activity needs.
+A backend should only be introduced if the project later needs accounts, cross-device sync, central content administration or secure authentication.
