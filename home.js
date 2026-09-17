@@ -6,35 +6,23 @@
   const links = document.querySelector('.nav-links');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  const galleryCopy = document.querySelector('.event-gallery .gallery-head > p');
-  if (galleryCopy) galleryCopy.textContent = 'Grup fotoğrafları, masa sohbetleri ve kısa videolar. Kulübün gerçek atmosferine göz at.';
-
-  const gameCards = document.querySelectorAll('.feature-game');
-  const shortGameCopy = [
-    'Anlat, yasaklı kelimelerden kaçın, takımına buldur.',
-    'Çarkı çevir. Truth veya Dare seç. Gerisini grup belirlesin.',
-    'İki seçenekten birini seç ve nedenini savun.'
-  ];
-  gameCards.forEach((card, index) => {
-    const paragraph = card.querySelector('p');
-    if (paragraph && shortGameCopy[index]) paragraph.textContent = shortGameCopy[index];
-  });
-
-  const syncNav = () => nav.classList.toggle('scrolled', window.scrollY > 24);
+  const syncNav = () => nav && nav.classList.toggle('scrolled', window.scrollY > 24);
   syncNav();
   window.addEventListener('scroll', syncNav, { passive: true });
 
-  menu.addEventListener('click', () => {
-    const open = links.classList.toggle('open');
-    menu.setAttribute('aria-expanded', String(open));
-    menu.textContent = open ? '×' : '☰';
-  });
-  links.addEventListener('click', (event) => {
-    if (!event.target.closest('a')) return;
-    links.classList.remove('open');
-    menu.setAttribute('aria-expanded', 'false');
-    menu.textContent = '☰';
-  });
+  if (menu && links) {
+    menu.addEventListener('click', () => {
+      const open = links.classList.toggle('open');
+      menu.setAttribute('aria-expanded', String(open));
+      menu.textContent = open ? '×' : '☰';
+    });
+    links.addEventListener('click', (event) => {
+      if (!event.target.closest('a')) return;
+      links.classList.remove('open');
+      menu.setAttribute('aria-expanded', 'false');
+      menu.textContent = '☰';
+    });
+  }
 
   const filmstrip = document.querySelector('.filmstrip');
   if (filmstrip) {
@@ -49,17 +37,18 @@
   const scrollGallery = (direction) => {
     if (!filmstrip) return;
     const card = filmstrip.querySelector('.film-shot');
-    const step = card ? card.getBoundingClientRect().width + 16 : Math.min(window.innerWidth * 0.82, 430);
+    const gap = Number.parseFloat(getComputedStyle(filmstrip).gap) || 16;
+    const step = card ? card.getBoundingClientRect().width + gap : Math.min(window.innerWidth * 0.86, 500);
     filmstrip.scrollBy({ left: direction * step, behavior: reduceMotion ? 'auto' : 'smooth' });
   };
-  if (galleryPrev) galleryPrev.addEventListener('click', () => scrollGallery(-1));
-  if (galleryNext) galleryNext.addEventListener('click', () => scrollGallery(1));
+  galleryPrev?.addEventListener('click', () => scrollGallery(-1));
+  galleryNext?.addEventListener('click', () => scrollGallery(1));
 
   document.querySelectorAll('.reveal').forEach((element) => {
     element.style.setProperty('--delay', `${Number(element.dataset.delay || 0)}ms`);
   });
 
-  if (reduceMotion) {
+  if (reduceMotion || !('IntersectionObserver' in window)) {
     document.querySelectorAll('.reveal').forEach((element) => element.classList.add('visible'));
   } else {
     const revealObserver = new IntersectionObserver((entries, observer) => {
@@ -86,24 +75,33 @@
     }, 2500);
   }
 
-  const countObserver = new IntersectionObserver((entries, observer) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
-      const element = entry.target;
-      const target = Number(element.dataset.count);
-      const duration = 900;
-      const started = performance.now();
-      const update = (now) => {
-        const progress = Math.min(1, (now - started) / duration);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        element.textContent = Math.round(target * eased);
-        if (progress < 1) requestAnimationFrame(update);
-      };
-      requestAnimationFrame(update);
-      observer.unobserve(element);
-    });
-  }, { threshold: 0.7 });
-  document.querySelectorAll('[data-count]').forEach((element) => countObserver.observe(element));
+  if ('IntersectionObserver' in window) {
+    const countObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const element = entry.target;
+        const target = Number(element.dataset.count);
+        if (reduceMotion) {
+          element.textContent = String(target);
+          observer.unobserve(element);
+          return;
+        }
+        const duration = 900;
+        const started = performance.now();
+        const update = (now) => {
+          const progress = Math.min(1, (now - started) / duration);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          element.textContent = Math.round(target * eased);
+          if (progress < 1) requestAnimationFrame(update);
+        };
+        requestAnimationFrame(update);
+        observer.unobserve(element);
+      });
+    }, { threshold: 0.7 });
+    document.querySelectorAll('[data-count]').forEach((element) => countObserver.observe(element));
+  } else {
+    document.querySelectorAll('[data-count]').forEach((element) => { element.textContent = element.dataset.count; });
+  }
 
   document.querySelectorAll('.faq-list details').forEach((detail) => {
     detail.addEventListener('toggle', () => {
