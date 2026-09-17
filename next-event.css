@@ -1,0 +1,27 @@
+.event-gallery::before{
+  content:"BU PAZAR · 20 EYLÜL · 19:00  ·  📍 ERYAMAN 1-2 COFFEE LAB  ·  Kahve, sohbet ve İngilizce pratiği. Orada görüşmek üzere.";
+  display:block;
+  width:min(1180px,100%);
+  margin:0 auto 30px;
+  padding:18px 22px;
+  border:1px solid rgba(8,31,59,.10);
+  border-radius:22px;
+  background:linear-gradient(135deg,#fff7ef 0%,#fff 54%,#f4f8fd 100%);
+  box-shadow:0 16px 40px rgba(8,31,59,.08);
+  color:#0b2f5b;
+  font-size:clamp(15px,2vw,20px);
+  line-height:1.45;
+  font-weight:900;
+  letter-spacing:-.015em;
+  text-align:center;
+}
+
+@media(max-width:700px){
+  .event-gallery::before{
+    margin-bottom:22px;
+    padding:16px 17px;
+    border-radius:18px;
+    font-size:14px;
+    line-height:1.55;
+  }
+}
