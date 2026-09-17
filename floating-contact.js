@@ -1,6 +1,14 @@
 (() => {
   'use strict';
 
+  if (!document.querySelector('script[data-esc-language]')) {
+    const languageScript = document.createElement('script');
+    languageScript.src = './language-switcher.js?v=20260917-2028';
+    languageScript.dataset.escLanguage = 'true';
+    languageScript.defer = true;
+    document.head.appendChild(languageScript);
+  }
+
   if (document.querySelector('[data-esc-contact-fab]')) return;
 
   const CONTACT_EMAIL = 'eryamanspeakingclub@gmail.com';
@@ -133,7 +141,7 @@
       `;
     }
 
-    [...document.querySelectorAll('.feedback-card')].slice(3).forEach((card) => card.classList.add('esc-feedback-hidden'));
+    [...document.querySelectorAll('.feedback-card')].slice(4).forEach((card) => card.classList.add('esc-feedback-hidden'));
   };
 
   const prioritizeNextEvent = () => {
@@ -255,11 +263,16 @@
     const name = String(data.get('name') || '').trim();
     const email = String(data.get('email') || '').trim();
     const message = String(data.get('message') || '').trim();
-    const subject = `Eryaman Speaking Club web sitesi iletişim - ${name}`;
-    const body = `Ad Soyad: ${name}\nE-posta: ${email}\n\nMesaj:\n${message}`;
+    const english = document.documentElement.lang === 'en';
+    const subject = english
+      ? `Eryaman Speaking Club website contact - ${name}`
+      : `Eryaman Speaking Club web sitesi iletişim - ${name}`;
+    const body = english
+      ? `Full name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`
+      : `Ad Soyad: ${name}\nE-posta: ${email}\n\nMesaj:\n${message}`;
     const mailto = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
-    showToast('E-posta uygulaman açılıyor…');
+    showToast(english ? 'Opening your email app…' : 'E-posta uygulaman açılıyor…');
     window.setTimeout(() => {
       window.location.href = mailto;
       overlay.classList.remove('open');
