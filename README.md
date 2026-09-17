@@ -1,10 +1,34 @@
-# Eryaman Speaking Club — Game Hub
+# Eryaman Speaking Club — Website & Game Hub
 
-A free public website and browser-based collection of speaking and party games for **Eryaman Speaking Club**. The main page introduces the community; the separate Game Hub is designed for quick group play on phones, tablets and desktop browsers.
+A free public website and browser-based game collection for **Eryaman Speaking Club**. The main page is the Turkish club website; the separate Game Hub contains 12 speaking, conversation and party games that run directly in the browser.
 
 **Club website:** https://eryaman-speaking-club.github.io/
 
 **Game Hub:** https://eryaman-speaking-club.github.io/games/
+
+## Project purpose
+
+The project has two roles:
+
+1. introduce Eryaman Speaking Club, its vision, meetup format, event media and participant feedback;
+2. provide simple speaking games that can be opened instantly on phones, tablets, laptops or a projector during meetups.
+
+The project is intentionally static and lightweight. There is no backend, database, package installation or paid runtime dependency.
+
+## Main website
+
+The homepage is Turkish and includes:
+
+- club introduction and vision;
+- meetup flow and participation guidance;
+- Game Hub preview;
+- event photo filmstrip;
+- selected event video embeds;
+- club statistics;
+- anonymised and edited participant-feedback summaries;
+- FAQ and social-media calls to action.
+
+Event photos and videos are embedded from the club's Google Drive event archive. Those Drive files must remain viewable by site visitors for the media embeds to work.
 
 ## Games
 
@@ -23,28 +47,28 @@ A free public website and browser-based collection of speaking and party games f
 | **Debate Roulette** | Random FOR/AGAINST side, 10-second preparation and 45-second speech |
 | **Never Have I Ever** | Per-round I HAVE/NEVER voting and story prompts |
 
-## How it works
+## Project structure
 
-- Static HTML, CSS and JavaScript; there is no framework, package installation or build step.
-- `index.html`, `home.css` and `home.js` form the long-form club website.
-- `games/index.html` is the Game Hub. Each game has its own folder and `index.html` entry point.
-- Shared branding and game UI live in `esc-brand.css`, `esc-game-kit.css` and `esc-game-kit.js`.
-- `esc-depth-pass.js` adds optional voting, roster, turn and timer features to selected games.
-- `esc-content-editor.js` provides the shared local question editor for the simple game pages.
-- Truth or Dare and One for Me / One for You have their own editors and storage logic.
+- `index.html` — Turkish club website markup.
+- `home.css` — main club-site layout, branding and responsive styles.
+- `home-extra.css` — event gallery, video and participant-feedback sections.
+- `home.js` — navigation, reveal animation, rotating hero copy, counters and FAQ behaviour.
+- `games/index.html` — Turkish Game Hub landing page.
+- `games/games.css` — Game Hub layout and cards.
+- each game folder — one playable game entry point.
+- `esc-brand.css` — shared ESC logo/brand styling and local question-editor styling.
+- `esc-game-kit.css` / `esc-game-kit.js` — shared game UI and sound helpers.
+- `esc-depth-pass.js` — optional voting, roster, turn and timer features for selected games.
+- `esc-content-editor.js` — local question editor used by simple game pages.
+- `.github/workflows/pages.yml` — GitHub Pages deployment workflow.
 
 ## Local editing and storage
 
 Question changes, player lists, team configuration and sound preferences are stored in the browser with `localStorage`. Admin unlocks last only for the current tab session through `sessionStorage`.
 
-This means:
+This means changes made on one device do not automatically appear on another device, clearing browser/site data removes local customisations, and no game data is sent to a server.
 
-- changes made on one device do not automatically appear on another device;
-- clearing browser/site data removes local customisations;
-- an incognito/private window has separate temporary data;
-- no game data is sent to a server.
-
-The editor password is a lightweight event safeguard, not secure authentication. The site is frontend-only, so anyone with repository/source access can inspect the client code. Do not store private or sensitive information in the games.
+The editor password is a lightweight event safeguard, not secure server-side authentication. Do not store private or sensitive information in the games.
 
 ## Run locally
 
@@ -54,24 +78,25 @@ From the repository root, start any static web server. For example:
 python3 -m http.server 8000
 ```
 
-Then open `http://localhost:8000`. Opening files directly with `file://` is not recommended because browser security rules can differ from the deployed site.
+Then open `http://localhost:8000`. Opening files directly with `file://` is not recommended because browser security behaviour can differ from the deployed site.
 
 ## Deployment
 
-GitHub Actions deploys the repository to GitHub Pages whenever `main` is updated. The workflow is `.github/workflows/pages.yml`. There is no paid application server or runtime dependency.
+GitHub Actions deploys the repository to GitHub Pages whenever `main` is updated. The workflow is `.github/workflows/pages.yml`. There is no separate build step: the repository is uploaded as a static site.
 
 ## Maintenance checklist
 
-Before publishing a change:
+Before publishing a major change:
 
-1. Open the hub and all 12 games.
-2. Test at desktop width and a narrow mobile width.
-3. Check Next/Back/Shuffle, category filters, timers and score controls.
-4. Verify player/team dialogs and local persistence after a refresh.
-5. Confirm question editing, reset-to-built-ins and wrong-password behaviour.
-6. Check the browser console for JavaScript or missing-file errors.
-7. Confirm the GitHub Pages workflow completes successfully.
+1. Open the Turkish homepage at desktop and narrow mobile widths.
+2. Confirm Drive photos and video previews load for a visitor account.
+3. Open the Game Hub and all 12 games.
+4. Test game navigation, timers, scores, category filters and player/team dialogs.
+5. Verify local persistence after a refresh.
+6. Confirm question editing, reset-to-built-ins and wrong-password behaviour.
+7. Check the browser console for JavaScript or missing-file errors.
+8. Confirm the GitHub Pages workflow completes successfully.
 
 ## Project principle
 
-Every game should be understandable in seconds, work comfortably on a phone and add only the structure the activity needs: prompts, turns, voting, players, teams, timers or scores.
+The club website should feel social, clear and real. The games should remain understandable in seconds, comfortable on mobile and structured only as much as the activity needs.
