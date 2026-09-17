@@ -40,9 +40,9 @@
   }
 
   const rotating = document.querySelector('.rotating-word');
-  const words = ['Naturally.', 'Confidently.', 'Together.', 'For real.'];
+  const words = ['Rahatça.', 'Özgüvenle.', 'Birlikte.', 'Gerçekten.'];
   let wordIndex = 0;
-  if (!reduceMotion) {
+  if (rotating && !reduceMotion) {
     window.setInterval(() => {
       rotating.classList.add('out');
       window.setTimeout(() => {
