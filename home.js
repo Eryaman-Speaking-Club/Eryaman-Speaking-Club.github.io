@@ -49,9 +49,22 @@
     });
   };
 
-  /* Homepage intentionally shows only the three featured games already present in index.html.
-     The complete 12-game library lives on /games/. */
+  /* Homepage must always contain only the three featured games.
+     Remove any extra cards immediately, including cards inserted later by stale/legacy scripts. */
+  const trimHomepageGames = () => {
+    const showcase = document.querySelector('.game-showcase');
+    if (!showcase) return;
+    [...showcase.querySelectorAll('.feature-game')].slice(3).forEach((card) => card.remove());
+  };
+
   upgradePrinciples();
+  trimHomepageGames();
+
+  const gameShowcase = document.querySelector('.game-showcase');
+  if (gameShowcase && 'MutationObserver' in window) {
+    const gamesObserver = new MutationObserver(trimHomepageGames);
+    gamesObserver.observe(gameShowcase, { childList: true });
+  }
 
   const syncNav = () => nav && nav.classList.toggle('scrolled', window.scrollY > 24);
   syncNav();
