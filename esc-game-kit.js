@@ -1,6 +1,6 @@
 (function(){
   const KEY='esc-global-volume-v1';
-  const getVolume=()=>Math.max(0,Math.min(100,Number(localStorage.getItem(KEY)??100)));
+  const getVolume=()=>{const raw=Number(localStorage.getItem(KEY)??100);return Number.isFinite(raw)?Math.max(0,Math.min(100,raw)):100};
   let ctx=null;
   function context(){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;ctx=ctx||new C();if(ctx.state==='suspended')ctx.resume();return ctx}
   function tone(freq=440,duration=.08,type='sine',gain=.08,delay=0){const c=context(),v=getVolume()/100;if(!c||v<=0)return;const o=c.createOscillator(),g=c.createGain(),t=c.currentTime+delay;o.type=type;o.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(Math.max(.0001,gain*v),t);g.gain.exponentialRampToValueAtTime(.0001,t+duration);o.connect(g).connect(c.destination);o.start(t);o.stop(t+duration+.015)}
