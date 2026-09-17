@@ -6,6 +6,20 @@
   const links = document.querySelector('.nav-links');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  const galleryCopy = document.querySelector('.event-gallery .gallery-head > p');
+  if (galleryCopy) galleryCopy.textContent = 'Grup fotoğrafları, masa sohbetleri ve kısa videolar. Kulübün gerçek atmosferine göz at.';
+
+  const gameCards = document.querySelectorAll('.feature-game');
+  const shortGameCopy = [
+    'Anlat, yasaklı kelimelerden kaçın, takımına buldur.',
+    'Çarkı çevir. Truth veya Dare seç. Gerisini grup belirlesin.',
+    'İki seçenekten birini seç ve nedenini savun.'
+  ];
+  gameCards.forEach((card, index) => {
+    const paragraph = card.querySelector('p');
+    if (paragraph && shortGameCopy[index]) paragraph.textContent = shortGameCopy[index];
+  });
+
   const syncNav = () => nav.classList.toggle('scrolled', window.scrollY > 24);
   syncNav();
   window.addEventListener('scroll', syncNav, { passive: true });
@@ -23,6 +37,13 @@
   });
 
   const filmstrip = document.querySelector('.filmstrip');
+  if (filmstrip) {
+    const controls = document.createElement('div');
+    controls.className = 'gallery-controls';
+    controls.setAttribute('aria-label', 'Galeri kontrolleri');
+    controls.innerHTML = '<button class="gallery-control" type="button" data-gallery-prev aria-label="Önceki fotoğraf">←</button><button class="gallery-control" type="button" data-gallery-next aria-label="Sonraki fotoğraf">→</button>';
+    filmstrip.insertAdjacentElement('afterend', controls);
+  }
   const galleryPrev = document.querySelector('[data-gallery-prev]');
   const galleryNext = document.querySelector('[data-gallery-next]');
   const scrollGallery = (direction) => {
