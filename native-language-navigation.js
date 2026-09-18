@@ -1,5 +1,5 @@
-/* Native TR/EN navigation only: no client-side translation or game-state writes.
- * Prepended to home.js by the static build so no extra request is required.
+/* Progressive enhancement for native /tr/ and /en/ pages. No translation,
+ * organiser-state writes or intercepted navigation. Bundled before home.js.
  */
 (() => {
   'use strict';
@@ -17,7 +17,7 @@
     const marker = JSON.parse(sessionStorage.getItem(markerKey) || 'null');
     if (marker && marker.to === location.pathname && Date.now() - marker.at < 15000) languageHop = true;
     sessionStorage.removeItem(markerKey);
-  } catch (_) { /* Navigation must work with browser storage blocked. */ }
+  } catch (_) {}
 
   if (languageHop) {
     document.documentElement.classList.add('esc-language-hop');
@@ -27,7 +27,53 @@
     document.head.appendChild(style);
   }
 
+  function preserveEnglishCasing() {
+    if (here !== 'en' || !document.documentElement.style.getPropertyValue('-webkit-locale')) return;
+    const skip = 'script,style,noscript,textarea,pre,code,[contenteditable="true"]';
+    function format(root) {
+      if (!root.isConnected) return;
+      const nodes = [];
+      if (root.nodeType === Node.TEXT_NODE) nodes.push(root);
+      else if (root instanceof Element && !root.closest(skip)) {
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        let node;
+        while ((node = walker.nextNode())) nodes.push(node);
+      }
+      const modes = new Map();
+      const writes = [];
+      for (const node of nodes) {
+        const parent = node.parentElement;
+        if (!parent || parent.closest(skip) || !node.nodeValue.trim()) continue;
+        if (!modes.has(parent)) modes.set(parent, getComputedStyle(parent).textTransform);
+        const mode = modes.get(parent);
+        const raw = node.nodeValue;
+        let value = raw;
+        if (mode === 'uppercase') value = raw.toLocaleUpperCase('en-US');
+        else if (mode === 'lowercase') value = raw.toLocaleLowerCase('en-US');
+        else if (mode === 'capitalize') value = raw.replace(/\b\p{L}/gu, char => char.toLocaleUpperCase('en-US'));
+        if (value !== raw) writes.push([node, value]);
+      }
+      // Batch writes after reads; never rewrite a value that is already right.
+      for (const [node, value] of writes) node.nodeValue = value;
+    }
+    format(document.body);
+    const options = {childList:true, characterData:true, subtree:true};
+    const observer = new MutationObserver(changes => {
+      observer.disconnect();
+      try {
+        const roots = new Set();
+        for (const change of changes) {
+          if (change.type === 'characterData') roots.add(change.target);
+          else change.addedNodes.forEach(node => roots.add(node));
+        }
+        for (const root of roots) format(root);
+      } finally { observer.observe(document.body, options); }
+    });
+    observer.observe(document.body, options);
+  }
+
   function init() {
+    preserveEnglishCasing();
     const switcher = document.querySelector('.esc-lang-switch');
     if (!switcher) return;
     let warmed = false;
@@ -37,9 +83,7 @@
       const target = here === 'tr' ? '/en/' : '/tr/';
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 8000);
-      // An explicit same-origin fetch also warms browsers without HTML-prefetch.
-      // Keep ordinary links, back/forward and no-JS navigation intact.
-      fetch(target, {credentials:'same-origin', cache:'default', signal:controller.signal})
+      fetch(target, {credentials:'same-origin', cache:'no-cache', signal:controller.signal})
         .then(response => response.ok ? response.arrayBuffer() : undefined)
         .catch(() => {})
         .finally(() => clearTimeout(timeout));
