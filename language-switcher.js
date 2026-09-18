@@ -40,7 +40,12 @@
     'Eryaman Speaking Club ana sayfa': 'Eryaman Speaking Club home', 'Ana menü': 'Main navigation', 'Menüyü aç': 'Open menu', 'Speaking club sohbet illüstrasyonu': 'Speaking club conversation illustration', 'Kulüp yaklaşımı': 'Club approach', 'Bir sonraki Eryaman Speaking Club buluşması': 'Next Eryaman Speaking Club meetup', 'Eryaman Speaking Club grup fotoğrafları': 'Eryaman Speaking Club group photos', 'Galeri kontrolleri': 'Gallery controls', 'Önceki fotoğraf': 'Previous photo', 'Sonraki fotoğraf': 'Next photo', 'E-posta ile iletişime geç': 'Contact us by email', 'Kapat': 'Close', 'Adın ve soyadın': 'Your full name', 'Bize ne hakkında yazmak istiyorsun?': 'What would you like to ask us about?', 'Yeni sohbet kartı getir': 'Get a new conversation card', 'Yeni sohbet kartı için tıkla': 'Click for a new conversation card', 'İki sohbet kartını da yenile': 'Refresh both conversation cards', 'İki kartı da yenile': 'Refresh both cards'
   };
 
-  // Cache translation pairs once; preserve the original DOM and CSS selectors.
+  // Keep only the typographic locale stable for this TR/EN Latin-font site.
+  // This avoids WebKit's cold font-fallback rebuild on a root-lang change.
+  // The real HTML lang still changes for accessibility, and English CSS casing
+  // is rendered explicitly below so Turkish dotted/dotless I stays correct.
+  const stableFontLocale = Boolean(window.CSS && CSS.supports('-webkit-locale', '"tr"'));
+  if (stableFontLocale) document.body.style.setProperty('-webkit-locale', '"tr"');
   const textRecords = new Map();
   const attrRecords = new Map();
   const ATTRIBUTES = ['aria-label', 'placeholder', 'title', 'alt'];
@@ -70,6 +75,16 @@
       record = {tr: raw, en: preserveWhitespace(raw, TR_TO_EN[key])};
     } else if (reverseText.has(key) && reverseText.get(key) !== key) {
       record = {tr: preserveWhitespace(raw, reverseText.get(key)), en: raw};
+    }
+    if (stableFontLocale && key) {
+      const mode = getComputedStyle(node.parentElement).textTransform;
+      if (mode === 'uppercase' || mode === 'lowercase') {
+        const source = record ? record.en : raw;
+        const english = mode === 'uppercase'
+          ? source.toLocaleUpperCase('en-US') : source.toLocaleLowerCase('en-US');
+        if (record) record.en = english;
+        else if (english !== raw) record = {tr: raw, en: english};
+      }
     }
     if (record) textRecords.set(node, record);
     else textRecords.delete(node);
@@ -120,8 +135,6 @@
   }
 
   function handleMutations(mutations) {
-    // Observe external changes only. Do not feed translated writes back into
-    // MutationObserver; deduplicate changes from a single DOM update batch.
     const added = new Set();
     const texts = new Set();
     const attrs = new Set();
@@ -173,8 +186,7 @@
       currentLanguage = next;
       document.documentElement.lang = next;
       syncButtons();
-      // Only cached text nodes are changed: no DOM walk, hidden copies,
-      // innerHTML, network request or storage write on the visual path.
+      // No layout read, page scan, network request or storage write on click.
       for (const [node, record] of textRecords) {
         if (!node.isConnected) { textRecords.delete(node); continue; }
         if (node.nodeValue !== record[next]) node.nodeValue = record[next];
