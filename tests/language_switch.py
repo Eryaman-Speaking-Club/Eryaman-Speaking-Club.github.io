@@ -84,13 +84,11 @@ with sync_playwright() as p:
             assert result['afterNodes'] == result['beforeNodes'], 'DOM grows while toggling'
             assert page.locator('.esc-lang-dual').count() == 0, 'Old dual-wrapper runtime still loaded'
             assert result['maxMs'] < 250, 'Language paint exceeds 250 ms: ' + str(result['maxMs'])
-            # Keep a frame heartbeat for 1 second to detect delayed work/freeze.
             page.wait_for_timeout(1000)
             result['maxFrameGapMs'] = page.evaluate('Math.max(...window.switchFrames)')
             assert result['maxFrameGapMs'] < 300, 'Long frame after language switch'
 
             if repeat == 0:
-                # New content is translated too; code/input content is untouched.
                 page.evaluate("""() => {
                   const box = document.createElement('div'); box.id = 'language-test';
                   box.innerHTML = '<p id="dynamic-copy">Hakkımızda</p><b id="case-upper" style="text-transform:uppercase">indigo science</b><b id="case-lower" style="text-transform:lowercase">INDIGO SCIENCE</b><code id="no-translate">Hakkımızda</code>';
@@ -118,6 +116,17 @@ with sync_playwright() as p:
                 page.locator('button[data-esc-lang="en"]').click()
                 page.wait_for_timeout(150)
                 page.screenshot(path=str(REPORT / (label + '-en.png')))
+                # Native anchors must still materialize below-fold sections.
+                result['anchors'] = []
+                for anchor in ['#about', '#faq', '#katilim']:
+                    if mobile:
+                        page.locator('.menu-btn').click()
+                    page.locator('.nav-links a[href="' + anchor + '"]').click()
+                    page.wait_for_timeout(1000)
+                    box = page.locator(anchor).bounding_box()
+                    assert box and box['height'] > 80 and box['y'] < page.viewport_size['height'] and box['y'] + box['height'] > 60, {'anchor': anchor, 'box': box}
+                    assert page.locator(anchor + ' h2').first.is_visible(), anchor
+                    result['anchors'].append({'anchor': anchor, 'box': box})
                 result['savedLanguage'] = page.evaluate('localStorage.getItem("esc-language-v1")')
                 page.reload(wait_until='domcontentloaded')
                 page.wait_for_timeout(350)
