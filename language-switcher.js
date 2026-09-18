@@ -41,8 +41,7 @@
   };
 
   // Keep only the typographic locale stable for this TR/EN Latin-font site.
-  // The real HTML lang still changes; English casing is rendered explicitly
-  // below. Pin at the root so head/root font selection is stable as well.
+  // HTML lang still changes; English casing is rendered explicitly below.
   const stableFontLocale = Boolean(window.CSS && CSS.supports('-webkit-locale', '"tr"'));
   if (stableFontLocale) document.documentElement.style.setProperty('-webkit-locale', '"tr"');
   const textRecords = new Map();
@@ -175,6 +174,17 @@
       : "Eryaman Speaking Club, Ankara Eryaman'da İngilizce konuşma pratiği, sosyal buluşmalar ve interaktif oyunlar için kurulmuş bir speaking community'dir.";
   }
 
+  function applyCachedLanguage(next) {
+    currentLanguage = next;
+    document.documentElement.lang = next;
+    syncButtons();
+    for (const [node, record] of textRecords) {
+      if (!node.isConnected) { textRecords.delete(node); continue; }
+      if (node.nodeValue !== record[next]) node.nodeValue = record[next];
+    }
+    for (const element of attrRecords.keys()) translateAttributes(element);
+  }
+
   function setLanguage(language) {
     const next = language === 'en' ? 'en' : 'tr';
     if (next === currentLanguage) return;
@@ -182,15 +192,8 @@
     if (observer) observer.disconnect();
     try {
       if (pending.length) handleMutations(pending);
-      currentLanguage = next;
-      document.documentElement.lang = next;
-      syncButtons();
       // No layout read, page scan, network request or storage write on click.
-      for (const [node, record] of textRecords) {
-        if (!node.isConnected) { textRecords.delete(node); continue; }
-        if (node.nodeValue !== record[next]) node.nodeValue = record[next];
-      }
-      for (const element of attrRecords.keys()) translateAttributes(element);
+      applyCachedLanguage(next);
     } finally {
       if (observer) observer.observe(document.body, observerOptions);
     }
@@ -232,9 +235,7 @@
     const style = document.createElement('style');
     style.dataset.escLanguageStyle = 'true';
     style.textContent = `
-      /* A full-screen SVG turbulence overlay repaints on every text reflow. */
       .page-noise{display:none}
-      /* Keep below-fold translated content out of the current-frame layout. */
       @supports(content-visibility:auto){
         main>section:not(.hero){content-visibility:auto;contain-intrinsic-size:auto 700px}
       }
@@ -251,9 +252,23 @@
   }
 
   ensureStyles();
-  ensureSwitcher();
   document.documentElement.lang = currentLanguage;
   scanTree(document.body);
+
+  // One-time preparation is done before the language buttons are exposed.
+  // Both real layouts are resolved, then the saved language is restored in
+  // the same task (no visible language flash, storage write or change event).
+  // This intentionally moves cold layout preparation off the first click.
+  performance.mark('esc-language-prepare-start');
+  const preferredLanguage = currentLanguage;
+  applyCachedLanguage(preferredLanguage === 'tr' ? 'en' : 'tr');
+  void document.body.offsetHeight;
+  applyCachedLanguage(preferredLanguage);
+  void document.body.offsetHeight;
+  performance.mark('esc-language-prepare-end');
+  performance.measure('esc-language-preparation', 'esc-language-prepare-start', 'esc-language-prepare-end');
+
+  ensureSwitcher();
   syncButtons();
   syncHead();
   if ('MutationObserver' in window) {
