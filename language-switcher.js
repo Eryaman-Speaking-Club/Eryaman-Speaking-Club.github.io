@@ -40,65 +40,189 @@
     'Eryaman Speaking Club ana sayfa': 'Eryaman Speaking Club home', 'Ana menü': 'Main navigation', 'Menüyü aç': 'Open menu', 'Speaking club sohbet illüstrasyonu': 'Speaking club conversation illustration', 'Kulüp yaklaşımı': 'Club approach', 'Bir sonraki Eryaman Speaking Club buluşması': 'Next Eryaman Speaking Club meetup', 'Eryaman Speaking Club grup fotoğrafları': 'Eryaman Speaking Club group photos', 'Galeri kontrolleri': 'Gallery controls', 'Önceki fotoğraf': 'Previous photo', 'Sonraki fotoğraf': 'Next photo', 'E-posta ile iletişime geç': 'Contact us by email', 'Kapat': 'Close', 'Adın ve soyadın': 'Your full name', 'Bize ne hakkında yazmak istiyorsun?': 'What would you like to ask us about?', 'Yeni sohbet kartı getir': 'Get a new conversation card', 'Yeni sohbet kartı için tıkla': 'Click for a new conversation card', 'İki sohbet kartını da yenile': 'Refresh both conversation cards', 'İki kartı da yenile': 'Refresh both cards'
   };
 
+  // Cache translation pairs once; preserve the original DOM and CSS selectors.
+  const textRecords = new Map();
+  const attrRecords = new Map();
   const ATTRIBUTES = ['aria-label', 'placeholder', 'title', 'alt'];
-  const attrRecords = [];
-  const attrSeen = new WeakSet();
-  let currentLanguage = localStorage.getItem(STORAGE_KEY) === 'en' ? 'en' : 'tr';
-  let observer;
+  const SKIP = 'script,style,noscript,textarea,code,pre,[translate="no"],[data-esc-no-translate],[contenteditable="true"]';
+  const reverseText = new Map(Object.entries(TR_TO_EN).map(([tr, en]) => [en, tr]));
+  const reverseAttrs = new Map(Object.entries(ATTR_TR_TO_EN).map(([tr, en]) => [en, tr]));
+  const has = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
+  const normalize = (value) => value.replace(/\s+/g, ' ').trim();
+  const preserveWhitespace = (raw, value) => raw.match(/^\s*/)[0] + value + raw.match(/\s*$/)[0];
+  let currentLanguage = 'tr';
+  try { currentLanguage = localStorage.getItem(STORAGE_KEY) === 'en' ? 'en' : 'tr'; } catch (_) {}
+  let observer = null;
+  let switcher = null;
+  let afterPaintFrame = 0;
+  let afterPaintTimer = 0;
+  const observerOptions = {subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ATTRIBUTES};
+  const skipNode = (node) => (node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement)?.closest(SKIP);
 
-  const normalize = (value) => String(value || '').replace(/\s+/g, ' ').trim();
-  const preserveWhitespace = (raw, translated) => {
-    const match = String(raw).match(/^(\s*)([\s\S]*?)(\s*)$/);
-    return match ? `${match[1]}${translated}${match[3]}` : translated;
-  };
+  function textRecord(node) {
+    if (!node.isConnected || skipNode(node)) { textRecords.delete(node); return null; }
+    const raw = node.nodeValue;
+    const previous = textRecords.get(node);
+    if (previous && (raw === previous.tr || raw === previous.en)) return previous;
+    const key = normalize(raw || '');
+    let record = null;
+    if (has(TR_TO_EN, key) && TR_TO_EN[key] !== key) {
+      record = {tr: raw, en: preserveWhitespace(raw, TR_TO_EN[key])};
+    } else if (reverseText.has(key) && reverseText.get(key) !== key) {
+      record = {tr: preserveWhitespace(raw, reverseText.get(key)), en: raw};
+    }
+    if (record) textRecords.set(node, record);
+    else textRecords.delete(node);
+    return record;
+  }
 
-  const ensureFourthFeedback = () => {
-    const grid = document.querySelector('.feedback-grid');
-    if (!grid || grid.querySelectorAll('.feedback-card').length >= 4) return;
-    const card = document.createElement('article');
-    card.className = 'feedback-card reveal visible';
-    card.innerHTML = '<div class="quote-mark small">“</div><div class="feedback-stars">★★★★★</div><blockquote>Who Am I? kısmı özellikle çok keyifliydi. İlk kez gelmeme rağmen oyuna ve sohbete dahil olmak kolaydı.</blockquote><div class="feedback-source"><div class="feedback-avatar">04</div><div><b>Katılımcı yorumu</b><span>Etkinlik formu</span></div></div>';
-    grid.appendChild(card);
-  };
+  function translateText(node) {
+    const record = textRecord(node);
+    if (record && node.nodeValue !== record[currentLanguage]) node.nodeValue = record[currentLanguage];
+  }
 
-  const ensureSwitcher = () => {
-    if (document.querySelector('.esc-lang-switch')) return;
+  function translateAttributes(element) {
+    if (!element.isConnected || skipNode(element)) { attrRecords.delete(element); return; }
+    const records = attrRecords.get(element) || {};
+    for (const name of ATTRIBUTES) {
+      const raw = element.getAttribute(name);
+      const previous = records[name];
+      if (!previous || (raw !== previous.tr && raw !== previous.en)) {
+        if (raw !== null && has(ATTR_TR_TO_EN, raw) && ATTR_TR_TO_EN[raw] !== raw) {
+          records[name] = {tr: raw, en: ATTR_TR_TO_EN[raw]};
+        } else if (raw !== null && reverseAttrs.has(raw) && reverseAttrs.get(raw) !== raw) {
+          records[name] = {tr: reverseAttrs.get(raw), en: raw};
+        } else { delete records[name]; }
+      }
+      const record = records[name];
+      if (record && raw !== record[currentLanguage]) element.setAttribute(name, record[currentLanguage]);
+    }
+    if (Object.keys(records).length) attrRecords.set(element, records);
+    else attrRecords.delete(element);
+  }
+
+  function scanTree(root) {
+    if (!root.isConnected || skipNode(root)) return;
+    if (root.nodeType === Node.TEXT_NODE) { translateText(root); return; }
+    if (!(root instanceof Element)) return;
+    translateAttributes(root);
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, {
+      acceptNode(node) {
+        return node.nodeType === Node.ELEMENT_NODE && node.matches(SKIP)
+          ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    let node;
+    while ((node = walker.nextNode())) {
+      if (node.nodeType === Node.TEXT_NODE) translateText(node);
+      else translateAttributes(node);
+    }
+  }
+
+  function handleMutations(mutations) {
+    // Observe external changes only. Do not feed translated writes back into
+    // MutationObserver; deduplicate changes from a single DOM update batch.
+    const added = new Set();
+    const texts = new Set();
+    const attrs = new Set();
+    for (const mutation of mutations) {
+      if (mutation.type === 'childList') {
+        mutation.addedNodes.forEach(node => { if (node.isConnected) added.add(node); });
+      } else if (mutation.type === 'characterData') texts.add(mutation.target);
+      else attrs.add(mutation.target);
+    }
+    for (const node of added) {
+      let parent = node.parentNode;
+      while (parent && !added.has(parent)) parent = parent.parentNode;
+      if (!parent) scanTree(node);
+    }
+    texts.forEach(translateText);
+    attrs.forEach(translateAttributes);
+    for (const node of textRecords.keys()) if (!node.isConnected) textRecords.delete(node);
+    for (const node of attrRecords.keys()) if (!node.isConnected) attrRecords.delete(node);
+  }
+
+  function syncButtons() {
+    if (!switcher) return;
+    for (const button of switcher.querySelectorAll('button[data-esc-lang]')) {
+      const active = button.dataset.escLang === currentLanguage;
+      button.classList.toggle('active', active);
+      const value = String(active);
+      if (button.getAttribute('aria-pressed') !== value) button.setAttribute('aria-pressed', value);
+    }
+  }
+
+  function syncHead() {
+    if (!document.querySelector('.hero .hero-copy')) return;
+    document.title = currentLanguage === 'en'
+      ? 'Eryaman Speaking Club · Speak, Meet, Grow'
+      : 'Eryaman Speaking Club · Konuş, Tanış, Geliş';
+    const description = document.querySelector('meta[name="description"]');
+    if (description) description.content = currentLanguage === 'en'
+      ? 'Eryaman Speaking Club is a social speaking community in Ankara Eryaman for English conversation practice, meetups and interactive games.'
+      : "Eryaman Speaking Club, Ankara Eryaman'da İngilizce konuşma pratiği, sosyal buluşmalar ve interaktif oyunlar için kurulmuş bir speaking community'dir.";
+  }
+
+  function setLanguage(language) {
+    const next = language === 'en' ? 'en' : 'tr';
+    if (next === currentLanguage) return;
+    const pending = observer ? observer.takeRecords() : [];
+    if (observer) observer.disconnect();
+    try {
+      if (pending.length) handleMutations(pending);
+      currentLanguage = next;
+      document.documentElement.lang = next;
+      syncButtons();
+      // Only cached text nodes are changed: no DOM walk, hidden copies,
+      // innerHTML, network request or storage write on the visual path.
+      for (const [node, record] of textRecords) {
+        if (!node.isConnected) { textRecords.delete(node); continue; }
+        if (node.nodeValue !== record[next]) node.nodeValue = record[next];
+      }
+      for (const element of attrRecords.keys()) translateAttributes(element);
+    } finally {
+      if (observer) observer.observe(document.body, observerOptions);
+    }
+    cancelAnimationFrame(afterPaintFrame);
+    clearTimeout(afterPaintTimer);
+    afterPaintFrame = requestAnimationFrame(() => {
+      afterPaintTimer = setTimeout(() => {
+        try { localStorage.setItem(STORAGE_KEY, currentLanguage); } catch (_) {}
+        syncHead();
+        window.dispatchEvent(new CustomEvent('esc:languagechange', {detail: {language: currentLanguage}}));
+      }, 0);
+    });
+  }
+
+  function ensureSwitcher() {
     const nav = document.querySelector('.site-nav');
     if (!nav) return;
-
-    const switcher = document.createElement('div');
-    switcher.className = 'esc-lang-switch';
-    switcher.setAttribute('role', 'group');
-    switcher.setAttribute('aria-label', 'Language');
-    switcher.innerHTML = '<button type="button" data-esc-lang="tr" aria-label="Türkçe">TR</button><span>/</span><button type="button" data-esc-lang="en" aria-label="English">EN</button>';
-
-    const menuButton = nav.querySelector('.menu-btn');
-    nav.insertBefore(switcher, menuButton || null);
-
-    switcher.addEventListener('pointerdown', (event) => {
-      const button = event.target.closest('[data-esc-lang]');
-      if (!button) return;
-      event.preventDefault();
-      setLanguage(button.dataset.escLang);
+    switcher = nav.querySelector('.esc-lang-switch');
+    if (!switcher) {
+      switcher = document.createElement('div');
+      switcher.className = 'esc-lang-switch';
+      switcher.setAttribute('role', 'group');
+      switcher.setAttribute('aria-label', 'Language');
+      switcher.innerHTML = '<button type="button" data-esc-lang="tr" aria-label="Türkçe">TR</button><span>/</span><button type="button" data-esc-lang="en" aria-label="English">EN</button>';
+      nav.insertBefore(switcher, nav.querySelector('.menu-btn') || null);
+    }
+    const choose = (event) => {
+      const button = event.target instanceof Element && event.target.closest('button[data-esc-lang]');
+      if (button && switcher.contains(button)) setLanguage(button.dataset.escLang);
+    };
+    switcher.addEventListener('pointerdown', event => {
+      if (event.isPrimary && event.button === 0) choose(event);
     });
+    switcher.addEventListener('click', choose);
+  }
 
-    switcher.addEventListener('click', (event) => {
-      const button = event.target.closest('[data-esc-lang]');
-      if (!button) return;
-      setLanguage(button.dataset.escLang);
-    });
-  };
-
-  const ensureStyles = () => {
+  function ensureStyles() {
     if (document.querySelector('style[data-esc-language-style]')) return;
     const style = document.createElement('style');
     style.dataset.escLanguageStyle = 'true';
     style.textContent = `
-      .esc-lang-dual{display:contents}
-      html[data-esc-lang="tr"] .esc-lang-en{display:none!important}
-      html[data-esc-lang="en"] .esc-lang-tr{display:none!important}
       .esc-lang-switch{flex:0 0 auto;display:inline-flex;align-items:center;gap:3px;padding:4px;border:1px solid rgba(8,31,59,.12);border-radius:13px;background:rgba(247,250,252,.94);box-shadow:0 6px 18px rgba(8,31,59,.06)}
-      .esc-lang-switch button{width:32px;height:30px;padding:0;border:0;border-radius:9px;background:transparent;color:#718397;font:inherit;font-size:10px;font-weight:1000;letter-spacing:.04em;cursor:pointer;touch-action:manipulation;transition:background-color .05s linear,color .05s linear,box-shadow .05s linear}
+      .esc-lang-switch button{width:32px;height:30px;padding:0;border:0;border-radius:9px;background:transparent;color:#718397;font:inherit;font-size:10px;font-weight:1000;letter-spacing:.04em;cursor:pointer;touch-action:manipulation;transition:none}
       .esc-lang-switch button:hover{color:#081f3b;background:#edf3f8}
       .esc-lang-switch button.active{background:#081f3b;color:#fff;box-shadow:0 5px 13px rgba(8,31,59,.16)}
       .esc-lang-switch span{color:#a8b4bf;font-size:10px;font-weight:900}
@@ -107,180 +231,23 @@
       @media(max-width:760px){.esc-lang-switch{padding:3px;border-radius:12px;margin-left:auto}.esc-lang-switch button{width:29px;height:29px;font-size:9px}.esc-lang-switch span{font-size:9px}}
     `;
     document.head.appendChild(style);
-  };
-
-  const makeDualNode = (node) => {
-    if (!node || node.nodeType !== Node.TEXT_NODE || !node.parentElement) return false;
-    if (node.parentElement.closest('.esc-lang-dual,script,style,noscript')) return false;
-
-    const raw = node.nodeValue;
-    const key = normalize(raw);
-    const en = TR_TO_EN[key];
-    if (!en) return false;
-
-    const wrap = document.createElement('span');
-    wrap.className = 'esc-lang-dual';
-
-    const trSpan = document.createElement('span');
-    trSpan.className = 'esc-lang-tr';
-    trSpan.textContent = raw;
-
-    const enSpan = document.createElement('span');
-    enSpan.className = 'esc-lang-en';
-    enSpan.textContent = preserveWhitespace(raw, en);
-
-    wrap.append(trSpan, enSpan);
-    node.replaceWith(wrap);
-    return true;
-  };
-
-  const registerAttributes = (element) => {
-    if (!(element instanceof Element) || attrSeen.has(element)) return;
-
-    const entries = {};
-    ATTRIBUTES.forEach((name) => {
-      if (!element.hasAttribute(name)) return;
-      const raw = element.getAttribute(name);
-      const en = ATTR_TR_TO_EN[raw];
-      if (en) entries[name] = { tr: raw, en };
-    });
-
-    if (!Object.keys(entries).length) return;
-    attrSeen.add(element);
-    attrRecords.push({ element, entries });
-  };
-
-  const scanTree = (root) => {
-    if (!root) return;
-
-    if (root.nodeType === Node.TEXT_NODE) {
-      makeDualNode(root);
-      return;
-    }
-
-    if (!(root instanceof Element) || root.matches('script,style,noscript,.esc-lang-dual')) return;
-
-    registerAttributes(root);
-
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, {
-      acceptNode(node) {
-        if (node.nodeType === Node.ELEMENT_NODE && node.matches('script,style,noscript,.esc-lang-dual')) {
-          return NodeFilter.FILTER_REJECT;
-        }
-        return NodeFilter.FILTER_ACCEPT;
-      }
-    });
-
-    const textNodes = [];
-    let node = walker.nextNode();
-    while (node) {
-      if (node.nodeType === Node.TEXT_NODE) textNodes.push(node);
-      else registerAttributes(node);
-      node = walker.nextNode();
-    }
-
-    textNodes.forEach(makeDualNode);
-  };
-
-  const syncSwitcher = () => {
-    document.querySelectorAll('[data-esc-lang]').forEach((button) => {
-      const active = button.dataset.escLang === currentLanguage;
-      button.classList.toggle('active', active);
-      button.setAttribute('aria-pressed', String(active));
-    });
-  };
-
-  const syncHead = () => {
-    document.documentElement.lang = currentLanguage;
-    document.documentElement.dataset.escLang = currentLanguage;
-    document.title = currentLanguage === 'en'
-      ? 'Eryaman Speaking Club · Speak, Meet, Grow'
-      : 'Eryaman Speaking Club · Konuş, Tanış, Geliş';
-
-    const description = document.querySelector('meta[name="description"]');
-    if (description) {
-      description.content = currentLanguage === 'en'
-        ? 'Eryaman Speaking Club is a social speaking community in Ankara Eryaman for English conversation practice, meetups and interactive games.'
-        : "Eryaman Speaking Club, Ankara Eryaman'da İngilizce konuşma pratiği, sosyal buluşmalar ve interaktif oyunlar için kurulmuş bir speaking community'dir.";
-    }
-  };
-
-  const syncAttributes = () => {
-    for (let i = attrRecords.length - 1; i >= 0; i -= 1) {
-      const record = attrRecords[i];
-      if (!record.element.isConnected) {
-        attrRecords.splice(i, 1);
-        continue;
-      }
-
-      Object.entries(record.entries).forEach(([name, values]) => {
-        const next = currentLanguage === 'en' ? values.en : values.tr;
-        if (record.element.getAttribute(name) !== next) record.element.setAttribute(name, next);
-      });
-    }
-  };
-
-  function setLanguage(language) {
-    const next = language === 'en' ? 'en' : 'tr';
-    if (next === currentLanguage) return;
-
-    currentLanguage = next;
-    localStorage.setItem(STORAGE_KEY, currentLanguage);
-
-    // The visible copy changes with one attribute toggle in CSS.
-    // No page-wide DOM walk and no mass text replacement on click.
-    document.documentElement.lang = currentLanguage;
-    document.documentElement.dataset.escLang = currentLanguage;
-    syncSwitcher();
-
-    // Non-visual metadata/ARIA is tiny and updated after the visual switch.
-    queueMicrotask(() => {
-      syncHead();
-      syncAttributes();
-      window.dispatchEvent(new CustomEvent('esc:languagechange', { detail: { language: currentLanguage } }));
-    });
   }
 
-  const startObserver = () => {
-    if (!('MutationObserver' in window) || observer) return;
-
-    observer = new MutationObserver((mutations) => {
-      observer.disconnect();
-
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'childList') {
-          mutation.addedNodes.forEach(scanTree);
-        } else if (mutation.type === 'attributes') {
-          registerAttributes(mutation.target);
-        }
-      });
-
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: ATTRIBUTES
-      });
-    });
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ATTRIBUTES
-    });
-  };
-
   ensureStyles();
-  ensureFourthFeedback();
   ensureSwitcher();
-
   document.documentElement.lang = currentLanguage;
-  document.documentElement.dataset.escLang = currentLanguage;
-
   scanTree(document.body);
+  syncButtons();
   syncHead();
-  syncAttributes();
-  syncSwitcher();
-  startObserver();
+  if ('MutationObserver' in window) {
+    observer = new MutationObserver(mutations => {
+      observer.disconnect();
+      try { handleMutations(mutations); }
+      finally { observer.observe(document.body, observerOptions); }
+    });
+    observer.observe(document.body, observerOptions);
+  }
+  window.addEventListener('pagehide', () => {
+    try { localStorage.setItem(STORAGE_KEY, currentLanguage); } catch (_) {}
+  });
 })();
