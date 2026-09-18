@@ -41,11 +41,10 @@
   };
 
   // Keep only the typographic locale stable for this TR/EN Latin-font site.
-  // This avoids WebKit's cold font-fallback rebuild on a root-lang change.
-  // The real HTML lang still changes for accessibility, and English CSS casing
-  // is rendered explicitly below so Turkish dotted/dotless I stays correct.
+  // The real HTML lang still changes; English casing is rendered explicitly
+  // below. Pin at the root so head/root font selection is stable as well.
   const stableFontLocale = Boolean(window.CSS && CSS.supports('-webkit-locale', '"tr"'));
-  if (stableFontLocale) document.body.style.setProperty('-webkit-locale', '"tr"');
+  if (stableFontLocale) document.documentElement.style.setProperty('-webkit-locale', '"tr"');
   const textRecords = new Map();
   const attrRecords = new Map();
   const ATTRIBUTES = ['aria-label', 'placeholder', 'title', 'alt'];
