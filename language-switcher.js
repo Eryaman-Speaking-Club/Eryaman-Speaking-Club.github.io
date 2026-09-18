@@ -232,6 +232,12 @@
     const style = document.createElement('style');
     style.dataset.escLanguageStyle = 'true';
     style.textContent = `
+      /* A full-screen SVG turbulence overlay repaints on every text reflow. */
+      .page-noise{display:none}
+      /* Keep below-fold translated content out of the current-frame layout. */
+      @supports(content-visibility:auto){
+        main>section:not(.hero){content-visibility:auto;contain-intrinsic-size:auto 700px}
+      }
       .esc-lang-switch{flex:0 0 auto;display:inline-flex;align-items:center;gap:3px;padding:4px;border:1px solid rgba(8,31,59,.12);border-radius:13px;background:rgba(247,250,252,.94);box-shadow:0 6px 18px rgba(8,31,59,.06)}
       .esc-lang-switch button{width:32px;height:30px;padding:0;border:0;border-radius:9px;background:transparent;color:#718397;font:inherit;font-size:10px;font-weight:1000;letter-spacing:.04em;cursor:pointer;touch-action:manipulation;transition:none}
       .esc-lang-switch button:hover{color:#081f3b;background:#edf3f8}
