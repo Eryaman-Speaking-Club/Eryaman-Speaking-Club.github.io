@@ -28,6 +28,29 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
+      - name: Fingerprint language runtime
+        run: |
+          node --check language-switcher.js
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          import re
+          revision = hashlib.sha256(Path('language-switcher.js').read_bytes()).hexdigest()[:16]
+          pattern = re.compile(r'''(src=["'])([^"']*language-switcher\.js)(?:\?[^"']*)?(["'])''')
+          count = 0
+          for page in Path('.').rglob('*.html'):
+              if '.git' in page.parts:
+                  continue
+              original = page.read_text(encoding='utf-8')
+              updated, replacements = pattern.subn(lambda m: m[1] + m[2] + '?v=' + revision + m[3], original)
+              if replacements:
+                  page.write_text(updated, encoding='utf-8')
+                  count += 1
+          if count == 0:
+              raise SystemExit('Language script reference missing; refusing to publish stale HTML.')
+          print(f'Updated {count} HTML pages to language runtime {revision}')
+          PY
+
       - name: Upload static site
         uses: actions/upload-pages-artifact@v3
         with:
