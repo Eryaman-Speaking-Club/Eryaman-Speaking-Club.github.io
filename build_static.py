@@ -1,7 +1,7 @@
-"""Prepare the existing static site; keep editable game/page sources intact.
+"""Prepare existing native pages without changing editable content or games.
 
-The small native navigation helper is prepended to home.js, eliminating an
-extra network request. Native /tr/ and /en/ pages remain the source of truth.
+Prepend the small navigation helper, fingerprint the bundle, and avoid cold
+WebKit English font-locale selection. Real HTML lang and Turkish casing remain.
 """
 from pathlib import Path
 import hashlib
@@ -36,6 +36,11 @@ def build() -> None:
         text = file.read_text(encoding='utf-8')
         updated, matches = pattern.subn(lambda m: m[1] + m[2] + '?v=' + revision + m[3], text)
         if matches:
+            # English uses neutral Latin font selection. Do not apply this to
+            # Turkish: its dotted/dotless I casing must retain the TR locale.
+            # Unsupported engines ignore this vendor rendering property.
+            style = '<style data-native-language-font>html[lang="en"]{-webkit-locale:auto}</style>'
+            updated = updated.replace('<head>', '<head>\n  ' + style, 1)
             file.write_text(updated, encoding='utf-8')
             count += 1
     if count < 3:
