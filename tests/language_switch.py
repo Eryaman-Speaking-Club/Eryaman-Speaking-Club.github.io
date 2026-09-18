@@ -2,7 +2,12 @@
 
 TEST_BASE_URL selects the live site. ENGINE/MOBILE isolate browser families on
 independent CI runners. No English pre-click is performed by the test harness.
-Reported paint times are next-frame proxies, not physical-display measurements.
+Paint times are next-frame proxies, not physical-display measurements.
+
+Do not inject wait_for_function during a timed switch: the independent control
+workflow measured that helper's cold startup at ~796 ms on WebKit, including a
+625 ms frame gap, versus 137 ms maximum gap with passive sampling on the same
+site revision. The unchanged limits below apply to the site's own frame probes.
 """
 import functools
 import json
@@ -72,9 +77,15 @@ with sync_playwright() as p:
             for index, language in enumerate(['en', 'tr'] * (12 if repeat == 0 else 3)):
                 button = page.locator('button[data-esc-lang="' + language + '"]')
                 button.tap() if mobile else button.click()
-                page.wait_for_function('lang => document.documentElement.lang === lang', arg=language)
-                page.wait_for_function('() => window.switchSamples.length && window.switchSamples[window.switchSamples.length - 1].toPaintMs !== undefined')
-                sample = page.evaluate('window.switchSamples[window.switchSamples.length - 1]')
+                # Read a passive sample without starting Playwright's polling
+                # engine inside the timed browser frame. Do not reset its clock.
+                sample = None
+                for _ in range(30):
+                    page.wait_for_timeout(50)
+                    sample = page.evaluate('window.switchSamples[window.switchSamples.length - 1]')
+                    if sample and 'toPaintMs' in sample:
+                        break
+                assert sample and 'toPaintMs' in sample, 'No completed frame sample'
                 result['samples'].append(sample)
                 expected = 'About' if language == 'en' else 'Hakkımızda'
                 assert sample['text'] == expected and sample['language'] == language, sample
