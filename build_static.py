@@ -1,4 +1,4 @@
-"""Prepare existing native pages without changing editable content or games."""
+"""Build native pages; preserve source content, game code and real HTML language."""
 from pathlib import Path
 import hashlib
 import re
@@ -32,10 +32,15 @@ def build() -> None:
         text = file.read_text(encoding='utf-8')
         updated, matches = pattern.subn(lambda m: m[1] + m[2] + '?v=' + revision + m[3], text)
         if matches:
-            # Preserve real HTML language and all Turkish case behavior.
-            # Apply only to the English body's Latin font selection.
-            style = '<style data-native-language-font>html[lang="en"] body{-webkit-locale:auto}</style>'
-            updated = updated.replace('<head>', '<head>\n  ' + style, 1)
+            root_tag = re.search(r'<html\b[^>]*>', updated, re.IGNORECASE)
+            if root_tag and re.search(r'''\blang=["']en["']''', root_tag[0]):
+                if re.search(r'\bstyle=', root_tag[0]):
+                    raise RuntimeError('Unexpected existing HTML root style; review before publishing.')
+                # Inline BEFORE initial render-tree attachment. A later head or
+                # body stylesheet is too late for WebKit's cold locale selection.
+                # lang=en remains real; the helper preserves EN casing explicitly.
+                tag = root_tag[0][:-1] + ' style="-webkit-locale: &quot;tr&quot;;">'
+                updated = updated[:root_tag.start()] + tag + updated[root_tag.end():]
             file.write_text(updated, encoding='utf-8')
             count += 1
     if count < 3:
