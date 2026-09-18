@@ -1,105 +1,151 @@
-/* Progressive enhancement for native /tr/ and /en/ pages. No translation,
- * organiser-state writes or intercepted navigation. Bundled before home.js.
+/* Native /tr/ and /en/ pages remain canonical and work without JavaScript.
+ * This optional enhancement changes cached copy in-place, retaining forms,
+ * listeners and scroll position instead of parsing a new page on each switch.
  */
 (() => {
   'use strict';
   if (window.__escNativeNavigation) return;
+  const data = window.ESC_LANGUAGE_DATA;
+  const routes = new Set(['/', '/tr/', '/en/']);
+  if (!data || !routes.has(location.pathname)) return;
   window.__escNativeNavigation = true;
-  const paths = new Set(['/', '/tr/', '/en/']);
-  if (!paths.has(location.pathname)) return;
-  const languageOf = path => path === '/en/' ? 'en' : 'tr';
-  const markerKey = 'esc-native-language-hop-v1';
-  const here = languageOf(location.pathname);
-  let languageHop = false;
-  try {
-    const previous = document.referrer ? new URL(document.referrer) : null;
-    languageHop = Boolean(previous && previous.origin === location.origin && paths.has(previous.pathname) && languageOf(previous.pathname) !== here);
-    const marker = JSON.parse(sessionStorage.getItem(markerKey) || 'null');
-    if (marker && marker.to === location.pathname && Date.now() - marker.at < 15000) languageHop = true;
-    sessionStorage.removeItem(markerKey);
-  } catch (_) {}
+  const langOf = path => path === '/en/' ? 'en' : 'tr';
+  let language = langOf(location.pathname);
+  const initialLanguage = language;
+  const textRecords = new Map();
+  const attrRecords = new Map();
+  const attrs = ['aria-label', 'placeholder', 'alt', 'title'];
+  const skip = 'script,style,noscript,textarea,code,pre,[contenteditable="true"],[translate="no"]';
+  const normalize = value => String(value || '').replace(/\s+/g, ' ').trim();
+  const spaced = (raw, value) => raw.match(/^\s*/)[0] + value + raw.match(/\s*$/)[0];
+  const texts = new Map(data.text.map(([tr,en]) => [normalize(tr), {tr,en}]));
+  const reverse = new Map(data.text.map(([tr,en]) => [normalize(en), {tr,en}]));
+  const attributes = new Map(data.attributes.map(([tr,en]) => [tr, {tr,en}]));
+  const reverseAttrs = new Map(data.attributes.map(([tr,en]) => [en, {tr,en}]));
+  let observer;
+  let switcher;
+  let metadataFrame = 0;
+  const observeOptions = {childList:true, subtree:true, characterData:true, attributes:true, attributeFilter:attrs};
 
-  if (languageHop) {
-    document.documentElement.classList.add('esc-language-hop');
-    const style = document.createElement('style');
-    style.dataset.escNativeNavigation = 'true';
-    style.textContent = '.esc-language-hop .reveal{opacity:1!important;transform:none!important;transition:none!important;animation:none!important}.esc-language-hop .site-nav{transition:none!important}';
-    document.head.appendChild(style);
+  // Preserve the already loaded font locale. HTML lang still changes for
+  // accessibility; cached casing below follows the actual chosen language.
+  if (window.CSS && CSS.supports('-webkit-locale', '"tr"')) {
+    document.documentElement.style.setProperty('-webkit-locale', JSON.stringify(initialLanguage));
   }
-
-  function preserveEnglishCasing() {
-    if (here !== 'en' || !document.documentElement.style.getPropertyValue('-webkit-locale')) return;
-    const skip = 'script,style,noscript,textarea,pre,code,[contenteditable="true"]';
-    function format(root) {
-      if (!root.isConnected) return;
-      const nodes = [];
-      if (root.nodeType === Node.TEXT_NODE) nodes.push(root);
-      else if (root instanceof Element && !root.closest(skip)) {
-        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-        let node;
-        while ((node = walker.nextNode())) nodes.push(node);
-      }
-      const modes = new Map();
-      const writes = [];
-      for (const node of nodes) {
-        const parent = node.parentElement;
-        if (!parent || parent.closest(skip) || !node.nodeValue.trim()) continue;
-        if (!modes.has(parent)) modes.set(parent, getComputedStyle(parent).textTransform);
-        const mode = modes.get(parent);
-        const raw = node.nodeValue;
-        let value = raw;
-        if (mode === 'uppercase') value = raw.toLocaleUpperCase('en-US');
-        else if (mode === 'lowercase') value = raw.toLocaleLowerCase('en-US');
-        else if (mode === 'capitalize') value = raw.replace(/\b\p{L}/gu, char => char.toLocaleUpperCase('en-US'));
-        if (value !== raw) writes.push([node, value]);
-      }
-      // Batch writes after reads; never rewrite a value that is already right.
-      for (const [node, value] of writes) node.nodeValue = value;
+  function bindText(node) {
+    const parent = node.parentElement;
+    if (!node.isConnected || !parent || parent.closest(skip)) return;
+    const raw = node.nodeValue;
+    if (!normalize(raw)) return;
+    const known = textRecords.get(node);
+    if (known && (raw === known.tr || raw === known.en)) return;
+    const pair = texts.get(normalize(raw)) || reverse.get(normalize(raw));
+    let record = pair ? {tr:spaced(raw,pair.tr),en:spaced(raw,pair.en)} : {tr:raw,en:raw};
+    const mode = getComputedStyle(parent).textTransform;
+    if (mode === 'uppercase' || mode === 'lowercase') {
+      const method = mode === 'uppercase' ? 'toLocaleUpperCase' : 'toLocaleLowerCase';
+      record = {tr:record.tr[method]('tr'),en:record.en[method]('en-US')};
     }
-    format(document.body);
-    const options = {childList:true, characterData:true, subtree:true};
-    const observer = new MutationObserver(changes => {
-      observer.disconnect();
-      try {
-        const roots = new Set();
-        for (const change of changes) {
-          if (change.type === 'characterData') roots.add(change.target);
-          else change.addedNodes.forEach(node => roots.add(node));
-        }
-        for (const root of roots) format(root);
-      } finally { observer.observe(document.body, options); }
-    });
-    observer.observe(document.body, options);
+    if (pair || record.tr !== raw || record.en !== raw) textRecords.set(node,record);
+    else textRecords.delete(node);
   }
-
+  function bindAttrs(element) {
+    if (!element.isConnected || element.closest(skip)) return;
+    const records = attrRecords.get(element) || {};
+    for (const name of attrs) {
+      const raw = element.getAttribute(name);
+      const old = records[name];
+      if (old && (raw === old.tr || raw === old.en)) continue;
+      const pair = attributes.get(raw) || reverseAttrs.get(raw);
+      if (pair) records[name] = pair;
+      else delete records[name];
+    }
+    if (Object.keys(records).length) attrRecords.set(element,records);
+    else attrRecords.delete(element);
+  }
+  function scan(root) {
+    if (!root.isConnected) return;
+    if (root.nodeType === Node.TEXT_NODE) {bindText(root);return;}
+    if (!(root instanceof Element) || root.closest(skip)) return;
+    bindAttrs(root);
+    const walker = document.createTreeWalker(root,NodeFilter.SHOW_ELEMENT|NodeFilter.SHOW_TEXT,{
+      acceptNode(node){return node.nodeType===Node.ELEMENT_NODE && node.matches(skip) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;}
+    });
+    let node;
+    while ((node=walker.nextNode())) {
+      if(node.nodeType===Node.TEXT_NODE)bindText(node);else bindAttrs(node);
+    }
+  }
+  function applyCopy() {
+    for (const [node,pair] of textRecords) {
+      if (!node.isConnected) {textRecords.delete(node);continue;}
+      if (node.nodeValue!==pair[language])node.nodeValue=pair[language];
+    }
+    for(const [element,records] of attrRecords) {
+      if(!element.isConnected){attrRecords.delete(element);continue;}
+      for(const [name,pair] of Object.entries(records)) if(element.getAttribute(name)!==pair[language])element.setAttribute(name,pair[language]);
+    }
+  }
+  function collect(changes) {
+    const roots=new Set();
+    for(const change of changes){
+      if(change.type==='childList')change.addedNodes.forEach(node=>roots.add(node));
+      else if(change.type==='characterData')roots.add(change.target);
+      else bindAttrs(change.target);
+    }
+    for(const root of roots)scan(root);
+  }
+  function syncNav() {
+    for(const link of switcher.querySelectorAll('a')) {
+      const active=langOf(new URL(link.href).pathname)===language;
+      link.classList.toggle('active',active);
+      if(active)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');
+    }
+  }
+  function setLanguage(next,url,push) {
+    if(next===language)return;
+    const queued=observer.takeRecords();observer.disconnect();
+    try {
+      if(queued.length)collect(queued);
+      language=next;
+      document.documentElement.lang=next;
+      applyCopy();syncNav();
+      if(push)history.pushState({escLanguage:next},'',url);
+    }finally{observer.observe(document.body,observeOptions);}
+    cancelAnimationFrame(metadataFrame);
+    metadataFrame=requestAnimationFrame(()=>setTimeout(()=>{
+      if(data.meta[language]?.title)document.title=data.meta[language].title;
+      const description=document.querySelector('meta[name="description"]');
+      if(description && data.meta[language]?.description)description.content=data.meta[language].description;
+      window.dispatchEvent(new CustomEvent('esc:languagechange',{detail:{language}}));
+    },0));
+  }
   function init() {
-    preserveEnglishCasing();
-    const switcher = document.querySelector('.esc-lang-switch');
-    if (!switcher) return;
-    let warmed = false;
-    function warmAlternate() {
-      if (warmed || navigator.connection?.saveData || !navigator.onLine) return;
-      warmed = true;
-      const target = here === 'tr' ? '/en/' : '/tr/';
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8000);
-      fetch(target, {credentials:'same-origin', cache:'no-cache', signal:controller.signal})
-        .then(response => response.ok ? response.arrayBuffer() : undefined)
-        .catch(() => {})
-        .finally(() => clearTimeout(timeout));
-    }
-    switcher.addEventListener('pointerenter', warmAlternate, {once:true});
-    switcher.addEventListener('focusin', warmAlternate, {once:true});
-    switcher.addEventListener('click', event => {
-      const link = event.target.closest('a');
-      if (!link || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-      const target = new URL(link.href, location.href);
-      if (target.origin !== location.origin || !paths.has(target.pathname)) return;
-      if (languageOf(target.pathname) === here) return;
-      try { sessionStorage.setItem(markerKey, JSON.stringify({to:target.pathname, at:Date.now()})); } catch (_) {}
+    switcher=document.querySelector('.esc-lang-switch');if(!switcher)return;
+    scan(document.body);
+    // Resolve both text layouts once before the first language interaction,
+    // without a visible flash, network request, duplicate DOM or URL change.
+    performance.mark('esc-language-prepare-start');
+    language=initialLanguage==='tr'?'en':'tr';applyCopy();void document.body.offsetHeight;
+    language=initialLanguage;applyCopy();void document.body.offsetHeight;
+    performance.mark('esc-language-prepare-end');
+    performance.measure('esc-language-preparation','esc-language-prepare-start','esc-language-prepare-end');
+    observer=new MutationObserver(changes=>{
+      observer.disconnect();
+      try{collect(changes);applyCopy();}finally{observer.observe(document.body,observeOptions);}
     });
-    requestAnimationFrame(() => setTimeout(warmAlternate, 0));
+    observer.observe(document.body,observeOptions);
+    const select=event=>{
+      if(event.button!==0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)return;
+      const link=event.target.closest('a');if(!link || !switcher.contains(link))return;
+      const target=new URL(link.href);if(target.origin!==location.origin || !routes.has(target.pathname))return;
+      event.preventDefault();
+      setLanguage(langOf(target.pathname),target.pathname+target.search+location.hash,true);
+    };
+    switcher.addEventListener('pointerdown',event=>{if(event.isPrimary)select(event);});
+    switcher.addEventListener('click',select);
+    window.addEventListener('popstate',()=>{if(routes.has(location.pathname))setLanguage(langOf(location.pathname),location.href,false);});
+    syncNav();
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once:true});
-  else init();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
