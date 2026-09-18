@@ -5,12 +5,13 @@
   const menu = document.querySelector('.menu-btn');
   const links = document.querySelector('.nav-links');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isEnglish = document.documentElement.lang === 'en';
 
   /* Keep the base landing-page files stable and load the final polish as a small layer. */
   if (!document.querySelector('link[data-home-polish]')) {
     const polish = document.createElement('link');
     polish.rel = 'stylesheet';
-    polish.href = './home-polish.css?v=20260917-0951';
+    polish.href = '/home-polish.css?v=20260917-0951';
     polish.dataset.homePolish = 'true';
     document.head.appendChild(polish);
   }
@@ -18,14 +19,14 @@
   if (!document.querySelector('link[data-next-event]')) {
     const nextEventStyle = document.createElement('link');
     nextEventStyle.rel = 'stylesheet';
-    nextEventStyle.href = './next-event.css?v=20260917-2';
+    nextEventStyle.href = '/next-event.css?v=20260917-2';
     nextEventStyle.dataset.nextEvent = 'true';
     document.head.appendChild(nextEventStyle);
   }
 
   if (!document.querySelector('script[data-floating-contact]')) {
     const contactScript = document.createElement('script');
-    contactScript.src = './floating-contact.js?v=20260917-1736';
+    contactScript.src = '/floating-contact.js?v=20260918-1612';
     contactScript.dataset.floatingContact = 'true';
     contactScript.defer = true;
     document.head.appendChild(contactScript);
@@ -36,17 +37,17 @@
     const setups = [
       {
         key: 'talk',
-        tag: 'Konuşma pratiği',
+        tag: isEnglish ? 'Speaking practice' : 'Konuşma pratiği',
         art: '<div class="principle-art" aria-hidden="true"><span class="talk-bubble one">How was your week?</span><span class="talk-bubble two">Much better now 😄</span><span class="talk-mic">🎙️</span></div>'
       },
       {
         key: 'community',
-        tag: 'Topluluk',
-        art: '<div class="principle-art" aria-hidden="true"><div class="people-row"><span>A</span><span>Y</span><span>İ</span><span>+</span></div><span class="community-chip">Yeni masa · yeni insanlar</span></div>'
+        tag: isEnglish ? 'Community' : 'Topluluk',
+        art: `<div class="principle-art" aria-hidden="true"><div class="people-row"><span>A</span><span>Y</span><span>İ</span><span>+</span></div><span class="community-chip">${isEnglish ? 'New table · new people' : 'Yeni masa · yeni insanlar'}</span></div>`
       },
       {
         key: 'growth',
-        tag: 'Kişisel gelişim',
+        tag: isEnglish ? 'Personal growth' : 'Kişisel gelişim',
         art: '<div class="principle-art" aria-hidden="true"><div class="growth-bars"><span></span><span></span><span></span><span></span></div><span class="growth-arrow">↗</span></div>'
       }
     ];
@@ -81,7 +82,7 @@
     if (payment) payment.remove();
     if (main && pricing) {
       const label = pricing.querySelector('.section-label');
-      if (label) label.textContent = '08 · Katılım seçenekleri';
+      if (label) label.textContent = isEnglish ? '08 · Participation options' : '08 · Katılım seçenekleri';
       main.appendChild(pricing);
     }
   };
@@ -89,12 +90,13 @@
   /* The homepage always opens the dedicated private-lessons application page.
      No teacher phone or WhatsApp contact is exposed from the homepage. */
   const restorePrivateLessonsPageLinks = () => {
-    const privateLessonsHref = './ozel-dersler/';
+    const privateLessonsHref = '/ozel-dersler/';
     const shouldRouteToLessons = (link) => {
-      const text = (link.textContent || '').toLocaleLowerCase('tr-TR');
-      return text.includes('özel dersler') ||
-        text.includes('özel dersleri incele') ||
-        (link.closest('.tutor-cta') && text.includes('ingilizce'));
+      const text = (link.textContent || '').toLocaleLowerCase(isEnglish ? 'en-US' : 'tr-TR');
+      return Boolean(link.closest('.tutor-cta')) ||
+        link.getAttribute('href')?.includes('/ozel-dersler/') ||
+        text.includes('özel ders') ||
+        text.includes('private lesson');
     };
 
     document.querySelectorAll('a').forEach((link) => {
@@ -106,17 +108,24 @@
 
     const tutorCard = document.querySelector('.tutor-cta a');
     const tutorTitle = tutorCard?.querySelector('strong');
-    if (tutorTitle) tutorTitle.textContent = 'Birebir İngilizce özel dersleri inceleyin.';
+    if (tutorTitle) {
+      tutorTitle.textContent = isEnglish
+        ? 'Explore one-to-one online English lessons.'
+        : 'Birebir İngilizce özel dersleri inceleyin.';
+    }
 
     document.querySelectorAll('.final-actions a').forEach((link) => {
-      if (link.textContent.includes('Online özel ders')) link.textContent = 'Online özel dersleri incele →';
+      if (isEnglish && link.textContent.includes('Online private lesson')) link.textContent = 'Explore online private lessons →';
+      if (!isEnglish && link.textContent.includes('Online özel ders')) link.textContent = 'Online özel dersleri incele →';
     });
 
     document.querySelectorAll('.faq-list a').forEach((link) => {
-      if (link.href.includes('/ozel-dersler/')) link.textContent = 'özel dersler sayfasından detayları inceleyebilirsin';
+      if (!link.href.includes('/ozel-dersler/')) return;
+      link.textContent = isEnglish
+        ? 'you can view the details on the private lessons page'
+        : 'özel dersler sayfasından detayları inceleyebilirsin';
     });
 
-    /* Capture clicks as a second safety layer so private-lesson CTAs always open the application page. */
     document.addEventListener('click', (event) => {
       const link = event.target.closest('a');
       if (!link || !shouldRouteToLessons(link)) return;
@@ -131,8 +140,20 @@
 
     const card = document.createElement('section');
     card.className = 'next-event-card reveal';
-    card.setAttribute('aria-label', 'Bir sonraki Eryaman Speaking Club buluşması');
-    card.innerHTML = `
+    card.setAttribute('aria-label', isEnglish ? 'Next Eryaman Speaking Club meetup' : 'Bir sonraki Eryaman Speaking Club buluşması');
+    card.innerHTML = isEnglish ? `
+      <div class="next-event-copy">
+        <span class="next-event-kicker">Next meetup</span>
+        <h2>Meet us in Eryaman this Sunday.</h2>
+        <div class="next-event-details">
+          <span>📅 <strong>Sunday, September 20</strong></span>
+          <span>🕖 <strong>19:00</strong></span>
+          <span>📍 <strong>Eryaman 1-2 Coffee Lab</strong></span>
+        </div>
+        <p>Coffee, conversation and English practice. See you there.</p>
+      </div>
+      <a class="next-event-map" href="https://maps.app.goo.gl/7y8SdsCRGYzuSXnr6" target="_blank" rel="noreferrer">Open location <span>↗</span></a>
+    ` : `
       <div class="next-event-copy">
         <span class="next-event-kicker">Bir sonraki buluşma</span>
         <h2>Bu Pazar Eryaman’da buluşuyoruz.</h2>
@@ -197,7 +218,7 @@
 
     const hint = document.createElement('div');
     hint.className = 'conversation-game-hint';
-    hint.textContent = '💬 Kartlara tıkla · yeni sohbet gelsin';
+    hint.textContent = isEnglish ? '💬 Tap the cards · get a new conversation' : '💬 Kartlara tıkla · yeni sohbet gelsin';
     stage.appendChild(hint);
 
     let lastIndexes = [-1, -1];
@@ -227,8 +248,8 @@
     cards.forEach((card, slot) => {
       card.setAttribute('role', 'button');
       card.setAttribute('tabindex', '0');
-      card.setAttribute('aria-label', 'Yeni sohbet kartı getir');
-      card.title = 'Yeni sohbet kartı için tıkla';
+      card.setAttribute('aria-label', isEnglish ? 'Get a new conversation card' : 'Yeni sohbet kartı getir');
+      card.title = isEnglish ? 'Click for a new conversation card' : 'Yeni sohbet kartı için tıkla';
       card.addEventListener('click', () => renderCard(card, slot));
       card.addEventListener('keydown', (event) => {
         if (event.key !== 'Enter' && event.key !== ' ') return;
@@ -240,8 +261,8 @@
     if (center) {
       center.setAttribute('role', 'button');
       center.setAttribute('tabindex', '0');
-      center.setAttribute('aria-label', 'İki sohbet kartını da yenile');
-      center.title = 'İki kartı da yenile';
+      center.setAttribute('aria-label', isEnglish ? 'Refresh both conversation cards' : 'İki sohbet kartını da yenile');
+      center.title = isEnglish ? 'Refresh both cards' : 'İki kartı da yenile';
       const shuffleAll = () => cards.forEach((card, slot) => renderCard(card, slot));
       center.addEventListener('click', shuffleAll);
       center.addEventListener('keydown', (event) => {
@@ -287,8 +308,8 @@
   if (filmstrip) {
     const controls = document.createElement('div');
     controls.className = 'gallery-controls';
-    controls.setAttribute('aria-label', 'Galeri kontrolleri');
-    controls.innerHTML = '<button class="gallery-control" type="button" data-gallery-prev aria-label="Önceki fotoğraf">←</button><button class="gallery-control" type="button" data-gallery-next aria-label="Sonraki fotoğraf">→</button>';
+    controls.setAttribute('aria-label', isEnglish ? 'Gallery controls' : 'Galeri kontrolleri');
+    controls.innerHTML = isEnglish ? '<button class="gallery-control" type="button" data-gallery-prev aria-label="Previous photo">←</button><button class="gallery-control" type="button" data-gallery-next aria-label="Next photo">→</button>' : '<button class="gallery-control" type="button" data-gallery-prev aria-label="Önceki fotoğraf">←</button><button class="gallery-control" type="button" data-gallery-next aria-label="Sonraki fotoğraf">→</button>';
     filmstrip.insertAdjacentElement('afterend', controls);
   }
   const galleryPrev = document.querySelector('[data-gallery-prev]');
@@ -321,7 +342,7 @@
   }
 
   const rotating = document.querySelector('.rotating-word');
-  const words = ['Rahatça.', 'Özgüvenle.', 'Birlikte.', 'Gerçekten.'];
+  const words = isEnglish ? ['Comfortably.', 'Confidently.', 'Together.', 'For real.'] : ['Rahatça.', 'Özgüvenle.', 'Birlikte.', 'Gerçekten.'];
   let wordIndex = 0;
   if (rotating && !reduceMotion) {
     window.setInterval(() => {
