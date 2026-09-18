@@ -1,0 +1,32 @@
+name: Language switch regression
+on:
+  push:
+    branches: [fix/tr-en-responsiveness]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: language-regression-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  browsers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install browser test dependencies
+        run: |
+          python -m pip install playwright==1.57.0
+          python -m playwright install --with-deps chromium webkit
+      - name: Test language switching
+        run: timeout 180s python -u tests/language_switch.py
+      - name: Keep performance measurements and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: language-regression-${{ github.sha }}
+          path: test-results
+          retention-days: 7
