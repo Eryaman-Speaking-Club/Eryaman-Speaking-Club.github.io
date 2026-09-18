@@ -1,11 +1,21 @@
-"""Passive cold-page and repeated language navigation probes on the live site."""
-import json,os
+"""Passive first/repeated native-language navigation probes; no polling injection.
+
+Reports network, DOM readiness, first-frame and full hero visibility separately.
+TEST_BASE_URL selects production; otherwise serve the same built artifact locally.
+"""
+import functools,json,os,threading
+from http.server import SimpleHTTPRequestHandler,ThreadingHTTPServer
 from pathlib import Path
 from playwright.sync_api import sync_playwright
-OUT=Path('test-results');OUT.mkdir(exist_ok=True)
+ROOT=Path(__file__).resolve().parents[1]
+OUT=ROOT/'test-results';OUT.mkdir(exist_ok=True)
 ENGINE=os.environ.get('ENGINE','webkit')
 MOBILE=os.environ.get('MOBILE','false')=='true'
-BASE=os.environ.get('TEST_BASE_URL','https://eryaman-speaking-club.github.io/')
+class Quiet(SimpleHTTPRequestHandler):
+ def log_message(self,*args):pass
+server=ThreadingHTTPServer(('127.0.0.1',8768),functools.partial(Quiet,directory=str(ROOT/'_site')))
+threading.Thread(target=server.serve_forever,daemon=True).start()
+BASE=os.environ.get('TEST_BASE_URL','http://127.0.0.1:8768/')
 INIT=r'''(() => {
  window.navProbe={};
  document.addEventListener('pointerdown',event=>{
@@ -17,6 +27,8 @@ INIT=r'''(() => {
   const sample=JSON.parse(raw);window.navProbe=sample;
   sample.path=location.pathname;sample.language=document.documentElement.lang;
   sample.domReadyMs=Date.now()-sample.start;
+  const nav=performance.getEntriesByType('navigation')[0];
+  if(nav)sample.network={requestStart:nav.requestStart,responseStart:nav.responseStart,responseEnd:nav.responseEnd,domInteractive:nav.domInteractive,transferSize:nav.transferSize};
   let last=performance.now(),count=0,maxGap=0;
   function tick(t){maxGap=Math.max(maxGap,t-last);last=t;sample.maxFrameGapMs=maxGap;if(++count<100)requestAnimationFrame(tick)}
   requestAnimationFrame(tick);
@@ -43,18 +55,30 @@ with sync_playwright() as p:
   page.goto(BASE,wait_until='domcontentloaded',timeout=30000)
   page.wait_for_timeout(1200)
   result['initialUrl']=page.url
-  result['scripts']=page.locator('script[src]').evaluate_all('(nodes)=>nodes.map(n=>n.src)')
-  for lang in ['en','tr','en','tr','en','tr']:
+  for lang in ['en','tr']*6:
    link=page.locator('.esc-lang-switch a[href="/'+lang+'/"]')
    link.tap() if MOBILE else link.click()
-   page.wait_for_timeout(1400)
-   sample=page.evaluate('window.navProbe');result['samples'].append(sample)
+   sample=None
+   for _ in range(60):
+    page.wait_for_timeout(100)
+    sample=page.evaluate('window.navProbe')
+    if sample.get('language')==lang and 'heroVisibleMs' in sample:break
+   result['samples'].append(sample)
    assert sample.get('language')==lang,sample
    assert sample.get('menu')==('About' if lang=='en' else 'Hakkımızda'),sample
    assert sample.get('heroVisibleMs') is not None,sample
+   sample['afterReadyMs']=sample['heroVisibleMs']-sample['domReadyMs']
+   assert page.evaluate('document.documentElement.classList.contains("esc-language-hop")'),'Navigation helper is absent'
+   assert sample['afterReadyMs'] < 350, 'Delayed content after DOM ready: '+str(sample)
    assert page.locator('.esc-lang-dual').count()==0
    assert not any('language-switcher.js' in src for src in page.locator('script[src]').evaluate_all('(nodes)=>nodes.map(n=>n.src)'))
+   page.wait_for_timeout(500)
    if len(result['samples'])==1:page.screenshot(path=str(OUT/(ENGINE+('-mobile' if MOBILE else '-desktop')+'-en.png')))
+  # Normal anchors and native browser navigation remain usable.
+  if MOBILE:page.locator('.menu-btn').click()
+  page.locator('.nav-links a[href="#faq"]').click()
+  page.wait_for_timeout(900)
+  assert page.locator('#faq h2').is_visible()
   assert not result['errors'],result['errors']
   result['passed']=True
  except Exception as error:
@@ -63,4 +87,5 @@ with sync_playwright() as p:
   print(json.dumps(result),flush=True)
   (OUT/'static-language-results.json').write_text(json.dumps(result,indent=2))
   b.close()
+server.shutdown()
 assert result['passed'],'See static-language-results.json'
