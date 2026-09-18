@@ -1,20 +1,13 @@
 (() => {
   'use strict';
 
-  if (!document.querySelector('script[data-esc-language]')) {
-    const languageScript = document.createElement('script');
-    languageScript.src = './language-switcher.js?v=20260917-2028';
-    languageScript.dataset.escLanguage = 'true';
-    languageScript.defer = true;
-    document.head.appendChild(languageScript);
-  }
-
   if (document.querySelector('[data-esc-contact-fab]')) return;
 
   const CONTACT_EMAIL = 'eryamanspeakingclub@gmail.com';
   const JOIN_FORM = 'https://forms.gle/qjYk7dYtV8Vhpud29';
   const INSTAGRAM = 'https://www.instagram.com/eryamanspeakingclub/';
   const MAP = 'https://maps.app.goo.gl/7y8SdsCRGYzuSXnr6';
+  const isEnglish = document.documentElement.lang === 'en';
 
   const style = document.createElement('style');
   style.dataset.escFloatingContact = 'true';
@@ -100,7 +93,10 @@
     if (heroCopy && eyebrow && !heroCopy.querySelector('.hero-join-strip')) {
       const joinStrip = document.createElement('div');
       joinStrip.className = 'hero-join-strip';
-      joinStrip.innerHTML = `
+      joinStrip.innerHTML = isEnglish ? `
+        <span class="hero-join-free">FIRST MEETUP IS FREE</span>
+        <span class="hero-join-info"><strong>Sunday, September 20 · 19:00</strong><i></i>Eryaman 1-2 Coffee Lab</span>
+      ` : `
         <span class="hero-join-free">İLK BULUŞMA ÜCRETSİZ</span>
         <span class="hero-join-info"><strong>20 Eylül Pazar · 19:00</strong><i></i>Eryaman 1-2 Coffee Lab</span>
       `;
@@ -108,12 +104,15 @@
     }
 
     if (heroActions) {
-      heroActions.innerHTML = `
+      heroActions.innerHTML = isEnglish ? `
+        <a class="button join-primary" href="${JOIN_FORM}" target="_blank" rel="noreferrer">Join the free meetup <span>→</span></a>
+        <a class="button join-instagram" href="${INSTAGRAM}" target="_blank" rel="noreferrer">See us on Instagram <span>↗</span></a>
+      ` : `
         <a class="button join-primary" href="${JOIN_FORM}" target="_blank" rel="noreferrer">Ücretsiz buluşmaya katıl <span>→</span></a>
         <a class="button join-instagram" href="${INSTAGRAM}" target="_blank" rel="noreferrer">Instagram'da gör <span>↗</span></a>
       `;
       if (!heroCopy.querySelector('.hero-games-link')) {
-        heroActions.insertAdjacentHTML('afterend', '<a class="hero-games-link" href="./games/">Oyunları keşfet →</a>');
+        heroActions.insertAdjacentHTML('afterend', isEnglish ? '<a class="hero-games-link" href="/games/">Explore the games →</a>' : '<a class="hero-games-link" href="/games/">Oyunları keşfet →</a>');
       }
     }
 
@@ -122,7 +121,7 @@
       navCta.href = JOIN_FORM;
       navCta.target = '_blank';
       navCta.rel = 'noreferrer';
-      navCta.innerHTML = 'Hemen katıl <span>↗</span>';
+      navCta.innerHTML = isEnglish ? 'Join now <span>↗</span>' : 'Hemen katıl <span>↗</span>';
     }
 
     const singleEventCta = document.querySelector('.meetup-price-card:first-child .meetup-price-cta');
@@ -130,14 +129,17 @@
       singleEventCta.href = JOIN_FORM;
       singleEventCta.target = '_blank';
       singleEventCta.rel = 'noreferrer';
-      singleEventCta.textContent = 'Katılım formunu aç';
+      singleEventCta.textContent = isEnglish ? 'Open registration form' : 'Katılım formunu aç';
     }
 
     const finalActions = document.querySelector('.final-actions');
     if (finalActions) {
-      finalActions.innerHTML = `
+      finalActions.innerHTML = isEnglish ? `
+        <a class="button light-button" href="${JOIN_FORM}" target="_blank" rel="noreferrer">Join the free meetup ↗</a>
+        <a class="button outline-light" href="/games/">Open the Game Hub →</a>
+      ` : `
         <a class="button light-button" href="${JOIN_FORM}" target="_blank" rel="noreferrer">Ücretsiz buluşmaya katıl ↗</a>
-        <a class="button outline-light" href="./games/">Game Hub'ı aç →</a>
+        <a class="button outline-light" href="/games/">Game Hub'ı aç →</a>
       `;
     }
 
@@ -154,14 +156,18 @@
 
     const copy = card.querySelector('.next-event-copy');
     if (copy && !copy.querySelector('.next-event-free')) {
-      copy.insertAdjacentHTML('afterbegin', '<span class="next-event-free">İLK BULUŞMA ÜCRETSİZ</span>');
+      copy.insertAdjacentHTML('afterbegin', isEnglish ? '<span class="next-event-free">FIRST MEETUP IS FREE</span>' : '<span class="next-event-free">İLK BULUŞMA ÜCRETSİZ</span>');
     }
 
     const oldMap = card.querySelector('.next-event-map');
     if (oldMap && !card.querySelector('.next-event-actions')) {
       const actions = document.createElement('div');
       actions.className = 'next-event-actions';
-      actions.innerHTML = `
+      actions.innerHTML = isEnglish ? `
+        <a class="next-event-join" href="${JOIN_FORM}" target="_blank" rel="noreferrer">Join now <span>↗</span></a>
+        <a class="next-event-instagram" href="${INSTAGRAM}" target="_blank" rel="noreferrer">Instagram <span>↗</span></a>
+        <a class="next-event-location" href="${MAP}" target="_blank" rel="noreferrer">Open location →</a>
+      ` : `
         <a class="next-event-join" href="${JOIN_FORM}" target="_blank" rel="noreferrer">Hemen katıl <span>↗</span></a>
         <a class="next-event-instagram" href="${INSTAGRAM}" target="_blank" rel="noreferrer">Instagram <span>↗</span></a>
         <a class="next-event-location" href="${MAP}" target="_blank" rel="noreferrer">Konumu aç →</a>
@@ -184,13 +190,37 @@
   fab.type = 'button';
   fab.className = 'esc-contact-fab';
   fab.dataset.escContactFab = 'true';
-  fab.setAttribute('aria-label', 'E-posta ile iletişime geç');
-  fab.innerHTML = '<span class="esc-contact-fab-icon">✉</span><span class="esc-contact-fab-text">E-posta gönder</span>';
+  fab.setAttribute('aria-label', isEnglish ? 'Contact us by email' : 'E-posta ile iletişime geç');
+  fab.innerHTML = isEnglish ? '<span class="esc-contact-fab-icon">✉</span><span class="esc-contact-fab-text">Send email</span>' : '<span class="esc-contact-fab-icon">✉</span><span class="esc-contact-fab-text">E-posta gönder</span>';
   document.body.appendChild(fab);
 
   const overlay = document.createElement('div');
   overlay.className = 'esc-contact-overlay';
-  overlay.innerHTML = `
+  overlay.innerHTML = isEnglish ? `
+    <section class="esc-contact-panel" role="dialog" aria-modal="true" aria-labelledby="escContactTitle">
+      <div class="esc-contact-head">
+        <div>
+          <span class="esc-contact-kicker">Contact us</span>
+          <h2 id="escContactTitle">How can we help?</h2>
+          <p>Enter your details and message. When you send, your email app will open with the message ready.</p>
+        </div>
+        <button class="esc-contact-close" type="button" aria-label="Close">×</button>
+      </div>
+      <form class="esc-contact-form">
+        <label>Full name
+          <input name="name" type="text" autocomplete="name" required placeholder="Your full name">
+        </label>
+        <label>Email
+          <input name="email" type="email" autocomplete="email" required placeholder="example@email.com">
+        </label>
+        <label>Your message
+          <textarea name="message" required placeholder="What would you like to ask us about?"></textarea>
+        </label>
+        <button class="esc-contact-submit" type="submit">Prepare email & send ↗</button>
+        <div class="esc-contact-note">Because GitHub Pages is static, the message opens ready to send in your device’s default email app.</div>
+      </form>
+    </section>
+  ` : `
     <section class="esc-contact-panel" role="dialog" aria-modal="true" aria-labelledby="escContactTitle">
       <div class="esc-contact-head">
         <div>
