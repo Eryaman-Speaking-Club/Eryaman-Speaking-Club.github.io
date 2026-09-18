@@ -4,7 +4,6 @@ import json
 import os
 import statistics
 import threading
-import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from playwright.sync_api import sync_playwright
@@ -56,7 +55,7 @@ with sync_playwright() as p:
                     button.tap()
                 else:
                     button.click()
-                page.wait_for_function('lang => document.documentElement.lang === lang', language)
+                page.wait_for_function('lang => document.documentElement.lang === lang', arg=language)
                 page.wait_for_function('() => window.switchSamples.length && window.switchSamples[window.switchSamples.length - 1].toPaintMs !== undefined')
                 sample = page.evaluate('window.switchSamples[window.switchSamples.length - 1]')
                 samples.append(sample)
@@ -70,7 +69,6 @@ with sync_playwright() as p:
             result['medianMs'] = statistics.median(durations)
             result['maxMs'] = max(durations)
             result['afterNodes'] = page.locator('*').count()
-            # Observe several headline rotations, then verify both directions again.
             page.wait_for_timeout(2800)
             page.locator('button[data-esc-lang="en"]').click()
             page.wait_for_timeout(150)
