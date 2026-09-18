@@ -2,17 +2,26 @@ name: Static language validation
 on:
   push:
     branches: [fix/static-language-validation]
+  pull_request:
     paths:
+      - 'native-language-navigation.js'
+      - 'build_static.py'
       - 'tests/static_language_navigation.py'
+      - '.github/workflows/pages.yml'
       - '.github/workflows/static-language-validation.yml'
+  workflow_run:
+    workflows: ['Deploy to GitHub Pages']
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: static-language-validation-${{ github.ref }}
+  group: static-language-validation-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  live:
+  browsers:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 6
     strategy:
@@ -28,7 +37,6 @@ jobs:
     env:
       ENGINE: ${{ matrix.engine }}
       MOBILE: ${{ matrix.mobile }}
-      TEST_BASE_URL: https://eryaman-speaking-club.github.io/
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -38,7 +46,17 @@ jobs:
         run: |
           python -m pip install playwright==1.57.0
           python -m playwright install --with-deps "${ENGINE}"
-      - name: Test actual published language links
+      - name: Build the exact static artifact
+        run: |
+          python build_static.py
+          node --check _site/home.js
+      - name: Test built language links
+        if: github.event_name != 'workflow_run'
+        run: timeout 150s python -u tests/static_language_navigation.py
+      - name: Test published language links
+        if: github.event_name == 'workflow_run'
+        env:
+          TEST_BASE_URL: https://eryaman-speaking-club.github.io/
         run: timeout 150s python -u tests/static_language_navigation.py
       - uses: actions/upload-artifact@v4
         if: always()
