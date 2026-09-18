@@ -1,8 +1,4 @@
-"""Prepare existing native pages without changing editable content or games.
-
-Prepend the small navigation helper, fingerprint the bundle, and avoid cold
-WebKit English font-locale selection. Real HTML lang and Turkish casing remain.
-"""
+"""Prepare existing native pages without changing editable content or games."""
 from pathlib import Path
 import hashlib
 import re
@@ -36,10 +32,9 @@ def build() -> None:
         text = file.read_text(encoding='utf-8')
         updated, matches = pattern.subn(lambda m: m[1] + m[2] + '?v=' + revision + m[3], text)
         if matches:
-            # English uses neutral Latin font selection. Do not apply this to
-            # Turkish: its dotted/dotless I casing must retain the TR locale.
-            # Unsupported engines ignore this vendor rendering property.
-            style = '<style data-native-language-font>html[lang="en"]{-webkit-locale:auto}</style>'
+            # Preserve real HTML language and all Turkish case behavior.
+            # Apply only to the English body's Latin font selection.
+            style = '<style data-native-language-font>html[lang="en"] body{-webkit-locale:auto}</style>'
             updated = updated.replace('<head>', '<head>\n  ' + style, 1)
             file.write_text(updated, encoding='utf-8')
             count += 1
