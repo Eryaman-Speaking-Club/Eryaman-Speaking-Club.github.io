@@ -1,6 +1,7 @@
-"""Browser regression: real clicks/taps, cold first paint, language and storage.
+"""Real clicks/taps, first paint, language persistence and navigation regression.
 
-Run against repository files by default; TEST_BASE_URL selects the live site.
+TEST_BASE_URL selects the live site. ENGINE/MOBILE isolate browser families on
+independent CI runners. No English pre-click is performed by the test harness.
 Reported paint times are next-frame proxies, not physical-display measurements.
 """
 import functools
@@ -48,6 +49,9 @@ probe = """() => {
 
 cases = [('chromium', False, 0), ('webkit', False, 0), ('webkit', True, 0),
          ('webkit', False, 1), ('webkit', True, 1), ('webkit', False, 2), ('webkit', True, 2)]
+if os.environ.get('ENGINE'):
+    cases = [case for case in cases if case[0] == os.environ['ENGINE'] and case[1] == (os.environ.get('MOBILE') == 'true')]
+assert cases, 'No matching test cases'
 with sync_playwright() as p:
     for engine, mobile, repeat in cases:
         label = engine + ('-mobile' if mobile else '-desktop') + '-cold-' + str(repeat + 1)
@@ -61,6 +65,7 @@ with sync_playwright() as p:
         try:
             page.goto(base_url, wait_until='domcontentloaded', timeout=30000)
             page.wait_for_timeout(700)
+            result['preparationMs'] = page.evaluate('performance.getEntriesByName("esc-language-preparation").map(e => e.duration)')
             page.evaluate(probe)
             result['beforeNodes'] = page.locator('*').count()
             result['samples'] = []
@@ -116,7 +121,6 @@ with sync_playwright() as p:
                 page.locator('button[data-esc-lang="en"]').click()
                 page.wait_for_timeout(150)
                 page.screenshot(path=str(REPORT / (label + '-en.png')))
-                # Native anchors must still materialize below-fold sections.
                 result['anchors'] = []
                 for anchor in ['#about', '#faq', '#katilim']:
                     if mobile:
