@@ -1,4 +1,8 @@
-"""Exercise real language buttons in Chromium and WebKit; keep timings and screenshots."""
+"""Browser regression: real clicks/taps, cold first paint, language and storage.
+
+Run against repository files by default; TEST_BASE_URL selects the live site.
+Reported paint times are next-frame proxies, not physical-display measurements.
+"""
 import functools
 import json
 import os
@@ -21,6 +25,14 @@ base_url = os.environ.get('TEST_BASE_URL', 'http://127.0.0.1:8765/')
 results = []
 probe = """() => {
   window.switchSamples = [];
+  window.switchFrames = [];
+  let last = performance.now();
+  function frame(now) {
+    if (window.switchSamples.length) window.switchFrames.push(now - last);
+    last = now;
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
   document.addEventListener('pointerdown', event => {
     const button = event.target.closest('button[data-esc-lang]');
     if (!button) return;
@@ -29,13 +41,16 @@ probe = """() => {
     requestAnimationFrame(() => setTimeout(() => {
       sample.toPaintMs = performance.now() - sample.start;
       sample.language = document.documentElement.lang;
-      sample.visibleText = document.querySelector('.nav-links').innerText;
+      sample.text = document.querySelector('.nav-links a').textContent.trim();
     }, 0));
   }, true);
 }"""
+
+cases = [('chromium', False, 0), ('webkit', False, 0), ('webkit', True, 0),
+         ('webkit', False, 1), ('webkit', True, 1), ('webkit', False, 2), ('webkit', True, 2)]
 with sync_playwright() as p:
-    for engine, mobile in [('chromium', False), ('webkit', False), ('webkit', True)]:
-        label = engine + ('-mobile' if mobile else '-desktop')
+    for engine, mobile, repeat in cases:
+        label = engine + ('-mobile' if mobile else '-desktop') + '-cold-' + str(repeat + 1)
         result = {'label': label, 'base_url': base_url, 'errors': []}
         results.append(result)
         browser = getattr(p, engine).launch(headless=True)
@@ -48,37 +63,68 @@ with sync_playwright() as p:
             page.wait_for_timeout(700)
             page.evaluate(probe)
             result['beforeNodes'] = page.locator('*').count()
-            samples = []
-            for index, language in enumerate(['en', 'tr'] * 12):
+            result['samples'] = []
+            for index, language in enumerate(['en', 'tr'] * (12 if repeat == 0 else 3)):
                 button = page.locator('button[data-esc-lang="' + language + '"]')
-                if mobile:
-                    button.tap()
-                else:
-                    button.click()
+                button.tap() if mobile else button.click()
                 page.wait_for_function('lang => document.documentElement.lang === lang', arg=language)
                 page.wait_for_function('() => window.switchSamples.length && window.switchSamples[window.switchSamples.length - 1].toPaintMs !== undefined')
                 sample = page.evaluate('window.switchSamples[window.switchSamples.length - 1]')
-                samples.append(sample)
+                result['samples'].append(sample)
                 expected = 'About' if language == 'en' else 'Hakkımızda'
-                assert page.locator('.nav-links a').first.text_content().strip() == expected or expected in page.locator('.nav-links a').first.inner_text()
-                if index == 0:
-                    page.screenshot(path=str(REPORT / (label + '-en.png')))
+                assert sample['text'] == expected and sample['language'] == language, sample
+                assert button.get_attribute('aria-pressed') == 'true'
                 page.wait_for_timeout(60)
-            result['samples'] = samples
-            durations = [s['toPaintMs'] for s in samples]
+            durations = [s['toPaintMs'] for s in result['samples']]
+            result['firstMs'] = durations[0]
             result['medianMs'] = statistics.median(durations)
             result['maxMs'] = max(durations)
             result['afterNodes'] = page.locator('*').count()
-            page.wait_for_timeout(2800)
-            page.locator('button[data-esc-lang="en"]').click()
-            page.wait_for_timeout(150)
-            result['savedLanguage'] = page.evaluate('localStorage.getItem("esc-language-v1")')
-            page.reload(wait_until='domcontentloaded')
-            page.wait_for_timeout(350)
-            result['reloadLanguage'] = page.evaluate('document.documentElement.lang')
-            assert result['savedLanguage'] == 'en' and result['reloadLanguage'] == 'en'
+            result['maxFrameGapMs'] = page.evaluate('Math.max(...window.switchFrames)')
+            assert result['afterNodes'] == result['beforeNodes'], 'DOM grows while toggling'
+            assert page.locator('.esc-lang-dual').count() == 0, 'Old dual-wrapper runtime still loaded'
+            assert result['maxMs'] < 250, 'Language paint exceeds 250 ms: ' + str(result['maxMs'])
+            # Keep a frame heartbeat for 1 second to detect delayed work/freeze.
+            page.wait_for_timeout(1000)
+            result['maxFrameGapMs'] = page.evaluate('Math.max(...window.switchFrames)')
+            assert result['maxFrameGapMs'] < 300, 'Long frame after language switch'
+
+            if repeat == 0:
+                # New content is translated too; code/input content is untouched.
+                page.evaluate("""() => {
+                  const box = document.createElement('div'); box.id = 'language-test';
+                  box.innerHTML = '<p id="dynamic-copy">Hakkımızda</p><b id="case-upper" style="text-transform:uppercase">indigo science</b><b id="case-lower" style="text-transform:lowercase">INDIGO SCIENCE</b><code id="no-translate">Hakkımızda</code>';
+                  document.body.appendChild(box);
+                }""")
+                page.wait_for_timeout(80)
+                assert page.locator('#case-upper').inner_text() == 'İNDİGO SCİENCE'
+                assert page.locator('#case-lower').inner_text() == 'ındıgo scıence'
+                page.locator('button[data-esc-lang="en"]').click()
+                page.wait_for_timeout(100)
+                assert page.locator('#dynamic-copy').text_content() == 'About'
+                assert page.locator('#case-upper').inner_text() == 'INDIGO SCIENCE'
+                assert page.locator('#case-lower').inner_text() == 'indigo science'
+                assert page.locator('#no-translate').text_content() == 'Hakkımızda'
+                page.evaluate("document.querySelector('#dynamic-copy').firstChild.nodeValue = 'Hemen katıl'")
+                page.wait_for_timeout(60)
+                assert page.locator('#dynamic-copy').text_content() == 'Join now'
+                page.locator('button[data-esc-lang="tr"]').focus()
+                page.keyboard.press('Enter')
+                page.wait_for_timeout(100)
+                assert page.locator('#dynamic-copy').text_content() == 'Hemen katıl'
+                assert page.locator('#case-upper').inner_text() == 'İNDİGO SCİENCE'
+                page.evaluate("document.querySelector('#language-test').remove()")
+                result['dynamicCasingKeyboardPassed'] = True
+                page.locator('button[data-esc-lang="en"]').click()
+                page.wait_for_timeout(150)
+                page.screenshot(path=str(REPORT / (label + '-en.png')))
+                result['savedLanguage'] = page.evaluate('localStorage.getItem("esc-language-v1")')
+                page.reload(wait_until='domcontentloaded')
+                page.wait_for_timeout(350)
+                result['reloadLanguage'] = page.evaluate('document.documentElement.lang')
+                assert result['savedLanguage'] == 'en' and result['reloadLanguage'] == 'en'
+                assert page.locator('.nav-links a').first.text_content().strip() == 'About'
             assert not result['errors'], result['errors']
-            assert result['maxMs'] < 500, result
             result['passed'] = True
         except Exception as error:
             result['passed'] = False
