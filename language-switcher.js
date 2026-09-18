@@ -42,6 +42,8 @@
 
   const originalText = new WeakMap();
   const originalAttrs = new WeakMap();
+  const trackedTextNodes = new Set();
+  const trackedAttrElements = new Set();
   let currentLanguage = localStorage.getItem(STORAGE_KEY) === 'en' ? 'en' : 'tr';
   let observer;
 
@@ -98,11 +100,13 @@
     const currentKey = normalize(node.nodeValue);
     if (Object.prototype.hasOwnProperty.call(TR_TO_EN, currentKey)) {
       originalText.set(node, node.nodeValue);
+      trackedTextNodes.add(node);
       if (currentLanguage === 'en') node.nodeValue = preserveWhitespace(node.nodeValue, TR_TO_EN[currentKey]);
       return;
     }
     const original = originalText.get(node);
     if (!original) return;
+    trackedTextNodes.add(node);
     const originalKey = normalize(original);
     const expected = currentLanguage === 'tr' ? original : preserveWhitespace(original, TR_TO_EN[originalKey] || originalKey);
     if (node.nodeValue !== expected) node.nodeValue = expected;
@@ -121,6 +125,7 @@
       const expected = currentLanguage === 'en' ? (ATTR_TR_TO_EN[saved[name]] || saved[name]) : saved[name];
       if (current !== expected) element.setAttribute(name, expected);
     });
+    if (Object.keys(saved).length) trackedAttrElements.add(element);
   };
 
   const translateTree = (root = document.body) => {
@@ -134,6 +139,23 @@
       else if (node instanceof Element && !node.matches('script,style,noscript')) translateAttributes(node);
       node = walker.nextNode();
     }
+  };
+
+  const translateTracked = () => {
+    trackedTextNodes.forEach((node) => {
+      if (!node.isConnected) {
+        trackedTextNodes.delete(node);
+        return;
+      }
+      translateTextNode(node);
+    });
+    trackedAttrElements.forEach((element) => {
+      if (!element.isConnected) {
+        trackedAttrElements.delete(element);
+        return;
+      }
+      translateAttributes(element);
+    });
   };
 
   const syncSwitcher = () => {
@@ -156,7 +178,7 @@
     localStorage.setItem(STORAGE_KEY, currentLanguage);
     ensureFourthFeedback();
     syncHead();
-    translateTree(document.body);
+    translateTracked();
     syncSwitcher();
     window.dispatchEvent(new CustomEvent('esc:languagechange', { detail: { language: currentLanguage } }));
   }
@@ -177,6 +199,8 @@
   ensureStyles();
   ensureFourthFeedback();
   ensureSwitcher();
-  setLanguage(currentLanguage);
+  syncHead();
+  translateTree(document.body);
+  syncSwitcher();
   startObserver();
 })();
