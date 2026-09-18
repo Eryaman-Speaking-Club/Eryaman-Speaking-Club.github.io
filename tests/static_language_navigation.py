@@ -1,7 +1,7 @@
-"""Passive first/repeated native-language navigation probes; no polling injection.
+"""Passive native-language probes: cold first switch, repeated navigation, casing.
 
-Reports network, DOM readiness, first-frame and full hero visibility separately.
-TEST_BASE_URL selects production; otherwise serve the same built artifact locally.
+Times include the whole native navigation, not just the JavaScript handler.
+TEST_BASE_URL selects production; otherwise serve the exact built site locally.
 """
 import functools,json,os,threading
 from http.server import SimpleHTTPRequestHandler,ThreadingHTTPServer
@@ -69,12 +69,19 @@ with sync_playwright() as p:
    assert sample.get('heroVisibleMs') is not None,sample
    sample['afterReadyMs']=sample['heroVisibleMs']-sample['domReadyMs']
    assert page.evaluate('document.documentElement.classList.contains("esc-language-hop")'),'Navigation helper is absent'
+   assert sample['heroVisibleMs'] < 500, 'Slow full language navigation: '+str(sample)
    assert sample['afterReadyMs'] < 350, 'Delayed content after DOM ready: '+str(sample)
    assert page.locator('.esc-lang-dual').count()==0
    assert not any('language-switcher.js' in src for src in page.locator('script[src]').evaluate_all('(nodes)=>nodes.map(n=>n.src)'))
+   sample['casing']=page.evaluate('''() => {
+    const box=document.createElement('div');box.style.cssText='position:absolute;left:-10000px';
+    box.innerHTML='<span style="text-transform:uppercase">indigo science</span><span style="text-transform:lowercase">INDIGO SCIENCE</span>';
+    document.body.appendChild(box);const values=[...box.children].map(n=>n.innerText);box.remove();return values;
+   }''')
+   expected=['INDIGO SCIENCE','indigo science'] if lang=='en' else ['İNDİGO SCİENCE','ındıgo scıence']
+   assert sample['casing']==expected, sample
    page.wait_for_timeout(500)
    if len(result['samples'])==1:page.screenshot(path=str(OUT/(ENGINE+('-mobile' if MOBILE else '-desktop')+'-en.png')))
-  # Normal anchors and native browser navigation remain usable.
   if MOBILE:page.locator('.menu-btn').click()
   page.locator('.nav-links a[href="#faq"]').click()
   page.wait_for_timeout(900)
