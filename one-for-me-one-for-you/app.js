@@ -1,7 +1,8 @@
 (() => {
   'use strict';
 
-  const ADMIN_PASSWORD = 'Eryaman6144.';
+  const ADMIN_HASH = 'c28440d7f9de5738eddf560c79371754e9ffa41fba2afd1efaa3da1458438a52';
+  const STUDIO_MODE = new URLSearchParams(location.search).get('studio') === '1';
   const STORAGE_KEY = 'esc-local-admin-v2';
   const SOUND_KEY = 'esc-sound-v2';
   const UNLOCK_KEY = 'esc-admin-unlocked-v2';
@@ -157,7 +158,7 @@ function playReveal() {
   function drawCard() {
     const selected = chooseUnusedCard();
     if (!selected) {
-      showToast('No active questions. Open the Control Panel.');
+      showToast('No active questions are available.');
       return;
     }
     playDraw();
@@ -199,6 +200,12 @@ function playReveal() {
     $('home').removeAttribute('hidden');
   }
 
+  async function sha256(value) {
+    const bytes = new TextEncoder().encode(value);
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
+
   function showAdminLogin() {
     $('adminLogin').removeAttribute('hidden');
     $('adminDashboard').setAttribute('hidden', '');
@@ -225,10 +232,10 @@ function playReveal() {
     $('adminPanel').close();
   }
 
-  function loginAdmin() {
+  async function loginAdmin() {
     playClick();
     const password = $('adminPassword').value.trim();
-    if (password !== ADMIN_PASSWORD) {
+    if (await sha256(password) !== ADMIN_HASH) {
       $('adminError').removeAttribute('hidden');
       return;
     }
@@ -449,9 +456,9 @@ function playReveal() {
     $('next').onclick = nextTurn;
     $('homeLogo').onclick = goHome;
     $('sound').onclick = toggleSound;
-    $('admin').onclick = openAdmin;
+    if ($('admin')) $('admin').onclick = openAdmin;
     $('closeAdmin').onclick = closeAdmin;
-    $('adminLoginButton').onclick = loginAdmin;
+    $('adminLoginButton').onclick = () => void loginAdmin();
     $('adminLogout').onclick = logoutAdmin;
     $('addQuestion').onclick = addQuestion;
     $('saveEdit').onclick = saveSelectedEdit;
@@ -483,11 +490,24 @@ function playReveal() {
       renderLibrary();
     };
     $('adminPassword').addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') loginAdmin();
+      if (event.key === 'Enter') void loginAdmin();
     });
     $('adminPanel').addEventListener('click', (event) => {
       if (event.target === $('adminPanel')) closeAdmin();
     });
+
+    if (STUDIO_MODE) {
+      if (sessionStorage.getItem(UNLOCK_KEY) !== 'yes') {
+        location.replace('/esc-studio/?next=one-for-me-one-for-you');
+        return;
+      }
+      const back = document.createElement('a');
+      back.href = '/esc-studio/';
+      back.textContent = '← ESC Studio';
+      back.style.cssText = 'display:inline-flex;align-items:center;min-height:40px;padding:0 12px;border:1px solid #dce5ed;border-radius:12px;background:#fff;color:#0b2f5b;text-decoration:none;font-weight:900;font-size:12px';
+      document.querySelector('.header-actions')?.prepend(back);
+      setTimeout(openAdmin, 0);
+    }
   }
 
   init();
