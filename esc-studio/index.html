@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#071b34">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>ESC Studio · Eryaman Speaking Club</title>
+  <link rel="stylesheet" href="../esc-brand.css?v=20260917">
+  <link rel="stylesheet" href="./studio.css?v=20260919-1">
+</head>
+<body>
+  <div class="studio-bg" aria-hidden="true"></div>
+
+  <main class="studio-shell">
+    <section id="loginView" class="login-view">
+      <div class="login-card">
+        <a class="esc-brand studio-brand" href="../" aria-label="Eryaman Speaking Club">
+          <span class="esc-brand-mark"><img src="../esc-center-symbol.webp" alt=""></span>
+          <span class="esc-brand-title">Eryaman Speaking Club</span>
+        </a>
+        <div class="studio-kicker">PRIVATE WORKSPACE</div>
+        <h1>ESC Studio</h1>
+        <p>Oyun içeriklerini tek merkezden yönet. Bu sayfa kulüp sitesinde veya Game Hub'da gösterilmez.</p>
+        <form id="loginForm">
+          <label for="studioPassword">Admin şifresi</label>
+          <div class="password-row">
+            <input id="studioPassword" type="password" autocomplete="current-password" placeholder="Şifre">
+            <button type="submit">Studio'ya gir →</button>
+          </div>
+          <p id="loginError" class="error" hidden>Şifre yanlış.</p>
+        </form>
+        <div class="login-note"><span>●</span> Oturum bu tarayıcı sekmesi açık kaldığı sürece aktif kalır.</div>
+      </div>
+    </section>
+
+    <section id="dashboardView" class="dashboard" hidden>
+      <header class="studio-header">
+        <a class="esc-brand studio-brand" href="../">
+          <span class="esc-brand-mark"><img src="../esc-center-symbol.webp" alt=""></span>
+          <span class="esc-brand-title">Eryaman Speaking Club</span>
+        </a>
+        <div class="header-actions">
+          <a class="ghost-button" href="../games/">Game Hub ↗</a>
+          <button id="logoutButton" class="ghost-button" type="button">Kilitle</button>
+        </div>
+      </header>
+
+      <section class="hero">
+        <div>
+          <span class="studio-kicker">GAME CONTROL CENTER</span>
+          <h1>ESC Studio</h1>
+          <p>Public oyun ekranlarından admin düğmelerini kaldırdık. Yönetim artık burada başlıyor.</p>
+        </div>
+        <div class="hero-stats">
+          <div><strong id="gameCount">12</strong><span>oyun</span></div>
+          <div><strong id="customCount">0</strong><span>yerel veri</span></div>
+          <div><strong>1</strong><span>kontrol merkezi</span></div>
+        </div>
+      </section>
+
+      <section class="toolbar-card">
+        <div>
+          <span class="section-tag">STUDIO BACKUP</span>
+          <h2>Bu cihazdaki oyun verileri</h2>
+          <p>Şu an düzenlemeler GitHub Pages üzerinde bu tarayıcının localStorage alanında tutuluyor.</p>
+        </div>
+        <div class="toolbar-actions">
+          <button id="exportAll" class="secondary-button" type="button">Tümünü yedekle</button>
+          <label class="secondary-button file-button">Yedek yükle<input id="importAll" type="file" accept="application/json,.json"></label>
+        </div>
+      </section>
+
+      <div class="section-heading">
+        <div><span class="section-tag">OYUN YÖNETİMİ</span><h2>Bütün oyunlar</h2></div>
+        <p>Yönet'e bastığında oyun, yalnızca Studio modunda editörünü açar.</p>
+      </div>
+
+      <section id="gameGrid" class="game-grid" aria-live="polite"></section>
+
+      <section class="system-card">
+        <div>
+          <span class="section-tag">SİSTEM</span>
+          <h2>Site ve yayın</h2>
+          <p>İçerik editörleri Studio'ya taşındı. GitHub Pages yayın/deploy ayarları ise GitHub tarafında kalıyor.</p>
+        </div>
+        <div class="system-actions">
+          <a class="secondary-button" href="https://github.com/Eryaman-Speaking-Club/Eryaman-Speaking-Club.github.io" target="_blank" rel="noreferrer">GitHub repo ↗</a>
+          <a class="secondary-button" href="../" target="_blank">Canlı site ↗</a>
+        </div>
+      </section>
+
+      <aside class="security-note">
+        <strong>Not:</strong> ESC Studio şu anda statik GitHub Pages üzerinde çalışıyor. Admin arayüzünü public oyunlardan gizler ve tek noktada toplar; ancak gerçek sunucu tarafı kullanıcı doğrulaması değildir. Tüm cihazlarda ortak, gerçekten merkezi yönetim için sonraki adım backend bağlantısıdır.
+      </aside>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="./studio.js?v=20260919-1"></script>
+</body>
+</html>
