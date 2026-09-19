@@ -2,8 +2,13 @@
 
 A lightweight, static website and browser-game collection for **Eryaman Speaking Club**. The main site introduces the club and meetup experience; the separate Game Hub contains 12 speaking, conversation and party games that run directly in the browser.
 
+## Quick links
+
 - **Club website:** https://eryaman-speaking-club.github.io/
 - **Game Hub:** https://eryaman-speaking-club.github.io/games/
+- **ESC Studio:** https://eryaman-speaking-club.github.io/esc-studio/
+
+> ESC Studio is the private game-management entry point. It is intentionally not linked from the public website or Game Hub.
 
 ## Purpose
 
@@ -12,7 +17,7 @@ The project has two goals:
 1. explain Eryaman Speaking Club, how meetups work, participation options, events and community feedback;
 2. provide simple speaking games that can be opened instantly on a phone, tablet, laptop or projector during meetups.
 
-The project is intentionally frontend-only. There is no backend, database, package installation or paid runtime dependency.
+The public site is still deployed as a lightweight static GitHub Pages project. **ESC Studio** is now the single management entry point, and a Supabase backend migration is being prepared for cross-device content sync and real admin authentication.
 
 ## Main features
 
@@ -82,9 +87,13 @@ Team names, player lists and the selected team/quick-play mode are stored locall
 
 Reset controls affect the relevant gameplay state only. Normal player/team setup never requires the admin password.
 
-## Question editor and admin lock
+## ESC Studio and game administration
 
-Supported game pages load `esc-content-editor.js`, which detects the game's built-in content source and adds an **Edit questions** control.
+Game administration is centralized at:
+
+`https://eryaman-speaking-club.github.io/esc-studio/`
+
+Public game pages no longer expose the question/admin controls. Supported game pages still load `esc-content-editor.js`, but the editor UI is mounted only when the game is opened from ESC Studio in Studio mode.
 
 Depending on the game schema, the editor can:
 
@@ -94,11 +103,9 @@ Depending on the game schema, the editor can:
 - search the local question library;
 - restore the built-in library.
 
-Edited question libraries are saved only in that browser with `localStorage`.
+Until the Supabase migration is completed, edited question libraries are still saved in that browser with `localStorage`. ESC Studio provides one management entry point and full-browser backup/import, but those edits are not yet shared automatically with other devices.
 
-Opening the editor requires the local admin password. The readable password is not stored in the JavaScript; the entered value is checked against a SHA-256 hash. A successful unlock is remembered for the current browser tab with `sessionStorage`.
-
-This is a lightweight event safeguard, **not server-side authentication** and not suitable for protecting sensitive data.
+The current Studio lock uses a SHA-256 password check and `sessionStorage`. This is only a transition mechanism. The target backend architecture uses Supabase Auth + Row Level Security for real server-side authorization.
 
 ## Local data
 
@@ -109,7 +116,7 @@ Depending on the game, the browser may locally remember:
 - team names and mode selection;
 - sound-level preference.
 
-Active round state and most scores are gameplay state rather than account data. Data does not sync between devices because the project has no backend. Clearing site storage removes saved local customisations.
+Active round state and most scores are gameplay state rather than account data. Local customisations do not yet sync between devices. The Supabase migration is intended to make published game content centrally managed while keeping local storage only as a fallback/offline layer.
 
 ## Technologies
 
@@ -120,8 +127,9 @@ Active round state and most scores are gameplay state rather than account data. 
 - Web Audio API for lightweight game sounds
 - GitHub Actions
 - GitHub Pages
+- Supabase backend adapter and migration schema (backend rollout in progress)
 
-There is no npm dependency, framework or build step.
+There is no npm build step or frontend framework.
 
 ## Project structure
 
@@ -137,6 +145,10 @@ There is no npm dependency, framework or build step.
 │   ├── index.html             # Full 12-game Game Hub
 │   ├── games.css              # Game Hub layout
 │   └── previews.css           # Game preview artwork
+├── esc-studio/
+│   ├── index.html             # Private game-management entry point
+│   ├── studio.css
+│   └── studio.js
 ├── taboo/                     # Individual game folders
 ├── truth-or-dare/
 ├── would-you-rather/
@@ -145,9 +157,29 @@ There is no npm dependency, framework or build step.
 ├── esc-game-kit.css           # Shared game UI
 ├── esc-game-kit.js            # Shared audio/feedback helpers
 ├── esc-depth-pass.js          # Optional roster/vote/turn/timer enhancements
-├── esc-content-editor.js      # Password-protected local content editor
+├── esc-content-editor.js      # Studio-only content editor for supported games
+├── esc-supabase-config.js     # Public Supabase URL/publishable-key config
+├── esc-supabase.js            # Browser Supabase adapter
+├── supabase/
+│   ├── schema.sql             # Tables, RLS policies, helper functions and game seeds
+│   └── README.md              # Backend setup notes
 └── .github/workflows/pages.yml# GitHub Pages deployment
 ```
+
+## Supabase backend rollout
+
+The repository now contains the backend groundwork in `supabase/schema.sql` and the browser adapter in `esc-supabase.js`.
+
+The target architecture is:
+
+1. GitHub Pages continues serving the public website and games.
+2. Supabase Auth handles ESC Studio admin sign-in.
+3. Supabase PostgreSQL stores the shared game library and settings.
+4. RLS allows public visitors to read active game content.
+5. Only users listed in `esc_admins` can write through ESC Studio.
+6. The browser uses only the public project URL and anon/publishable key. The `service_role` key must never be committed to this repository.
+
+The remaining rollout steps are to connect the Supabase project, apply the schema, create the first admin account, seed the current game libraries and switch the editors from local-only persistence to central saves.
 
 ## Run locally
 
@@ -194,4 +226,4 @@ Changes that fit the current architecture without a rewrite include:
 - lightweight offline/PWA support for unreliable event Wi-Fi;
 - a shared metadata manifest to reduce duplicated game information.
 
-A backend should only be introduced if the project later needs accounts, cross-device sync, central content administration or secure authentication.
+The active backend migration is intended to provide cross-device sync, central content administration and secure admin authentication while keeping the public site on GitHub Pages.
