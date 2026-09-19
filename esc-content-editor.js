@@ -3,6 +3,7 @@
   const STORAGE_KEY='esc-custom-content-v1:'+PATH_KEY;
   const UNLOCK_KEY='esc-admin-unlocked-v2';
   const ADMIN_HASH='c28440d7f9de5738eddf560c79371754e9ffa41fba2afd1efaa3da1458438a52';
+  const STUDIO_MODE=new URLSearchParams(location.search).get('studio')==='1';
 
   function detectSource(){
     try{if(typeof items!=='undefined'&&Array.isArray(items))return{name:'items',data:items}}catch(e){}
@@ -72,12 +73,15 @@
   const schema=schemaFrom(source.data[0]||defaults[0]);
   const categories=categoriesOf(defaults);
 
+  /* Public game pages only apply saved content. The editor UI is mounted exclusively from ESC Studio. */
+  if(!STUDIO_MODE)return;
+
   function mount(){
     const actionHost=document.querySelector('.game-actions')||document.querySelector('.header-actions')||document.querySelector('.topbar');
     if(!actionHost||document.getElementById('escEditContentBtn'))return;
 
     const btn=document.createElement('button');
-    btn.id='escEditContentBtn';btn.type='button';btn.className='esc-edit-content-btn';btn.innerHTML='<span>Edit questions</span> ⚙';btn.setAttribute('aria-label','Edit questions');actionHost.appendChild(btn);
+    btn.id='escEditContentBtn';btn.type='button';btn.className='esc-edit-content-btn';btn.innerHTML='<span>Edit questions</span> ⚙';btn.setAttribute('aria-label','Edit questions');btn.hidden=true;actionHost.appendChild(btn);
 
     const overlay=document.createElement('div');
     overlay.className='esc-editor-overlay';overlay.id='escEditorOverlay';
@@ -106,14 +110,15 @@
     cancelBtn.onclick=clearForm;resetBtn.onclick=()=>{if(!confirm('Reset this game to the built-in question library?'))return;source.data.splice(0,source.data.length,...clone(defaults));localStorage.removeItem(STORAGE_KEY);clearForm();render();refreshGame()};search.oninput=render;
     async function open(){
       if(sessionStorage.getItem(UNLOCK_KEY)!=='yes'){
-        const entered=window.prompt('Enter admin password to edit questions:');if(entered===null)return;
-        if(!(await verifyAdmin(entered))){alert('Incorrect password.');return}
-        sessionStorage.setItem(UNLOCK_KEY,'yes');
+        const next=location.pathname.replace(/^\/+|\/+$/g,'');
+        location.replace('/esc-studio/?next='+encodeURIComponent(next));
+        return;
       }
       overlay.classList.add('open');render();
     }
     function hide(){overlay.classList.remove('open');clearForm()}
-    btn.onclick=open;close.onclick=hide;overlay.addEventListener('click',e=>{if(e.target===overlay)hide()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('open'))hide()});render();
+    const back=document.createElement('a');back.href='/esc-studio/';back.textContent='← ESC Studio';back.setAttribute('aria-label','Back to ESC Studio');back.style.cssText='display:inline-flex;align-items:center;gap:6px;margin:0 0 14px;padding:9px 12px;border-radius:12px;background:#eef4fa;color:#0b2f5b;text-decoration:none;font:800 12px/1 system-ui,sans-serif';panel.prepend(back);
+    btn.onclick=open;close.onclick=hide;overlay.addEventListener('click',e=>{if(e.target===overlay)hide()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('open'))hide()});render();setTimeout(()=>void open(),0);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
 })();
