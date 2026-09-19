@@ -6,6 +6,7 @@
   const PASSWORD_HASH_KEY = 'esc-truth-dare-password-hash-v1';
   const ADMIN_SESSION_KEY = 'esc-truth-dare-admin-unlocked-v1';
   const DEFAULT_PASSWORD_HASH = 'c28440d7f9de5738eddf560c79371754e9ffa41fba2afd1efaa3da1458438a52';
+  const STUDIO_MODE = new URLSearchParams(location.search).get('studio') === '1';
   const CLUB_LOGO_URL = '../51a64254-0651-4c02-8235-bef5325d7947%20(1).png';
   const WHEEL_COLORS = ['#123a6b', '#f74f54', '#225f9d', '#f28b45', '#0b2f5b', '#ef7e65'];
 
@@ -663,9 +664,12 @@
     $('spinAgain').onclick = () => spinQuestion(selectedType);
     $('homeLogo').onclick = restartGame;
     $('sound').onclick = () => { state.settings.sound = !state.settings.sound; saveState(); updateControls(); if (state.settings.sound) playClick(); };
-    $('admin').onclick = () => openAdmin('names');
+    if ($('admin')) $('admin').onclick = () => openAdmin('names');
     $('openNames').onclick = () => openAdmin('names');
-    $('openQuestions').onclick = () => openAdmin(selectedType === 'truth' ? 'truths' : 'dares');
+    $('openQuestions').onclick = () => {
+      if (STUDIO_MODE) openAdmin(selectedType === 'truth' ? 'truths' : 'dares');
+      else showToast('Question library is empty.');
+    };
     $('closeAdmin').onclick = () => $('adminPanel').close();
     $('adminLoginButton').onclick = () => void loginAdmin();
     $('adminPassword').addEventListener('keydown', (event) => { if (event.key === 'Enter') void loginAdmin(); });
@@ -701,6 +705,19 @@
 
     $('adminPanel').addEventListener('click', (event) => { if (event.target === $('adminPanel')) $('adminPanel').close(); });
     $('passwordPanel').addEventListener('click', (event) => { if (event.target === $('passwordPanel')) $('passwordPanel').close(); });
+
+    if (STUDIO_MODE) {
+      if (sessionStorage.getItem(ADMIN_SESSION_KEY) !== 'yes') {
+        location.replace('/esc-studio/?next=truth-or-dare');
+        return;
+      }
+      const back = document.createElement('a');
+      back.href = '/esc-studio/';
+      back.textContent = '← ESC Studio';
+      back.style.cssText = 'display:inline-flex;align-items:center;min-height:40px;padding:0 12px;border:1px solid #dce5ed;border-radius:12px;background:#fff;color:#0b2f5b;text-decoration:none;font-weight:900;font-size:12px';
+      document.querySelector('.header-actions')?.prepend(back);
+      setTimeout(() => openAdmin('truths'), 0);
+    }
   }
 
   init();
