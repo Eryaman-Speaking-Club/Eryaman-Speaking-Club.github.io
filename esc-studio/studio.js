@@ -44,6 +44,25 @@
     sessionStorage.removeItem(TRUTH_SESSION);
   }
 
+  async function updateBackendStatus() {
+    const status = $('backendStatus');
+    const badge = $('backendBadge');
+    if (!status || !badge) return;
+    if (!window.ESCSupabase || !window.ESCSupabase.isConfigured()) {
+      status.textContent = 'Backend kodu hazır. Supabase proje URL ve publishable/anon key bağlantısı bekleniyor.';
+      badge.textContent = 'BEKLİYOR';
+      return;
+    }
+    try {
+      await window.ESCSupabase.getClient();
+      status.textContent = 'Supabase istemcisi yapılandırıldı. Veritabanı şeması ve admin hesabı doğrulandıktan sonra merkezi senkronizasyon açılacak.';
+      badge.textContent = 'BAĞLI';
+    } catch (error) {
+      status.textContent = 'Supabase ayarı bulundu ancak bağlantı kurulamadı.';
+      badge.textContent = 'HATA';
+    }
+  }
+
   function showToast(message) {
     const toast = $('toast');
     toast.textContent = message;
@@ -85,6 +104,7 @@
     $('loginView').hidden = true;
     $('dashboardView').hidden = false;
     renderGames();
+    void updateBackendStatus();
   }
 
   function showLogin() {
