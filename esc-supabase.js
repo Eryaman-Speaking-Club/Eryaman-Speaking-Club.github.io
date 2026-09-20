@@ -50,7 +50,25 @@
   async function signUp(email, password) {
     const client = await getClient();
     if (!client) throw new Error('Supabase is not configured.');
-    const { data, error } = await client.auth.signUp({ email, password });
+    const redirectTo = new URL('/esc-studio/', window.location.origin).href;
+    const { data, error } = await client.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: redirectTo }
+    });
+    if (error) throw error;
+    return data;
+  }
+
+  async function resendSignupConfirmation(email) {
+    const client = await getClient();
+    if (!client) throw new Error('Supabase is not configured.');
+    const redirectTo = new URL('/esc-studio/', window.location.origin).href;
+    const { data, error } = await client.auth.resend({
+      type: 'signup',
+      email,
+      options: { emailRedirectTo: redirectTo }
+    });
     if (error) throw error;
     return data;
   }
@@ -137,6 +155,7 @@
     ping,
     getSession,
     signUp,
+    resendSignupConfirmation,
     signIn,
     signOut,
     claimFirstAdmin,
