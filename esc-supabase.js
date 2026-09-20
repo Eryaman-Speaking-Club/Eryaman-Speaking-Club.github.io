@@ -73,6 +73,23 @@
     return data;
   }
 
+  async function sendPasswordReset(email) {
+    const client = await getClient();
+    if (!client) throw new Error('Supabase is not configured.');
+    const redirectTo = new URL('/esc-studio/', window.location.origin).href;
+    const { data, error } = await client.auth.resetPasswordForEmail(email, { redirectTo });
+    if (error) throw error;
+    return data;
+  }
+
+  async function updatePassword(password) {
+    const client = await getClient();
+    if (!client) throw new Error('Supabase is not configured.');
+    const { data, error } = await client.auth.updateUser({ password });
+    if (error) throw error;
+    return data;
+  }
+
   async function signIn(email, password) {
     const client = await getClient();
     if (!client) throw new Error('Supabase is not configured.');
@@ -156,6 +173,8 @@
     getSession,
     signUp,
     resendSignupConfirmation,
+    sendPasswordReset,
+    updatePassword,
     signIn,
     signOut,
     claimFirstAdmin,
