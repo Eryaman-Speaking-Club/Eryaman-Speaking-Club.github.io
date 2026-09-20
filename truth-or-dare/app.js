@@ -75,10 +75,45 @@
 
   function saveState(message) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    void saveCloudState();
     updateAdminCounts();
     updateControls();
     if ($('saveLabel')) $('saveLabel').textContent = 'Saved';
     if (message) showToast(message);
+  }
+
+  async function saveCloudState() {
+    try {
+      if (!window.ESCSupabase || !window.ESCSupabase.isConfigured()) return;
+      if (!(await window.ESCSupabase.isAdmin())) return;
+      await window.ESCSupabase.saveGameSettings('truth-or-dare', {
+        truths: state.truths,
+        dares: state.dares,
+        settings: state.settings,
+        source: 'esc-studio',
+        version: 3
+      });
+    } catch (error) {
+      console.warn('ESC cloud save failed; local fallback kept.', error);
+    }
+  }
+
+  async function hydrateCloudState() {
+    try {
+      if (!window.ESCSupabase || !window.ESCSupabase.isConfigured()) return;
+      const remote = await window.ESCSupabase.getGameSettings('truth-or-dare');
+      if (!remote || typeof remote !== 'object') return;
+      state = normalizeState({
+        ...state,
+        truths: Array.isArray(remote.truths) ? remote.truths : state.truths,
+        dares: Array.isArray(remote.dares) ? remote.dares : state.dares,
+        settings: remote.settings && typeof remote.settings === 'object' ? remote.settings : state.settings,
+        history: state.history
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (error) {
+      console.warn('ESC cloud state unavailable; using local fallback.', error);
+    }
   }
 
   function showToast(message) {
@@ -647,7 +682,8 @@
     showScreen('player');
   }
 
-  function init() {
+  async function init() {
+    await hydrateCloudState();
     installWheelEnhancements();
     updateControls();
     updateAdminCounts();
@@ -707,7 +743,14 @@
     $('passwordPanel').addEventListener('click', (event) => { if (event.target === $('passwordPanel')) $('passwordPanel').close(); });
 
     if (STUDIO_MODE) {
-      if (sessionStorage.getItem(ADMIN_SESSION_KEY) !== 'yes') {
+      try {
+        const session = window.ESCSupabase && await window.ESCSupabase.getSession();
+        const admin = session && await window.ESCSupabase.isAdmin();
+        if (!admin) {
+          location.replace('/esc-studio/?next=truth-or-dare');
+          return;
+        }
+      } catch {
         location.replace('/esc-studio/?next=truth-or-dare');
         return;
       }
@@ -720,5 +763,5 @@
     }
   }
 
-  init();
+  void init();
 })();
