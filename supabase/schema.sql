@@ -85,12 +85,31 @@ alter table public.games enable row level security;
 alter table public.game_content enable row level security;
 alter table public.game_settings enable row level security;
 
+-- Explicit Data API grants. RLS below remains the row-level authorization boundary.
+revoke all on table public.esc_admins from anon, authenticated;
+revoke all on table public.games from anon, authenticated;
+revoke all on table public.game_content from anon, authenticated;
+revoke all on table public.game_settings from anon, authenticated;
+
+grant select on table public.esc_admins to authenticated;
+grant select on table public.games to anon, authenticated;
+grant select on table public.game_content to anon, authenticated;
+grant select on table public.game_settings to anon, authenticated;
+
+grant insert, update, delete on table public.games to authenticated;
+grant insert, update, delete on table public.game_content to authenticated;
+grant insert, update, delete on table public.game_settings to authenticated;
+
+grant usage, select on sequence public.game_content_id_seq to authenticated;
+
+revoke all on function public.touch_updated_at() from public;
+
 drop policy if exists "admin can read own role" on public.esc_admins;
 create policy "admin can read own role"
 on public.esc_admins
 for select
 to authenticated
-using (user_id = auth.uid());
+using (user_id = (select auth.uid()));
 
 drop policy if exists "public can read enabled games" on public.games;
 create policy "public can read enabled games"
@@ -113,11 +132,13 @@ on public.game_content
 for select
 to anon, authenticated
 using (
-  is_active = true
-  and exists (
-    select 1 from public.games g
-    where g.slug = game_content.game_slug
-      and g.enabled = true
+  (
+    is_active = true
+    and exists (
+      select 1 from public.games g
+      where g.slug = game_content.game_slug
+        and g.enabled = true
+    )
   )
   or public.is_esc_admin()
 );
