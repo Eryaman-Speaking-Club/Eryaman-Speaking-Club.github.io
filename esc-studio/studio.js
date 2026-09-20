@@ -54,11 +54,16 @@
       return;
     }
     try {
-      await window.ESCSupabase.getClient();
-      status.textContent = 'Supabase istemcisi yapılandırıldı. Veritabanı şeması ve admin hesabı doğrulandıktan sonra merkezi senkronizasyon açılacak.';
-      badge.textContent = 'BAĞLI';
+      const health = await window.ESCSupabase.ping();
+      if (health.database) {
+        status.textContent = 'Supabase projesi ve ESC veritabanı şeması erişilebilir. Sıradaki adım admin Auth hesabını oluşturup içerikleri merkezi veritabanına taşımak.';
+        badge.textContent = 'VERİTABANI HAZIR';
+      } else {
+        status.textContent = 'Supabase proje bağlantısı hazır; ESC migration dosyasının Supabase tarafında uygulanması bekleniyor.';
+        badge.textContent = 'MIGRATION BEKLİYOR';
+      }
     } catch (error) {
-      status.textContent = 'Supabase ayarı bulundu ancak bağlantı kurulamadı.';
+      status.textContent = 'Supabase ayarı bulundu ancak bağlantı doğrulanamadı.';
       badge.textContent = 'HATA';
     }
   }
