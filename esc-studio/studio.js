@@ -112,6 +112,7 @@
     $('loginView').hidden = false;
     $('studioPassword').value = '';
     $('loginError').hidden = true;
+    $('resendConfirmation').hidden = true;
     setTimeout(() => $('studioEmail').focus(), 30);
   }
 
@@ -180,7 +181,9 @@
     const email = $('studioEmail').value.trim();
     const password = $('studioPassword').value;
     const error = $('loginError');
+    const resend = $('resendConfirmation');
     error.hidden = true;
+    resend.hidden = true;
     try {
       await window.ESCSupabase.signIn(email, password);
       let admin = await window.ESCSupabase.isAdmin();
@@ -194,7 +197,28 @@
       if (next && games.some((game) => game.path === next)) manageGame(next);
       else showDashboard();
     } catch (e) {
-      error.textContent = e && e.message ? e.message : 'Giriş yapılamadı.';
+      const message = e && e.message ? e.message : 'Giriş yapılamadı.';
+      error.textContent = message;
+      error.hidden = false;
+      if (/email not confirmed/i.test(message)) resend.hidden = false;
+    }
+  }
+
+  async function resendConfirmation() {
+    const email = $('studioEmail').value.trim();
+    const error = $('loginError');
+    if (!email) {
+      error.textContent = 'Önce admin e-posta adresini yaz.';
+      error.hidden = false;
+      return;
+    }
+    try {
+      await window.ESCSupabase.resendSignupConfirmation(email);
+      error.textContent = 'Doğrulama e-postası tekrar gönderildi. Gmail Gelen Kutusu ve Spam klasörünü kontrol et.';
+      error.hidden = false;
+      $('resendConfirmation').hidden = true;
+    } catch (e) {
+      error.textContent = e && e.message ? e.message : 'Doğrulama e-postası gönderilemedi.';
       error.hidden = false;
     }
   }
@@ -255,6 +279,7 @@
   }
 
   $('loginForm').addEventListener('submit', (event) => void login(event));
+  $('resendConfirmation').addEventListener('click', () => void resendConfirmation());
   $('setupForm').addEventListener('submit', (event) => void setup(event));
   $('logoutButton').addEventListener('click', () => void logout());
   $('exportAll').addEventListener('click', exportAll);
