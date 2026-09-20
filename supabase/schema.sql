@@ -1,7 +1,8 @@
 -- ESC Studio / Supabase backend schema
--- Run this in Supabase SQL Editor or apply it as a migration.
+-- GitHub Pages remains the frontend. Supabase provides Auth, PostgreSQL and RLS.
 
 create extension if not exists pgcrypto;
+create schema if not exists private;
 
 create table if not exists public.esc_admins (
   user_id uuid primary key references auth.users(id) on delete cascade,
@@ -30,7 +31,7 @@ create table if not exists public.game_content (
 );
 
 create index if not exists game_content_game_slug_idx
-  on public.game_content(game_slug, is_active, sort_order);
+  on public.game_content(game_slug, is_active, sort_order, id);
 
 create table if not exists public.game_settings (
   game_slug text primary key references public.games(slug) on delete cascade,
@@ -38,9 +39,18 @@ create table if not exists public.game_settings (
   updated_at timestamptz not null default now()
 );
 
-create or replace function public.touch_updated_at()
+-- One-time, server-side bootstrap codes for the first ESC Studio admin.
+create table if not exists private.admin_bootstrap (
+  code text primary key,
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now()
+);
+
+create or replace function private.touch_updated_at()
 returns trigger
 language plpgsql
+security invoker
+set search_path = ''
 as $$
 begin
   new.updated_at = now();
@@ -51,41 +61,23 @@ $$;
 drop trigger if exists games_touch_updated_at on public.games;
 create trigger games_touch_updated_at
 before update on public.games
-for each row execute function public.touch_updated_at();
+for each row execute function private.touch_updated_at();
 
 drop trigger if exists game_content_touch_updated_at on public.game_content;
 create trigger game_content_touch_updated_at
 before update on public.game_content
-for each row execute function public.touch_updated_at();
+for each row execute function private.touch_updated_at();
 
 drop trigger if exists game_settings_touch_updated_at on public.game_settings;
 create trigger game_settings_touch_updated_at
 before update on public.game_settings
-for each row execute function public.touch_updated_at();
-
-create or replace function public.is_esc_admin()
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select exists (
-    select 1
-    from public.esc_admins
-    where user_id = auth.uid()
-  );
-$$;
-
-revoke all on function public.is_esc_admin() from public;
-grant execute on function public.is_esc_admin() to anon, authenticated;
+for each row execute function private.touch_updated_at();
 
 alter table public.esc_admins enable row level security;
 alter table public.games enable row level security;
 alter table public.game_content enable row level security;
 alter table public.game_settings enable row level security;
 
--- Explicit Data API grants. RLS below remains the row-level authorization boundary.
 revoke all on table public.esc_admins from anon, authenticated;
 revoke all on table public.games from anon, authenticated;
 revoke all on table public.game_content from anon, authenticated;
@@ -99,10 +91,7 @@ grant select on table public.game_settings to anon, authenticated;
 grant insert, update, delete on table public.games to authenticated;
 grant insert, update, delete on table public.game_content to authenticated;
 grant insert, update, delete on table public.game_settings to authenticated;
-
 grant usage, select on sequence public.game_content_id_seq to authenticated;
-
-revoke all on function public.touch_updated_at() from public;
 
 drop policy if exists "admin can read own role" on public.esc_admins;
 create policy "admin can read own role"
@@ -111,20 +100,44 @@ for select
 to authenticated
 using (user_id = (select auth.uid()));
 
+create or replace function public.is_esc_admin()
+returns boolean
+language sql
+stable
+security invoker
+set search_path = ''
+as $$
+  select exists (
+    select 1
+    from public.esc_admins
+    where user_id = (select auth.uid())
+  );
+$$;
+
+revoke all on function public.is_esc_admin() from public, anon;
+grant execute on function public.is_esc_admin() to authenticated;
+
 drop policy if exists "public can read enabled games" on public.games;
 create policy "public can read enabled games"
 on public.games
 for select
 to anon, authenticated
-using (enabled = true or public.is_esc_admin());
+using (enabled = true);
+
+drop policy if exists "admins can read all games" on public.games;
+create policy "admins can read all games"
+on public.games
+for select
+to authenticated
+using ((select public.is_esc_admin()));
 
 drop policy if exists "admins can manage games" on public.games;
 create policy "admins can manage games"
 on public.games
 for all
 to authenticated
-using (public.is_esc_admin())
-with check (public.is_esc_admin());
+using ((select public.is_esc_admin()))
+with check ((select public.is_esc_admin()));
 
 drop policy if exists "public can read active game content" on public.game_content;
 create policy "public can read active game content"
@@ -132,24 +145,28 @@ on public.game_content
 for select
 to anon, authenticated
 using (
-  (
-    is_active = true
-    and exists (
-      select 1 from public.games g
-      where g.slug = game_content.game_slug
-        and g.enabled = true
-    )
+  is_active = true
+  and exists (
+    select 1 from public.games g
+    where g.slug = game_content.game_slug
+      and g.enabled = true
   )
-  or public.is_esc_admin()
 );
+
+drop policy if exists "admins can read all game content" on public.game_content;
+create policy "admins can read all game content"
+on public.game_content
+for select
+to authenticated
+using ((select public.is_esc_admin()));
 
 drop policy if exists "admins can manage game content" on public.game_content;
 create policy "admins can manage game content"
 on public.game_content
 for all
 to authenticated
-using (public.is_esc_admin())
-with check (public.is_esc_admin());
+using ((select public.is_esc_admin()))
+with check ((select public.is_esc_admin()));
 
 drop policy if exists "public can read game settings" on public.game_settings;
 create policy "public can read game settings"
@@ -162,16 +179,22 @@ using (
     where g.slug = game_settings.game_slug
       and g.enabled = true
   )
-  or public.is_esc_admin()
 );
+
+drop policy if exists "admins can read all game settings" on public.game_settings;
+create policy "admins can read all game settings"
+on public.game_settings
+for select
+to authenticated
+using ((select public.is_esc_admin()));
 
 drop policy if exists "admins can manage game settings" on public.game_settings;
 create policy "admins can manage game settings"
 on public.game_settings
 for all
 to authenticated
-using (public.is_esc_admin())
-with check (public.is_esc_admin());
+using ((select public.is_esc_admin()))
+with check ((select public.is_esc_admin()));
 
 create or replace function public.replace_game_content(
   p_game_slug text,
@@ -179,13 +202,13 @@ create or replace function public.replace_game_content(
 )
 returns void
 language plpgsql
-security definer
-set search_path = public
+security invoker
+set search_path = ''
 as $$
 declare
   item jsonb;
 begin
-  if not public.is_esc_admin() then
+  if not (select public.is_esc_admin()) then
     raise exception 'not authorized';
   end if;
 
@@ -202,20 +225,14 @@ begin
   for item in select * from jsonb_array_elements(p_items)
   loop
     insert into public.game_content (
-      game_slug,
-      content_key,
-      category,
-      kind,
-      payload,
-      sort_order,
-      is_active
+      game_slug, content_key, category, kind, payload, sort_order, is_active
     )
     values (
       p_game_slug,
       nullif(item->>'content_key', ''),
       nullif(item->>'category', ''),
       coalesce(nullif(item->>'kind', ''), 'prompt'),
-      coalesce(item->'payload', '{}'::jsonb),
+      coalesce(item->'payload', 'null'::jsonb),
       coalesce((item->>'sort_order')::integer, 0),
       coalesce((item->>'is_active')::boolean, true)
     );
@@ -223,8 +240,46 @@ begin
 end;
 $$;
 
-revoke all on function public.replace_game_content(text, jsonb) from public;
+revoke all on function public.replace_game_content(text, jsonb) from public, anon;
 grant execute on function public.replace_game_content(text, jsonb) to authenticated;
+
+create or replace function public.claim_first_admin(p_code text)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_user uuid := auth.uid();
+  v_valid boolean;
+begin
+  if v_user is null then
+    raise exception 'authentication required';
+  end if;
+
+  if exists (select 1 from public.esc_admins) then
+    raise exception 'admin already configured';
+  end if;
+
+  select exists (
+    select 1
+    from private.admin_bootstrap
+    where code = p_code
+      and expires_at > now()
+  ) into v_valid;
+
+  if not v_valid then
+    raise exception 'invalid or expired bootstrap code';
+  end if;
+
+  insert into public.esc_admins(user_id) values (v_user);
+  delete from private.admin_bootstrap;
+  return true;
+end;
+$$;
+
+revoke all on function public.claim_first_admin(text) from public, anon;
+grant execute on function public.claim_first_admin(text) to authenticated;
 
 insert into public.games (slug, name) values
   ('truth-or-dare', 'Truth or Dare'),
@@ -239,5 +294,4 @@ insert into public.games (slug, name) values
   ('taboo', 'Taboo'),
   ('debate-roulette', 'Debate Roulette'),
   ('never-have-i-ever', 'Never Have I Ever')
-on conflict (slug) do update
-set name = excluded.name;
+on conflict (slug) do update set name = excluded.name;
