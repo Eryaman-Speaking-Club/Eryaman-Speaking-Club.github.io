@@ -27,6 +27,18 @@
     return clientPromise;
   }
 
+  async function ping() {
+    const client = await getClient();
+    if (!client) return { configured: false, database: false };
+    const { data, error } = await client
+      .from('games')
+      .select('slug,name')
+      .eq('enabled', true)
+      .limit(1);
+    if (error) return { configured: true, database: false, error };
+    return { configured: true, database: true, sample: data || [] };
+  }
+
   async function getSession() {
     const client = await getClient();
     if (!client) return null;
@@ -106,6 +118,7 @@
   window.ESCSupabase = {
     isConfigured,
     getClient,
+    ping,
     getSession,
     signIn,
     signOut,
