@@ -2,6 +2,6 @@
 // The anon/publishable key is safe to expose when Row Level Security is configured correctly.
 // NEVER put a service_role key in this file.
 window.ESC_SUPABASE_CONFIG = {
-  url: '',
+  url: 'https://bshzakigvtyjilolsfjp.supabase.co',
   anonKey: ''
 };
