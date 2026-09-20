@@ -26,20 +26,17 @@ RLS is the security boundary. Public users can read active game content; authent
 
 ## Admin bootstrap
 
-After creating an Auth user, add that user's UUID to:
+ESC Studio uses Supabase Auth. The first admin is claimed with a short-lived one-time bootstrap code stored only in the private database schema. After the first admin is created, the bootstrap row is deleted and later users must be added deliberately to `esc_admins`.
 
-```sql
-insert into public.esc_admins (user_id)
-values ('USER_UUID_HERE');
-```
+Do not commit bootstrap codes, user passwords, secret keys or the `service_role` key.
 
-## Planned migration flow
+## Current rollout status
 
-1. Create/connect the Supabase project.
-2. Apply `schema.sql`.
-3. Create the ESC admin Auth account.
-4. Add the admin user UUID to `esc_admins`.
-5. Put the project URL and anon/publishable key into `esc-supabase-config.js`.
-6. Seed current built-in game content.
-7. Switch ESC Studio saves from browser-only localStorage to Supabase.
-8. Keep localStorage only as a temporary offline/fallback layer.
+1. Supabase project is connected to the frontend.
+2. The schema and RLS policies are applied.
+3. All 12 games are registered.
+4. Existing game libraries/settings are seeded into `game_settings`.
+5. Generic game editors save centrally to Supabase.
+6. Truth or Dare and One for Me · One for You synchronize their managed content with Supabase.
+7. ESC Studio uses Supabase Auth.
+8. `localStorage` remains only as a fallback/offline copy and for gameplay-local state such as rosters/scores.
