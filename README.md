@@ -4,9 +4,9 @@ A lightweight, static website and browser-game collection for **Eryaman Speaking
 
 ## Quick links
 
-- **Club website:** https://eryaman-speaking-club.github.io/
-- **Game Hub:** https://eryaman-speaking-club.github.io/games/
-- **ESC Studio:** https://eryaman-speaking-club.github.io/esc-studio/
+- **Club website:** https://eryamanspeakingclub.com/
+- **Game Hub:** https://eryamanspeakingclub.com/games/
+- **ESC Studio:** https://eryamanspeakingclub.com/esc-studio/
 
 > ESC Studio is the private game-management entry point. It is intentionally not linked from the public website or Game Hub.
 
@@ -91,7 +91,7 @@ Reset controls affect the relevant gameplay state only. Normal player/team setup
 
 Game administration is centralized at:
 
-`https://eryaman-speaking-club.github.io/esc-studio/`
+`https://eryamanspeakingclub.com/esc-studio/`
 
 Public game pages no longer expose the question/admin controls. Supported game pages still load `esc-content-editor.js`, but the editor UI is mounted only when the game is opened from ESC Studio in Studio mode.
 
