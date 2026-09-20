@@ -350,3 +350,16 @@
   .method-steps article{min-height:0}
   .experience-intro>p{padding:17px;font-size:15px}
 }
+
+/* 2026-09-21 · direct high-resolution instructor photo */
+.hero-photo-main{
+  background:#eef3f6;
+}
+.hero-photo-main img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:50% 40%;
+  filter:none!important;
+  image-rendering:auto;
+}
