@@ -7,7 +7,7 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>ESC Studio · Eryaman Speaking Club</title>
   <link rel="stylesheet" href="../esc-brand.css?v=20260917">
-  <link rel="stylesheet" href="./studio.css?v=20260920-2">
+  <link rel="stylesheet" href="./studio.css?v=20260920-3">
 </head>
 <body>
   <div class="studio-bg" aria-hidden="true"></div>
@@ -25,15 +25,32 @@
         <form id="loginForm">
           <div class="auth-grid">
             <label for="studioEmail">Admin e-posta</label>
-            <input id="studioEmail" type="email" autocomplete="username" placeholder="admin@example.com" required>
+            <input id="studioEmail" type="email" autocomplete="username" value="eryamanspeakingclub@gmail.com" required>
             <label for="studioPassword">Şifre</label>
             <input id="studioPassword" type="password" autocomplete="current-password" placeholder="Şifre" required>
             <button type="submit">Studio'ya gir →</button>
           </div>
           <p id="loginError" class="error" hidden>Giriş yapılamadı.</p>
-          <button id="resendConfirmation" class="secondary-button" type="button" hidden>Doğrulama e-postasını tekrar gönder</button>
+          <div class="login-actions">
+            <button id="forgotPassword" class="secondary-button" type="button">Şifremi sıfırla</button>
+            <button id="resendConfirmation" class="secondary-button" type="button" hidden>Doğrulama e-postasını tekrar gönder</button>
+          </div>
         </form>
-        <details class="setup-box">
+        <section id="recoveryBox" class="setup-box recovery-box" hidden>
+          <div class="recovery-inner">
+            <span class="section-tag">PASSWORD RECOVERY</span>
+            <h2>Yeni şifre belirle</h2>
+            <p>Doğrulama bağlantısından geldiysen yeni şifreni burada kaydet.</p>
+            <div class="auth-grid">
+              <label for="recoveryPassword">Yeni şifre</label>
+              <input id="recoveryPassword" type="password" autocomplete="new-password" minlength="8" placeholder="Yeni şifre" required>
+              <button id="saveRecoveryPassword" type="button">Şifreyi güncelle</button>
+            </div>
+            <p id="recoveryMessage" class="login-note" hidden></p>
+          </div>
+        </section>
+
+        <details id="setupBox" class="setup-box">
           <summary>İlk admin hesabını oluştur</summary>
           <form id="setupForm">
             <div class="auth-grid">
@@ -127,7 +144,7 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="../esc-supabase-config.js?v=20260919-1"></script>
-  <script src="../esc-supabase.js?v=20260920-3"></script>
-  <script src="./studio.js?v=20260920-4"></script>
+  <script src="../esc-supabase.js?v=20260920-4"></script>
+  <script src="./studio.js?v=20260920-5"></script>
 </body>
 </html>
