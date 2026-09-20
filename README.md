@@ -17,7 +17,7 @@ The project has two goals:
 1. explain Eryaman Speaking Club, how meetups work, participation options, events and community feedback;
 2. provide simple speaking games that can be opened instantly on a phone, tablet, laptop or projector during meetups.
 
-The public site is still deployed as a lightweight static GitHub Pages project. **ESC Studio** is now the single management entry point, and a Supabase backend migration is being prepared for cross-device content sync and real admin authentication.
+The public site is deployed as a lightweight GitHub Pages project. **ESC Studio** is the single management entry point, while Supabase now provides the central database and admin authentication layer.
 
 ## Main features
 
@@ -103,9 +103,9 @@ Depending on the game schema, the editor can:
 - search the local question library;
 - restore the built-in library.
 
-Until the Supabase migration is completed, edited question libraries are still saved in that browser with `localStorage`. ESC Studio provides one management entry point and full-browser backup/import, but those edits are not yet shared automatically with other devices.
+Generic game libraries now load from and save to Supabase. Truth or Dare and One for Me · One for You also synchronize their centrally managed question/configuration data with Supabase. `localStorage` remains as a fallback/offline copy for resilience.
 
-The current Studio lock uses a SHA-256 password check and `sessionStorage`. This is only a transition mechanism. The target backend architecture uses Supabase Auth + Row Level Security for real server-side authorization.
+ESC Studio sign-in uses Supabase Auth. Database writes are protected by Row Level Security and the `esc_admins` allow-list.
 
 ## Local data
 
@@ -116,7 +116,7 @@ Depending on the game, the browser may locally remember:
 - team names and mode selection;
 - sound-level preference.
 
-Active round state and most scores are gameplay state rather than account data. Local customisations do not yet sync between devices. The Supabase migration is intended to make published game content centrally managed while keeping local storage only as a fallback/offline layer.
+Active round state, player rosters and most scores remain device-local gameplay state. Published question libraries and centrally managed game settings are stored in Supabase; browser storage is retained only as a fallback/offline layer.
 
 ## Technologies
 
@@ -127,7 +127,7 @@ Active round state and most scores are gameplay state rather than account data. 
 - Web Audio API for lightweight game sounds
 - GitHub Actions
 - GitHub Pages
-- Supabase backend adapter and migration schema (backend rollout in progress)
+- Supabase PostgreSQL + Auth + RLS for central content management
 
 There is no npm build step or frontend framework.
 
@@ -179,7 +179,7 @@ The target architecture is:
 5. Only users listed in `esc_admins` can write through ESC Studio.
 6. The browser uses only the public project URL and anon/publishable key. The `service_role` key must never be committed to this repository.
 
-The remaining rollout steps are to connect the Supabase project, apply the schema, create the first admin account, seed the current game libraries and switch the editors from local-only persistence to central saves.
+The Supabase project is connected, the schema/RLS policies are applied, current game libraries are seeded, and editors are wired for central persistence. The remaining bootstrap step is to create the first ESC Studio Auth user and claim the ESC admin role.
 
 ## Run locally
 
