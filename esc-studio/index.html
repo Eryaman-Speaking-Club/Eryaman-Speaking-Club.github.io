@@ -7,7 +7,7 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>ESC Studio · Eryaman Speaking Club</title>
   <link rel="stylesheet" href="../esc-brand.css?v=20260917">
-  <link rel="stylesheet" href="./studio.css?v=20260919-1">
+  <link rel="stylesheet" href="./studio.css?v=20260920-2">
 </head>
 <body>
   <div class="studio-bg" aria-hidden="true"></div>
@@ -23,14 +23,31 @@
         <h1>ESC Studio</h1>
         <p>Oyun içeriklerini tek merkezden yönet. Bu sayfa kulüp sitesinde veya Game Hub'da gösterilmez.</p>
         <form id="loginForm">
-          <label for="studioPassword">Admin şifresi</label>
-          <div class="password-row">
-            <input id="studioPassword" type="password" autocomplete="current-password" placeholder="Şifre">
+          <div class="auth-grid">
+            <label for="studioEmail">Admin e-posta</label>
+            <input id="studioEmail" type="email" autocomplete="username" placeholder="admin@example.com" required>
+            <label for="studioPassword">Şifre</label>
+            <input id="studioPassword" type="password" autocomplete="current-password" placeholder="Şifre" required>
             <button type="submit">Studio'ya gir →</button>
           </div>
-          <p id="loginError" class="error" hidden>Şifre yanlış.</p>
+          <p id="loginError" class="error" hidden>Giriş yapılamadı.</p>
         </form>
-        <div class="login-note"><span>●</span> Oturum bu tarayıcı sekmesi açık kaldığı sürece aktif kalır.</div>
+        <details class="setup-box">
+          <summary>İlk admin hesabını oluştur</summary>
+          <form id="setupForm">
+            <div class="auth-grid">
+              <label for="setupEmail">E-posta</label>
+              <input id="setupEmail" type="email" autocomplete="email" placeholder="admin@example.com" required>
+              <label for="setupPassword">Yeni şifre</label>
+              <input id="setupPassword" type="password" autocomplete="new-password" minlength="8" placeholder="En az 8 karakter" required>
+              <label for="setupCode">Kurulum kodu</label>
+              <input id="setupCode" type="text" autocomplete="one-time-code" placeholder="Tek kullanımlık kurulum kodu" required>
+              <button type="submit">İlk admini oluştur</button>
+            </div>
+            <p id="setupMessage" class="login-note" hidden></p>
+          </form>
+        </details>
+        <div class="login-note"><span>●</span> Giriş artık Supabase Auth ile doğrulanır; oturum cihazlar arasında merkezi backend'i kullanır.</div>
       </div>
     </section>
 
@@ -63,7 +80,7 @@
         <div>
           <span class="section-tag">STUDIO BACKUP</span>
           <h2>Bu cihazdaki oyun verileri</h2>
-          <p>Şu an düzenlemeler GitHub Pages üzerinde bu tarayıcının localStorage alanında tutuluyor.</p>
+          <p>Supabase merkezi kaynaktır. Tarayıcıdaki localStorage yalnızca yedek/fallback olarak tutulur.</p>
         </div>
         <div class="toolbar-actions">
           <button id="exportAll" class="secondary-button" type="button">Tümünü yedekle</button>
@@ -93,7 +110,7 @@
         <div>
           <span class="section-tag">SİSTEM</span>
           <h2>Site ve yayın</h2>
-          <p>İçerik editörleri Studio'ya taşındı. GitHub Pages yayın/deploy ayarları ise GitHub tarafında kalıyor.</p>
+          <p>İçerik ve admin doğrulaması Supabase üzerinden çalışır. GitHub Pages yayın/deploy ayarları GitHub tarafında kalır.</p>
         </div>
         <div class="system-actions">
           <a class="secondary-button" href="https://github.com/Eryaman-Speaking-Club/Eryaman-Speaking-Club.github.io" target="_blank" rel="noreferrer">GitHub repo ↗</a>
@@ -102,14 +119,14 @@
       </section>
 
       <aside class="security-note">
-        <strong>Not:</strong> ESC Studio şu anda statik GitHub Pages üzerinde çalışıyor. Admin arayüzünü public oyunlardan gizler ve tek noktada toplar; ancak gerçek sunucu tarafı kullanıcı doğrulaması değildir. Tüm cihazlarda ortak, gerçekten merkezi yönetim için sonraki adım backend bağlantısıdır.
+        <strong>Güvenlik:</strong> ESC Studio girişleri Supabase Auth ile doğrulanır. Publishable key tarayıcıda kullanılabilir; yazma yetkisi RLS politikalarıyla yalnızca ESC admin kullanıcılarına verilir.
       </aside>
     </section>
   </main>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="../esc-supabase-config.js?v=20260919-1"></script>
-  <script src="../esc-supabase.js?v=20260919-1"></script>
-  <script src="./studio.js?v=20260919-2"></script>
+  <script src="../esc-supabase.js?v=20260920-2"></script>
+  <script src="./studio.js?v=20260920-3"></script>
 </body>
 </html>
