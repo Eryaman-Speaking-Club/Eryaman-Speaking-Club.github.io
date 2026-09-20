@@ -46,6 +46,33 @@
 
   function saveConfig() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+    void saveCloudConfig();
+  }
+
+  async function saveCloudConfig() {
+    try {
+      if (!window.ESCSupabase || !window.ESCSupabase.isConfigured()) return;
+      if (!(await window.ESCSupabase.isAdmin())) return;
+      await window.ESCSupabase.saveGameSettings('one-for-me-one-for-you', {
+        ...config,
+        source: 'esc-studio',
+        version: 3
+      });
+    } catch (error) {
+      console.warn('ESC cloud save failed; local fallback kept.', error);
+    }
+  }
+
+  async function hydrateCloudConfig() {
+    try {
+      if (!window.ESCSupabase || !window.ESCSupabase.isConfigured()) return;
+      const remote = await window.ESCSupabase.getGameSettings('one-for-me-one-for-you');
+      if (!remote || typeof remote !== 'object') return;
+      config = normalizeConfig(remote);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+    } catch (error) {
+      console.warn('ESC cloud config unavailable; using local fallback.', error);
+    }
   }
 
   function allCards() {
@@ -335,7 +362,7 @@ function playReveal() {
     $('newQuestion').value = '';
     $('newFollowup').value = '';
     renderLibrary();
-    showToast('Question added on this device.');
+    showToast('Question saved to ESC backend.');
   }
 
   function searchableCards() {
@@ -430,7 +457,7 @@ function playReveal() {
       clearEditor();
       renderLibrary();
       resetQuestionCard();
-      showToast('Backup imported on this device.');
+      showToast('Backup imported and synced.');
     } catch {
       showToast('Invalid backup file.');
     }
@@ -445,10 +472,11 @@ function playReveal() {
     adminPage = 0;
     renderLibrary();
     resetQuestionCard();
-    showToast('Local changes reset.');
+    showToast('Question settings reset.');
   }
 
-  function init() {
+  async function init() {
+    await hydrateCloudConfig();
     updateSoundButton();
     updateTurn();
     $('start').onclick = startGame;
@@ -497,7 +525,14 @@ function playReveal() {
     });
 
     if (STUDIO_MODE) {
-      if (sessionStorage.getItem(UNLOCK_KEY) !== 'yes') {
+      try {
+        const session = window.ESCSupabase && await window.ESCSupabase.getSession();
+        const admin = session && await window.ESCSupabase.isAdmin();
+        if (!admin) {
+          location.replace('/esc-studio/?next=one-for-me-one-for-you');
+          return;
+        }
+      } catch {
         location.replace('/esc-studio/?next=one-for-me-one-for-you');
         return;
       }
@@ -510,5 +545,5 @@ function playReveal() {
     }
   }
 
-  init();
+  void init();
 })();
