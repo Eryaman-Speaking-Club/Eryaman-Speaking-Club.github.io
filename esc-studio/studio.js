@@ -1,10 +1,9 @@
 (() => {
   'use strict';
 
-  const ADMIN_HASH = 'c28440d7f9de5738eddf560c79371754e9ffa41fba2afd1efaa3da1458438a52';
-  const STUDIO_SESSION = 'esc-studio-unlocked-v1';
   const GENERIC_SESSION = 'esc-admin-unlocked-v2';
   const TRUTH_SESSION = 'esc-truth-dare-admin-unlocked-v1';
+  const PENDING_BOOTSTRAP = 'esc-pending-bootstrap-code-v1';
 
   const games = [
     { n:'01', name:'Truth or Dare', path:'truth-or-dare', tone:'coral', desc:'Truth, Dare, oyuncu listeleri ve oyun ayarları.', key:'esc-truth-dare-v1' },
@@ -26,20 +25,12 @@
 
   const genericKey = (path) => 'esc-custom-content-v1:/' + path;
 
-  async function sha256(value) {
-    const bytes = new TextEncoder().encode(value);
-    const digest = await crypto.subtle.digest('SHA-256', bytes);
-    return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
-  }
-
-  function unlockSessions() {
-    sessionStorage.setItem(STUDIO_SESSION, 'yes');
+  function unlockLegacySessions() {
     sessionStorage.setItem(GENERIC_SESSION, 'yes');
     sessionStorage.setItem(TRUTH_SESSION, 'yes');
   }
 
-  function clearSessions() {
-    sessionStorage.removeItem(STUDIO_SESSION);
+  function clearLegacySessions() {
     sessionStorage.removeItem(GENERIC_SESSION);
     sessionStorage.removeItem(TRUTH_SESSION);
   }
@@ -49,21 +40,24 @@
     const badge = $('backendBadge');
     if (!status || !badge) return;
     if (!window.ESCSupabase || !window.ESCSupabase.isConfigured()) {
-      status.textContent = 'Backend kodu hazır. Supabase proje URL ve publishable/anon key bağlantısı bekleniyor.';
+      status.textContent = 'Supabase yapılandırması bulunamadı.';
       badge.textContent = 'BEKLİYOR';
       return;
     }
     try {
       const health = await window.ESCSupabase.ping();
-      if (health.database) {
-        status.textContent = 'Supabase projesi ve ESC veritabanı şeması erişilebilir. Sıradaki adım admin Auth hesabını oluşturup içerikleri merkezi veritabanına taşımak.';
-        badge.textContent = 'VERİTABANI HAZIR';
-      } else {
-        status.textContent = 'Supabase proje bağlantısı hazır; ESC migration dosyasının Supabase tarafında uygulanması bekleniyor.';
-        badge.textContent = 'MIGRATION BEKLİYOR';
+      if (!health.database) {
+        status.textContent = 'Supabase bağlantısı var ancak ESC veritabanı şeması erişilemiyor.';
+        badge.textContent = 'HATA';
+        return;
       }
+      const admin = await window.ESCSupabase.isAdmin().catch(() => false);
+      status.textContent = admin
+        ? 'Supabase veritabanı ve admin oturumu aktif. Merkezi oyun yönetimi hazır.'
+        : 'Supabase veritabanı hazır; admin oturumu bekleniyor.';
+      badge.textContent = admin ? 'BAĞLI' : 'AUTH';
     } catch (error) {
-      status.textContent = 'Supabase ayarı bulundu ancak bağlantı doğrulanamadı.';
+      status.textContent = 'Supabase bağlantısı doğrulanamadı.';
       badge.textContent = 'HATA';
     }
   }
@@ -73,7 +67,7 @@
     toast.textContent = message;
     toast.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove('show'), 1900);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
   }
 
   function hasLocalData(game) {
@@ -89,7 +83,7 @@
         <span class="game-number">${game.n} · ESC GAME</span>
         <h3>${game.name}</h3>
         <p>${game.desc}</p>
-        <div class="status ${saved ? 'saved' : ''}"><i></i>${saved ? 'Bu tarayıcıda yerel veri var' : 'Varsayılan içerik'}</div>
+        <div class="status saved"><i></i>Supabase merkezi içerik</div>
         <div class="game-actions-row">
           <button type="button" class="manage-button" data-manage="${game.path}">Yönet →</button>
           <a class="open-button" href="../${game.path}/" target="_blank" aria-label="${game.name} oyununu aç">↗</a>
@@ -108,6 +102,7 @@
   function showDashboard() {
     $('loginView').hidden = true;
     $('dashboardView').hidden = false;
+    unlockLegacySessions();
     renderGames();
     void updateBackendStatus();
   }
@@ -117,11 +112,11 @@
     $('loginView').hidden = false;
     $('studioPassword').value = '';
     $('loginError').hidden = true;
-    setTimeout(() => $('studioPassword').focus(), 30);
+    setTimeout(() => $('studioEmail').focus(), 30);
   }
 
   function manageGame(path) {
-    unlockSessions();
+    unlockLegacySessions();
     location.assign('../' + path + '/?studio=1');
   }
 
@@ -137,17 +132,17 @@
       const value = localStorage.getItem(key);
       if (value !== null) data[key] = value;
     });
-    const payload = { app:'ESC Studio', version:1, exportedAt:new Date().toISOString(), data };
+    const payload = { app:'ESC Studio', version:2, exportedAt:new Date().toISOString(), data };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type:'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'esc-studio-backup.json';
+    link.download = 'esc-studio-local-backup.json';
     document.body.appendChild(link);
     link.click();
     link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    showToast('Studio yedeği indirildi.');
+    showToast('Yerel fallback yedeği indirildi.');
   }
 
   async function importAll(file) {
@@ -158,32 +153,110 @@
         if (studioDataKeys().includes(key) && typeof value === 'string') localStorage.setItem(key, value);
       });
       renderGames();
-      showToast('Studio yedeği yüklendi.');
+      showToast('Yerel fallback yedeği yüklendi.');
     } catch {
       showToast('Geçerli bir ESC Studio yedeği değil.');
     }
   }
 
+  async function claimPendingIfNeeded() {
+    const pending = localStorage.getItem(PENDING_BOOTSTRAP);
+    if (!pending) return false;
+    if (await window.ESCSupabase.isAdmin()) {
+      localStorage.removeItem(PENDING_BOOTSTRAP);
+      return true;
+    }
+    try {
+      const claimed = await window.ESCSupabase.claimFirstAdmin(pending);
+      if (claimed) localStorage.removeItem(PENDING_BOOTSTRAP);
+      return claimed;
+    } catch {
+      return false;
+    }
+  }
+
   async function login(event) {
     event.preventDefault();
-    const entered = $('studioPassword').value;
-    if (await sha256(entered) !== ADMIN_HASH) {
+    const email = $('studioEmail').value.trim();
+    const password = $('studioPassword').value;
+    const error = $('loginError');
+    error.hidden = true;
+    try {
+      await window.ESCSupabase.signIn(email, password);
+      let admin = await window.ESCSupabase.isAdmin();
+      if (!admin) {
+        await claimPendingIfNeeded();
+        admin = await window.ESCSupabase.isAdmin();
+      }
+      if (!admin) throw new Error('Bu kullanıcı ESC admin listesinde değil.');
+      const next = new URLSearchParams(location.search).get('next');
+      history.replaceState(null, '', './');
+      if (next && games.some((game) => game.path === next)) manageGame(next);
+      else showDashboard();
+    } catch (e) {
+      error.textContent = e && e.message ? e.message : 'Giriş yapılamadı.';
+      error.hidden = false;
+    }
+  }
+
+  async function setup(event) {
+    event.preventDefault();
+    const email = $('setupEmail').value.trim();
+    const password = $('setupPassword').value;
+    const code = $('setupCode').value.trim();
+    const message = $('setupMessage');
+    message.hidden = false;
+    try {
+      localStorage.setItem(PENDING_BOOTSTRAP, code);
+      const result = await window.ESCSupabase.signUp(email, password);
+      if (result && result.session) {
+        const claimed = await claimPendingIfNeeded();
+        if (!claimed) throw new Error('Admin yetkisi alınamadı.');
+        message.textContent = 'İlk admin hesabı oluşturuldu.';
+        $('studioEmail').value = email;
+        showDashboard();
+      } else {
+        message.textContent = 'Hesap oluşturuldu. Supabase doğrulama e-postasını onayla; sonra yukarıdaki giriş formundan giriş yap. Kurulum kodu bu tarayıcıda geçici olarak saklandı.';
+      }
+    } catch (e) {
+      message.textContent = e && e.message ? e.message : 'İlk admin kurulumu tamamlanamadı.';
+    }
+  }
+
+  async function logout() {
+    try { await window.ESCSupabase.signOut(); } catch {}
+    clearLegacySessions();
+    showLogin();
+  }
+
+  async function init() {
+    if (!window.ESCSupabase || !window.ESCSupabase.isConfigured()) {
+      $('loginError').textContent = 'Supabase bağlantısı yapılandırılmamış.';
       $('loginError').hidden = false;
       return;
     }
-    $('loginError').hidden = true;
-    unlockSessions();
-    const next = new URLSearchParams(location.search).get('next');
-    if (next && games.some((game) => game.path === next)) {
-      manageGame(next);
-      return;
-    }
-    history.replaceState(null, '', './');
-    showDashboard();
+    try {
+      const session = await window.ESCSupabase.getSession();
+      if (session) {
+        let admin = await window.ESCSupabase.isAdmin();
+        if (!admin) {
+          await claimPendingIfNeeded();
+          admin = await window.ESCSupabase.isAdmin();
+        }
+        if (admin) {
+          const next = new URLSearchParams(location.search).get('next');
+          if (next && games.some((game) => game.path === next)) manageGame(next);
+          else showDashboard();
+          return;
+        }
+      }
+    } catch {}
+    showLogin();
   }
 
   $('loginForm').addEventListener('submit', (event) => void login(event));
-  $('logoutButton').addEventListener('click', () => { clearSessions(); showLogin(); });
+  $('setupForm').addEventListener('submit', (event) => void setup(event));
+  $('logoutButton').addEventListener('click', () => void logout());
   $('exportAll').addEventListener('click', exportAll);
   $('importAll').addEventListener('change', (event) => {
     const file = event.currentTarget.files && event.currentTarget.files[0];
@@ -191,12 +264,5 @@
     event.currentTarget.value = '';
   });
 
-  if (sessionStorage.getItem(STUDIO_SESSION) === 'yes') {
-    unlockSessions();
-    const next = new URLSearchParams(location.search).get('next');
-    if (next && games.some((game) => game.path === next)) manageGame(next);
-    else showDashboard();
-  } else {
-    showLogin();
-  }
+  void init();
 })();
