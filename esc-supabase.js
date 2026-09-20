@@ -47,6 +47,14 @@
     return data.session || null;
   }
 
+  async function signUp(email, password) {
+    const client = await getClient();
+    if (!client) throw new Error('Supabase is not configured.');
+    const { data, error } = await client.auth.signUp({ email, password });
+    if (error) throw error;
+    return data;
+  }
+
   async function signIn(email, password) {
     const client = await getClient();
     if (!client) throw new Error('Supabase is not configured.');
@@ -60,6 +68,14 @@
     if (!client) return;
     const { error } = await client.auth.signOut();
     if (error) throw error;
+  }
+
+  async function claimFirstAdmin(code) {
+    const client = await getClient();
+    if (!client) throw new Error('Supabase is not configured.');
+    const { data, error } = await client.rpc('claim_first_admin', { p_code: code });
+    if (error) throw error;
+    return data === true;
   }
 
   async function isAdmin() {
@@ -120,8 +136,10 @@
     getClient,
     ping,
     getSession,
+    signUp,
     signIn,
     signOut,
+    claimFirstAdmin,
     isAdmin,
     getGameContent,
     replaceGameContent,
