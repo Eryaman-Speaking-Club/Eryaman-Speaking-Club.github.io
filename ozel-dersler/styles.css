@@ -392,3 +392,63 @@
 .teacher-profile-content .teacher-method-card{margin-top:2px}
 @media(max-width:900px){.teacher-profile-grid{grid-template-columns:1fr}.teacher-profile-card{position:relative;top:auto;display:grid;grid-template-columns:220px 1fr}.teacher-profile-card img{height:100%;aspect-ratio:auto}.teacher-credentials{grid-template-columns:1fr}.teacher-experience-row{grid-template-columns:1fr 1fr 1fr}}
 @media(max-width:650px){.teacher{padding-top:85px;padding-bottom:85px}.teacher-profile-card{display:block}.teacher-profile-card img{aspect-ratio:4/4.5}.teacher-experience-row{grid-template-columns:1fr}.teacher-section-head h2{font-size:46px}}
+
+
+/* 2026-09-21 · compact private-lessons page */
+.lesson-hero{padding-top:42px;padding-bottom:54px;gap:54px;min-height:auto}
+.lesson-hero .hero-copy h1{font-size:clamp(54px,6.8vw,88px)}
+.lesson-hero .hero-lead{max-width:610px}
+.hero-profile{min-height:465px!important}
+.hero-photo-main{top:40px!important;height:390px!important;width:64%!important}
+.hero-profile-surface{inset:38px 30px 38px 54px!important}
+.hero-float-a{top:18px!important}.hero-float-b{bottom:17px!important}
+
+.compact-teacher{padding-top:72px;padding-bottom:78px}
+.compact-teacher-head{display:grid;grid-template-columns:1fr .7fr;gap:42px;align-items:end;margin-bottom:26px}
+.compact-teacher-head h2{margin:10px 0 0;color:var(--navy);font-size:clamp(38px,4.8vw,62px);line-height:1;letter-spacing:-.055em}
+.compact-teacher-head>p{margin:0;color:var(--muted);font-size:14px;line-height:1.65}
+.compact-teacher-card{display:grid;grid-template-columns:310px minmax(0,1fr);gap:0;overflow:hidden;border:1px solid var(--line);border-radius:32px;background:#fff;box-shadow:0 24px 70px rgba(8,31,59,.10)}
+.compact-teacher-photo{position:relative;min-height:590px;background:#eaf1f6;overflow:hidden}
+.compact-teacher-photo:after{content:"";position:absolute;inset:45% 0 0;background:linear-gradient(transparent,rgba(5,24,43,.92))}
+.compact-teacher-photo img{width:100%;height:100%;object-fit:cover;object-position:center top}
+.compact-teacher-photo>div{position:absolute;z-index:2;left:22px;right:22px;bottom:22px;color:#fff}
+.compact-teacher-photo small{display:block;color:#7fe0da;font-size:8px;font-weight:1000;letter-spacing:.12em}
+.compact-teacher-photo strong{display:block;margin-top:7px;font-size:26px;line-height:1.05;letter-spacing:-.03em}
+.compact-teacher-photo span{display:block;margin-top:7px;color:#c6d3de;font-size:11px}
+.compact-teacher-info{padding:28px 30px;display:flex;flex-direction:column;justify-content:center}
+.compact-intro{margin:0;color:#465f77;font-size:14px;line-height:1.7}
+.compact-credentials{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:20px}
+.compact-credentials article{padding:15px;border:1px solid #e0e9f0;border-radius:17px;background:#f8fbfd}
+.compact-credentials small{display:block;color:var(--blue);font-size:8px;font-weight:1000;letter-spacing:.11em}
+.compact-credentials b{display:block;margin-top:7px;color:var(--navy);font-size:13px;line-height:1.25}
+.compact-credentials span{display:block;margin-top:5px;color:#758797;font-size:10px;line-height:1.4}
+.compact-method{display:grid;grid-template-columns:.68fr 1.32fr;gap:18px;align-items:center;margin-top:18px;padding:20px;border-radius:20px;background:linear-gradient(135deg,#081f3b,#175ca8);color:#fff}
+.compact-method-title small{display:block;color:#7fe0da;font-size:8px;font-weight:1000;letter-spacing:.12em}.compact-method-title strong{display:block;margin-top:7px;font-size:23px;line-height:1.08;letter-spacing:-.035em}
+.compact-method-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.compact-method-steps span{min-height:105px;padding:12px;border:1px solid rgba(255,255,255,.12);border-radius:15px;background:rgba(255,255,255,.06)}.compact-method-steps i{display:block;color:#7fe0da;font-style:normal;font-size:8px;font-weight:1000}.compact-method-steps b{display:block;margin-top:8px;font-size:12px}.compact-method-steps small{display:block;margin-top:4px;color:#b8c9d8;font-size:9px;line-height:1.4}
+.compact-tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:16px}.compact-tags span{padding:7px 9px;border-radius:999px;background:#edf4f9;color:#506a82;font-size:9px;font-weight:850}
+.compact-apply{align-self:flex-start;margin-top:18px;min-height:46px;padding:0 16px;border-radius:13px;background:#081f3b;color:#fff;text-decoration:none;display:inline-flex;align-items:center;gap:10px;font-size:11px;font-weight:950}
+.application{margin-top:0!important}.application-shell{padding-top:74px!important;padding-bottom:78px!important}
+.lesson-footer{margin-top:0}
+
+@media(max-width:900px){
+  .lesson-hero{padding-top:34px;gap:28px}
+  .hero-profile{min-height:420px!important}
+  .hero-photo-main{height:350px!important}
+  .compact-teacher-head{grid-template-columns:1fr;gap:14px}
+  .compact-teacher-card{grid-template-columns:240px 1fr}
+  .compact-teacher-photo{min-height:610px}
+  .compact-credentials{grid-template-columns:1fr}
+  .compact-method{grid-template-columns:1fr}
+}
+@media(max-width:680px){
+  .lesson-hero{padding-bottom:34px}
+  .hero-profile{min-height:390px!important}
+  .hero-photo-main{height:325px!important;width:78%!important}
+  .compact-teacher{padding-top:52px;padding-bottom:56px}
+  .compact-teacher-card{grid-template-columns:1fr}
+  .compact-teacher-photo{min-height:390px;max-height:440px}
+  .compact-teacher-info{padding:22px 18px}
+  .compact-method-steps{grid-template-columns:1fr}
+  .compact-method-steps span{min-height:0}
+  .application-shell{padding-top:55px!important;padding-bottom:60px!important}
+}
