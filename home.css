@@ -35,3 +35,12 @@ footer{min-height:220px;padding:55px max(24px,calc((100vw - var(--max))/2));back
 .esc-lang-switch a:hover{color:#081f3b;background:#edf3f8}.esc-lang-switch a.active{background:#081f3b;color:#fff;box-shadow:0 5px 13px rgba(8,31,59,.16)}.esc-lang-switch span{color:#a8b4bf;font-size:10px;font-weight:900}
 @media(max-width:1120px){.esc-lang-switch{margin-left:0}}
 @media(max-width:760px){.esc-lang-switch{padding:3px;border-radius:12px;margin-left:auto}.esc-lang-switch a{width:29px;height:29px;font-size:9px}.esc-lang-switch span{font-size:9px}}
+
+
+/* 2026-09-21 · seamless ticker + conversion flow */
+.ticker{overflow:hidden}
+.ticker-track{display:flex;align-items:center;gap:0;width:max-content;will-change:transform;animation:tickerLoop 22s linear infinite}
+.ticker-group{display:flex;align-items:center;gap:35px;flex:0 0 auto;padding-right:35px}
+@keyframes tickerLoop{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+#next-event,#events,#feedback,#experience,#katilim,#about{scroll-margin-top:105px}
+@media(max-width:700px){.ticker-track{animation-duration:18s}.ticker-group{gap:26px;padding-right:26px}.ticker span{font-size:11px}}
