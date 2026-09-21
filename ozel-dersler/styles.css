@@ -363,3 +363,32 @@
   filter:none!important;
   image-rendering:auto;
 }
+
+
+/* 2026-09-21: consolidate instructor profile, education and experience */
+.teacher{padding-top:120px;padding-bottom:120px}
+.teacher-section-head{max-width:760px;margin-bottom:34px}
+.teacher-section-head h2{margin:10px 0 12px;color:var(--navy);font-size:clamp(42px,5.5vw,72px);line-height:1;letter-spacing:-.055em}
+.teacher-section-head>p{margin:0;color:var(--muted);font-size:15px;line-height:1.7}
+.teacher-profile-grid{display:grid;grid-template-columns:minmax(280px,360px) 1fr;gap:34px;align-items:start}
+.teacher-profile-card{position:sticky;top:110px;overflow:hidden;border:1px solid var(--line);border-radius:30px;background:#fff;box-shadow:var(--shadow)}
+.teacher-profile-card img{width:100%;aspect-ratio:4/5;object-fit:cover;object-position:center top;background:#eef3f7}
+.teacher-profile-copy{padding:22px}
+.teacher-profile-copy span{display:block;color:var(--blue);font-size:9px;font-weight:950;letter-spacing:.13em}
+.teacher-profile-copy strong{display:block;margin-top:10px;color:var(--navy);font-size:22px;line-height:1.2;letter-spacing:-.025em}
+.teacher-profile-copy p{margin:10px 0 0;color:var(--muted);font-size:13px;line-height:1.6}
+.teacher-profile-content{display:grid;gap:18px}
+.teacher-summary{padding:25px 27px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(145deg,#fff,#f8fbfd)}
+.teacher-summary p{margin:0;color:#465f77;line-height:1.75;font-size:14px}
+.teacher-summary p+p{margin-top:12px}
+.teacher-credentials{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.teacher-credentials article{min-height:195px;padding:20px;border:1px solid var(--line);border-radius:22px;background:#fff}
+.teacher-credentials small{color:var(--blue);font-size:9px;font-weight:950;letter-spacing:.12em}
+.teacher-credentials h3{margin:14px 0 8px;color:var(--navy);font-size:19px;line-height:1.2;letter-spacing:-.02em}
+.teacher-credentials p{margin:0;color:var(--muted);font-size:12px;line-height:1.55}
+.teacher-experience-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.teacher-experience-row span{display:flex;flex-direction:column;gap:5px;padding:15px 16px;border-radius:17px;background:#edf4f9;color:#50687e;font-size:11px;line-height:1.35}
+.teacher-experience-row b{color:var(--navy);font-size:9px;letter-spacing:.09em}
+.teacher-profile-content .teacher-method-card{margin-top:2px}
+@media(max-width:900px){.teacher-profile-grid{grid-template-columns:1fr}.teacher-profile-card{position:relative;top:auto;display:grid;grid-template-columns:220px 1fr}.teacher-profile-card img{height:100%;aspect-ratio:auto}.teacher-credentials{grid-template-columns:1fr}.teacher-experience-row{grid-template-columns:1fr 1fr 1fr}}
+@media(max-width:650px){.teacher{padding-top:85px;padding-bottom:85px}.teacher-profile-card{display:block}.teacher-profile-card img{aspect-ratio:4/4.5}.teacher-experience-row{grid-template-columns:1fr}.teacher-section-head h2{font-size:46px}}
