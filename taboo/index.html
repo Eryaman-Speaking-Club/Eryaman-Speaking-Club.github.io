@@ -31,4 +31,7 @@ $('quickPlay').onclick=()=>{teamMode=false;activeTeam=0;saveTeamConfig();closeTe
 $('resetScores').onclick=()=>{teams.forEach(x=>{x.score=0;x.playerIndex=0});activeTeam=0;sync();ESCGameKit.toast('Team scores reset')};
 $('start').onclick=start;$('got').onclick=()=>{if(!running)return;score++;sync();ESCGameKit.audio.success();show()};$('pass').onclick=()=>{if(!running)return;passes++;sync();ESCGameKit.audio.soft();show()};$('newRound').onclick=()=>{if(teamMode)finishTurn(false);else prepareRound()};
 cats.forEach(c=>{const b=document.createElement('button');b.className='game-chip'+(c==='All'?' active':'');b.textContent=c;b.onclick=()=>{selected=c;document.querySelectorAll('.game-chip').forEach(x=>x.classList.toggle('active',x===b));prepareRound()};$('chips').appendChild(b)});loadTeams();build();show();sync();
-</script><script src="../esc-content-editor.js?v=20260916-1345"></script></body></html>
+</script><script src="../esc-content-editor.js?v=20260916-1345"></script>  <script src="/esc-supabase-config.js"></script>
+  <script src="/esc-supabase.js"></script>
+  <script src="/site-analytics.js?v=20260922"></script>
+</body></html>

@@ -76,5 +76,8 @@
     const soundBtn=$('soundBtn'),pop=$('volumePop'),slider=$('volumeSlider'),value=$('volumeValue');let vol=Math.max(0,Math.min(100,Number(localStorage.getItem('esc-global-volume-v1')??100)));slider.value=vol;value.textContent=vol+'%';soundBtn.textContent=vol===0?'🔇':vol<45?'🔉':'🔊';soundBtn.onclick=e=>{e.stopPropagation();pop.classList.toggle('open')};document.addEventListener('click',e=>{if(!pop.contains(e.target)&&e.target!==soundBtn)pop.classList.remove('open')});slider.oninput=e=>{vol=Number(e.target.value);localStorage.setItem('esc-global-volume-v1',vol);value.textContent=vol+'%';soundBtn.textContent=vol===0?'🔇':vol<45?'🔉':'🔊';tone()};
     buildDeck();next();
   </script>
-<script src="../esc-content-editor.js?v=20260916-1345"></script></body>
+<script src="../esc-content-editor.js?v=20260916-1345"></script>  <script src="/esc-supabase-config.js"></script>
+  <script src="/esc-supabase.js"></script>
+  <script src="/site-analytics.js?v=20260922"></script>
+</body>
 </html>

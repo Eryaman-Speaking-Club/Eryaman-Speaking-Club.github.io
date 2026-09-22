@@ -194,3 +194,14 @@ section[id]{scroll-margin-top:108px}
   .online-meetup-price strong{font-size:19px}
   .final-cta .final-actions{display:grid}.final-cta .final-actions .button{width:100%;min-width:0}
 }
+
+
+/* 2026-09-22 · compact conversion flow */
+.compact-why{width:min(980px,100%);margin:34px auto 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.compact-why>span{display:grid;gap:5px;padding:17px 18px;border:1px solid rgba(255,255,255,.12);border-radius:18px;background:rgba(255,255,255,.06)}
+.compact-why b{color:#fff;font-size:13px}.compact-why small{color:#9fb3c5;font-size:10px;line-height:1.5}
+.experience{padding-top:100px!important;padding-bottom:105px!important}.timeline{margin-top:48px!important}
+.event-gallery,.feedback,.games-preview{padding-top:100px!important;padding-bottom:100px!important}
+.feedback-grid{margin-top:34px!important}.feedback-card{min-height:245px!important}.feedback-source em{display:block!important}
+.faq{padding-top:95px!important;padding-bottom:95px!important}
+@media(max-width:700px){.compact-why{grid-template-columns:1fr}.experience,.event-gallery,.feedback,.games-preview,.faq{padding-top:72px!important;padding-bottom:72px!important}}

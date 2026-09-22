@@ -275,9 +275,9 @@
 
   upgradePrinciples();
   trimHomepageGames();
-  moveParticipationToBottom();
+  // Participation stays in the deliberate HTML flow.
   restorePrivateLessonsPageLinks();
-  mountNextEvent();
+  // Event details are centralized in /event-config.js.
   initConversationGame();
 
   const gameShowcase = document.querySelector('.game-showcase');
