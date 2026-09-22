@@ -7,3 +7,8 @@ main{width:min(1180px,92vw);margin:auto;padding:45px 0 110px}.hub-hero{position:
 @media(max-width:900px){.game-grid{grid-template-columns:repeat(2,1fr)}.hub-hero{padding-left:28px;padding-right:28px}.top small{margin-right:45px}}
 @media(max-width:650px){header{min-height:76px}.esc-brand-title{font-size:14px}.random-mini span{display:none}.random-mini{width:43px;padding:0;justify-content:center}.back-home{font-size:9px;padding:0 10px}main{width:min(100% - 28px,1180px);padding-top:25px}.hub-hero{margin-bottom:47px;padding:58px 16px 45px;border-radius:29px}.hub-hero h1{font-size:52px}.hub-hero>p{font-size:13px}.hero-random{grid-template-columns:auto 1fr;padding:9px 14px}.hero-random i{display:none}.filter-row{gap:6px;margin-top:26px}.filter-row button{min-height:38px;padding:0 10px;font-size:9px}.game-grid{grid-template-columns:1fr}.game-card{min-height:330px;padding:22px;border-radius:25px}.game-card h2{margin-top:35px}.top small{margin-right:55px}.hub-note{grid-template-columns:auto 1fr;align-items:start}.hub-note a{grid-column:2}footer{flex-direction:column;text-align:center}.grid-label i{display:none}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+
+/* 2026-09-22 · expanded 32-game hub */
+.new-preview{flex-direction:column;text-align:center;gap:9px;background:linear-gradient(145deg,color-mix(in srgb,var(--accent) 11%,white),#fff)}
+.new-preview strong{max-width:92%;color:var(--navy);font-size:18px;line-height:1.08;letter-spacing:-.025em}
+.new-preview span{padding:6px 9px;border-radius:999px;background:#fff;border:1px solid color-mix(in srgb,var(--accent) 16%,#e5ebf0);color:var(--accent);font-size:7px;font-weight:1000;letter-spacing:.07em;text-transform:uppercase}
