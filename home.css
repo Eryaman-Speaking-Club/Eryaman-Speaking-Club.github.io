@@ -37,13 +37,14 @@ footer{min-height:220px;padding:55px max(24px,calc((100vw - var(--max))/2));back
 @media(max-width:760px){.esc-lang-switch{padding:3px;border-radius:12px;margin-left:auto}.esc-lang-switch a{width:29px;height:29px;font-size:9px}.esc-lang-switch span{font-size:9px}}
 
 
-/* 2026-09-21 · seamless ticker + conversion flow */
+/* 2026-09-22 · truly continuous ticker + conversion flow */
 .ticker{overflow:hidden}
-.ticker-track{display:flex;align-items:center;gap:0;width:max-content;will-change:transform;animation:tickerLoop 22s linear infinite}
-.ticker-group{display:flex;align-items:center;gap:35px;flex:0 0 auto;padding-right:35px}
-@keyframes tickerLoop{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ticker-track{display:flex;align-items:center;gap:0;width:max-content;will-change:transform;animation:tickerLoop 24s linear infinite}
+.ticker-group{display:flex;align-items:center;gap:35px;flex:0 0 auto;padding-right:35px;white-space:nowrap}
+.ticker-group>*{flex:0 0 auto}
+@keyframes tickerLoop{from{transform:translate3d(0,0,0)}to{transform:translate3d(-25%,0,0)}}
 #next-event,#events,#feedback,#experience,#katilim,#about{scroll-margin-top:105px}
-@media(max-width:700px){.ticker-track{animation-duration:18s}.ticker-group{gap:26px;padding-right:26px}.ticker span{font-size:11px}}
+@media(max-width:700px){.ticker-track{animation-duration:19s}.ticker-group{gap:26px;padding-right:26px}.ticker span{font-size:11px}}
 
 
 /* 2026-09-22 · hero readability */
@@ -58,3 +59,7 @@ footer{min-height:220px;padding:55px max(24px,calc((100vw - var(--max))/2));back
 @media(max-width:560px){
   .hero h1{font-size:clamp(48px,15vw,68px);line-height:1.03}
 }
+
+
+/* 2026-09-22 · headline letter spacing test */
+.hero h1{letter-spacing:0!important}
