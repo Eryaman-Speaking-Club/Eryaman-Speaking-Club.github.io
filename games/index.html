@@ -8,8 +8,8 @@
   <meta name="description" content="Eryaman Speaking Club tarafından hazırlanan 32 ücretsiz konuşma ve grup oyunu.">
   <title>Oyunlar · Eryaman Speaking Club</title>
   <link rel="stylesheet" href="../esc-brand.css?v=20260917">
-  <link rel="stylesheet" href="./games.css?v=20260922-32games">
-  <link rel="stylesheet" href="./previews.css?v=20260917-1040">
+  <link rel="stylesheet" href="./games.css?v=20260923-audit2">
+  <link rel="stylesheet" href="./previews.css?v=20260923-audit2">
 </head>
 <body>
   <div class="hub-noise" aria-hidden="true"></div>
@@ -25,6 +25,10 @@
       <p>İndirme yok, üyelik yok, karmaşık kurallar yok. Ortama uygun oyunu seç ve doğrudan tarayıcıda oyna.</p>
       <div class="hero-actions"><button class="hero-random" type="button" data-random><span>🎲</span><b>Ne oynayacağımıza sen karar ver</b><i>Rastgele oyun seç →</i></button></div>
       <div class="filter-row" role="group" aria-label="Oyunları filtrele"><button class="active" data-filter="all">Tüm oyunlar <span>32</span></button><button data-filter="group">Grup <span>13</span></button><button data-filter="quick">Hızlı <span>8</span></button><button data-filter="deep">Sohbet <span>11</span></button></div>
+      <div class="game-search-wrap">
+        <label class="game-search" for="gameSearch"><span>⌕</span><input id="gameSearch" type="search" placeholder="Oyun ara: Taboo, speaking, hızlı..." autocomplete="off"><button id="clearGameSearch" type="button" aria-label="Aramayı temizle">×</button></label>
+        <small id="gameLibraryStatus">32 oyun hazır</small>
+      </div>
     </section>
     <div class="grid-label"><span>OYUN KÜTÜPHANESİ</span><i>Oyunun üstüne dokun · doğrudan oyna</i></div>
     <section class="game-grid">
@@ -62,29 +66,91 @@
       <a class="game-card newgame" style="--accent:#ea6b35" data-kind="deep" href="../hot-take/"><span class="card-number">31</span><div class="top"><span>🔥</span><small>FİKİR OYUNU</small></div><div class="game-preview new-preview" aria-hidden="true"><strong>DEFEND IT</strong><span>30 seconds + counterargument</span></div><h2>Hot Take</h2><p>Bir taraf seç, 30 saniye savun; sonra tek bir karşı argüman dinle.</p><div class="card-meta"><span>SOHBET</span><span>YENİ</span></div><b>Hemen oyna <i>→</i></b></a>
       <a class="game-card newgame" style="--accent:#5568c7" data-kind="deep" href="../photo-talk/"><span class="card-number">32</span><div class="top"><span>🖼️</span><small>GÖRSEL SOHBET</small></div><div class="game-preview new-preview" aria-hidden="true"><strong>BEFORE · NOW · AFTER</strong><span>Describe · imagine · predict</span></div><h2>Photo Talk</h2><p>Görsel ipuçlarını anlat; öncesini hayal et ve sonrasında ne olacağını tahmin et.</p><div class="card-meta"><span>SOHBET</span><span>YENİ</span></div><b>Hemen oyna <i>→</i></b></a>
     </section>
-    <section class="hub-note"><span>✨</span><div><strong>Bir buluşma mı yönetiyorsun?</strong><p>Oyunu telefon, tablet veya projektörde aç. Oyuncu listeleri, bazı oyun ayarları ve desteklenen özel içerikler tarayıcıda kayıtlı kalır.</p></div><a href="../#events">Kulüp ortamını gör →</a></section>
+    <div class="hub-empty" id="hubEmpty" hidden><strong>Bu filtrede oyun bulunamadı.</strong><span>Aramayı temizle veya başka bir kategori seç.</span></div>
+    <section class="hub-note"><span>✨</span><div><strong>Bir buluşma mı yönetiyorsun?</strong><p>Oyunu telefon, tablet veya projektörde aç. Oyunları telefonda, tablette veya projektörde aç. Desteklenen oyun içerikleri ortak sistemde tutulur; yönetim panelindeki değişiklikler diğer cihazlara da yansır.</p></div><a href="../#next-event">Kulüp ortamını gör →</a></section>
   </main>
   <div class="random-toast" role="status" aria-live="polite"></div>
   <footer><p>Eryaman Speaking Club tarafından gerçek sohbetler için geliştirildi.</p><a href="../">Kulüp sitesine dön ↑</a></footer>
+  <script src="/esc-supabase-config.js"></script>
+  <script src="/esc-supabase.js"></script>
+  <script src="/site-analytics.js?v=20260922"></script>
   <script>
-    (()=>{
+    (() => {
       const cards=[...document.querySelectorAll('.game-card')];
-      document.querySelectorAll('[data-filter]').forEach(button=>button.addEventListener('click',()=>{
-        document.querySelectorAll('[data-filter]').forEach(item=>item.classList.toggle('active',item===button));
-        cards.forEach(card=>card.hidden=button.dataset.filter!=='all'&&card.dataset.kind!==button.dataset.filter);
-      }));
+      const filters=[...document.querySelectorAll('[data-filter]')];
+      const search=document.getElementById('gameSearch');
+      const clear=document.getElementById('clearGameSearch');
+      const status=document.getElementById('gameLibraryStatus');
+      const empty=document.getElementById('hubEmpty');
       const toast=document.querySelector('.random-toast');
+      let activeFilter='all';
+      let enabledSlugs=null;
+
+      const slugOf=card=>{
+        try{return new URL(card.href,location.href).pathname.split('/').filter(Boolean).pop()||''}
+        catch(_){return ''}
+      };
+      const searchable=card=>((card.querySelector('h2')?.textContent||'')+' '+(card.querySelector('p')?.textContent||'')+' '+(card.querySelector('.top small')?.textContent||'')).toLocaleLowerCase('tr-TR');
+      const available=card=>enabledSlugs===null||enabledSlugs.has(slugOf(card));
+
+      function updateCounts(){
+        const base=cards.filter(available);
+        filters.forEach(button=>{
+          const count=button.dataset.filter==='all'?base.length:base.filter(card=>card.dataset.kind===button.dataset.filter).length;
+          const badge=button.querySelector('span');if(badge)badge.textContent=count;
+        });
+      }
+      function apply(){
+        const q=(search?.value||'').trim().toLocaleLowerCase('tr-TR');
+        let visible=0;
+        cards.forEach(card=>{
+          const ok=available(card)&&(activeFilter==='all'||card.dataset.kind===activeFilter)&&(!q||searchable(card).includes(q));
+          card.hidden=!ok;if(ok)visible++;
+        });
+        updateCounts();
+        if(empty)empty.hidden=visible!==0;
+        if(status){
+          const total=cards.filter(available).length;
+          status.textContent=q||activeFilter!=='all'?visible+' oyun gösteriliyor · toplam '+total:total+' oyun hazır';
+        }
+      }
+
+      filters.forEach(button=>button.addEventListener('click',()=>{
+        activeFilter=button.dataset.filter||'all';
+        filters.forEach(item=>item.classList.toggle('active',item===button));
+        apply();
+      }));
+      search?.addEventListener('input',apply);
+      clear?.addEventListener('click',()=>{search.value='';search.focus();apply()});
+
       document.querySelectorAll('[data-random]').forEach(button=>button.addEventListener('click',()=>{
-        const visible=cards.filter(card=>!card.hidden);
-        const pick=visible[Math.floor(Math.random()*visible.length)]||cards[0];
+        const visible=cards.filter(card=>!card.hidden&&available(card));
+        if(!visible.length){
+          toast.textContent='Önce en az bir oyun görünür olmalı';toast.classList.add('show');
+          window.setTimeout(()=>toast.classList.remove('show'),1200);return;
+        }
+        const pick=visible[Math.floor(Math.random()*visible.length)];
         const title=pick.querySelector('h2')?.textContent||'oyun';
         toast.textContent='🎲 '+title+' seçildi';toast.classList.add('show');
         window.setTimeout(()=>location.href=pick.href,650);
       }));
+
+      async function syncAvailability(){
+        try{
+          for(let i=0;i<50&&!window.ESCSupabase?.getClient;i++)await new Promise(r=>setTimeout(r,50));
+          const db=await window.ESCSupabase?.getClient?.();if(!db)return;
+          const {data,error}=await db.from('games').select('slug').eq('enabled',true);
+          if(error)throw error;
+          enabledSlugs=new Set((data||[]).map(x=>x.slug));
+          apply();
+        }catch(e){
+          console.warn('Game availability could not be refreshed; showing built-in hub.',e);
+        }
+      }
+      apply();
+      void syncAvailability();
     })();
   </script>
-  <script src="/esc-supabase-config.js"></script>
-  <script src="/esc-supabase.js"></script>
-  <script src="/site-analytics.js?v=20260922"></script>
+
 </body>
 </html>
