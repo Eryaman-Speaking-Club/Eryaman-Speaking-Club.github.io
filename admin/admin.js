@@ -68,7 +68,7 @@
 
   async function render(view){
     state.currentView=view;
-    const titles={dashboard:'Genel Bakış',siteEditor:'Canlı Site Editörü',pages:'Sayfalar & Bölümler',games:'Oyunlar',educators:'Educators',media:'Medya Kütüphanesi',analytics:'Site İstatistikleri',history:'Sürüm Geçmişi',team:'Yönetici Ekibi',settings:'Ayarlar'};
+    const titles={dashboard:'Genel Bakış',siteEditor:'Canlı Site Editörü',pages:'Sayfalar & Bölümler',events:'Etkinlik & Fiyatlar',games:'Oyunlar',educators:'Educators',media:'Medya Kütüphanesi',analytics:'Site İstatistikleri',history:'Sürüm Geçmişi',team:'Yönetici Ekibi',settings:'Ayarlar'};
     $('#viewTitle').textContent=titles[view]||view;
     $('#panel').innerHTML='<div class="card"><div class="empty">Yükleniyor…</div></div>';
     try{
