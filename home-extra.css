@@ -205,3 +205,23 @@ section[id]{scroll-margin-top:108px}
 .feedback-grid{margin-top:34px!important}.feedback-card{min-height:245px!important}.feedback-source em{display:block!important}
 .faq{padding-top:95px!important;padding-bottom:95px!important}
 @media(max-width:700px){.compact-why{grid-template-columns:1fr}.experience,.event-gallery,.feedback,.games-preview,.faq{padding-top:72px!important;padding-bottom:72px!important}}
+
+
+/* 2026-09-23 · ESC Educators homepage entry */
+.educators-home-callout{padding-top:34px;padding-bottom:34px;background:#f7fafc}
+.educators-home-link{display:grid;grid-template-columns:1.12fr .88fr;gap:28px;align-items:center;padding:34px;border:1px solid #dce5ed;border-radius:30px;background:linear-gradient(145deg,#ffffff,#eef7f6);text-decoration:none;color:#081f3b;box-shadow:0 18px 55px rgba(8,31,59,.08);overflow:hidden;position:relative}
+.educators-home-link:before{content:"";position:absolute;width:240px;height:240px;border-radius:50%;right:-80px;top:-90px;background:radial-gradient(circle,rgba(22,166,162,.18),rgba(22,166,162,0) 70%)}
+.educators-home-copy{position:relative;z-index:2}
+.educators-home-copy>small{display:block;color:#175ca8;font-size:10px;font-weight:1000;letter-spacing:.13em}
+.educators-home-copy h2{margin:10px 0 12px;font-size:clamp(34px,4.5vw,58px);line-height:1;letter-spacing:-.055em;color:#081f3b}
+.educators-home-copy p{max-width:680px;margin:0;color:#6f8193;line-height:1.65;font-size:14px}
+.educators-home-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:18px}
+.educators-home-tags span{padding:7px 9px;border-radius:999px;background:#fff;border:1px solid #dce5ed;color:#50677c;font-size:9px;font-weight:900}
+.educators-home-preview{position:relative;z-index:2;padding:18px;border-radius:22px;background:linear-gradient(145deg,#081f3b,#0b2f5b);color:#fff;box-shadow:0 22px 55px rgba(8,31,59,.2)}
+.edu-mini-top{display:flex;justify-content:space-between;align-items:center}.edu-mini-top span{font-size:10px;font-weight:950}.edu-mini-top b{font-size:8px;color:#6fe0d8;letter-spacing:.08em}
+.edu-mini-question{margin-top:14px;padding:16px;border-radius:15px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08)}
+.edu-mini-question small{display:block;color:#6fe0d8;font-size:8px;font-weight:950;letter-spacing:.1em}.edu-mini-question strong{display:block;margin-top:6px;font-size:20px;line-height:1.25}
+.edu-mini-flow{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px}.edu-mini-flow span{padding:8px 6px;border-radius:10px;background:rgba(255,255,255,.07);text-align:center;color:#c4d3df;font-size:8px;font-weight:850}
+.edu-mini-cta{display:block;margin-top:14px;color:#fff;font-size:10px}
+@media(max-width:900px){.educators-home-link{grid-template-columns:1fr}.educators-home-preview{max-width:560px}}
+@media(max-width:560px){.educators-home-callout{padding-left:18px;padding-right:18px}.educators-home-link{padding:22px;border-radius:24px}.educators-home-copy h2{font-size:36px}.edu-mini-flow{grid-template-columns:1fr 1fr}}
