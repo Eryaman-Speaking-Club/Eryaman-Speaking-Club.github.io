@@ -105,7 +105,7 @@
 
     openModal('<div class="card-head"><div><h2>'+esc(game.name)+'</h2><p class="muted">'+esc(info.count)+' · '+esc(info.label)+'</p></div><span class="pill '+(game.enabled?'published':'draft')+'">'+(game.enabled?'YAYINDA':'KAPALI')+'</span></div>'+
       '<form id="gameAdminForm" class="stack">'+
-        '<label><input name="enabled" type="checkbox" '+(game.enabled?'checked':'')+'> Game Hub ve public oyun sayfasında aktif</label>'+
+        '<label><input name="enabled" type="checkbox" '+(game.enabled?'checked':'')+'> Game Hub’da aktif</label>'+
         '<label>Public config (gelişmiş)<textarea name="public_config" rows="5">'+esc(JSON.stringify(game.public_config||{},null,2))+'</textarea></label>'+
         '<label>İçerik dışı oyun ayarları (gelişmiş)<textarea name="meta_config" rows="7">'+esc(JSON.stringify(metaConfig,null,2))+'</textarea></label>'+
         libraryHtml+
