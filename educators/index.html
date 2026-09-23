@@ -243,14 +243,19 @@
                     </select>
                   </label>
                 </div>
-                <label>Primary goal
-                  <select id="goal">
-                    <option value="speaking" selected>Speaking confidence</option>
-                    <option value="vocabulary">Vocabulary practice</option>
-                    <option value="grammar">Grammar in context</option>
-                    <option value="mixed">Mixed lesson</option>
-                  </select>
-                </label>
+                <div class="form-two">
+                  <label>Primary goal
+                    <select id="goal">
+                      <option value="speaking" selected>Speaking confidence</option>
+                      <option value="vocabulary">Vocabulary practice</option>
+                      <option value="grammar">Grammar in context</option>
+                      <option value="mixed">Mixed lesson</option>
+                    </select>
+                  </label>
+                  <label>Student count
+                    <input id="studentCount" type="number" min="1" max="60" value="22">
+                  </label>
+                </div>
                 <button class="generate-button" type="submit">Generate lesson <span>✦</span></button>
                 <p class="form-note">Prototype: içerik örnek kural setlerinden üretilir. AI üretimi sonraki aşamada eklenecek.</p>
               </form>
