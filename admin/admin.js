@@ -110,6 +110,16 @@
   }
 
   document.addEventListener('DOMContentLoaded',()=>{
+    $('#forgotPasswordBtn')?.addEventListener('click',async()=>{
+      const email=$('#loginForm')?.elements?.email?.value?.trim();
+      if(!email){$('#authMessage').textContent='Önce e-posta adresini yaz.';return}
+      $('#authMessage').textContent='Şifre sıfırlama bağlantısı gönderiliyor…';
+      try{
+        await window.ESCSupabase.sendPasswordReset(email,'/admin/?recovery=1');
+        $('#authMessage').textContent='Şifre sıfırlama bağlantısı e-postana gönderildi.';
+      }catch(err){$('#authMessage').textContent=err.message||String(err)}
+    });
+
     $('#loginForm')?.addEventListener('submit',async e=>{
       e.preventDefault(); $('#authMessage').textContent='Giriş yapılıyor…';
       const f=new FormData(e.currentTarget);
