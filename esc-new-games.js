@@ -133,7 +133,7 @@ async function syncRemote(){
     for(let i=0;i<40&&!window.ESCSupabase;i++)await new Promise(r=>setTimeout(r,50));
     if(!window.ESCSupabase?.getGameSettings||!cfg.slug)return;
     const settings=await window.ESCSupabase.getGameSettings(cfg.slug);
-    if(settings&&Array.isArray(settings.content)&&settings.content.length){
+    if(settings&&Array.isArray(settings.content)){
       cfg.items=JSON.parse(JSON.stringify(settings.content));
       deck=[];pos=-1;history=[];nextItem();
     }
