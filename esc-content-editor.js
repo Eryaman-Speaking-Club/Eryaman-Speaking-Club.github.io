@@ -118,7 +118,7 @@
 
     const overlay=document.createElement('div');
     overlay.className='esc-editor-overlay';overlay.id='escEditorOverlay';
-    overlay.innerHTML=`<section class="esc-editor-panel" role="dialog" aria-modal="true" aria-label="Question editor"><div class="esc-editor-head"><div><div class="esc-editor-tag">ESC CLOUD EDITOR</div><h2>Question Library</h2><p>Add, edit or remove questions. Changes are saved to the shared Supabase backend.</p></div><button class="esc-editor-close" type="button" aria-label="Close">×</button></div><div class="esc-editor-form"><label>Category<input id="escEditorCategory" list="escEditorCategories"></label><datalist id="escEditorCategories"></datalist><label class="esc-editor-primary-label">Question / Prompt<textarea id="escEditorPrimary" rows="3"></textarea></label><label class="esc-editor-secondary-wrap" hidden><span class="esc-editor-secondary-label">Second field</span><textarea id="escEditorSecondary" rows="3"></textarea></label><div class="esc-editor-form-actions"><button type="button" class="esc-editor-save">Add question</button><button type="button" class="esc-editor-cancel" hidden>Cancel edit</button></div></div><div class="esc-editor-toolbar"><input id="escEditorSearch" type="search" placeholder="Search questions..."><button type="button" class="esc-editor-reset">Reset built-ins</button></div><div class="esc-editor-list"></div></section>`;
+    overlay.innerHTML=`<section class="esc-editor-panel" role="dialog" aria-modal="true" aria-label="Question editor"><div class="esc-editor-head"><div><div class="esc-editor-tag">QUESTION LIBRARY EDITOR</div><h2>Question Library</h2><p>Add, edit or remove questions. Changes are saved to the shared Supabase backend.</p></div><button class="esc-editor-close" type="button" aria-label="Close">×</button></div><div class="esc-editor-form"><label>Category<input id="escEditorCategory" list="escEditorCategories"></label><datalist id="escEditorCategories"></datalist><label class="esc-editor-primary-label">Question / Prompt<textarea id="escEditorPrimary" rows="3"></textarea></label><label class="esc-editor-secondary-wrap" hidden><span class="esc-editor-secondary-label">Second field</span><textarea id="escEditorSecondary" rows="3"></textarea></label><div class="esc-editor-form-actions"><button type="button" class="esc-editor-save">Add question</button><button type="button" class="esc-editor-cancel" hidden>Cancel edit</button></div></div><div class="esc-editor-toolbar"><input id="escEditorSearch" type="search" placeholder="Search questions..."><button type="button" class="esc-editor-reset">Reset built-ins</button></div><div class="esc-editor-list"></div></section>`;
     document.body.appendChild(overlay);
 
     const panel=overlay.querySelector('.esc-editor-panel'),close=overlay.querySelector('.esc-editor-close'),category=overlay.querySelector('#escEditorCategory'),categoryList=overlay.querySelector('#escEditorCategories'),primary=overlay.querySelector('#escEditorPrimary'),secondaryWrap=overlay.querySelector('.esc-editor-secondary-wrap'),secondaryLabel=overlay.querySelector('.esc-editor-secondary-label'),secondary=overlay.querySelector('#escEditorSecondary'),saveBtn=overlay.querySelector('.esc-editor-save'),cancelBtn=overlay.querySelector('.esc-editor-cancel'),search=overlay.querySelector('#escEditorSearch'),resetBtn=overlay.querySelector('.esc-editor-reset'),list=overlay.querySelector('.esc-editor-list');
@@ -136,7 +136,7 @@
         await api.saveGameSettings(GAME_SLUG,{content:clone(source.data),source:'esc-studio',version:2});
       }catch(e){
         console.warn('ESC cloud save failed; local backup kept.',e);
-        if(STUDIO_MODE)alert('Bulut kaydı başarısız oldu. Yerel yedek korundu; ESC Studio oturumunu kontrol et.');
+        if(STUDIO_MODE)alert('Bulut kaydı başarısız oldu. Yerel yedek korundu; yönetim paneli oturumunu kontrol et.');
       }
     };
     function clearForm(){editing=-1;primary.value='';secondary.value='';if(categories[0])category.value=categories[0];saveBtn.textContent='Add question';cancelBtn.hidden=true}
@@ -170,7 +170,7 @@
       overlay.classList.add('open');render();
     }
     function hide(){overlay.classList.remove('open');clearForm()}
-    const back=document.createElement('a');back.href='/admin/#games';back.textContent='← ESC Admin';back.setAttribute('aria-label','Back to ESC Admin');back.style.cssText='display:inline-flex;align-items:center;gap:6px;margin:0 0 14px;padding:9px 12px;border-radius:12px;background:#eef4fa;color:#0b2f5b;text-decoration:none;font:800 12px/1 system-ui,sans-serif';panel.prepend(back);
+    const back=document.createElement('a');back.href='/admin/#games';back.textContent='← Yönetim Paneli';back.setAttribute('aria-label','Back to Eryaman Speaking Club Admin');back.style.cssText='display:inline-flex;align-items:center;gap:6px;margin:0 0 14px;padding:9px 12px;border-radius:12px;background:#eef4fa;color:#0b2f5b;text-decoration:none;font:800 12px/1 system-ui,sans-serif';panel.prepend(back);
     btn.onclick=open;close.onclick=hide;overlay.addEventListener('click',e=>{if(e.target===overlay)hide()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('open'))hide()});render();setTimeout(()=>void open(),0);
   }
   async function bootstrap(){
