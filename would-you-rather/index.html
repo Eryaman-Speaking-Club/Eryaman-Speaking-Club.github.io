@@ -17,7 +17,7 @@ function next(){if(!deck.length||pos>=deck.length-1)build();pos++;show(deck[pos]
 $('choiceA').onclick=()=>choose('choiceA');$('choiceB').onclick=()=>choose('choiceB');$('next').onclick=next;$('back').onclick=()=>{if(history.length<2)return;history.pop();show(history[history.length-1],false)};$('shuffle').onclick=()=>{build();next();ESCGameKit.toast('New surprise deck')};
 cats.forEach(c=>{const b=document.createElement('button');b.className='game-chip'+(c==='All'?' active':'');b.textContent=c;b.onclick=()=>{selected=c;document.querySelectorAll('.game-chip').forEach(x=>x.classList.toggle('active',x===b));build();next()};$('chips').appendChild(b)});document.addEventListener('keydown',e=>{if(e.key.toLowerCase()==='a')choose('choiceA');else if(e.key.toLowerCase()==='b')choose('choiceB');else if(e.code==='Space'){e.preventDefault();next()}});build();next();
 </script><script src="../esc-depth-pass.js?v=20260916-1720"></script><script src="/game-content-v2.js?v=20260922-1"></script>
-  <script src="../esc-content-editor.js?v=20260916-1345"></script>  <script src="/esc-supabase-config.js"></script>
+  <script src="../esc-content-editor.js?v=20260923-audit5"></script>  <script src="/esc-supabase-config.js"></script>
   <script src="/esc-supabase.js"></script>
   <script src="/site-analytics.js?v=20260922"></script>
 </body></html>
