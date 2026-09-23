@@ -47,3 +47,82 @@
 .lesson-modal{position:fixed;inset:0;z-index:100;display:none;place-items:center;padding:18px;background:rgba(3,14,28,.78);backdrop-filter:blur(10px)}.lesson-modal.open{display:grid}.lesson-modal-card{width:min(720px,96vw);position:relative;border-radius:24px;background:white;padding:20px}.modal-close{position:absolute;right:15px;top:14px;border:0;background:#eef2f5;color:var(--navy);width:34px;height:34px;border-radius:50%;font-size:20px}.modal-top{display:flex;justify-content:space-between;padding-right:45px}.modal-top span,.modal-top strong{font-size:9px;color:#7b8e9f}.live-question-card{margin-top:16px;padding:28px;border-radius:20px;background:linear-gradient(145deg,#0b2f5b,#175ca8);color:white;text-align:center}.live-question-card small{color:#79e0d8;font-size:9px;font-weight:950}.live-question-card h3{margin:10px 0 8px;font-size:32px}.live-question-card p{color:#c6d7e3}.live-teams{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.live-teams>div{padding:14px;border:1px solid var(--line);border-radius:14px;text-align:center}.live-teams span{display:block;color:#8093a4;font-size:8px}.live-teams strong{display:block;color:var(--navy);font-size:28px}.modal-controls{display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:8px;margin-top:10px}.modal-controls button{border:1px solid var(--line);border-radius:11px;background:white;color:var(--navy);padding:10px;font-size:9px;font-weight:900}.modal-controls button:nth-child(2){background:var(--navy);color:white}
 @media(max-width:1000px){.edu-topnav{display:none}.edu-hero{grid-template-columns:1fr}.edu-strip{grid-template-columns:1fr 1fr}.edu-strip>div:nth-child(2){border-right:0}.section-heading,.student-demo-section{grid-template-columns:1fr}.how-grid{grid-template-columns:1fr 1fr}.teacher-app{grid-template-columns:1fr}.teacher-sidebar{display:none}.metric-grid{grid-template-columns:1fr 1fr}.builder-layout,.report-grid{grid-template-columns:1fr}.roadmap-grid{grid-template-columns:1fr 1fr}.class-card-grid,.edu-game-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:650px){.edu-topbar{padding:8px 12px}.edu-top-actions .text-link{display:none}.primary-link{padding:10px 11px}.edu-hero{padding:70px 18px}.edu-hero h1{font-size:clamp(50px,15vw,72px)}.hero-actions{display:grid}.hero-primary,.hero-secondary{justify-content:center}.mini-form{grid-template-columns:1fr}.edu-strip{grid-template-columns:1fr}.edu-strip>div{border-right:0;border-bottom:1px solid var(--line)}.how-section,.roadmap-section,.student-demo-section{padding:80px 18px}.how-grid,.roadmap-grid,.class-card-grid,.edu-game-grid{grid-template-columns:1fr}.teacher-demo-section{padding:80px 10px}.teacher-app{border-radius:18px}.workspace-top{align-items:flex-start;gap:10px;flex-direction:column}.metric-grid{grid-template-columns:1fr 1fr}.overview-grid{grid-template-columns:1fr}.table-row{grid-template-columns:1fr 1fr}.table-row span:nth-child(3),.table-row span:nth-child(4){display:none}.form-two{grid-template-columns:1fr}.panel-header{align-items:flex-start;flex-direction:column}.question-preview h4{font-size:19px}.student-principles{grid-template-columns:1fr}.modal-controls{grid-template-columns:1fr}.live-question-card h3{font-size:24px}}
+
+
+/* v2 usability + classroom tools + adaptive games */
+.mobile-workspace-tabs{display:none;gap:6px;padding:9px 12px;overflow-x:auto;border-bottom:1px solid var(--line);background:#fff;scrollbar-width:none}
+.mobile-workspace-tabs::-webkit-scrollbar{display:none}
+.mobile-workspace-tabs button{flex:0 0 auto;border:1px solid var(--line);border-radius:999px;background:#fff;color:#667c8f;padding:8px 11px;font-size:9px;font-weight:900;cursor:pointer}
+.mobile-workspace-tabs button.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+.game-library-toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px}
+.game-library-toolbar input{min-width:240px;flex:1;border:1px solid var(--line);border-radius:11px;background:#fff;padding:10px 12px;color:var(--navy);outline:none;font-size:10px}
+.game-filter-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.game-filter-row button{border:1px solid var(--line);border-radius:999px;background:#fff;color:#6e8193;padding:7px 9px;font-size:8px;font-weight:900;cursor:pointer}
+.game-filter-row button.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.edu-game-grid article{display:flex;flex-direction:column;min-height:220px;transition:.18s}
+.edu-game-grid article:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(8,31,59,.07)}
+.edu-game-grid article.hidden{display:none}
+.edu-game-grid article b{margin-top:auto}
+.edu-game-grid article button{margin-top:12px;border:0;border-radius:10px;background:#eef4f9;color:var(--blue);padding:9px 10px;font-size:8px;font-weight:950;cursor:pointer;text-align:left}
+.edu-game-grid article button:hover{background:var(--navy);color:#fff}
+
+.tools-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.tool-card{background:#fff;border:1px solid var(--line);border-radius:17px;padding:17px;min-height:245px}
+.tool-card>small{display:block;color:#8295a6;font-size:8px;font-weight:950;letter-spacing:.09em}
+.tool-card h4{margin:7px 0 14px;color:var(--navy);font-size:22px}
+.timer-tool h4{font-size:46px;letter-spacing:.04em}
+.tool-button-row{display:flex;gap:7px;margin-top:8px}
+.tool-button-row button,.tool-card>button{border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--navy);padding:9px 11px;font-size:9px;font-weight:900;cursor:pointer}
+.tool-button-row button:hover,.tool-card>button:hover{background:var(--navy);color:#fff}
+.student-tool textarea{width:100%;resize:vertical;border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--navy);font-size:10px;line-height:1.4}
+.picked-student{min-height:62px;margin:11px 0;display:grid;place-items:center;border-radius:14px;background:linear-gradient(145deg,#e8fbf7,#f7fffd);color:var(--teal);font-size:28px;font-weight:1000}
+.teams-tool label{display:grid;gap:5px;color:#6d8194;font-size:9px;font-weight:900}
+.teams-tool select{border:1px solid var(--line);border-radius:10px;padding:9px;background:#fff;color:var(--navy)}
+.made-teams{display:grid;gap:7px;margin-top:11px}
+.made-team{padding:8px 10px;border-radius:10px;background:#f4f7fa;color:#546b7f;font-size:9px;line-height:1.45}
+.made-team b{color:var(--navy)}
+.quick-prompt{min-height:100px;display:flex;align-items:center;padding:16px;border-radius:15px;background:linear-gradient(145deg,#fff4e5,#fff);color:#8c5d20;font-size:17px;font-weight:900;line-height:1.35}
+
+.game-modal{position:fixed;inset:0;z-index:110;display:none;place-items:center;padding:18px;background:rgba(3,14,28,.78);backdrop-filter:blur(10px)}
+.game-modal.open{display:grid}
+.game-modal-card{width:min(760px,96vw);position:relative;border-radius:24px;background:#fff;padding:20px;box-shadow:0 30px 90px rgba(0,0,0,.28)}
+.game-modal-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;padding-right:42px}
+.game-modal-head small{display:block;color:var(--teal);font-size:8px;font-weight:950;letter-spacing:.1em}
+.game-modal-head h3{margin:3px 0 0;color:var(--navy);font-size:28px}
+.game-modal-head>span{padding:7px 9px;border-radius:999px;background:#eef4f9;color:#587087;font-size:8px;font-weight:900}
+.game-task-card{margin-top:14px;padding:26px;border-radius:20px;background:linear-gradient(145deg,#0b2f5b,#175ca8);color:#fff;text-align:center}
+.game-task-card>small{display:block;color:#7ee4dc;font-size:8px;font-weight:950;letter-spacing:.1em}
+.game-task-card>strong{display:block;margin-top:12px;font-size:clamp(30px,5vw,50px);line-height:1.05;overflow-wrap:anywhere}
+.game-task-card>p{margin:10px auto 0;max-width:620px;color:#c4d7e4;line-height:1.55;font-size:11px}
+.game-task-extra{margin-top:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:7px}
+.game-task-extra span{padding:7px 9px;border-radius:999px;background:rgba(255,255,255,.1);font-size:8px;font-weight:900}
+.game-task-extra.revealed span{background:#fff;color:var(--navy)}
+.game-modal-actions{display:flex;justify-content:center;gap:8px;margin-top:10px}
+.game-modal-actions button{border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--navy);padding:10px 13px;font-size:9px;font-weight:900;cursor:pointer}
+.game-modal-actions button:last-child{background:var(--navy);color:#fff}
+.game-scorebar{display:grid;grid-template-columns:38px 1fr 38px 1px 38px 1fr 38px;gap:6px;align-items:center;margin-top:12px}
+.game-scorebar>button{height:38px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--navy);font-weight:1000;cursor:pointer}
+.game-scorebar>span{text-align:center;color:#6d8194;font-size:8px;font-weight:900}.game-scorebar>span b{display:inline-block;margin-left:4px;color:var(--navy);font-size:16px}
+.game-scorebar>i{height:28px;background:var(--line)}
+
+.class-card-grid article.is-saved{position:relative}
+.class-card-grid article.is-saved:after{content:"SAVED";position:absolute;right:12px;bottom:12px;padding:5px 7px;border-radius:999px;background:#e8fbf7;color:#0c7a74;font-size:7px;font-weight:950}
+.class-card-grid article .class-code-inline{display:inline-flex;margin-top:8px;padding:5px 7px;border-radius:8px;background:#f4f7fa;color:#617789;font-size:8px;font-weight:900;letter-spacing:.07em}
+.class-card-grid article .class-actions{display:flex;gap:9px;align-items:center}
+.class-card-grid article .delete-class{color:#b6535c}
+
+@media(max-width:1000px){
+  .mobile-workspace-tabs{display:flex}
+  .tools-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:650px){
+  .game-library-toolbar{align-items:stretch;flex-direction:column}
+  .game-library-toolbar input{min-width:0}
+  .game-filter-row{justify-content:flex-start}
+  .tools-grid{grid-template-columns:1fr}
+  .game-modal-head{flex-direction:column;gap:8px}
+  .game-scorebar{grid-template-columns:34px 1fr 34px;grid-template-rows:auto auto}
+  .game-scorebar>i{display:none}
+  .game-scorebar>button:nth-of-type(3){grid-column:1}
+}
