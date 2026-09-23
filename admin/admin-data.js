@@ -38,35 +38,108 @@
     $('#eventConfigForm').onsubmit=async e=>{e.preventDefault();try{await save(true);eventsView()}catch(err){alert(err.message)}};
   }
 
+  function gameContentStats(slug,config){
+    const cfg=config||{};
+    if(Array.isArray(cfg.content)) return {count:cfg.content.length,label:'ortak içerik',mode:'content'};
+    if(slug==='truth-or-dare'){
+      const truths=Array.isArray(cfg.truths)?cfg.truths.length:0;
+      const dares=Array.isArray(cfg.dares)?cfg.dares.length:0;
+      return {count:truths+dares,label:truths+' Truth · '+dares+' Dare',mode:'truth-dare'};
+    }
+    if(slug==='one-for-me-one-for-you'){
+      const custom=Array.isArray(cfg.custom)?cfg.custom.length:0;
+      const disabled=Array.isArray(cfg.disabledIds)?cfg.disabledIds.length:0;
+      return {count:Math.max(0,1000+custom-disabled),label:'1000 temel · '+custom+' özel',mode:'generated'};
+    }
+    return {count:0,label:'yerleşik içerik',mode:'builtin'};
+  }
+
   async function gamesView(){
-    const [{data:games,error},{data:settings},{data:content}]=await Promise.all([
+    const [{data:games,error},{data:settings,error:settingsError}]=await Promise.all([
       A.state.db.from('games').select('*').order('name'),
-      A.state.db.from('game_settings').select('*'),
-      A.state.db.from('game_content').select('id,game_slug')
-    ]);if(error)throw error;
+      A.state.db.from('game_settings').select('*')
+    ]);
+    if(error)throw error;
+    if(settingsError)throw settingsError;
     const sMap=Object.fromEntries((settings||[]).map(x=>[x.game_slug,x.config||{}]));
-    const counts={};(content||[]).forEach(x=>counts[x.game_slug]=(counts[x.game_slug]||0)+1);
-    $('#panel').innerHTML='<div class="card"><div class="card-head"><div><h2>Oyun yönetimi</h2><p class="muted">Oyunların yayın durumu, ayarları ve merkezi içerikleri.</p></div><a class="btn secondary" href="../games/" target="_blank">Game Hub ↗</a></div><div class="game-admin-grid">'+
-      (games||[]).map(g=>'<article class="mini-card"><span class="pill '+(g.enabled?'published':'draft')+'">'+(g.enabled?'YAYINDA':'KAPALI')+'</span><h3>'+esc(g.name)+'</h3><p>'+esc(counts[g.slug]||0)+' merkezi içerik · '+esc(g.slug)+'</p><div class="row-actions" style="margin-top:13px"><button class="icon-btn" data-game="'+g.slug+'">Yönet</button><a class="icon-btn" href="../'+esc(g.slug)+'/" target="_blank">Aç ↗</a></div></article>').join('')+
+    const enabled=(games||[]).filter(g=>g.enabled).length;
+    const totalContent=(games||[]).reduce((n,g)=>n+gameContentStats(g.slug,sMap[g.slug]).count,0);
+    $('#panel').innerHTML=
+      '<div class="stats">'+
+        '<div class="stat"><span>OYUN</span><strong>'+esc((games||[]).length)+'</strong><small>'+enabled+' public olarak aktif</small></div>'+
+        '<div class="stat"><span>ORTAK İÇERİK</span><strong>'+esc(totalContent)+'</strong><small>Kart / soru / görev</small></div>'+
+        '<div class="stat"><span>KAPALI OYUN</span><strong>'+esc((games||[]).length-enabled)+'</strong><small>Game Hub’da gizlenir</small></div>'+
+        '<div class="stat"><span>ALTYAPI</span><strong>Shared</strong><small>Supabase + built-in fallback</small></div>'+
+      '</div>'+
+      '<div class="card"><div class="card-head"><div><h2>Oyun yönetimi</h2><p class="muted">Yayın durumu ve gerçek ortak oyun içeriği burada yönetilir. Değişiklik kaydedildiğinde desteklenen oyunlar diğer cihazlarda da aynı içeriği kullanır.</p></div><a class="btn secondary" href="../games/" target="_blank">Game Hub ↗</a></div><div class="game-admin-grid">'+
+      (games||[]).map(g=>{
+        const info=gameContentStats(g.slug,sMap[g.slug]);
+        return '<article class="mini-card"><span class="pill '+(g.enabled?'published':'draft')+'">'+(g.enabled?'YAYINDA':'KAPALI')+'</span><h3>'+esc(g.name)+'</h3><p><strong>'+esc(info.count)+'</strong> '+esc(info.label)+'<br><span class="muted">'+esc(g.slug)+'</span></p><div class="row-actions" style="margin-top:13px"><button class="icon-btn" data-game="'+esc(g.slug)+'">Yönet</button><a class="icon-btn" href="../'+esc(g.slug)+'/" target="_blank">Aç ↗</a></div></article>';
+      }).join('')+
       '</div></div>';
     $('#panel').querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>openGame(games.find(x=>x.slug===b.dataset.game),sMap[b.dataset.game]||{}));
   }
+
   async function openGame(game,config){
-    const {data:items,error}=await A.state.db.from('game_content').select('*').eq('game_slug',game.slug).order('sort_order');if(error)throw error;
-    openModal('<div class="card-head"><div><h2>'+esc(game.name)+'</h2><p class="muted">Oyun ayarları ve merkezi içerik.</p></div><span class="pill '+(game.enabled?'published':'draft')+'">'+(game.enabled?'YAYINDA':'KAPALI')+'</span></div>'+
-      '<form id="gameAdminForm" class="stack"><label><input name="enabled" type="checkbox" '+(game.enabled?'checked':'')+'> Oyun public Game Hub’da aktif</label>'+
-      '<label>Public config (gelişmiş)<textarea name="public_config" rows="5">'+esc(JSON.stringify(game.public_config||{},null,2))+'</textarea></label>'+
-      '<label>Game settings (gelişmiş)<textarea name="config" rows="5">'+esc(JSON.stringify(config||{},null,2))+'</textarea></label>'+
-      '<button class="btn primary" '+(!A.canEdit()?'disabled':'')+'>Ayarları kaydet</button></form>'+
-      '<div class="card"><div class="card-head"><div><h2>Merkezi içerikler</h2><p class="muted">'+(items||[]).length+' kayıt</p></div><button id="newGameContent" class="btn secondary" '+(!A.canEdit()?'disabled':'')+'>+ İçerik</button></div>'+
-      ((items||[]).length?'<div class="table-wrap"><table><thead><tr><th>Key</th><th>Kategori</th><th>Tip</th><th>Aktif</th><th></th></tr></thead><tbody>'+items.map(x=>'<tr><td>'+esc(x.content_key||x.id)+'</td><td>'+esc(x.category||'—')+'</td><td>'+esc(x.kind)+'</td><td>'+esc(x.is_active?'evet':'hayır')+'</td><td><button class="icon-btn" data-content="'+x.id+'">Düzenle</button></td></tr>').join('')+'</tbody></table></div>':'<div class="empty">Bu oyun için henüz merkezi içerik kaydı yok.</div>')+'</div>');
-    $('#gameAdminForm').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.currentTarget);try{const pc=JSON.parse(f.get('public_config')||'{}'),cf=JSON.parse(f.get('config')||'{}');let r=await A.state.db.from('games').update({enabled:f.get('enabled')==='on',public_config:pc,updated_at:new Date().toISOString()}).eq('slug',game.slug);if(r.error)throw r.error;r=await A.state.db.from('game_settings').upsert({game_slug:game.slug,config:cf,updated_at:new Date().toISOString()});if(r.error)throw r.error;closeModal();toast('Oyun ayarları kaydedildi');gamesView()}catch(err){alert(err.message||err)}};
-    const editItem=item=>{
-      openModal('<h2>'+(item?'İçeriği düzenle':'Yeni oyun içeriği')+'</h2><form id="gameContentForm" class="stack"><label>Content key<input name="key" value="'+esc(item?.content_key||'')+'"></label><div class="grid-2"><label>Kategori<input name="category" value="'+esc(item?.category||'')+'"></label><label>Tip<input name="kind" value="'+esc(item?.kind||'prompt')+'"></label></div><label>Payload JSON<textarea name="payload" rows="10">'+esc(JSON.stringify(item?.payload||{text:''},null,2))+'</textarea></label><label><input name="active" type="checkbox" '+(item?.is_active!==false?'checked':'')+'> Aktif</label><button class="btn primary">Kaydet</button></form>');
-      $('#gameContentForm').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.currentTarget);try{const payload=JSON.parse(f.get('payload')||'{}');const row={game_slug:game.slug,content_key:f.get('key')||null,category:f.get('category')||null,kind:f.get('kind')||'prompt',payload,is_active:f.get('active')==='on',updated_at:new Date().toISOString()};const q=item?A.state.db.from('game_content').update(row).eq('id',item.id):A.state.db.from('game_content').insert(row);const {error}=await q;if(error)throw error;closeModal();toast('Oyun içeriği kaydedildi');gamesView()}catch(err){alert(err.message||err)}};
+    const info=gameContentStats(game.slug,config);
+    const metaConfig=A.clone(config||{});
+    delete metaConfig.content;
+    delete metaConfig.truths;
+    delete metaConfig.dares;
+
+    let libraryHtml='';
+    if(info.mode==='content'){
+      libraryHtml='<div class="card"><div class="card-head"><div><h2>İçerik kütüphanesi</h2><p class="muted">'+info.count+' kayıt · mevcut veri biçimi korunarak ortak backend’e kaydedilir.</p></div></div>'+
+        '<label class="field">Kart / soru verisi (JSON)<textarea id="gameLibraryJson" rows="18">'+esc(JSON.stringify(config.content,null,2))+'</textarea></label>'+
+        '<p class="muted" style="font-size:10px">İçeriği tamamen boş bırakırsan public oyun güvenli bir “içerik hazırlanıyor” ekranı gösterir; çökmez.</p></div>';
+    }else if(info.mode==='truth-dare'){
+      libraryHtml='<div class="grid-2">'+
+        '<div class="card"><div class="card-head"><div><h2>Truth soruları</h2><p class="muted">'+(config.truths?.length||0)+' soru · her satır bir kart.</p></div></div><textarea id="truthLibrary" rows="18" style="width:100%">'+esc((config.truths||[]).join('\n'))+'</textarea></div>'+
+        '<div class="card"><div class="card-head"><div><h2>Dare görevleri</h2><p class="muted">'+(config.dares?.length||0)+' görev · her satır bir kart.</p></div></div><textarea id="dareLibrary" rows="18" style="width:100%">'+esc((config.dares||[]).join('\n'))+'</textarea></div>'+
+      '</div>';
+    }else if(info.mode==='generated'){
+      libraryHtml='<div class="card"><div class="notice"><strong>1000 adet B-level temel soru koddan deterministik üretiliyor.</strong><br>Özel eklemeler, devre dışı kartlar ve düzenlemeler ortak ayarlarda tutuluyor. Bu yapı bozulmaması için ham 1000 soruyu burada tek JSON alanına çevirmiyoruz.</div><div class="row-actions" style="margin-top:14px"><a class="btn secondary" href="../one-for-me-one-for-you/?studio=1" target="_blank">Soru editörünü aç ↗</a></div></div>';
+    }else{
+      libraryHtml='<div class="card"><div class="notice warning">Bu oyunda ayrı ortak içerik bulunmuyor; oyun kendi yerleşik kartlarını kullanıyor.</div></div>';
+    }
+
+    openModal('<div class="card-head"><div><h2>'+esc(game.name)+'</h2><p class="muted">'+esc(info.count)+' · '+esc(info.label)+'</p></div><span class="pill '+(game.enabled?'published':'draft')+'">'+(game.enabled?'YAYINDA':'KAPALI')+'</span></div>'+
+      '<form id="gameAdminForm" class="stack">'+
+        '<label><input name="enabled" type="checkbox" '+(game.enabled?'checked':'')+'> Game Hub ve public oyun sayfasında aktif</label>'+
+        '<label>Public config (gelişmiş)<textarea name="public_config" rows="5">'+esc(JSON.stringify(game.public_config||{},null,2))+'</textarea></label>'+
+        '<label>İçerik dışı oyun ayarları (gelişmiş)<textarea name="meta_config" rows="7">'+esc(JSON.stringify(metaConfig,null,2))+'</textarea></label>'+
+        libraryHtml+
+        '<div class="row-actions"><button class="btn primary" '+(!A.canEdit()?'disabled':'')+'>Tüm değişiklikleri kaydet</button><a class="btn secondary" href="../'+esc(game.slug)+'/" target="_blank">Public oyunu aç ↗</a></div>'+
+      '</form>');
+
+    $('#gameAdminForm').onsubmit=async e=>{
+      e.preventDefault();
+      const f=new FormData(e.currentTarget);
+      try{
+        const pc=JSON.parse(f.get('public_config')||'{}');
+        const meta=JSON.parse(f.get('meta_config')||'{}');
+        const nextCfg=Object.assign({},config||{},meta||{});
+        if(info.mode==='content'){
+          const raw=$('#gameLibraryJson').value.trim();
+          const content=raw?JSON.parse(raw):[];
+          if(!Array.isArray(content))throw new Error('İçerik kütüphanesi bir JSON array olmalı.');
+          nextCfg.content=content;
+        }else if(info.mode==='truth-dare'){
+          nextCfg.truths=$('#truthLibrary').value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+          nextCfg.dares=$('#dareLibrary').value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+          if(!nextCfg.truths.length||!nextCfg.dares.length)throw new Error('Truth ve Dare listelerinde en az birer içerik bırak.');
+        }
+        let r=await A.state.db.from('games').update({
+          enabled:f.get('enabled')==='on',public_config:pc,updated_at:new Date().toISOString()
+        }).eq('slug',game.slug);
+        if(r.error)throw r.error;
+        r=await A.state.db.from('game_settings').upsert({
+          game_slug:game.slug,config:nextCfg,updated_at:new Date().toISOString()
+        },{onConflict:'game_slug'});
+        if(r.error)throw r.error;
+        closeModal();toast('Oyun ve ortak içerik kaydedildi');gamesView();
+      }catch(err){alert(err.message||err)}
     };
-    $('#newGameContent').onclick=()=>editItem(null);
-    document.querySelectorAll('[data-content]').forEach(b=>b.onclick=()=>editItem(items.find(x=>String(x.id)===b.dataset.content)));
   }
 
   async function educatorsView(){
