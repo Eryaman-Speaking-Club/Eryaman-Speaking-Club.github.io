@@ -147,7 +147,7 @@
     if(!window.ESCSupabase?.getClient)return;
     try{
       const db=await window.ESCSupabase.getClient();if(!db)return;
-      const {data,error}=await db.from('esc_cms_published_settings').select('published_data').eq('key','event_config').maybeSingle();
+      const {data,error}=await db.from('esc_cms_public_settings').select('published_data').eq('key','event_config').maybeSingle();
       if(!error&&data?.published_data){CONFIG=mergeDeep(JSON.parse(JSON.stringify(DEFAULT)),data.published_data);window.ESC_EVENT_CONFIG=CONFIG;apply()}
     }catch(_){}
   }
