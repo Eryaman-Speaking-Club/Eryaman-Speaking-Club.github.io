@@ -1,6 +1,7 @@
 (() => {
 'use strict';
 const cfg=window.ESC_NEW_GAME||{};
+const builtInItems=Array.isArray(cfg.items)?JSON.parse(JSON.stringify(cfg.items)):[];
 const $=s=>document.querySelector(s);
 const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const esc=s=>String(s==null?'':s).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
@@ -11,8 +12,24 @@ function clearDynamic(){card().querySelectorAll('.dynamic').forEach(n=>n.remove(
 function stopTimer(){clearInterval(timer);timer=null;const old=$('#timer');if(old)old.remove();}
 function startTimer(seconds,onEnd){stopTimer();time=seconds;const el=document.createElement('div');el.id='timer';el.className='timer-big dynamic';el.textContent=time;card().appendChild(el);aud().select();timer=setInterval(()=>{time--;el.textContent=time;if(time<=5&&time>0){el.classList.add('danger');aud().count(time)}if(time<=0){clearInterval(timer);timer=null;el.textContent='0';aud().timeup();if(onEnd)onEnd()}},1000)}
 function setCard(title,desc,tag){badge().textContent=tag||cfg.badge||'SPEAKING GAME';prompt().textContent=title||'';sub().textContent=desc||'';}
+function usableItems(){return Array.isArray(cfg.items)?cfg.items.filter(x=>x!==null&&x!==undefined):[]}
+function showEmpty(){
+  stopTimer();clearDynamic();
+  setCard('Content is being prepared','This game does not have any active cards yet. Please choose another game or try again later.','GAME LIBRARY');
+  controls().innerHTML='<a class="new-btn primary" href="/games/" style="text-decoration:none;display:inline-flex;align-items:center">← All games</a>';
+}
 function btn(label,cls,id){return '<button class="'+(cls||'new-btn')+'" '+(id?'id="'+id+'"':'')+' type="button">'+label+'</button>'}
-function nextItem(){if(!deck.length||pos>=deck.length-1){deck=cfg.type==='bingo'?Array.from({length:30},()=>shuffle(cfg.items||[]).slice(0,16)):shuffle(cfg.items||[]);pos=-1}const x=deck[++pos];history.push(x);renderItem(x);aud().soft()}
+function nextItem(){
+  const items=usableItems();
+  if(!items.length){showEmpty();return}
+  if(!deck.length||pos>=deck.length-1){
+    deck=cfg.type==='bingo'?Array.from({length:30},()=>shuffle(items).slice(0,Math.min(16,items.length))):shuffle(items);
+    pos=-1;
+  }
+  const x=deck[++pos];
+  if(x===undefined){showEmpty();return}
+  history.push(x);renderItem(x);aud().soft();
+}
 function prevItem(){if(history.length<2)return;history.pop();renderItem(history[history.length-1]);aud().soft()}
 function baseButtons(extra){controls().innerHTML=btn('↩ Previous','new-btn','prev')+btn('Next →','new-btn primary','next')+btn('↻ Shuffle','new-btn','shuffle')+(extra||'');$('#prev').onclick=prevItem;$('#next').onclick=nextItem;$('#shuffle').onclick=()=>{deck=[];pos=-1;nextItem();if(window.ESCGameKit)window.ESCGameKit.toast('Shuffled')}}
 function addOptions(items,mode){
@@ -110,11 +127,27 @@ function renderItem(x){
    break;
  }
 }
+async function syncRemote(){
+  try{
+    if(window.ESCGameKit?.ensurePlatform)await window.ESCGameKit.ensurePlatform();
+    for(let i=0;i<40&&!window.ESCSupabase;i++)await new Promise(r=>setTimeout(r,50));
+    if(!window.ESCSupabase?.getGameSettings||!cfg.slug)return;
+    const settings=await window.ESCSupabase.getGameSettings(cfg.slug);
+    if(settings&&Array.isArray(settings.content)&&settings.content.length){
+      cfg.items=JSON.parse(JSON.stringify(settings.content));
+      deck=[];pos=-1;history=[];nextItem();
+    }
+  }catch(e){console.warn('Shared game content unavailable; using built-in cards.',e)}
+}
+function resetToBuiltIns(){cfg.items=JSON.parse(JSON.stringify(builtInItems));deck=[];pos=-1;history=[];nextItem()}
 function init(){
- $('#gameTitle').textContent=cfg.title||'ESC Game';$('#gameDesc').textContent=cfg.desc||'';$('#gameEyebrow').textContent=cfg.eyebrow||'ESC SPEAKING GAME';document.title=(cfg.title||'Game')+' · Eryaman Speaking Club';
+ $('#gameTitle').textContent=cfg.title||'Speaking Game';$('#gameDesc').textContent=cfg.desc||'';$('#gameEyebrow').textContent=cfg.eyebrow||'SPEAKING GAME';document.title=(cfg.title||'Game')+' · Eryaman Speaking Club';
  (cfg.rules||[]).forEach(r=>{const s=document.createElement('span');s.textContent=r;$('#gameRules').appendChild(s)});
- if(cfg.type==='bingo')deck=Array.from({length:30},()=>shuffle(cfg.items||[]).slice(0,16));else deck=shuffle(cfg.items||[]);
+ const items=usableItems();
+ if(cfg.type==='bingo')deck=Array.from({length:30},()=>shuffle(items).slice(0,Math.min(16,items.length)));else deck=shuffle(items);
  nextItem();
+ void syncRemote();
+ window.EryamanSpeakingGame={refresh(){deck=[];pos=-1;history=[];nextItem()},resetToBuiltIns,config:cfg};
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
