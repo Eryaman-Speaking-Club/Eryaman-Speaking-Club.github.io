@@ -227,7 +227,7 @@
   }
 
   function renderClasses(){
-    const grid = $("#classCardGrid");
+    const grid = $("#legacyClassCardGridDisabled");
     if(!grid) return;
     const classes = loadClasses();
     updateMetrics(classes);
@@ -257,7 +257,7 @@
     activatePanel("builder");
   }
 
-  $("#classCardGrid")?.addEventListener("click", e => {
+  $("#legacyClassCardGridDisabled")?.addEventListener("click", e => {
     const open = e.target.closest("[data-class-open]");
     const del = e.target.closest("[data-class-delete]");
     const classes = loadClasses();
@@ -271,7 +271,7 @@
     }
   });
 
-  $("#newClassButton")?.addEventListener("click", () => {
+  $("#legacyNewClassButtonDisabled")?.addEventListener("click", () => {
     if($("#className")) $("#className").value = "";
     if($("#ageGroup")) $("#ageGroup").value = "9-11";
     if($("#level")) $("#level").value = "A1";
@@ -283,7 +283,7 @@
     activatePanel("builder");
   });
 
-  $("#saveDemoClass")?.addEventListener("click", () => {
+  $("#legacySaveDemoClassDisabled")?.addEventListener("click", () => {
     const classes = loadClasses();
     const name = ($("#className")?.value || "New Class").trim() || "New Class";
     const existing = classes.find(c => c.name.toLowerCase() === name.toLowerCase());
@@ -301,7 +301,7 @@
     const next = existing ? classes.map(c => c.id === existing.id ? item : c) : [...classes, item];
     saveClasses(next);
     renderClasses();
-    const btn = $("#saveDemoClass");
+    const btn = $("#legacySaveDemoClassDisabled");
     if(btn){
       btn.textContent = "Saved ✓";
       setTimeout(() => btn.textContent = "Save class", 1400);
@@ -311,7 +311,7 @@
   renderClasses();
 
   // Student join now checks a real saved class code in this browser.
-  const oldJoin = $("#joinDemoClass");
+  const oldJoin = $("#legacyJoinDemoClassDisabled");
   if(oldJoin){
     const join = oldJoin.cloneNode(true);
     oldJoin.replaceWith(join);
