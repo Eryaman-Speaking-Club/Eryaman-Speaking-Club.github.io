@@ -115,7 +115,7 @@
     try {
       const [{data,error},{data:settings,error:settingsError}] = await Promise.all([
         db.from('esc_cms_public_pages').select('published_data,published_seo,version').eq('path', path).maybeSingle(),
-        db.from('esc_cms_public_settings').select('key,published_data').in('key',['site_identity','social_links'])
+        db.from('esc_cms_public_settings').select('key,published_data').in('key',['site_identity','social_links','navigation','footer'])
       ]);
       if (!settingsError && Array.isArray(settings)) {
         const map = Object.fromEntries(settings.map(x => [x.key, x.published_data || {}]));
@@ -127,6 +127,40 @@
         }
         if (social.instagram) document.querySelectorAll('a[href*="instagram.com"]').forEach(a => a.href = social.instagram);
         if (social.tiktok) document.querySelectorAll('a[href*="tiktok.com"]').forEach(a => a.href = social.tiktok);
+
+        const lang = document.documentElement.lang === 'en' ? 'en' : 'tr';
+        const nav = map.navigation || {};
+        const navHost = document.querySelector('.nav-links');
+        if (navHost && Array.isArray(nav.items)) {
+          navHost.innerHTML = nav.items.filter(x => x.visible !== false).map(x => {
+            const label = x.label?.[lang] || x.label?.tr || x.label?.en || '';
+            return '<a href="' + String(x.href || '#').replace(/"/g,'&quot;') + '">' + String(label).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</a>';
+          }).join('');
+        }
+        const cta = nav.cta || {};
+        const ctaEl = document.querySelector('.nav-cta');
+        if (ctaEl && cta.visible !== false) {
+          ctaEl.href = cta.href || '#';
+          ctaEl.innerHTML = String(cta.label?.[lang] || cta.label?.tr || cta.label?.en || '') + ' <span>↗</span>';
+        } else if (ctaEl && cta.visible === false) {
+          ctaEl.style.display = 'none';
+        }
+
+        const footer = map.footer || {};
+        const footerLinks = document.querySelector('.footer-links');
+        if (footerLinks && Array.isArray(footer.links)) {
+          footerLinks.innerHTML = footer.links.filter(x => x.visible !== false).map(x => {
+            const label = x.label?.[lang] || x.label?.tr || x.label?.en || '';
+            return '<a href="' + String(x.href || '#').replace(/"/g,'&quot;') + '">' + String(label).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</a>';
+          }).join('');
+        }
+        const footerCopy = document.querySelector('footer > p');
+        if (footerCopy && (footer.tagline || footer.location)) {
+          const tagline = footer.tagline?.[lang] || footer.tagline?.tr || footer.tagline?.en || '';
+          const locationText = footer.location?.[lang] || footer.location?.tr || footer.location?.en || '';
+          footerCopy.innerHTML = String(tagline).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') +
+            (locationText ? '<br><span>' + String(locationText).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</span>' : '');
+        }
       }
       if (error || !data) return;
       const content = data.published_data || {};
