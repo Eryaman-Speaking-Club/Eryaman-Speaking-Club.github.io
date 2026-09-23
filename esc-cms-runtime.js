@@ -31,6 +31,11 @@
     elements.forEach(el => {
       const kind = patch.kind || 'text';
       if (kind === 'text') el.textContent = patch.value ?? '';
+      else if (kind === 'textNode') {
+        const nodes=[...el.childNodes].filter(n=>n.nodeType===Node.TEXT_NODE);
+        const node=nodes[Number.isInteger(patch.node_index)?patch.node_index:0];
+        if(node) node.nodeValue=patch.value ?? '';
+      }
       else if (kind === 'html') el.innerHTML = patch.value ?? '';
       else if (kind === 'image') {
         if ('src' in el && patch.value) el.src = patch.value;
