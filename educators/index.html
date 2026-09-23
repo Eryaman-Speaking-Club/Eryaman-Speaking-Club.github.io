@@ -8,7 +8,7 @@
   <title>Educators · Eryaman Speaking Club</title>
   <link rel="icon" type="image/png" href="../favicon.png?v=20260922">
   <link rel="stylesheet" href="../esc-brand.css?v=20260923">
-  <link rel="stylesheet" href="./educators.css?v=20260923-v1">
+  <link rel="stylesheet" href="./educators.css?v=20260923-v2">
 </head>
 <body>
   <div class="edu-noise" aria-hidden="true"></div>
@@ -117,6 +117,7 @@
             <button class="side-item" data-panel="classes"><span>▦</span> My Classes</button>
             <button class="side-item" data-panel="builder"><span>✦</span> Lesson Builder</button>
             <button class="side-item" data-panel="games"><span>◫</span> Game Library</button>
+            <button class="side-item" data-panel="tools"><span>⚙</span> Classroom Tools</button>
             <button class="side-item" data-panel="reports"><span>↗</span> Reports</button>
           </nav>
           <div class="sidebar-plan">
@@ -136,6 +137,15 @@
               <button class="ghost-button" type="button" data-open-student>Student view</button>
               <button class="solid-button" type="button" data-panel-target="builder">+ Create lesson</button>
             </div>
+          </div>
+
+          <div class="mobile-workspace-tabs" aria-label="Teacher panel navigation">
+            <button class="active" data-panel="overview">Overview</button>
+            <button data-panel="classes">Classes</button>
+            <button data-panel="builder">Builder</button>
+            <button data-panel="games">Games</button>
+            <button data-panel="tools">Tools</button>
+            <button data-panel="reports">Reports</button>
           </div>
 
           <section class="workspace-panel active" data-panel-view="overview">
@@ -172,7 +182,7 @@
           <section class="workspace-panel" data-panel-view="classes">
             <div class="panel-header">
               <div><small>MY CLASSES</small><h3>Sınıflarını tek yerde yönet.</h3></div>
-              <button class="solid-button" type="button" data-panel-target="builder">+ New class</button>
+              <button class="solid-button" type="button" id="newClassButton">+ New class</button>
             </div>
             <div class="class-card-grid" id="classCardGrid">
               <article><div><span>5-A</span><small>9–11 · A1</small></div><strong>24 students</strong><p>Food · School · Daily Life</p><button data-use-class="5-A" data-age="9-11" data-level="A1">Use class →</button></article>
@@ -268,16 +278,79 @@
 
           <section class="workspace-panel" data-panel-view="games">
             <div class="panel-header">
-              <div><small>GAME LIBRARY</small><h3>Aynı oyun, farklı yaş ve dil seviyesi.</h3></div>
-              <a class="panel-link" href="../games/">ESC Game Hub ↗</a>
+              <div><small>ADAPTIVE GAME LIBRARY</small><h3>Sınıf profiline göre çalışan oyunlar.</h3></div>
+              <a class="panel-link" href="../games/">Public ESC Game Hub ↗</a>
             </div>
-            <div class="edu-game-grid">
-              <article><span>🗣️</span><small>TEAM</small><h4>Taboo</h4><p>Kelime zorluğu yaş ve seviyeye göre otomatik değişir.</p><b>Adaptive vocabulary</b></article>
-              <article><span>⚖️</span><small>SPEAKING</small><h4>Would You Rather?</h4><p>Kids için somut seçimler, teen/adult için gerekçeli senaryolar.</p><b>Reason + follow-up</b></article>
-              <article><span>🧩</span><small>LANGUAGE</small><h4>Sentence Builder</h4><p>Kelime sıralama görevleri CEFR dil yapısına göre hazırlanır.</p><b>Grammar in context</b></article>
-              <article><span>🎡</span><small>CLASSROOM</small><h4>Speaking Wheel</h4><p>Öğrenciyi, konuyu veya soruyu rastgele seçer.</p><b>Live classroom</b></article>
-              <article><span>🧠</span><small>VOCAB</small><h4>Memory Match</h4><p>Kelime–görsel, kelime–tanım veya kelime–örnek eşleştirmesi.</p><b>Age-aware mode</b></article>
-              <article><span>🏁</span><small>TEAM</small><h4>Team Quiz</h4><p>Canlı puan ve takım turu ile sınıf katılımını yükseltir.</p><b>Class scoreboard</b></article>
+            <div class="game-library-toolbar">
+              <input id="gameSearch" type="search" placeholder="Oyun ara: vocabulary, speaking, team..." aria-label="Oyun ara">
+              <div class="game-filter-row">
+                <button class="active" type="button" data-game-filter="all">All</button>
+                <button type="button" data-game-filter="vocab">Vocabulary</button>
+                <button type="button" data-game-filter="speaking">Speaking</button>
+                <button type="button" data-game-filter="grammar">Grammar</button>
+                <button type="button" data-game-filter="team">Team</button>
+              </div>
+            </div>
+            <div class="edu-game-grid" id="adaptiveGameGrid">
+              <article data-kind="vocab team"><span>🗣️</span><small>VOCAB · TEAM</small><h4>Taboo</h4><p>Hedef kelimeyi seviyeye uygun yasaklı kelimeleri kullanmadan anlat.</p><b>Adaptive vocabulary</b><button type="button" data-launch-game="taboo">Launch →</button></article>
+              <article data-kind="speaking"><span>⚖️</span><small>SPEAKING</small><h4>Would You Rather?</h4><p>Yaşa göre somut seçimden gerekçeli tartışmaya kadar ölçeklenir.</p><b>Reason + follow-up</b><button type="button" data-launch-game="rather">Launch →</button></article>
+              <article data-kind="grammar"><span>🧩</span><small>GRAMMAR</small><h4>Sentence Builder</h4><p>Karışık kelimeleri doğru cümleye dönüştür.</p><b>Grammar in context</b><button type="button" data-launch-game="sentence">Launch →</button></article>
+              <article data-kind="speaking"><span>🎡</span><small>SPEAKING</small><h4>Speaking Wheel</h4><p>Konuya ve seviyeye uygun rastgele speaking prompt getirir.</p><b>Live classroom</b><button type="button" data-launch-game="wheel">Launch →</button></article>
+              <article data-kind="vocab"><span>🧠</span><small>VOCAB</small><h4>Memory Match</h4><p>Kelimeyi tanımı, örneği veya eş anlamlısı ile eşleştir.</p><b>Vocabulary recall</b><button type="button" data-launch-game="memory">Launch →</button></article>
+              <article data-kind="team vocab"><span>🏁</span><small>TEAM · QUIZ</small><h4>Team Quiz</h4><p>Takımlar sırayla soruya cevap verir ve puan toplar.</p><b>Class scoreboard</b><button type="button" data-launch-game="quiz">Launch →</button></article>
+              <article data-kind="vocab"><span>🔀</span><small>VOCAB</small><h4>Word Scramble</h4><p>Karışmış harfleri süre dolmadan doğru kelimeye çevir.</p><b>Fast recall</b><button type="button" data-launch-game="scramble">Launch →</button></article>
+              <article data-kind="grammar vocab"><span>◌</span><small>LANGUAGE</small><h4>Missing Word</h4><p>Cümledeki boşluğu bağlama uygun doğru kelimeyle tamamla.</p><b>Context clues</b><button type="button" data-launch-game="missing">Launch →</button></article>
+              <article data-kind="speaking team"><span>🔥</span><small>SPEAKING · TEAM</small><h4>Hot Seat</h4><p>Bir öğrenci kısa sürede art arda gelen soruları cevaplar.</p><b>Fluency sprint</b><button type="button" data-launch-game="hotseat">Launch →</button></article>
+              <article data-kind="vocab team"><span>⚡</span><small>VOCAB · TEAM</small><h4>Category Race</h4><p>Belirlenen kategoride süre içinde olabildiğince çok kelime üret.</p><b>Timed challenge</b><button type="button" data-launch-game="category">Launch →</button></article>
+              <article data-kind="speaking"><span>🎭</span><small>SPEAKING</small><h4>Role Play</h4><p>Yaşa uygun gerçek hayat senaryosunda iki öğrenci rol alır.</p><b>Functional English</b><button type="button" data-launch-game="roleplay">Launch →</button></article>
+              <article data-kind="speaking grammar"><span>📚</span><small>STORY</small><h4>Story Chain</h4><p>Her öğrenci hikâyeye bir cümle ekler; hedef yapı korunur.</p><b>Creative fluency</b><button type="button" data-launch-game="story">Launch →</button></article>
+              <article data-kind="grammar"><span>🔎</span><small>GRAMMAR</small><h4>Error Hunter</h4><p>Yanlış cümleyi bul, düzelt ve nedenini açıkla.</p><b>Notice the form</b><button type="button" data-launch-game="error">Launch →</button></article>
+              <article data-kind="vocab team"><span>✏️</span><small>VOCAB · TEAM</small><h4>Pictionary Prompt</h4><p>Kelimeyi söylemeden çiz; takımın hedef kelimeyi tahmin etsin.</p><b>Visual vocabulary</b><button type="button" data-launch-game="pictionary">Launch →</button></article>
+              <article data-kind="speaking"><span>👥</span><small>SPEAKING</small><h4>Find Someone Who</h4><p>Sınıfta dolaş, hedef ifadeye uyan birini bul ve follow-up sor.</p><b>Movement + speaking</b><button type="button" data-launch-game="findsomeone">Launch →</button></article>
+            </div>
+          </section>
+
+          <section class="workspace-panel" data-panel-view="tools">
+            <div class="panel-header">
+              <div><small>CLASSROOM TOOLS</small><h3>Ders sırasında gereken küçük araçlar.</h3></div>
+              <span class="adaptive-badge">NO EXTRA TAB NEEDED</span>
+            </div>
+            <div class="tools-grid">
+              <article class="tool-card timer-tool">
+                <small>CLASS TIMER</small>
+                <h4 id="timerDisplay">02:00</h4>
+                <div class="tool-button-row">
+                  <button type="button" data-timer-min="1">1 min</button>
+                  <button type="button" data-timer-min="2">2 min</button>
+                  <button type="button" data-timer-min="5">5 min</button>
+                </div>
+                <div class="tool-button-row">
+                  <button type="button" id="timerStart">Start</button>
+                  <button type="button" id="timerReset">Reset</button>
+                </div>
+              </article>
+              <article class="tool-card student-tool">
+                <small>STUDENT LIST</small>
+                <h4>Random student</h4>
+                <textarea id="studentListInput" rows="5" placeholder="Ali, Ece, Mert, Deniz...">Ali, Ece, Mert, Deniz, Ayşe, Efe, Can, Elif</textarea>
+                <div class="picked-student" id="pickedStudent">?</div>
+                <button type="button" id="pickStudent">Pick a student</button>
+              </article>
+              <article class="tool-card teams-tool">
+                <small>TEAM MAKER</small>
+                <h4>Grupları karıştır.</h4>
+                <label>Team count
+                  <select id="teamCount"><option value="2">2 teams</option><option value="3">3 teams</option><option value="4">4 teams</option></select>
+                </label>
+                <button type="button" id="makeTeams">Create teams</button>
+                <div class="made-teams" id="madeTeams"></div>
+              </article>
+              <article class="tool-card prompt-tool">
+                <small>QUICK PROMPT</small>
+                <h4>Bir sonraki konuşmayı başlat.</h4>
+                <div class="quick-prompt" id="quickPrompt">What was the best part of your week?</div>
+                <button type="button" id="newQuickPrompt">New prompt ↻</button>
+              </article>
             </div>
           </section>
 
@@ -331,7 +404,7 @@
           <label>Class code<input id="studentCode" type="text" value="6B27" maxlength="8" autocomplete="off"></label>
           <label>Your first name<input id="studentName" type="text" value="Efe" maxlength="20" autocomplete="off"></label>
           <button type="button" id="joinDemoClass">Join class →</button>
-          <p>No account needed for this demo.</p>
+          <p id="studentJoinMessage">No account needed. Demo code: 6B27</p>
         </div>
         <div class="student-screen waiting-screen" data-student-screen="waiting">
           <span class="student-avatar" id="studentAvatar">E</span>
@@ -369,6 +442,32 @@
     </section>
   </main>
 
+
+  <div class="game-modal" id="gameModal" aria-hidden="true">
+    <div class="game-modal-card">
+      <button class="modal-close" type="button" id="closeGameModal" aria-label="Kapat">×</button>
+      <div class="game-modal-head">
+        <div><small id="gameModalType">ADAPTIVE GAME</small><h3 id="gameModalTitle">Taboo</h3></div>
+        <span id="gameProfileBadge">12–14 · A2 · Travel</span>
+      </div>
+      <div class="game-task-card">
+        <small id="gameTaskLabel">ROUND 1</small>
+        <strong id="gameTaskMain">PASSPORT</strong>
+        <p id="gameTaskSupport">Do not say: travel · airport · document</p>
+        <div id="gameTaskExtra" class="game-task-extra"></div>
+      </div>
+      <div class="game-modal-actions">
+        <button type="button" id="revealGameAnswer">Reveal / Hint</button>
+        <button type="button" id="nextGameRound">Next round →</button>
+      </div>
+      <div class="game-scorebar">
+        <button type="button" id="gameBlueMinus">−</button><span>BLUE <b id="gameBlueScore">0</b></span><button type="button" id="gameBluePlus">+</button>
+        <i></i>
+        <button type="button" id="gameOrangeMinus">−</button><span>ORANGE <b id="gameOrangeScore">0</b></span><button type="button" id="gameOrangePlus">+</button>
+      </div>
+    </div>
+  </div>
+
   <div class="lesson-modal" id="lessonModal" aria-hidden="true">
     <div class="lesson-modal-card">
       <button class="modal-close" type="button" id="closeLessonModal" aria-label="Kapat">×</button>
@@ -393,6 +492,6 @@
     </div>
   </div>
 
-  <script src="./educators.js?v=20260923-v1"></script>
+  <script src="./educators.js?v=20260923-v2"></script>
 </body>
 </html>
