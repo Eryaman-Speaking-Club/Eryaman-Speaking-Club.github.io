@@ -185,7 +185,7 @@
     frame.onload=()=>{workingData=normalizeData(current.draft_data);workingSeo=clone(current.draft_seo||{});applyWorking();injectEditor();$('#editorStatus').textContent='Tıklayarak düzenleyebilirsin'};
   }
   async function renderEditor(preselect){
-    const {data,error}=await A.state.db.from('esc_cms_pages').select('*').eq('active',true).order('category').order('name');
+    const {data,error}=await A.state.db.from('esc_cms_pages').select('*').eq('active',true).eq('page_kind','static').order('category').order('name');
     if(error)throw error;pages=data||[];
     current=pages.find(p=>p.id===preselect)||pages.find(p=>p.path==='/')||pages[0];
     workingData=normalizeData(current?.draft_data);workingSeo=clone(current?.draft_seo||{});
@@ -203,7 +203,7 @@
   }
 
   async function pagesView(){
-    const {data,error}=await A.state.db.from('esc_cms_pages').select('*').order('category').order('name');if(error)throw error;
+    const {data,error}=await A.state.db.from('esc_cms_pages').select('*').eq('page_kind','static').order('category').order('name');if(error)throw error;
     $('#panel').innerHTML='<div class="card"><div class="card-head"><div><h2>Sayfalar & bölümler</h2><p class="muted">39 sayfanın yayın durumu, SEO’su ve canlı editöre girişi.</p></div><button id="openHomeEditor" class="btn primary">Ana sayfayı düzenle</button></div><div class="table-wrap"><table><thead><tr><th>Sayfa</th><th>Kategori</th><th>Durum</th><th>Sürüm</th><th>Son güncelleme</th><th></th></tr></thead><tbody>'+
       (data||[]).map(p=>'<tr><td><strong>'+esc(p.name)+'</strong><br><small>'+esc(p.path)+'</small></td><td>'+esc(p.category)+'</td><td><span class="pill '+(p.has_unpublished_changes?'draft':'published')+'">'+(p.has_unpublished_changes?'taslak değişiklik':'yayında')+'</span></td><td>v'+esc(p.version)+'</td><td>'+esc(A.fmt(p.updated_at))+'</td><td><div class="row-actions"><button class="icon-btn" data-edit="'+p.id+'">Düzenle</button><a class="icon-btn" href="'+esc(p.path)+'" target="_blank">Aç ↗</a></div></td></tr>').join('')+
       '</tbody></table></div></div>';
