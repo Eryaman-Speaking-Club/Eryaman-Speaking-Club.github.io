@@ -159,18 +159,18 @@
         const admin=session&&await api.isAdmin();
         if(!admin){
           const next=location.pathname.replace(/^\/+|\/+$/g,'');
-          location.replace('/esc-studio/?next='+encodeURIComponent(next));
+          location.replace('/admin/?next='+encodeURIComponent(next)+'#games');
           return;
         }
       }catch(e){
         const next=location.pathname.replace(/^\/+|\/+$/g,'');
-        location.replace('/esc-studio/?next='+encodeURIComponent(next));
+        location.replace('/admin/?next='+encodeURIComponent(next)+'#games');
         return;
       }
       overlay.classList.add('open');render();
     }
     function hide(){overlay.classList.remove('open');clearForm()}
-    const back=document.createElement('a');back.href='/esc-studio/';back.textContent='← ESC Studio';back.setAttribute('aria-label','Back to ESC Studio');back.style.cssText='display:inline-flex;align-items:center;gap:6px;margin:0 0 14px;padding:9px 12px;border-radius:12px;background:#eef4fa;color:#0b2f5b;text-decoration:none;font:800 12px/1 system-ui,sans-serif';panel.prepend(back);
+    const back=document.createElement('a');back.href='/admin/#games';back.textContent='← ESC Admin';back.setAttribute('aria-label','Back to ESC Admin');back.style.cssText='display:inline-flex;align-items:center;gap:6px;margin:0 0 14px;padding:9px 12px;border-radius:12px;background:#eef4fa;color:#0b2f5b;text-decoration:none;font:800 12px/1 system-ui,sans-serif';panel.prepend(back);
     btn.onclick=open;close.onclick=hide;overlay.addEventListener('click',e=>{if(e.target===overlay)hide()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('open'))hide()});render();setTimeout(()=>void open(),0);
   }
   async function bootstrap(){
