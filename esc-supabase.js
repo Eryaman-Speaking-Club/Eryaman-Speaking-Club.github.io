@@ -277,3 +277,16 @@
     getActiveEducatorSession,joinEducatorClass,getStudentState,submitStudentResult
   };
 })();
+
+;(() => {
+  try {
+    const path = location.pathname || '/';
+    if (path.startsWith('/admin/') || path.startsWith('/esc-studio/')) return;
+    if (document.querySelector('script[data-esc-cms-runtime]')) return;
+    const script = document.createElement('script');
+    script.src = '/esc-cms-runtime.js?v=20260923-1';
+    script.async = true;
+    script.dataset.escCmsRuntime = 'true';
+    document.head.appendChild(script);
+  } catch (_) {}
+})();
