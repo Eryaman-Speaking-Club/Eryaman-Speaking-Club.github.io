@@ -536,8 +536,9 @@ function playReveal() {
         location.replace('/esc-studio/?next=one-for-me-one-for-you');
         return;
       }
+      sessionStorage.setItem(UNLOCK_KEY, 'yes');
       const back = document.createElement('a');
-      back.href = '/esc-studio/';
+      back.href = '/admin/#games';
       back.textContent = '← Yönetim Paneli';
       back.style.cssText = 'display:inline-flex;align-items:center;min-height:40px;padding:0 12px;border:1px solid #dce5ed;border-radius:12px;background:#fff;color:#0b2f5b;text-decoration:none;font-weight:900;font-size:12px';
       document.querySelector('.header-actions')?.prepend(back);
