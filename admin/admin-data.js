@@ -2,6 +2,42 @@
   'use strict';
   const A=window.ESCAdmin;const {$,$$,esc,toast,openModal,closeModal}=A;
 
+
+  async function eventsView(){
+    const {data,error}=await A.state.db.from('esc_cms_settings').select('*').eq('key','event_config').maybeSingle();if(error)throw error;
+    const cfg=A.clone(data?.draft_data||data?.published_data||{});
+    const e=cfg.inPerson||{},p=cfg.pricing||{},o=cfg.online||{};
+    $('#panel').innerHTML='<div class="card"><div class="card-head"><div><h2>Etkinlik & fiyatlar</h2><p class="muted">Buradaki değerler ana sayfadaki tekrar eden tarih, saat, mekân, kayıt linki ve fiyat alanlarını merkezi olarak günceller.</p></div><span class="pill '+(data?.has_unpublished_changes?'draft':'published')+'">'+(data?.has_unpublished_changes?'TASLAK':'YAYINDA · v'+(data?.version||0))+'</span></div>'+
+      '<form id="eventConfigForm" class="stack">'+
+      '<div class="grid-2"><label>Etkinlik başlangıcı (ISO)<input name="start" value="'+esc(e.start||'')+'"></label><label>Etkinlik bitişi (ISO)<input name="end" value="'+esc(e.end||'')+'"></label></div>'+
+      '<div class="grid-3"><label>Gün<input name="day" value="'+esc(e.day||'')+'"></label><label>Ay TR<input name="monthTr" value="'+esc(e.monthTr||'')+'"></label><label>Ay EN<input name="monthEn" value="'+esc(e.monthEn||'')+'"></label></div>'+
+      '<div class="grid-3"><label>Gün TR<input name="weekdayTr" value="'+esc(e.weekdayTr||'')+'"></label><label>Gün EN<input name="weekdayEn" value="'+esc(e.weekdayEn||'')+'"></label><label>Saat<input name="time" value="'+esc(e.time||'')+'"></label></div>'+
+      '<label>Mekân<input name="venue" value="'+esc(e.venue||'')+'"></label>'+
+      '<div class="grid-2"><label>Kayıt formu URL<input name="registrationUrl" value="'+esc(cfg.registrationUrl||'')+'"></label><label>Harita URL<input name="mapUrl" value="'+esc(cfg.mapUrl||'')+'"></label></div>'+
+      '<div class="grid-2"><label>Kontenjan<select name="capacity"><option value="limited" '+(e.capacity==='limited'?'selected':'')+'>Sınırlı</option><option value="open" '+(e.capacity!=='limited'?'selected':'')+'>Açık</option></select></label><label>Online ilk buluşma ücretsiz <select name="onlineFree"><option value="true" '+(o.firstMeetupFree!==false?'selected':'')+'>Evet</option><option value="false" '+(o.firstMeetupFree===false?'selected':'')+'>Hayır</option></select></label></div>'+
+      '<div class="grid-2"><label>Tek etkinlik fiyatı<input name="single" type="number" min="0" value="'+esc(p.single??400)+'"></label><label>1 aylık üyelik<input name="oneMonth" type="number" min="0" value="'+esc(p.oneMonth??1400)+'"></label></div>'+
+      '<div class="grid-2"><label>3 aylık üyelik<input name="threeMonth" type="number" min="0" value="'+esc(p.threeMonth??3900)+'"></label><label>Online buluşma<input name="onlinePrice" type="number" min="0" value="'+esc(o.price??300)+'"></label></div>'+
+      '<div class="row-actions"><button type="button" id="saveEventDraft" class="btn secondary" '+(!A.canEdit()?'disabled':'')+'>Taslak kaydet</button><button class="btn primary" '+(!A.canEdit()?'disabled':'')+'>Kaydet & yayınla</button><a class="btn secondary" href="../#next-event" target="_blank">Canlı bölümü aç ↗</a></div></form></div>';
+    const collect=()=>{
+      const f=new FormData($('#eventConfigForm'));
+      return {
+        registrationUrl:String(f.get('registrationUrl')||'').trim(),mapUrl:String(f.get('mapUrl')||'').trim(),
+        inPerson:{start:f.get('start'),end:f.get('end'),day:f.get('day'),monthTr:String(f.get('monthTr')||'').toUpperCase(),monthEn:String(f.get('monthEn')||'').toUpperCase(),weekdayTr:String(f.get('weekdayTr')||'').toUpperCase(),weekdayEn:String(f.get('weekdayEn')||'').toUpperCase(),time:f.get('time'),venue:f.get('venue'),capacity:f.get('capacity')},
+        pricing:{single:Number(f.get('single')||0),oneMonth:Number(f.get('oneMonth')||0),threeMonth:Number(f.get('threeMonth')||0),currency:'TL'},
+        online:{firstMeetupFree:f.get('onlineFree')==='true',price:Number(f.get('onlinePrice')||0),currency:'TL',unitTr:'buluşma',unitEn:'meetup'}
+      };
+    };
+    const save=async publish=>{
+      const payload=collect();
+      let r=await A.state.db.from('esc_cms_settings').update({draft_data:payload,has_unpublished_changes:true,updated_by:A.state.session.user.id,updated_at:new Date().toISOString()}).eq('key','event_config');
+      if(r.error)throw r.error;
+      if(publish){r=await A.state.db.rpc('esc_cms_publish_setting',{p_key:'event_config'});if(r.error)throw r.error}
+      toast(publish?'Etkinlik ve fiyatlar canlı siteye yayınlandı':'Etkinlik taslağı kaydedildi');
+    };
+    $('#saveEventDraft').onclick=async()=>{try{await save(false);eventsView()}catch(err){alert(err.message)}};
+    $('#eventConfigForm').onsubmit=async e=>{e.preventDefault();try{await save(true);eventsView()}catch(err){alert(err.message)}};
+  }
+
   async function gamesView(){
     const [{data:games,error},{data:settings},{data:content}]=await Promise.all([
       A.state.db.from('games').select('*').order('name'),
@@ -82,5 +118,5 @@
     $('#settingsForm').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.currentTarget);try{let r=await A.state.db.from('esc_cms_settings').update({draft_data:{site_name:f.get('site_name'),contact_email:f.get('contact_email')},has_unpublished_changes:true,updated_by:A.state.session.user.id,updated_at:new Date().toISOString()}).eq('key','site_identity');if(r.error)throw r.error;r=await A.state.db.rpc('esc_cms_publish_setting',{p_key:'site_identity'});if(r.error)throw r.error;r=await A.state.db.from('esc_cms_settings').update({draft_data:{instagram:f.get('instagram'),tiktok:f.get('tiktok')},has_unpublished_changes:true,updated_by:A.state.session.user.id,updated_at:new Date().toISOString()}).eq('key','social_links');if(r.error)throw r.error;r=await A.state.db.rpc('esc_cms_publish_setting',{p_key:'social_links'});if(r.error)throw r.error;toast('Genel ayarlar yayınlandı')}catch(err){alert(err.message)}};
   }
 
-  A.register('games',gamesView);A.register('educators',educatorsView);A.register('media',mediaView);A.register('analytics',analyticsView);A.register('team',teamView);A.register('settings',settingsView);
+  A.register('events',eventsView);A.register('games',gamesView);A.register('educators',educatorsView);A.register('media',mediaView);A.register('analytics',analyticsView);A.register('team',teamView);A.register('settings',settingsView);
 })();
