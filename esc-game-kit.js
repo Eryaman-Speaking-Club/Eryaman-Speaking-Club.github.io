@@ -1,4 +1,19 @@
 (function(){
+  function loadScriptOnce(src,id){
+    if(id&&document.getElementById(id))return Promise.resolve();
+    return new Promise((resolve,reject)=>{
+      const s=document.createElement('script');
+      if(id)s.id=id;
+      s.src=src;s.async=false;s.onload=resolve;s.onerror=()=>reject(new Error('Failed to load '+src));
+      document.head.appendChild(s);
+    });
+  }
+  async function ensurePlatform(){
+    try{
+      if(!window.ESC_SUPABASE_CONFIG)await loadScriptOnce('/esc-supabase-config.js?v=20260923-2','eryamanSupabaseConfig');
+      if(!window.ESCSupabase)await loadScriptOnce('/esc-supabase.js?v=20260923-2','eryamanSupabaseAdapter');
+    }catch(e){console.warn('Shared game services unavailable; game will continue with built-in content.',e)}
+  }
   const KEY='esc-global-volume-v1';
   const getVolume=()=>{const raw=Number(localStorage.getItem(KEY)??100);return Number.isFinite(raw)?Math.max(0,Math.min(100,raw)):100};
   let ctx=null;
@@ -23,6 +38,6 @@
     slider.addEventListener('input',()=>{localStorage.setItem(KEY,slider.value);sync();audio.soft()});
   }
   function toast(msg){let el=document.querySelector('.game-toast');if(!el){el=document.createElement('div');el.className='game-toast';document.body.appendChild(el)}el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),900)}
-  window.ESCGameKit={audio,getVolume,toast,mountSound};
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mountSound);else mountSound();
+  window.ESCGameKit={audio,getVolume,toast,mountSound,ensurePlatform};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{mountSound();void ensurePlatform()});else{mountSound();void ensurePlatform()}
 })();
