@@ -12,7 +12,33 @@ function clearDynamic(){card().querySelectorAll('.dynamic').forEach(n=>n.remove(
 function stopTimer(){clearInterval(timer);timer=null;const old=$('#timer');if(old)old.remove();}
 function startTimer(seconds,onEnd){stopTimer();time=seconds;const el=document.createElement('div');el.id='timer';el.className='timer-big dynamic';el.textContent=time;card().appendChild(el);aud().select();timer=setInterval(()=>{time--;el.textContent=time;if(time<=5&&time>0){el.classList.add('danger');aud().count(time)}if(time<=0){clearInterval(timer);timer=null;el.textContent='0';aud().timeup();if(onEnd)onEnd()}},1000)}
 function setCard(title,desc,tag){badge().textContent=tag||cfg.badge||'SPEAKING GAME';prompt().textContent=title||'';sub().textContent=desc||'';}
-function usableItems(){return Array.isArray(cfg.items)?cfg.items.filter(x=>x!==null&&x!==undefined):[]}
+function validItem(x){
+  if(x===null||x===undefined)return false;
+  switch(cfg.type){
+    case 'twoTruths': return Array.isArray(x)&&x.length>=3&&String(x[1]||'').trim()&&String(x[2]||'').trim();
+    case 'whoAmI':
+    case 'storyChain':
+    case 'explainBadly':
+    case 'roulette':
+    case 'finish':
+    case 'threeClues':
+    case 'wouldILie':
+    case 'worstAdvice':
+    case 'hotTake': return Array.isArray(x)&&x.length>=2&&String(x[1]||'').trim();
+    case 'opinion': return Array.isArray(x)&&x.length>=2&&String(x[1]||'').trim();
+    case 'ranking':
+    case 'desert': return x&&typeof x==='object'&&String(x.title||'').trim()&&Array.isArray(x.items)&&x.items.length>=3;
+    case 'detective': return x&&typeof x==='object'&&String(x.title||'').trim()&&String(x.setup||'').trim()&&Array.isArray(x.facts)&&x.facts.length>=2;
+    case 'mission': return typeof x==='string'&&x.trim().length>3;
+    case 'minuteStory': return Array.isArray(x)&&x.length>=3&&x.every(v=>String(v||'').trim());
+    case 'bingo': return typeof x==='string'&&x.trim().length>2;
+    case 'emoji': return Array.isArray(x)&&x.length>=2&&Array.isArray(x[1])&&x[1].length>=3;
+    case 'sell': return x&&typeof x==='object'&&String(x.item||'').trim()&&String(x.twist||'').trim();
+    case 'photoTalk': return x&&typeof x==='object'&&String(x.title||'').trim()&&Array.isArray(x.questions)&&x.questions.length>=1;
+    default: return true;
+  }
+}
+function usableItems(){return Array.isArray(cfg.items)?cfg.items.filter(validItem):[]}
 function showEmpty(){
   stopTimer();clearDynamic();
   setCard('Content is being prepared','This game does not have any active cards yet. Please choose another game or try again later.','GAME LIBRARY');
@@ -27,8 +53,15 @@ function nextItem(){
     pos=-1;
   }
   const x=deck[++pos];
-  if(x===undefined){showEmpty();return}
-  history.push(x);renderItem(x);aud().soft();
+  if(x===undefined||!validItem(x)){showEmpty();return}
+  history.push(x);
+  try{renderItem(x);aud().soft()}
+  catch(e){
+    console.warn('Invalid game card skipped.',e);
+    const safe=JSON.parse(JSON.stringify(builtInItems)).filter(validItem);
+    if(safe.length){cfg.items=safe;deck=[];pos=-1;history=[];nextItem()}
+    else showEmpty();
+  }
 }
 function prevItem(){if(history.length<2)return;history.pop();renderItem(history[history.length-1]);aud().soft()}
 function baseButtons(extra){controls().innerHTML=btn('↩ Previous','new-btn','prev')+btn('Next →','new-btn primary','next')+btn('↻ Shuffle','new-btn','shuffle')+(extra||'');$('#prev').onclick=prevItem;$('#next').onclick=nextItem;$('#shuffle').onclick=()=>{deck=[];pos=-1;nextItem();if(window.ESCGameKit)window.ESCGameKit.toast('Shuffled')}}
@@ -134,8 +167,13 @@ async function syncRemote(){
     if(!window.ESCSupabase?.getGameSettings||!cfg.slug)return;
     const settings=await window.ESCSupabase.getGameSettings(cfg.slug);
     if(settings&&Array.isArray(settings.content)){
-      cfg.items=JSON.parse(JSON.stringify(settings.content));
-      deck=[];pos=-1;history=[];nextItem();
+      const remote=JSON.parse(JSON.stringify(settings.content)).filter(validItem);
+      if(remote.length){
+        cfg.items=remote;
+        deck=[];pos=-1;history=[];nextItem();
+      }else{
+        console.warn('Remote game content was empty or invalid; keeping built-in cards.');
+      }
     }
   }catch(e){console.warn('Shared game content unavailable; using built-in cards.',e)}
 }
