@@ -47,7 +47,7 @@
     try {
       const health = await window.ESCSupabase.ping();
       if (!health.database) {
-        status.textContent = 'Supabase bağlantısı var ancak ESC veritabanı şeması erişilemiyor.';
+        status.textContent = 'Supabase bağlantısı var ancak site veritabanı şeması erişilemiyor.';
         badge.textContent = 'HATA';
         return;
       }
@@ -80,7 +80,7 @@
     grid.innerHTML = games.map((game) => {
       const saved = hasLocalData(game);
       return `<article class="game-card" data-tone="${game.tone}">
-        <span class="game-number">${game.n} · ESC GAME</span>
+        <span class="game-number">${game.n} · SPEAKING GAME</span>
         <h3>${game.name}</h3>
         <p>${game.desc}</p>
         <div class="status saved"><i></i>Supabase merkezi içerik</div>
@@ -156,7 +156,7 @@
       renderGames();
       showToast('Yerel fallback yedeği yüklendi.');
     } catch {
-      showToast('Geçerli bir ESC Studio yedeği değil.');
+      showToast('Geçerli bir yönetim paneli yedeği değil.');
     }
   }
 
@@ -191,7 +191,7 @@
         await claimPendingIfNeeded();
         admin = await window.ESCSupabase.isAdmin();
       }
-      if (!admin) throw new Error('Bu kullanıcı ESC admin listesinde değil.');
+      if (!admin) throw new Error('Bu kullanıcı yönetici listesinde değil.');
       const next = new URLSearchParams(location.search).get('next');
       history.replaceState(null, '', './');
       if (next && games.some((game) => game.path === next)) manageGame(next);
