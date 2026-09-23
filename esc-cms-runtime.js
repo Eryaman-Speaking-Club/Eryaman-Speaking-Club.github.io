@@ -113,11 +113,21 @@
     if (!db) return;
     const path = normalizePath(location.pathname);
     try {
-      const { data, error } = await db
-        .from('esc_cms_published_pages')
-        .select('published_data,published_seo,version')
-        .eq('path', path)
-        .maybeSingle();
+      const [{data,error},{data:settings,error:settingsError}] = await Promise.all([
+        db.from('esc_cms_published_pages').select('published_data,published_seo,version').eq('path', path).maybeSingle(),
+        db.from('esc_cms_published_settings').select('key,published_data').in('key',['site_identity','social_links'])
+      ]);
+      if (!settingsError && Array.isArray(settings)) {
+        const map = Object.fromEntries(settings.map(x => [x.key, x.published_data || {}]));
+        const identity = map.site_identity || {};
+        const social = map.social_links || {};
+        if (identity.site_name) document.querySelectorAll('.esc-brand-title').forEach(el => el.textContent = identity.site_name);
+        if (identity.contact_email) {
+          document.querySelectorAll('a[href^="mailto:"]').forEach(a => a.href = 'mailto:' + identity.contact_email);
+        }
+        if (social.instagram) document.querySelectorAll('a[href*="instagram.com"]').forEach(a => a.href = social.instagram);
+        if (social.tiktok) document.querySelectorAll('a[href*="tiktok.com"]').forEach(a => a.href = social.tiktok);
+      }
       if (error || !data) return;
       const content = data.published_data || {};
       (content.patches || []).forEach(applyPatch);
