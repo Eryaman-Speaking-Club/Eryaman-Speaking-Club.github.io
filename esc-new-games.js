@@ -10,7 +10,7 @@ const card=()=>$('#gameCard'),prompt=()=>$('#prompt'),sub=()=>$('#sub'),badge=()
 function clearDynamic(){card().querySelectorAll('.dynamic').forEach(n=>n.remove());prompt().classList.remove('hidden-target','revealed');}
 function stopTimer(){clearInterval(timer);timer=null;const old=$('#timer');if(old)old.remove();}
 function startTimer(seconds,onEnd){stopTimer();time=seconds;const el=document.createElement('div');el.id='timer';el.className='timer-big dynamic';el.textContent=time;card().appendChild(el);aud().select();timer=setInterval(()=>{time--;el.textContent=time;if(time<=5&&time>0){el.classList.add('danger');aud().count(time)}if(time<=0){clearInterval(timer);timer=null;el.textContent='0';aud().timeup();if(onEnd)onEnd()}},1000)}
-function setCard(title,desc,tag){badge().textContent=tag||cfg.badge||'ESC GAME';prompt().textContent=title||'';sub().textContent=desc||'';}
+function setCard(title,desc,tag){badge().textContent=tag||cfg.badge||'SPEAKING GAME';prompt().textContent=title||'';sub().textContent=desc||'';}
 function btn(label,cls,id){return '<button class="'+(cls||'new-btn')+'" '+(id?'id="'+id+'"':'')+' type="button">'+label+'</button>'}
 function nextItem(){if(!deck.length||pos>=deck.length-1){deck=cfg.type==='bingo'?Array.from({length:30},()=>shuffle(cfg.items||[]).slice(0,16)):shuffle(cfg.items||[]);pos=-1}const x=deck[++pos];history.push(x);renderItem(x);aud().soft()}
 function prevItem(){if(history.length<2)return;history.pop();renderItem(history[history.length-1]);aud().soft()}
