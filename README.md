@@ -1,23 +1,83 @@
 # Eryaman Speaking Club — Website & Game Hub
 
-A lightweight, static website and browser-game collection for **Eryaman Speaking Club**. The main site introduces the club and meetup experience; the separate Game Hub contains 12 speaking, conversation and party games that run directly in the browser.
+The website, Game Hub and education tools for **Eryaman Speaking Club**. The public site introduces the club and meetup experience; the Game Hub contains **32 browser-based speaking and conversation games**; the Educators area adds teacher accounts, classes and classroom tools; and a Supabase-backed management panel controls the live site.
 
-## Quick links
+## Live links & access
 
-- **Club website:** https://eryamanspeakingclub.com/
-- **Game Hub:** https://eryamanspeakingclub.com/games/
-- **ESC Studio:** https://eryamanspeakingclub.com/esc-studio/
+| Area | URL | Who uses it | Access |
+| --- | --- | --- | --- |
+| **Club website** | https://eryamanspeakingclub.com/ | Everyone | Public |
+| **Turkish homepage** | https://eryamanspeakingclub.com/tr/ | Everyone | Public |
+| **English homepage** | https://eryamanspeakingclub.com/en/ | Everyone | Public |
+| **Game Hub** | https://eryamanspeakingclub.com/games/ | Members, hosts, teachers | Public |
+| **Educators** | https://eryamanspeakingclub.com/educators/ | English teachers / schools | Teacher account |
+| **Join a class** | https://eryamanspeakingclub.com/join/ | Students | Class code + first name |
+| **Private lessons** | https://eryamanspeakingclub.com/ozel-dersler/ | Prospective students | Public |
+| **Site management panel** | https://eryamanspeakingclub.com/admin/ | Site administrators | Supabase Auth + admin allow-list |
+| **Legacy Studio URL** | https://eryamanspeakingclub.com/esc-studio/ | Administrators | Redirects to the central admin panel |
 
-> ESC Studio is the private game-management entry point. It is intentionally not linked from the public website or Game Hub.
+### Administrator sign-in
+
+Use the central management panel:
+
+1. Open **https://eryamanspeakingclub.com/admin/**
+2. Sign in with the administrator e-mail: **eryamanspeakingclub@gmail.com**
+3. Enter the current Supabase Auth password.
+4. If the password is unknown or needs to be changed, use **Şifremi sıfırla** on the login screen.
+5. After signing in, the password can also be changed from **Ayarlar → Güvenlik**.
+
+> **Important:** the administrator password is intentionally **not stored in this public README or repository**. Passwords must stay in Supabase Auth / a private password manager. Never commit the password, recovery link, Supabase service-role key, or any other secret to GitHub.
+
+### Teacher access
+
+Teachers use **https://eryamanspeakingclub.com/educators/**.
+
+- Existing teachers choose **Öğretmen girişi** and sign in with their own e-mail/password.
+- New teachers can use **Hesap oluştur**.
+- Teacher accounts store classes, student codes and lesson data in Supabase.
+- Each teacher should use their own account rather than sharing the site administrator account.
+
+### Student access
+
+Students do **not** need an e-mail address or account for normal classroom entry.
+
+1. Open **https://eryamanspeakingclub.com/join/**
+2. Enter the class code shown by the teacher.
+3. Enter a first name.
+4. Join the active class.
+
+The student join flow is deliberately separate from administrator and teacher authentication.
+
+### Management model
+
+The old **ESC Studio** entry point is no longer the primary management system. The central panel at **/admin/** now manages:
+
+- live page text and image edits;
+- draft → publish workflow;
+- page sections and visibility;
+- navigation and footer links;
+- event date, time, venue and pricing;
+- the 32-game catalogue and shared game settings;
+- Educators / teacher data;
+- media uploads;
+- site analytics;
+- SEO;
+- revision history;
+- administrator roles;
+- custom pages created with Page Builder.
+
+Published CMS changes are stored in Supabase and applied to the real website. A draft does not affect visitors until it is published.
 
 ## Purpose
 
-The project has two goals:
+The project has four main goals:
 
 1. explain Eryaman Speaking Club, how meetups work, participation options, events and community feedback;
-2. provide simple speaking games that can be opened instantly on a phone, tablet, laptop or projector during meetups.
+2. provide speaking games that can be opened instantly on a phone, tablet, laptop or projector;
+3. provide English teachers with classes, adaptive activities and classroom tools through the Educators area;
+4. let authorised administrators manage the real site through one central panel without editing source files for routine content changes.
 
-The public site is deployed as a lightweight GitHub Pages project. **ESC Studio** is the single management entry point, while Supabase now provides the central database and admin authentication layer.
+The public frontend is served by GitHub Pages. Supabase provides authentication, shared game content, Educators data, CMS data, media storage and the administrator permission layer.
 
 ## Main features
 
@@ -29,11 +89,11 @@ The public site is deployed as a lightweight GitHub Pages project. **ESC Studio*
 - event photos, videos, statistics, feedback and FAQ
 - responsive navigation and mobile layout
 - 3 featured games on the homepage: **Taboo**, **Truth or Dare** and **Would You Rather?**
-- link to the full 12-game Game Hub
+- link to the full 32-game Game Hub
 
 ### Game Hub
 
-- 12 playable browser games
+- 32 playable browser games
 - filters for group, quick and conversation games
 - random-game selection from the currently visible category
 - responsive cards and game previews
@@ -87,25 +147,19 @@ Team names, player lists and the selected team/quick-play mode are stored locall
 
 Reset controls affect the relevant gameplay state only. Normal player/team setup never requires the admin password.
 
-## ESC Studio and game administration
+## Central administration and game management
 
-Game administration is centralized at:
+Routine site and game administration is centralized at:
 
-`https://eryamanspeakingclub.com/esc-studio/`
+`https://eryamanspeakingclub.com/admin/`
 
-Public game pages no longer expose the question/admin controls. Supported game pages still load `esc-content-editor.js`, but the editor UI is mounted only when the game is opened from ESC Studio in Studio mode.
+The legacy `/esc-studio/` route remains only as a redirect to the new panel.
 
-Depending on the game schema, the editor can:
+The management panel can control page content, images, navigation, event details, pricing, games, Educators data, media, analytics, SEO and revision history. The Game section links to supported per-game question editors when detailed library editing is needed.
 
-- add questions/prompts;
-- edit existing content;
-- remove content while keeping at least one item;
-- search the local question library;
-- restore the built-in library.
+Generic game libraries load from and save to Supabase. Truth or Dare and One for Me · One for You also synchronize centrally managed question/configuration data. `localStorage` remains only as a fallback/offline layer for compatible gameplay state.
 
-Generic game libraries now load from and save to Supabase. Truth or Dare and One for Me · One for You also synchronize their centrally managed question/configuration data with Supabase. `localStorage` remains as a fallback/offline copy for resilience.
-
-ESC Studio sign-in uses Supabase Auth. Database writes are protected by Row Level Security and the `esc_admins` allow-list.
+Administrator sign-in uses Supabase Auth. Database writes are protected with Row Level Security and the administrator allow-list. Public visitors never receive administrator write permissions.
 
 ## Local data
 
@@ -142,13 +196,19 @@ There is no npm build step or frontend framework.
 ├── home.js                    # Navigation, animations, counters and homepage behaviour
 ├── meetup-pricing.css         # Participation/pricing section
 ├── games/
-│   ├── index.html             # Full 12-game Game Hub
+│   ├── index.html             # Full 32-game Game Hub
 │   ├── games.css              # Game Hub layout
 │   └── previews.css           # Game preview artwork
-├── esc-studio/
-│   ├── index.html             # Private game-management entry point
-│   ├── studio.css
-│   └── studio.js
+├── admin/
+│   ├── index.html             # Central private management panel
+│   ├── admin.js
+│   ├── admin-editor.js
+│   ├── admin-data.js
+│   └── admin-structure.js
+├── educators/                 # Teacher accounts, classes and classroom tools
+├── join/                      # Student class-code entry
+├── ozel-dersler/              # Private-lesson landing page
+├── esc-studio/                # Legacy redirect to /admin/#games
 ├── taboo/                     # Individual game folders
 ├── truth-or-dare/
 ├── would-you-rather/
@@ -173,13 +233,13 @@ The repository now contains the backend groundwork in `supabase/schema.sql` and 
 The target architecture is:
 
 1. GitHub Pages continues serving the public website and games.
-2. Supabase Auth handles ESC Studio admin sign-in.
+2. Supabase Auth handles central administrator and teacher authentication.
 3. Supabase PostgreSQL stores the shared game library and settings.
 4. RLS allows public visitors to read active game content.
-5. Only users listed in `esc_admins` can write through ESC Studio.
+5. Only authorised users in the administrator allow-list can perform protected management writes.
 6. The browser uses only the public project URL and anon/publishable key. The `service_role` key must never be committed to this repository.
 
-The Supabase project is connected, the schema/RLS policies are applied, current game libraries are seeded, and editors are wired for central persistence. The remaining bootstrap step is to create the first ESC Studio Auth user and claim the ESC admin role.
+The Supabase project is connected, the schema/RLS policies are applied, the current game catalogue is seeded, CMS publication is live, and administrator/teacher flows are connected. The administrator account is already provisioned; credentials are managed through Supabase Auth and are not documented in the repository.
 
 ## Run locally
 
@@ -209,10 +269,10 @@ Before a larger update:
 
 1. Check the homepage on desktop and narrow mobile widths.
 2. Confirm the homepage shows only the 3 featured games.
-3. Confirm `/games/` shows all 12 games and its filters/random selector work.
+3. Confirm `/games/` shows all 32 games and its filters/random selector work.
 4. Open the affected games and test buttons, timers, scores, turns and resets.
 5. Test player/team setup and refresh persistence where applicable.
-6. Test question add/edit/remove/reset and an incorrect admin password.
+6. Test question add/edit/remove/reset from the protected management flow.
 7. Check sound controls and missing assets/console errors.
 8. Confirm the GitHub Pages workflow completes successfully.
 
@@ -226,4 +286,4 @@ Changes that fit the current architecture without a rewrite include:
 - lightweight offline/PWA support for unreliable event Wi-Fi;
 - a shared metadata manifest to reduce duplicated game information.
 
-The active backend migration is intended to provide cross-device sync, central content administration and secure admin authentication while keeping the public site on GitHub Pages.
+The current architecture provides cross-device content sync, central site administration, Educators data and secure authentication while keeping the public frontend on GitHub Pages.
