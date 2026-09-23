@@ -96,7 +96,7 @@
     $('#roleBadge').textContent=(state.profile.role||'editor').replaceAll('_',' ');
     if(state.profile.role==='viewer') $('#appView').classList.add('viewer-mode');
     if(!isSuper()) $('#nav [data-view="team"]')?.setAttribute('disabled','');
-    await render(state.currentView);
+    const requested=(location.hash||'').replace('#','');\n    if(requested && (requested==='dashboard' || modules[requested])) state.currentView=requested;\n    $('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===state.currentView));\n    await render(state.currentView);
   }
 
   async function bootstrap(){
