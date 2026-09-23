@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#081f3b">
+  <meta name="description" content="ESC Educators sınıfına kod ile katıl.">
+  <title>Sınıfa Katıl · ESC Educators</title>
+  <link rel="icon" type="image/png" href="../favicon.png?v=20260922">
+  <link rel="stylesheet" href="../esc-brand.css?v=20260923">
+  <link rel="stylesheet" href="./join.css?v=20260923">
+</head>
+<body>
+  <div class="join-bg" aria-hidden="true"><i></i><i></i><i></i></div>
+  <header class="join-header">
+    <a class="esc-brand" href="../educators/"><span class="esc-brand-mark"><img src="../esc-center-symbol.webp" alt=""></span><span class="esc-brand-title">ESC Educators</span></a>
+    <a href="../educators/" class="teacher-link">Öğretmen misiniz? <b>Teacher panel →</b></a>
+  </header>
+
+  <main class="join-shell">
+    <section class="join-card" id="joinView">
+      <span class="join-kicker">STUDENT JOIN</span>
+      <h1>Sınıfına katıl.</h1>
+      <p>Öğretmeninin ekranda gösterdiği sınıf kodunu ve adını gir. Öğrenci hesabı veya e-posta gerekmez.</p>
+      <form id="joinForm">
+        <label>Sınıf kodu
+          <input id="joinCode" type="text" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Örn. A7K29Q" required>
+        </label>
+        <label>Adın
+          <input id="joinName" type="text" maxlength="40" autocomplete="given-name" placeholder="Örn. Efe" required>
+        </label>
+        <button type="submit" id="joinButton">Sınıfa katıl <span>→</span></button>
+      </form>
+      <p class="join-message" id="joinMessage" hidden></p>
+      <div class="join-safe"><span>✓</span><div><b>Basit öğrenci girişi</b><small>Bu ekran için e-posta, telefon numarası veya şifre istemiyoruz.</small></div></div>
+    </section>
+
+    <section class="classroom-card" id="classroomView" hidden>
+      <div class="classroom-top">
+        <div><small id="classroomMeta">ESC CLASSROOM</small><strong id="classroomName">English Class</strong></div>
+        <div class="connection-pill"><i></i><span id="connectionText">Connected</span></div>
+      </div>
+
+      <div class="student-identity">
+        <span class="avatar" id="studentAvatar">E</span>
+        <div><small>JOINED AS</small><b id="studentDisplayName">Efe</b></div>
+        <button type="button" id="leaveClass">Leave</button>
+      </div>
+
+      <div class="waiting-state" id="waitingState">
+        <div class="pulse-orbit"><i></i><i></i><i></i><span>ESC</span></div>
+        <small>YOU'RE IN</small>
+        <h2>Öğretmenin dersi başlatmasını bekliyoruz.</h2>
+        <p>Bu ekran açık kalsın. Ders veya oyun başladığında otomatik olarak güncellenecek.</p>
+      </div>
+
+      <div class="live-state" id="liveState" hidden>
+        <div class="live-bar"><span><i></i> LIVE CLASS</span><b id="liveStage">WARM-UP</b></div>
+        <article class="live-task">
+          <small id="liveTitle">SPEAKING</small>
+          <h2 id="livePrompt">Where would you like to travel?</h2>
+          <p id="liveInstruction">Answer in 2–3 sentences.</p>
+        </article>
+        <div class="student-scoreboard">
+          <div><span>TEAM BLUE</span><strong id="studentBlueScore">0</strong></div>
+          <b>VS</b>
+          <div><span>TEAM ORANGE</span><strong id="studentOrangeScore">0</strong></div>
+        </div>
+        <div class="student-action" id="studentAction">
+          <button type="button" data-result="participated">I answered ✓</button>
+          <button type="button" data-result="need-help">I need help</button>
+        </div>
+        <p class="sync-note">Teacher controls the class flow. Your screen updates automatically.</p>
+      </div>
+
+      <div class="completed-state" id="completedState" hidden>
+        <span>✓</span><small>CLASS COMPLETED</small><h2>Good work!</h2><p>Ders sona erdi. Öğretmeniniz yeni bir oturum başlatırsa bu ekran yeniden güncellenebilir.</p>
+      </div>
+    </section>
+
+    <aside class="join-help">
+      <span>1</span><p><b>Kodu gir</b><small>Öğretmenin verdiği 6 karakterli sınıf kodunu kullan.</small></p>
+      <span>2</span><p><b>Adını yaz</b><small>Sınıfta görünecek kısa adını kullan.</small></p>
+      <span>3</span><p><b>Ekranı açık tut</b><small>Öğretmen soru değiştirdikçe ekranın otomatik yenilenir.</small></p>
+    </aside>
+  </main>
+
+  <script src="../esc-supabase-config.js?v=20260923"></script>
+  <script src="../esc-supabase.js?v=20260923-edu"></script>
+  <script src="./join.js?v=20260923"></script>
+</body>
+</html>
