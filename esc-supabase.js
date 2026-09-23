@@ -1,5 +1,6 @@
 (() => {
   'use strict';
+  if (window.ESCSupabase) return;
 
   let clientPromise = null;
 
