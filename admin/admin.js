@@ -98,7 +98,7 @@
     if(!isSuper()) $('#nav [data-view="team"]')?.setAttribute('disabled','');
     const requested=(location.hash||'').replace('#','');
     if(requested && (requested==='dashboard' || modules[requested])) state.currentView=requested;
-    $('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===state.currentView));
+    $$('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===state.currentView));
     await render(state.currentView);
   }
 
