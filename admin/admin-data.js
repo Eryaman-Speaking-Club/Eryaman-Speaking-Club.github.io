@@ -114,7 +114,18 @@
     const {data,error}=await A.state.db.from('esc_cms_settings').select('*').order('key');if(error)throw error;
     const identity=data.find(x=>x.key==='site_identity')||{key:'site_identity',draft_data:{}};const social=data.find(x=>x.key==='social_links')||{key:'social_links',draft_data:{}};
     const id=identity.draft_data||{},so=social.draft_data||{};
-    $('#panel').innerHTML='<div class="card"><div class="card-head"><div><h2>Genel site ayarları</h2><p class="muted">Marka, iletişim ve sosyal bağlantılar.</p></div></div><form id="settingsForm" class="stack"><div class="grid-2"><label>Site adı<input name="site_name" value="'+esc(id.site_name||'Eryaman Speaking Club')+'"></label><label>İletişim e-postası<input name="contact_email" type="email" value="'+esc(id.contact_email||'')+'"></label></div><div class="grid-2"><label>Instagram<input name="instagram" value="'+esc(so.instagram||'')+'"></label><label>TikTok<input name="tiktok" value="'+esc(so.tiktok||'')+'"></label></div><button class="btn primary" '+(!A.canEdit()?'disabled':'')+'>Kaydet & yayınla</button></form></div>';
+    $('#panel').innerHTML='<div class="card"><div class="card-head"><div><h2>Genel site ayarları</h2><p class="muted">Marka, iletişim ve sosyal bağlantılar.</p></div></div><form id="settingsForm" class="stack"><div class="grid-2"><label>Site adı<input name="site_name" value="'+esc(id.site_name||'Eryaman Speaking Club')+'"></label><label>İletişim e-postası<input name="contact_email" type="email" value="'+esc(id.contact_email||'')+'"></label></div><div class="grid-2"><label>Instagram<input name="instagram" value="'+esc(so.instagram||'')+'"></label><label>TikTok<input name="tiktok" value="'+esc(so.tiktok||'')+'"></label></div><button class="btn primary" '+(!A.canEdit()?'disabled':'')+'>Kaydet & yayınla</button></form></div>'+
+      '<div class="card"><div class="card-head"><div><h2>Güvenlik</h2><p class="muted">Yönetim paneli hesabının şifresini değiştir.</p></div></div><form id="passwordChangeForm" class="stack"><label>Yeni şifre<input name="password" type="password" minlength="8" autocomplete="new-password" required></label><label>Yeni şifre tekrar<input name="password2" type="password" minlength="8" autocomplete="new-password" required></label><button class="btn primary">Şifreyi değiştir</button></form></div>';
+    $('#passwordChangeForm').onsubmit=async e=>{
+      e.preventDefault();
+      const f=new FormData(e.currentTarget),p=String(f.get('password')||''),p2=String(f.get('password2')||'');
+      if(p!==p2){alert('Şifreler aynı değil.');return}
+      try{
+        await window.ESCSupabase.updatePassword(p);
+        e.currentTarget.reset();
+        toast('Şifre değiştirildi');
+      }catch(err){alert(err.message||err)}
+    };
     $('#settingsForm').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.currentTarget);try{let r=await A.state.db.from('esc_cms_settings').update({draft_data:{site_name:f.get('site_name'),contact_email:f.get('contact_email')},has_unpublished_changes:true,updated_by:A.state.session.user.id,updated_at:new Date().toISOString()}).eq('key','site_identity');if(r.error)throw r.error;r=await A.state.db.rpc('esc_cms_publish_setting',{p_key:'site_identity'});if(r.error)throw r.error;r=await A.state.db.from('esc_cms_settings').update({draft_data:{instagram:f.get('instagram'),tiktok:f.get('tiktok')},has_unpublished_changes:true,updated_by:A.state.session.user.id,updated_at:new Date().toISOString()}).eq('key','social_links');if(r.error)throw r.error;r=await A.state.db.rpc('esc_cms_publish_setting',{p_key:'social_links'});if(r.error)throw r.error;toast('Genel ayarlar yayınlandı')}catch(err){alert(err.message)}};
   }
 
