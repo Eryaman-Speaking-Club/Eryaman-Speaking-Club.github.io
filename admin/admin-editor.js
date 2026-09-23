@@ -174,7 +174,7 @@
   }
   async function publish(){
     await saveDraft();
-    const {data,error}=await A.state.db.rpc('esc_cms_publish_page',{p_page_id:current.id,p_note:'ESC Admin üzerinden yayınlandı'});
+    const {data,error}=await A.state.db.rpc('esc_cms_publish_page',{p_page_id:current.id,p_note:'Eryaman Speaking Club yönetim panelinden yayınlandı'});
     if(error)throw error;current=data;toast('Yayınlandı · canlı site güncellendi');
     $('#editorState').textContent='YAYINDA · v'+(data.version||0);
   }
