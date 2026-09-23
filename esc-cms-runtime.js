@@ -114,8 +114,8 @@
     const path = normalizePath(location.pathname);
     try {
       const [{data,error},{data:settings,error:settingsError}] = await Promise.all([
-        db.from('esc_cms_published_pages').select('published_data,published_seo,version').eq('path', path).maybeSingle(),
-        db.from('esc_cms_published_settings').select('key,published_data').in('key',['site_identity','social_links'])
+        db.from('esc_cms_public_pages').select('published_data,published_seo,version').eq('path', path).maybeSingle(),
+        db.from('esc_cms_public_settings').select('key,published_data').in('key',['site_identity','social_links'])
       ]);
       if (!settingsError && Array.isArray(settings)) {
         const map = Object.fromEntries(settings.map(x => [x.key, x.published_data || {}]));
