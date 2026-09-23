@@ -20,27 +20,61 @@
     </a>
     <nav class="edu-topnav" aria-label="Educators menü">
       <a href="#how">Nasıl çalışır?</a>
-      <a href="#teacher-demo">Öğretmen demosu</a>
+      <a href="#teacher-demo">Öğretmen paneli</a>
       <a href="#student-demo">Öğrenci girişi</a>
       <a href="#roadmap">Yakında</a>
     </nav>
     <div class="edu-top-actions">
       <a class="text-link" href="../games/">Oyunlar</a>
-      <a class="primary-link" href="#teacher-demo">Paneli dene <span>→</span></a>
+      <button class="primary-link primary-button" type="button" data-teacher-login>Öğretmen girişi <span>→</span></button>
     </div>
   </header>
+
+  
+  <div class="edu-auth-layer" id="eduAuthLayer" hidden>
+    <div class="edu-auth-card">
+      <button class="edu-auth-close" id="eduAuthClose" type="button" aria-label="Kapat">×</button>
+      <a class="esc-brand" href="../"><span class="esc-brand-mark"><img src="../esc-center-symbol.webp" alt=""></span><span class="esc-brand-title">ESC Educators</span></a>
+      <span class="edu-auth-kicker">TEACHER ACCOUNT</span>
+      <h2 id="eduAuthTitle">Öğretmen hesabına giriş yap</h2>
+      <p id="eduAuthIntro">Sınıflarınız, öğrenci kodlarınız ve dersleriniz hesabınıza kaydedilir.</p>
+      <div class="edu-auth-tabs"><button class="active" type="button" data-auth-mode="login">Giriş</button><button type="button" data-auth-mode="signup">Hesap oluştur</button></div>
+      <form id="eduAuthForm">
+        <label id="teacherNameWrap" hidden>Adınız<input id="teacherName" type="text" maxlength="80" autocomplete="name" placeholder="Örn. Ayşe Yılmaz"></label>
+        <label>E-posta<input id="teacherEmail" type="email" autocomplete="email" required placeholder="teacher@example.com"></label>
+        <label>Şifre<input id="teacherPassword" type="password" minlength="8" autocomplete="current-password" required placeholder="En az 8 karakter"></label>
+        <button type="submit" id="eduAuthSubmit">Giriş yap →</button>
+      </form>
+      <p class="edu-auth-message" id="eduAuthMessage" hidden></p>
+      <button class="edu-forgot" id="eduForgotPassword" type="button">Şifremi unuttum</button>
+    </div>
+  </div>
+
+  <div class="edu-class-layer" id="eduClassLayer" hidden>
+    <form class="edu-class-card" id="eduClassForm">
+      <button class="edu-auth-close" id="eduClassClose" type="button" aria-label="Kapat">×</button>
+      <span class="edu-auth-kicker">NEW CLASS</span>
+      <h2>Yeni sınıf oluştur</h2>
+      <p>Bu bilgiler soru zorluğunu, kelime seçimini ve etkinlik tipini belirler.</p>
+      <label>Sınıf adı<input id="newClassName" type="text" maxlength="80" required placeholder="Örn. 6-B / Junior Speaking"></label>
+      <div class="edu-class-two"><label>Yaş grubu<select id="newClassAge"><option value="6-8">6–8 · Kids</option><option value="9-11">9–11 · Junior</option><option value="12-14" selected>12–14 · Pre-Teen</option><option value="15-17">15–17 · Teen</option><option value="18+">18+ · Adult</option></select></label><label>Seviye<select id="newClassLevel"><option>Pre-A1</option><option>A1</option><option selected>A2</option><option>B1</option><option>B2</option></select></label></div>
+      <div class="edu-class-two"><label>Ana hedef<select id="newClassFocus"><option value="speaking">Speaking</option><option value="vocabulary">Vocabulary</option><option value="grammar">Grammar</option><option value="mixed">Mixed</option></select></label><label>Maks. öğrenci<input id="newClassMax" type="number" min="1" max="100" value="40"></label></div>
+      <button class="generate-button" type="submit">Sınıfı oluştur →</button>
+      <p class="edu-auth-message" id="eduClassMessage" hidden></p>
+    </form>
+  </div>
 
   <main>
     <section class="edu-hero">
       <div class="hero-glow glow-one" aria-hidden="true"></div>
       <div class="hero-glow glow-two" aria-hidden="true"></div>
       <div class="edu-hero-copy">
-        <span class="pilot-badge"><i></i> ESC EDUCATORS · İLK TASLAK</span>
+        <span class="pilot-badge"><i></i> ESC EDUCATORS · TEACHER PLATFORM</span>
         <h1>İngilizce dersini<br><em>oynat, konuştur, takip et.</em></h1>
         <p>Öğretmen sınıfın yaşını, seviyesini ve konusunu seçer. ESC; o sınıfa uygun soruları, konuşma görevlerini ve oyun akışını hazırlar.</p>
         <div class="hero-actions">
-          <a class="hero-primary" href="#teacher-demo">Öğretmen panelini dene <span>↘</span></a>
-          <a class="hero-secondary" href="#student-demo">Öğrenci görünümünü gör</a>
+          <button class="hero-primary hero-button" type="button" data-teacher-login>Öğretmen paneline gir <span>↘</span></button>
+          <a class="hero-secondary" href="../join/">Öğrenci olarak katıl</a>
         </div>
         <div class="hero-proof">
           <span><b>AGE</b> 6–8 · 9–11 · 12–14 · 15–17 · 18+</span>
@@ -101,9 +135,9 @@
 
     <section class="teacher-demo-section" id="teacher-demo">
       <div class="teacher-demo-intro">
-        <span class="section-kicker light">ÇALIŞAN PROTOTİP</span>
+        <span class="section-kicker light">TEACHER WORKSPACE</span>
         <h2>Öğretmen paneli.</h2>
-        <p>Aşağıdaki alan ilk ürün mantığını gösterir. Seçimleri değiştir ve sistemin soru dilini nasıl uyarladığını gör.</p>
+        <p>Sınıflarını oluştur, öğrencilerini kodla içeri al, seviyeye ve yaşa göre ders hazırla ve canlı sınıf akışını tek panelden yönet.</p>
       </div>
 
       <div class="teacher-app" id="teacherApp">
@@ -121,9 +155,9 @@
             <button class="side-item" data-panel="reports"><span>↗</span> Reports</button>
           </nav>
           <div class="sidebar-plan">
-            <small>TEACHER PILOT</small>
-            <b>Prototype access</b>
-            <span>Abonelik sistemi sonraki aşamada.</span>
+            <small>TEACHER ACCOUNT</small>
+            <b>ESC Educators</b>
+            <span>Sınıflarınız ve dersleriniz hesabınıza bağlıdır.</span>
           </div>
         </aside>
 
@@ -171,7 +205,7 @@
               </article>
             </div>
             <div class="recent-table">
-              <div class="table-title"><strong>Recent classes</strong><span>Prototype data</span></div>
+              <div class="table-title"><strong>Recent classes</strong><span>Live data</span></div>
               <div class="table-row table-head"><span>Class</span><span>Profile</span><span>Last activity</span><span>Result</span></div>
               <div class="table-row"><b>5-A</b><span>9–11 · A1</span><span>Food Match</span><span class="good">86%</span></div>
               <div class="table-row"><b>6-B</b><span>11–12 · A2</span><span>Travel Speaking</span><span class="good">79%</span></div>
@@ -184,7 +218,7 @@
               <div><small>MY CLASSES</small><h3>Sınıflarını tek yerde yönet.</h3></div>
               <button class="solid-button" type="button" id="newClassButton">+ New class</button>
             </div>
-            <div class="class-card-grid" id="classCardGrid">
+            <div class="class-card-grid" id="classCardGrid" aria-live="polite">
               <article><div><span>5-A</span><small>9–11 · A1</small></div><strong>24 students</strong><p>Food · School · Daily Life</p><button data-use-class="5-A" data-age="9-11" data-level="A1">Use class →</button></article>
               <article><div><span>6-B</span><small>11–12 · A2</small></div><strong>22 students</strong><p>Travel · Hobbies · Past Simple</p><button data-use-class="6-B" data-age="12-14" data-level="A2">Use class →</button></article>
               <article><div><span>Teen Speaking</span><small>15–17 · B1</small></div><strong>21 students</strong><p>Technology · Opinions · Real life</p><button data-use-class="Teen Speaking" data-age="15-17" data-level="B1">Use class →</button></article>
@@ -362,7 +396,7 @@
           <section class="workspace-panel" data-panel-view="reports">
             <div class="panel-header">
               <div><small>REPORTS</small><h3>Öğretmene işe yarayan veri.</h3></div>
-              <span class="adaptive-badge muted">DEMO DATA</span>
+              <span class="adaptive-badge muted">CLASS DATA</span>
             </div>
             <div class="report-grid">
               <article class="report-main">
@@ -409,7 +443,7 @@
           <label>Class code<input id="studentCode" type="text" value="6B27" maxlength="8" autocomplete="off"></label>
           <label>Your first name<input id="studentName" type="text" value="Efe" maxlength="20" autocomplete="off"></label>
           <button type="button" id="joinDemoClass">Join class →</button>
-          <p id="studentJoinMessage">No account needed. Demo code: 6B27</p>
+          <p id="studentJoinMessage">Hesap gerekmez. Öğretmeninizin verdiği sınıf kodunu girin.</p>
         </div>
         <div class="student-screen waiting-screen" data-student-screen="waiting">
           <span class="student-avatar" id="studentAvatar">E</span>
@@ -428,13 +462,13 @@
 
     <section class="roadmap-section" id="roadmap">
       <div class="section-heading">
-        <div><span class="section-kicker">SONRAKİ AŞAMALAR</span><h2>Bunun üzerine ne ekleyeceğiz?</h2></div>
-        <p>İlk taslak ürün akışını test etmek için. Kullanım mantığı oturduktan sonra gerçek hesap, veri ve abonelik tarafını bağlarız.</p>
+        <div><span class="section-kicker">SONRAKİ AŞAMALAR</span><h2>Platform yol haritası</h2></div>
+        <p>Temel öğretmen hesabı, sınıf oluşturma ve öğrenci katılımı artık gerçek backend üzerinde çalışır. Sonraki aşamalar canlı oyun sonuçları, gelişmiş raporlar ve abonelik paketleridir.</p>
       </div>
       <div class="roadmap-grid">
-        <article class="done"><span>V1</span><b>Teacher prototype</b><p>Yaş + seviye + konu + ders akışı + öğrenci kodu.</p><em>ŞİMDİ</em></article>
-        <article><span>V2</span><b>Accounts & classes</b><p>Teacher/student hesapları, gerçek sınıflar, Supabase verisi.</p><em>NEXT</em></article>
-        <article><span>V3</span><b>Live classroom</b><p>Realtime soru akışı, takım puanı, homework ve raporlar.</p><em>LATER</em></article>
+        <article class="done"><span>V1</span><b>Teacher accounts & classes</b><p>Gerçek hesaplar, sınıf oluşturma, yaş + seviye profili ve öğrenci kodu.</p><em>LIVE</em></article>
+        <article class="done"><span>V2</span><b>Student join</b><p>Telefondan sınıf kodu + ad ile katılım ve oturumun cihazda korunması.</p><em>LIVE</em></article>
+        <article class="done"><span>V3</span><b>Live classroom</b><p>Öğretmenin canlı ders durumu ve takım puanlarının backend üzerinde tutulması.</p><em>LIVE</em></article>
         <article><span>V4</span><b>Subscription & schools</b><p>Teacher Pro, school licenses, admin panel ve ödeme.</p><em>LATER</em></article>
       </div>
     </section>
@@ -443,7 +477,7 @@
       <small>ESC EDUCATORS</small>
       <h2>İngilizce öğretmeninin<br>ders araç kutusu.</h2>
       <p>Planla → oynat → konuştur → takip et.</p>
-      <a href="#teacher-demo">Prototipi tekrar dene <span>↑</span></a>
+      <a href="#teacher-demo">Öğretmen paneline git <span>↑</span></a>
     </section>
   </main>
 
@@ -497,6 +531,9 @@
     </div>
   </div>
 
+  <script src="../esc-supabase-config.js?v=20260923"></script>
+  <script src="../esc-supabase.js?v=20260923-edu"></script>
   <script src="./educators.js?v=20260923-v2"></script>
+  <script src="./educators-core.js?v=20260923-live"></script>
 </body>
 </html>
