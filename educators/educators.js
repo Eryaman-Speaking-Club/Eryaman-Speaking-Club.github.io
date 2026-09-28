@@ -44,11 +44,46 @@
   };
 
   const generic = {
-    food:["What food do you enjoy most?","Describe a meal you would recommend to a classmate.","Should school cafeterias offer more international food?"],
-    school:["What is your favorite part of school?","What would make school more enjoyable?","Should students have more choice in what they study?"],
-    hobbies:["What hobby would you like to try?","How can hobbies help people learn English?","Should teenagers spend more time on hobbies and less time online?"],
-    technology:["What technology do you use every day?","What app could you live without?","Does technology make communication better or worse?"],
-    "daily-life":["What do you do after school or work?","What part of your routine would you like to change?","Is a strict daily routine helpful or limiting?"]
+    food:[
+      "What food do you enjoy most?",
+      "Describe a meal you would recommend to a classmate.",
+      "What food do you think is difficult to cook well?",
+      "Which meal is most important during a school or work day?",
+      "How does food connect people and cultures?",
+      "Should school cafeterias offer more international food?"
+    ],
+    school:[
+      "What is your favorite part of school?",
+      "What would make school more enjoyable?",
+      "Which school subject is most useful in daily life?",
+      "Describe a good classroom activity.",
+      "What makes a teacher easy to learn from?",
+      "Should students have more choice in what they study?"
+    ],
+    hobbies:[
+      "What hobby would you like to try?",
+      "What hobby are you already good at?",
+      "Which hobby is easy to start with little money?",
+      "How can hobbies help people learn English?",
+      "Do hobbies need to be productive to be valuable?",
+      "Should teenagers spend more time on hobbies and less time online?"
+    ],
+    technology:[
+      "What technology do you use every day?",
+      "Which app saves you the most time?",
+      "What piece of technology would be hardest to give up?",
+      "How can students use technology better for learning?",
+      "What is one problem technology creates in daily life?",
+      "Does technology make communication better or worse?"
+    ],
+    "daily-life":[
+      "What do you do after school or work?",
+      "What part of your routine would you like to change?",
+      "Which part of your day is usually the busiest?",
+      "What habit makes your day easier?",
+      "How would you design a better weekday routine?",
+      "Is a strict daily routine helpful or limiting?"
+    ]
   };
 
   const supports = {
@@ -61,6 +96,7 @@
 
   let questionIndex = 0;
   let liveIndex = 0;
+  let generationCount = 0;
   let blue = 0, orange = 0;
 
   function getQuestions(){
@@ -114,7 +150,42 @@
     try{ await navigator.clipboard.writeText("6B27"); e.currentTarget.textContent="Copied ✓"; setTimeout(()=>e.currentTarget.textContent="Copy code",1200);}catch{}
   });
 
-  $("#lessonForm")?.addEventListener("submit", e=>{e.preventDefault();questionIndex=0;syncPreview();});
+  $("#lessonForm")?.addEventListener("submit", e=>{
+    e.preventDefault();
+    generationCount++;
+    const qs=getQuestions();
+    questionIndex = qs.length ? generationCount % qs.length : 0;
+    const output=$("#lessonOutput");
+    const status=$("#lessonGenerateStatus");
+    const button=e.currentTarget.querySelector(".generate-button");
+    if(button){
+      button.disabled=true;
+      button.classList.add("is-working");
+      button.innerHTML='Ders hazırlanıyor <span>•••</span>';
+    }
+    if(status){
+      status.hidden=false;
+      status.className="lesson-generate-status is-working";
+      status.textContent="Soru, ders akışı ve etkinlikler yeniden hazırlanıyor…";
+    }
+    output?.classList.remove("is-ready");
+    output?.classList.add("is-generating");
+    window.setTimeout(()=>{
+      syncPreview();
+      output?.classList.remove("is-generating");
+      output?.classList.add("is-ready");
+      if(status){
+        status.className="lesson-generate-status is-ready";
+        status.textContent="Yeni ders varyasyonu hazır ✓  İstersen tekrar basıp başka bir varyasyon oluşturabilirsin.";
+      }
+      if(button){
+        button.disabled=false;
+        button.classList.remove("is-working");
+        button.innerHTML='Dersi yeniden oluştur <span>✦</span>';
+      }
+      window.setTimeout(()=>output?.classList.remove("is-ready"),900);
+    },360);
+  });
   $("#newQuestion")?.addEventListener("click",()=>{questionIndex++;renderQuestion();});
   ["ageGroup","level","topic","duration","goal","className"].forEach(id=>$("#"+id)?.addEventListener("change",syncPreview));
 
