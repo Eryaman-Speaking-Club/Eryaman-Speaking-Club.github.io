@@ -61,7 +61,7 @@
 
   let questionIndex = 0;
   let liveIndex = 0;
-  let blue = 120, orange = 110;
+  let blue = 0, orange = 0;
 
   function getQuestions(){
     const age = $("#ageGroup").value;
@@ -85,10 +85,10 @@
     const goal = $("#goal").value;
     let parts;
     if(duration<=20) parts=[["3 min","Warm-up","Question"],["6 min","Vocabulary","Match"],["7 min",goal==="speaking"?"Speaking Game":"Core Practice","Interactive"],["4 min","Exit","Quick check"]];
-    else if(duration<=30) parts=[["5 min","Warm-up","Question"],["7 min","Vocabulary","Match"],["8 min","Team Game","Live"],["7 min","Speaking","Pairs"],["3 min","Exit","Quick check"]];
-    else if(duration<=40) parts=[["5 min","Warm-up","Question"],["8 min","Vocabulary","Match"],["10 min","Team Game","Live"],["12 min","Speaking","Pairs"],["5 min","Exit","Quick check"]];
-    else if(duration<=50) parts=[["6 min","Warm-up","Question"],["10 min","Vocabulary","Match"],["12 min","Team Game","Live"],["15 min","Speaking","Groups"],["7 min","Exit","Reflection"]];
-    else parts=[["8 min","Warm-up","Question"],["12 min","Vocabulary","Match"],["15 min","Team Game","Live"],["18 min","Speaking","Groups"],["7 min","Exit","Reflection"]];
+    else if(duration<=30) parts=[["5 min","Warm-up","Question"],["7 min","Vocabulary","Match"],["8 min","Practice Game","Optional"],["7 min","Speaking","Pairs"],["3 min","Exit","Quick check"]];
+    else if(duration<=40) parts=[["5 min","Warm-up","Question"],["8 min","Vocabulary","Match"],["10 min","Practice Game","Optional"],["12 min","Speaking","Pairs"],["5 min","Exit","Quick check"]];
+    else if(duration<=50) parts=[["6 min","Warm-up","Question"],["10 min","Vocabulary","Match"],["12 min","Practice Game","Optional"],["15 min","Speaking","Groups"],["7 min","Exit","Reflection"]];
+    else parts=[["8 min","Warm-up","Question"],["12 min","Vocabulary","Match"],["15 min","Practice Game","Optional"],["18 min","Speaking","Groups"],["7 min","Exit","Reflection"]];
     $("#generatedPlan").innerHTML = parts.map(x=>`<div class="plan-row"><span>${x[0]}</span><b>${x[1]}</b><small>${x[2]}</small></div>`).join("");
   }
 
@@ -130,7 +130,7 @@
   });
 
   const modal=$("#lessonModal");
-  const liveStages=["WARM-UP","VOCABULARY","TEAM GAME","SPEAKING","EXIT"];
+  const liveStages=["WARM-UP","VOCABULARY","PRACTICE GAME","SPEAKING","EXIT"];
   function updateLive(){
     const qs=getQuestions();
     const pair=qs[liveIndex % qs.length];
@@ -140,7 +140,7 @@
     $("#liveInstruction").textContent=pair[1];
     $("#modalClassName").textContent=$("#className").value || "Class";
   }
-  $("#startDemoLesson")?.addEventListener("click",()=>{liveIndex=0;updateLive();modal.classList.add("open");modal.setAttribute("aria-hidden","false");});
+  $("#startDemoLesson")?.addEventListener("click",()=>{liveIndex=0;blue=0;orange=0;if($("#blueScore"))$("#blueScore").textContent=0;if($("#orangeScore"))$("#orangeScore").textContent=0;updateLive();modal.classList.add("open");modal.setAttribute("aria-hidden","false");});
   $("#closeLessonModal")?.addEventListener("click",()=>{modal.classList.remove("open");modal.setAttribute("aria-hidden","true");});
   $("#nextLiveQuestion")?.addEventListener("click",()=>{liveIndex=(liveIndex+1)%5;updateLive();});
   $("#addBlue")?.addEventListener("click",()=>{$("#blueScore").textContent=blue+=10;});
