@@ -9,7 +9,7 @@
   <link rel="icon" type="image/png" href="../favicon.png?v=20260922">
   <link rel="stylesheet" href="../esc-brand.css?v=20260923">
   <link rel="stylesheet" href="./educators.css?v=20260927-os1">
-  <link rel="stylesheet" href="./educators-guide.css?v=20260928-1">
+  <link rel="stylesheet" href="./educators-guide.css?v=20260928-motion2">
 </head>
 <body>
   <div class="edu-noise" aria-hidden="true"></div>
@@ -156,10 +156,17 @@
 
         <div class="guide-demo-window" aria-label="Educators interaktif tanıtım">
           <div class="guide-demo-toolbar">
-            <div><i></i><small>90 SN · PRODUCT TOUR</small></div>
-            <button type="button" id="guideAutoPlay">▶ Oynat</button>
+            <div><i></i><small>SESLİ · HAREKETLİ ÜRÜN TURU</small></div>
+            <div class="guide-player-actions">
+              <button type="button" id="guideSoundToggle" aria-pressed="true">🔊 Ses açık</button>
+              <button type="button" id="guideReplay">↻ Baştan</button>
+              <button type="button" id="guideAutoPlay">▶ Oynat</button>
+            </div>
           </div>
-          <div class="guide-demo-stage" id="guideDemoStage">
+          <div class="guide-demo-stage scene-1" id="guideDemoStage">
+            <div class="guide-demo-cursor" id="guideDemoCursor" aria-hidden="true"><span></span></div>
+            <div class="guide-sound-wave" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+            <div class="guide-caption" id="guideCaption" aria-live="polite">Sınıfını seçerek başla.</div>
             <article class="guide-tour-slide active">
               <small>1 / 4 · BAŞLANGIÇ</small>
               <h3>Önce kimin için ders hazırladığını seç.</h3>
@@ -472,8 +479,9 @@
                     <input id="studentCount" type="number" min="1" max="60" value="22">
                   </label>
                 </div>
-                <button class="generate-button" type="submit">Generate lesson <span>✦</span></button>
-                <p class="form-note">İçerik şu anda yaş, seviye, konu ve ders hedefi kurallarına göre uyarlanır. AI destekli ders üretimi sonraki sürümde eklenecek.</p>
+                <button class="generate-button" type="submit">Dersi oluştur <span>✦</span></button>
+                <div class="lesson-generate-status" id="lessonGenerateStatus" hidden aria-live="polite"></div>
+                <p class="form-note">Aynı ayarlarla tekrar bastığında yeni soru ve yeni ders varyasyonu hazırlanır. Seçimleri değiştirerek farklı sınıf profilleri oluşturabilirsin.</p>
               </form>
 
               <div class="lesson-output" id="lessonOutput">
@@ -781,9 +789,9 @@
 
   <script src="../esc-supabase-config.js?v=20260923"></script>
   <script src="../esc-supabase.js?v=20260923-edu"></script>
-  <script src="./educators.js?v=20260928-clarity1"></script>
+  <script src="./educators.js?v=20260928-builder2"></script>
   <script src="./educators-core.js?v=20260928-clarity1"></script>
   <script src="./educators-workspace.js?v=20260927-v1"></script>
-  <script src="./educators-guide.js?v=20260928-1"></script>
+  <script src="./educators-guide.js?v=20260928-motion2"></script>
 </body>
 </html>
