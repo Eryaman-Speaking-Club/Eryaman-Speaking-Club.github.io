@@ -246,14 +246,18 @@
 
   function currentPlan() {
     const topic=$('#topic')?.value||'travel', duration=Number($('#duration')?.value||40);
-    const rows=$$('.generated-plan .plan-row');
-    const plan=rows.map((r,i)=>({
-      index:i,
-      stage:$('span',r)?.textContent||'Activity',
-      title:$('b',r)?.textContent||'Class activity',
-      duration:$('small',r)?.textContent||'',
-      prompt:i===0?($('#adaptiveQuestion')?.textContent||'Let’s start speaking.'):null
-    }));
+    const rows=$('.generated-plan .plan-row');
+    const plan=rows.map((r,i)=>{
+      const title=$('b',r)?.textContent||'Class activity';
+      return {
+        index:i,
+        stage:title.toUpperCase(),
+        title,
+        duration:$('span',r)?.textContent||'',
+        mode:$('small',r)?.textContent||'',
+        prompt:i===0?($('#adaptiveQuestion')?.textContent||'Let’s start speaking.'):null
+      };
+    });
     return plan.length?plan:[
       {index:0,stage:'WARM-UP',title:'Warm-up speaking',duration:'5 min',prompt:$('#adaptiveQuestion')?.textContent||'Let’s start speaking.'},
       {index:1,stage:'VOCABULARY',title:topic+' vocabulary',duration:'8 min'},
@@ -275,8 +279,8 @@
     const plan=currentPlan();
     const lesson=await window.ESCSupabase.saveEducatorLesson({
       class_id:c.id,
-      title:(c.name+' · '+($('#topic')?.selectedOptions[0]?.textContent||'English')).slice(0,120),
-      topic:($('#topic')?.selectedOptions[0]?.textContent||'English').slice(0,80),
+      title:(c.name+' · '+(($('#topic')?.value==='custom'?$('#customTopic')?.value:$('#topic')?.selectedOptions[0]?.textContent)||'English')).slice(0,120),
+      topic:((($('#topic')?.value==='custom'?$('#customTopic')?.value:$('#topic')?.selectedOptions[0]?.textContent)||'English')).slice(0,80),
       duration_minutes:Number($('#duration')?.value||40),
       primary_goal:$('#goal')?.value||'speaking',
       plan,
