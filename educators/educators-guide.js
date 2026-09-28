@@ -182,7 +182,8 @@
       await showGuideSlide(guideIndex,{narrate:true});
       if(!guideTimer)return;
       await new Promise(resolve=>{
-        guideTimer=setTimeout(resolve,900);
+        const visualPause=(soundEnabled && ("speechSynthesis" in window)) ? 900 : 4200;
+        guideTimer=setTimeout(resolve,visualPause);
       });
       if(!guideTimer)return;
       if(guideIndex>=3){stopGuide();return;}
@@ -209,7 +210,7 @@
   $("#guideSoundToggle")?.addEventListener("click",e=>{
     soundEnabled=!soundEnabled;
     e.currentTarget.setAttribute("aria-pressed",String(soundEnabled));
-    e.currentTarget.textContent=soundEnabled?(lang()==="en"?"🔊 Sound on":"🔊 Ses açık"):(lang()==="en"?"🔇 Sound off":"🔇 Ses kapalı");
+    e.currentTarget.textContent=soundEnabled?(lang()==="en"?"🔊 Natural voice":"🔊 Doğal ses"):(lang()==="en"?"🔇 Sound off":"🔇 Ses kapalı");
     if(soundEnabled){ensureAudio();tone(700,.1);speak(copy().narration[guideIndex]);}
     else stopSpeech();
   });
@@ -334,7 +335,7 @@
   window.addEventListener("esc:languagechange",()=>{
     stopGuide();
     const sound=$("#guideSoundToggle");
-    if(sound)sound.textContent=soundEnabled?(lang()==="en"?"🔊 Sound on":"🔊 Ses açık"):(lang()==="en"?"🔇 Sound off":"🔇 Ses kapalı");
+    if(sound)sound.textContent=soundEnabled?(lang()==="en"?"🔊 Natural voice":"🔊 Doğal ses"):(lang()==="en"?"🔇 Sound off":"🔇 Ses kapalı");
     showGuideSlide(guideIndex,{narrate:false});
     enhanceGameCards();
     setLiveMode($("#lessonModal")?.classList.contains("solo-mode")?"solo":"team");
