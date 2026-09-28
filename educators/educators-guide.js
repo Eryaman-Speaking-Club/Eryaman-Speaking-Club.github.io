@@ -117,7 +117,7 @@
         if(voice)u.voice=voice;
 
         const isShort=chunk.length<45;
-        u.rate=lang()==="tr" ? (isShort?.93:.96) : (isShort?.94:.97);
+        u.rate=lang()==="tr" ? (isShort ? .93 : .96) : (isShort ? .94 : .97);
         u.pitch=lang()==="tr" ? 1.015 : 1.0;
         u.volume=.96;
 
