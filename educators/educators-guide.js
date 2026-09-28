@@ -64,6 +64,7 @@
     if(!("speechSynthesis" in window))return [];
     const voices=window.speechSynthesis.getVoices()||[];
     if(voices.length)voiceCache=voices;
+    updateVoiceStatus();
     return voiceCache;
   }
 
@@ -71,23 +72,75 @@
     const name=(v.name||"").toLowerCase();
     const voiceLang=(v.lang||"").toLowerCase();
     let score=0;
-    if(voiceLang.startsWith(target))score+=100;
-    if(/natural|neural|premium|enhanced/.test(name))score+=55;
-    if(/siri|ava|samantha|aria|jenny|sonia|guy|deniz|emel|ahmet|cem|yelda/.test(name))score+=32;
-    if(/google/.test(name))score+=15;
-    if(v.localService)score+=8;
-    if(/compact|espeak|festival/.test(name))score-=45;
+    if(voiceLang===target+"-"+(target==="tr"?"tr":"us"))score+=140;
+    else if(voiceLang.startsWith(target))score+=110;
+    if(/natural|neural|premium|enhanced/.test(name))score+=85;
+    if(/siri|ava|samantha|aria|jenny|sonia|guy|deniz|emel|ahmet|cem|yelda/.test(name))score+=45;
+    if(/google/.test(name))score+=24;
+    if(/microsoft/.test(name))score+=18;
+    if(v.localService)score+=10;
+    if(/compact|espeak|festival/.test(name))score-=80;
     return score;
   }
 
-  function bestVoice(){
+  function voiceCandidates(){
     const target=lang()==="en"?"en":"tr";
     const voices=refreshVoices();
-    return [...voices]
+    const preferred=voices
       .filter(v=>(v.lang||"").toLowerCase().startsWith(target))
-      .sort((a,b)=>voiceScore(b,target)-voiceScore(a,target))[0]
-      || [...voices].sort((a,b)=>voiceScore(b,target)-voiceScore(a,target))[0]
-      || null;
+      .sort((a,b)=>voiceScore(b,target)-voiceScore(a,target));
+    const others=voices
+      .filter(v=>!preferred.includes(v))
+      .sort((a,b)=>voiceScore(b,target)-voiceScore(a,target));
+    return [...preferred,...others];
+  }
+
+  function naturalLabel(v){
+    if(!v)return lang()==="en"?"System default":"Sistem varsayılanı";
+    const name=v.name||"System voice";
+    const premium=/natural|neural|premium|enhanced|siri|ava|aria|jenny|sonia|deniz|yelda/i.test(name);
+    return name+(premium?(lang()==="en"?" · natural":" · doğal"):"");
+  }
+
+  function updateVoiceStatus(message){
+    const el=$("#guideVoiceStatus");
+    if(!el)return;
+    if(message){el.textContent=message;return;}
+    if(!("speechSynthesis" in window)){
+      el.textContent=lang()==="en"?"Voice unavailable in this browser":"Bu tarayıcıda ses motoru kullanılamıyor";
+      return;
+    }
+    const top=voiceCandidatesNoRefresh()[0]||null;
+    el.textContent=(lang()==="en"?"Voice: ":"Ses: ")+naturalLabel(top);
+  }
+
+  function voiceCandidatesNoRefresh(){
+    const target=lang()==="en"?"en":"tr";
+    return [...voiceCache]
+      .sort((a,b)=>{
+        const aMatch=(a.lang||"").toLowerCase().startsWith(target)?1:0;
+        const bMatch=(b.lang||"").toLowerCase().startsWith(target)?1:0;
+        return (bMatch-aMatch)||(voiceScore(b,target)-voiceScore(a,target));
+      });
+  }
+
+  function waitForVoices(maxMs=900){
+    return new Promise(resolve=>{
+      const existing=refreshVoices();
+      if(existing.length){resolve(existing);return;}
+      let done=false;
+      const finish=()=>{
+        if(done)return;done=true;
+        resolve(refreshVoices());
+      };
+      const timer=setTimeout(finish,maxMs);
+      const onVoices=()=>{
+        clearTimeout(timer);
+        window.speechSynthesis?.removeEventListener?.("voiceschanged",onVoices);
+        finish();
+      };
+      window.speechSynthesis?.addEventListener?.("voiceschanged",onVoices,{once:true});
+    });
   }
 
   function speechChunks(text){
@@ -98,59 +151,119 @@
       .filter(Boolean);
   }
 
-  function speak(text){
-    if(!soundEnabled || !("speechSynthesis" in window))return Promise.resolve();
-    stopSpeech();
-    const run=++speechRunId;
-    const chunks=speechChunks(text);
-    const voice=bestVoice();
+  function unlockVoice(){
+    if(!("speechSynthesis" in window))return;
+    try{
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.resume();
+    }catch{}
+  }
 
+  function speakUtterance(chunk,voice,run){
     return new Promise(resolve=>{
-      let index=0;
-      const next=()=>{
-        if(run!==speechRunId || !soundEnabled){resolve();return;}
-        if(index>=chunks.length){resolve();return;}
+      if(run!==speechRunId || !soundEnabled){resolve(false);return;}
+      let settled=false;
+      let started=false;
+      const u=new SpeechSynthesisUtterance(chunk);
+      u.lang=lang()==="en"?"en-US":"tr-TR";
+      if(voice)u.voice=voice;
+      const isShort=chunk.length<45;
+      u.rate=lang()==="tr" ? (isShort ? .91 : .94) : (isShort ? .93 : .96);
+      u.pitch=lang()==="tr" ? 1.02 : 1.0;
+      u.volume=1;
 
-        const chunk=chunks[index++];
-        const u=new SpeechSynthesisUtterance(chunk);
-        u.lang=lang()==="en"?"en-US":"tr-TR";
-        if(voice)u.voice=voice;
-
-        const isShort=chunk.length<45;
-        u.rate=lang()==="tr" ? (isShort ? .93 : .96) : (isShort ? .94 : .97);
-        u.pitch=lang()==="tr" ? 1.015 : 1.0;
-        u.volume=.96;
-
-        u.onstart=()=>{
-          $("#guideDemoStage")?.classList.add("is-speaking");
-        };
-        u.onend=()=>{
-          $("#guideDemoStage")?.classList.remove("is-speaking");
-          if(run!==speechRunId){resolve();return;}
-          window.setTimeout(next,index===chunks.length?80:220);
-        };
-        u.onerror=()=>{
-          $("#guideDemoStage")?.classList.remove("is-speaking");
-          window.setTimeout(next,80);
-        };
-
-        window.speechSynthesis.speak(u);
+      const finish=ok=>{
+        if(settled)return;
+        settled=true;
+        clearTimeout(watchdog);
+        $("#guideDemoStage")?.classList.remove("is-speaking");
+        resolve(ok);
       };
-      next();
+
+      const watchdog=setTimeout(()=>{
+        if(!started){
+          try{window.speechSynthesis.cancel();window.speechSynthesis.resume();}catch{}
+          finish(false);
+        }
+      },1150);
+
+      u.onstart=()=>{
+        started=true;
+        $("#guideDemoStage")?.classList.add("is-speaking");
+        updateVoiceStatus((lang()==="en"?"Speaking: ":"Konuşuyor: ")+naturalLabel(voice));
+      };
+      u.onend=()=>finish(started);
+      u.onerror=()=>finish(false);
+
+      try{
+        window.speechSynthesis.resume();
+        window.speechSynthesis.speak(u);
+      }catch{
+        finish(false);
+      }
     });
+  }
+
+  async function speak(text){
+    if(!soundEnabled || !("speechSynthesis" in window))return;
+    const run=++speechRunId;
+    unlockVoice();
+
+    await waitForVoices();
+    if(run!==speechRunId || !soundEnabled)return;
+
+    const candidates=voiceCandidatesNoRefresh();
+    const tries=[...candidates.slice(0,5),null];
+    const chunks=speechChunks(text);
+
+    for(const chunk of chunks){
+      if(run!==speechRunId || !soundEnabled)return;
+      let spoken=false;
+      for(const voice of tries){
+        if(run!==speechRunId || !soundEnabled)return;
+        spoken=await speakUtterance(chunk,voice,run);
+        if(spoken)break;
+        await new Promise(r=>setTimeout(r,90));
+      }
+      if(!spoken){
+        updateVoiceStatus(lang()==="en"?"Voice could not start · try Sound test":"Ses başlatılamadı · Ses testi'ne bas");
+        return;
+      }
+      await new Promise(r=>setTimeout(r,180));
+    }
+    updateVoiceStatus();
+  }
+
+  async function testVoice(){
+    soundEnabled=true;
+    const toggle=$("#guideSoundToggle");
+    if(toggle){
+      toggle.setAttribute("aria-pressed","true");
+      toggle.textContent=lang()==="en"?"🔊 Natural voice":"🔊 Doğal ses";
+    }
+    ensureAudio();
+    tone(690,.1,.028);
+    updateVoiceStatus(lang()==="en"?"Testing voice…":"Ses test ediliyor…");
+    unlockVoice();
+    await speak(lang()==="en"
+      ?"Hello. This is the Eryaman Speaking Club Educators voice test. If you can hear me, the narration is ready."
+      :"Merhaba. Bu, Eryaman Speaking Club Educators ses testi. Beni duyabiliyorsan, tanıtım anlatımı hazır.");
   }
 
   function stopSpeech(){
     speechRunId++;
     $("#guideDemoStage")?.classList.remove("is-speaking");
-    if("speechSynthesis" in window)window.speechSynthesis.cancel();
+    if("speechSynthesis" in window){
+      try{window.speechSynthesis.cancel();window.speechSynthesis.resume();}catch{}
+    }
   }
 
   if("speechSynthesis" in window){
     refreshVoices();
     window.speechSynthesis.addEventListener?.("voiceschanged",refreshVoices);
+    setTimeout(refreshVoices,250);
+    setTimeout(refreshVoices,900);
   }
-
   function showGuideSlide(i,{narrate=false}={}){
     const slides=$$(".guide-tour-slide");
     const dots=$$("[data-guide-dot]");
@@ -204,9 +317,11 @@
   }
 
   $("#guideAutoPlay")?.addEventListener("click",()=>{
+    ensureAudio();unlockVoice();
     if(guideTimer)stopGuide(); else startGuide(false);
   });
-  $("#guideReplay")?.addEventListener("click",()=>startGuide(true));
+  $("#guideReplay")?.addEventListener("click",()=>{ensureAudio();unlockVoice();startGuide(true);});
+  $("#guideVoiceTest")?.addEventListener("click",()=>{ensureAudio();unlockVoice();testVoice();});
   $("#guideSoundToggle")?.addEventListener("click",e=>{
     soundEnabled=!soundEnabled;
     e.currentTarget.setAttribute("aria-pressed",String(soundEnabled));
@@ -336,6 +451,7 @@
     stopGuide();
     const sound=$("#guideSoundToggle");
     if(sound)sound.textContent=soundEnabled?(lang()==="en"?"🔊 Natural voice":"🔊 Doğal ses"):(lang()==="en"?"🔇 Sound off":"🔇 Ses kapalı");
+    updateVoiceStatus();
     showGuideSlide(guideIndex,{narrate:false});
     enhanceGameCards();
     setLiveMode($("#lessonModal")?.classList.contains("solo-mode")?"solo":"team");
