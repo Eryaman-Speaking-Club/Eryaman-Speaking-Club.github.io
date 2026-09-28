@@ -104,8 +104,20 @@
     const level = $("#level").value;
     const topic = $("#topic").value;
     if (topic === "travel") return questionBank.travel[age][level];
+    if (topic === "custom") {
+      const custom = ($("#customTopic")?.value || "your chosen topic").trim() || "your chosen topic";
+      const base = [
+        `What do you already know about ${custom}?`,
+        `What is the most interesting part of ${custom} for you?`,
+        `How would you explain ${custom} to a classmate?`,
+        `What question would you ask someone who knows a lot about ${custom}?`,
+        `How does ${custom} connect to real life?`,
+        `What different opinions could people have about ${custom}?`
+      ];
+      return base.map((q,i)=>[q, supports[level] + (i>=4 && (level==="B1"||level==="B2") ? " Support your answer with an example." : "")]);
+    }
     const base = generic[topic] || generic["daily-life"];
-    return base.map((q,i)=>[q, supports[level] + (i===2 && (level==="B1"||level==="B2") ? " Give at least two reasons." : "")]);
+    return base.map((q,i)=>[q, supports[level] + (i>=4 && (level==="B1"||level==="B2") ? " Give at least two reasons." : "")]);
   }
 
   function renderQuestion(){
@@ -117,22 +129,48 @@
   }
 
   function renderPlan(){
-    const duration = +$("#duration").value;
-    const goal = $("#goal").value;
-    let parts;
-    if(duration<=20) parts=[["3 min","Warm-up","Question"],["6 min","Vocabulary","Match"],["7 min",goal==="speaking"?"Speaking Game":"Core Practice","Interactive"],["4 min","Exit","Quick check"]];
-    else if(duration<=30) parts=[["5 min","Warm-up","Question"],["7 min","Vocabulary","Match"],["8 min","Practice Game","Optional"],["7 min","Speaking","Pairs"],["3 min","Exit","Quick check"]];
-    else if(duration<=40) parts=[["5 min","Warm-up","Question"],["8 min","Vocabulary","Match"],["10 min","Practice Game","Optional"],["12 min","Speaking","Pairs"],["5 min","Exit","Quick check"]];
-    else if(duration<=50) parts=[["6 min","Warm-up","Question"],["10 min","Vocabulary","Match"],["12 min","Practice Game","Optional"],["15 min","Speaking","Groups"],["7 min","Exit","Reflection"]];
-    else parts=[["8 min","Warm-up","Question"],["12 min","Vocabulary","Match"],["15 min","Practice Game","Optional"],["18 min","Speaking","Groups"],["7 min","Exit","Reflection"]];
-    $("#generatedPlan").innerHTML = parts.map(x=>`<div class="plan-row"><span>${x[0]}</span><b>${x[1]}</b><small>${x[2]}</small></div>`).join("");
+    const duration = Math.max(10, +$("#duration").value || 40);
+    const studentCount = Math.max(1, +$("#studentCount")?.value || 1);
+    const preset = $(".lesson-presets button.active")?.dataset.lessonPreset || "balanced";
+    const presetWeights = {
+      balanced:{warmup:.12,vocabulary:.20,game:.24,speaking:.31,exit:.13},
+      speaking:{warmup:.10,vocabulary:.14,game:.14,speaking:.52,exit:.10},
+      vocabulary:{warmup:.10,vocabulary:.40,game:.25,speaking:.15,exit:.10},
+      grammar:{warmup:.10,vocabulary:.16,game:.29,speaking:.35,exit:.10},
+      custom:{warmup:.12,vocabulary:.20,game:.24,speaking:.31,exit:.13}
+    };
+    const weights=presetWeights[preset]||presetWeights.balanced;
+    const stages=[
+      {key:"warmup",title:"Warm-up",meta:"Question"},
+      {key:"vocabulary",title:"Vocabulary",meta:"Practice"},
+      {key:"game",title:"Practice Game",meta:"Optional"},
+      {key:"speaking",title:"Speaking",meta:studentCount===1?"1-to-1":studentCount<=4?"Pairs":"Pairs / Groups"},
+      {key:"exit",title:"Exit",meta:"Quick check"}
+    ];
+    let enabled=stages.filter(s=>`#lessonStagePicker [data-lesson-stage="${s.key}"]` && $(`#lessonStagePicker [data-lesson-stage="${s.key}"]`)?.checked);
+    if(!enabled.length){
+      const speaking=$("#lessonStagePicker [data-lesson-stage='speaking']");
+      if(speaking)speaking.checked=true;
+      enabled=stages.filter(s=>s.key==="speaking");
+    }
+    const totalWeight=enabled.reduce((sum,s)=>sum+(weights[s.key]||.1),0)||1;
+    const mins=enabled.map(s=>Math.max(2,Math.floor(duration*(weights[s.key]||.1)/totalWeight)));
+    let diff=duration-mins.reduce((a,b)=>a+b,0);
+    while(diff>0){mins[mins.indexOf(Math.max(...mins))]++;diff--;}
+    while(diff<0){
+      const idx=mins.findIndex(x=>x>2);
+      if(idx<0)break;
+      mins[idx]--;diff++;
+    }
+    $("#generatedPlan").innerHTML = enabled.map((s,i)=>`<div class="plan-row" data-stage-key="${s.key}"><span>${mins[i]} min</span><b>${s.title}</b><small>${s.meta}</small></div>`).join("");
   }
 
   function syncPreview(){
     $("#previewClass").textContent = `${$("#className").value || "New Class"} · ${$("#level").value}`;
     $("#previewDuration").textContent = `${$("#duration").value} min`;
     $("#previewAge").textContent = $("#ageGroup").value.replace("-", "–") + " YEARS";
-    $("#previewTopic").textContent = $("#topic").selectedOptions[0].textContent.toUpperCase();
+    const selectedTopic=$("#topic").value==="custom" ? ($("#customTopic")?.value || "Custom topic") : $("#topic").selectedOptions[0].textContent;
+    $("#previewTopic").textContent = selectedTopic.toUpperCase();
     renderQuestion(); renderPlan();
   }
 
@@ -161,12 +199,12 @@
     if(button){
       button.disabled=true;
       button.classList.add("is-working");
-      button.innerHTML='Ders hazırlanıyor <span>•••</span>';
+      button.innerHTML=(window.ESCEduI18n?.t("Ders hazırlanıyor")||"Ders hazırlanıyor")+' <span>•••</span>';
     }
     if(status){
       status.hidden=false;
       status.className="lesson-generate-status is-working";
-      status.textContent="Soru, ders akışı ve etkinlikler yeniden hazırlanıyor…";
+      status.textContent=window.ESCEduI18n?.getLang?.()==="en"?"Questions, lesson flow and activities are being rebuilt…":"Soru, ders akışı ve etkinlikler yeniden hazırlanıyor…";
     }
     output?.classList.remove("is-ready");
     output?.classList.add("is-generating");
@@ -176,18 +214,46 @@
       output?.classList.add("is-ready");
       if(status){
         status.className="lesson-generate-status is-ready";
-        status.textContent="Yeni ders varyasyonu hazır ✓  İstersen tekrar basıp başka bir varyasyon oluşturabilirsin.";
+        status.textContent=window.ESCEduI18n?.getLang?.()==="en"?"New lesson variation ready ✓ You can regenerate again for another version.":"Yeni ders varyasyonu hazır ✓ İstersen tekrar basıp başka bir varyasyon oluşturabilirsin.";
       }
       if(button){
         button.disabled=false;
         button.classList.remove("is-working");
-        button.innerHTML='Dersi yeniden oluştur <span>✦</span>';
+        button.innerHTML=(window.ESCEduI18n?.t("Dersi yeniden oluştur")||"Dersi yeniden oluştur")+' <span>✦</span>';
       }
       window.setTimeout(()=>output?.classList.remove("is-ready"),900);
     },360);
   });
   $("#newQuestion")?.addEventListener("click",()=>{questionIndex++;renderQuestion();});
-  ["ageGroup","level","topic","duration","goal","className"].forEach(id=>$("#"+id)?.addEventListener("change",syncPreview));
+
+  function syncCustomTopic(){
+    const isCustom=$("#topic")?.value==="custom";
+    if($("#customTopicWrap"))$("#customTopicWrap").hidden=!isCustom;
+  }
+  $("#topic")?.addEventListener("change",()=>{syncCustomTopic();syncPreview();});
+  $("#customTopic")?.addEventListener("input",syncPreview);
+  ["ageGroup","level","duration","goal","className","studentCount"].forEach(id=>$("#"+id)?.addEventListener("change",syncPreview));
+
+  const presetConfig={
+    balanced:{goal:"mixed",stages:["warmup","vocabulary","game","speaking","exit"]},
+    speaking:{goal:"speaking",stages:["warmup","vocabulary","game","speaking","exit"]},
+    vocabulary:{goal:"vocabulary",stages:["warmup","vocabulary","game","speaking","exit"]},
+    grammar:{goal:"grammar",stages:["warmup","vocabulary","game","speaking","exit"]}
+  };
+  $("#lessonPresets [data-lesson-preset]").forEach(btn=>btn.addEventListener("click",()=>{
+    $("#lessonPresets [data-lesson-preset]").forEach(x=>x.classList.toggle("active",x===btn));
+    const cfg=presetConfig[btn.dataset.lessonPreset];
+    if(cfg){
+      if($("#goal"))$("#goal").value=cfg.goal;
+      $("#lessonStagePicker [data-lesson-stage]").forEach(c=>c.checked=cfg.stages.includes(c.dataset.lessonStage));
+    }
+    syncPreview();
+  }));
+  $("#lessonStagePicker [data-lesson-stage]").forEach(c=>c.addEventListener("change",()=>{
+    $("#lessonPresets [data-lesson-preset]").forEach(x=>x.classList.toggle("active",x.dataset.lessonPreset==="custom"));
+    syncPreview();
+  }));
+  syncCustomTopic();
 
   $$("[data-use-class]").forEach(b=>b.addEventListener("click",()=>{
     $("#className").value=b.dataset.useClass;
@@ -201,19 +267,35 @@
   });
 
   const modal=$("#lessonModal");
-  const liveStages=["WARM-UP","VOCABULARY","PRACTICE GAME","SPEAKING","EXIT"];
+  function liveRows(){ return $("#generatedPlan .plan-row"); }
   function updateLive(){
+    const rows=liveRows();
+    const total=Math.max(1,rows.length);
+    liveIndex=((liveIndex%total)+total)%total;
+    const row=rows[liveIndex];
+    const stage=$("b",row)?.textContent || "LIVE";
     const qs=getQuestions();
     const pair=qs[liveIndex % qs.length];
-    $("#modalStep").textContent=(liveIndex+1)+" / 5";
-    $("#liveStage").textContent=liveStages[liveIndex] || "LIVE";
-    $("#liveQuestion").textContent=pair[0];
-    $("#liveInstruction").textContent=pair[1];
+    $("#modalStep").textContent=(liveIndex+1)+" / "+total;
+    $("#liveStage").textContent=stage.toUpperCase();
+    if(stage==="Vocabulary"){
+      $("#liveQuestion").textContent="Review the target vocabulary for "+($("#previewTopic")?.textContent||"this lesson")+".";
+      $("#liveInstruction").textContent="Check meaning, pronunciation and one example sentence.";
+    }else if(stage==="Practice Game"){
+      $("#liveQuestion").textContent="Open a short practice game or continue without a game.";
+      $("#liveInstruction").textContent="The teacher decides: no teams, pair work or optional team mode.";
+    }else if(stage==="Exit"){
+      $("#liveQuestion").textContent="What is one thing you learned or used today?";
+      $("#liveInstruction").textContent="Give one short answer before the lesson ends.";
+    }else{
+      $("#liveQuestion").textContent=pair[0];
+      $("#liveInstruction").textContent=pair[1];
+    }
     $("#modalClassName").textContent=$("#className").value || "Class";
   }
   $("#startDemoLesson")?.addEventListener("click",()=>{liveIndex=0;blue=0;orange=0;if($("#blueScore"))$("#blueScore").textContent=0;if($("#orangeScore"))$("#orangeScore").textContent=0;updateLive();modal.classList.add("open");modal.setAttribute("aria-hidden","false");});
   $("#closeLessonModal")?.addEventListener("click",()=>{modal.classList.remove("open");modal.setAttribute("aria-hidden","true");});
-  $("#nextLiveQuestion")?.addEventListener("click",()=>{liveIndex=(liveIndex+1)%5;updateLive();});
+  $("#nextLiveQuestion")?.addEventListener("click",()=>{const total=Math.max(1,liveRows().length);liveIndex=(liveIndex+1)%total;updateLive();});
   $("#addBlue")?.addEventListener("click",()=>{$("#blueScore").textContent=blue+=10;});
   $("#addOrange")?.addEventListener("click",()=>{$("#orangeScore").textContent=orange+=10;});
 
