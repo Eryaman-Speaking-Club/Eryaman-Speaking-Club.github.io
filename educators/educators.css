@@ -176,3 +176,67 @@
 .game-modal-actions,.game-scorebar{width:min(1280px,100%);margin-left:auto!important;margin-right:auto!important}.game-modal-actions button{min-height:54px!important;font-size:13px!important}.game-scorebar{color:#fff!important}.game-scorebar span{font-size:13px!important}.game-scorebar span b{font-size:27px!important}
 .lesson-modal.open .lesson-modal-card{width:min(1050px,96vw);padding:30px}.live-question-card{min-height:380px;display:flex;flex-direction:column;justify-content:center}.live-question-card h3{font-size:clamp(34px,5vw,62px)}
 @media(max-width:700px){.edu-auth-card,.edu-class-card{padding:23px;border-radius:22px}.edu-class-two{grid-template-columns:1fr}.game-task-card{min-height:50vh;border-radius:24px!important}.game-modal-card{padding:18px!important}.game-scorebar{gap:5px!important}.game-scorebar button{width:38px!important;height:38px!important}}
+
+
+/* 2026-09-27 · educator operating system layer */
+.edu-os-intro{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;align-items:end;margin:0 0 22px}
+.edu-os-intro h3{margin:4px 0 0;color:var(--navy);font-size:clamp(24px,3vw,34px);letter-spacing:-.035em}
+.edu-os-intro p{margin:0;color:#6f8395;font-size:10px;line-height:1.65}
+.edu-workflow-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.edu-workflow-card{border:1px solid var(--line);border-radius:16px;background:#fff;padding:16px;text-align:left;cursor:pointer;transition:.18s}
+.edu-workflow-card:hover{transform:translateY(-2px);border-color:#a9c7df;box-shadow:0 14px 34px rgba(8,31,59,.07)}
+.edu-workflow-card small{display:block;color:var(--teal);font-size:7px;font-weight:950;letter-spacing:.08em}
+.edu-workflow-card strong{display:block;margin:8px 0 5px;color:var(--navy);font-size:15px}
+.edu-workflow-card span{color:#738698;font-size:9px;line-height:1.45}
+.curriculum-layout{display:grid;grid-template-columns:.72fr 1.28fr;gap:12px}
+.curriculum-filter-card,.curriculum-result-card,.resource-builder,.resource-preview,.private-overview-card{border:1px solid var(--line);border-radius:17px;background:#fff;padding:17px}
+.curriculum-filter-card{display:grid;gap:11px}
+.curriculum-filter-card label,.resource-builder label{display:grid;gap:5px;color:#64798c;font-size:8px;font-weight:950}
+.curriculum-filter-card select,.resource-builder input,.resource-builder select{width:100%;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--navy);padding:10px;outline:none}
+.curriculum-filter-note{padding:10px 11px;border-radius:11px;background:#f2f7fb;color:#668096;font-size:8px;line-height:1.45}
+.curriculum-result-card{position:relative;overflow:hidden;background:linear-gradient(145deg,#f8fbfd,#fff)}
+.curriculum-result-card:before{content:"";position:absolute;right:-35px;top:-45px;width:150px;height:150px;border-radius:50%;background:rgba(22,166,162,.08)}
+.curriculum-result-card>small{color:var(--teal);font-size:8px;font-weight:950;letter-spacing:.1em}
+.curriculum-result-card h4{position:relative;margin:8px 0 5px;color:var(--navy);font-size:28px;line-height:1.06;max-width:620px}
+.curriculum-result-card>p{position:relative;margin:0;color:#728698;font-size:10px}
+.curriculum-summary-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:18px}
+.curriculum-summary-tags span{padding:7px 9px;border-radius:999px;background:#eef5f8;color:#506b82;font-size:8px;font-weight:900}
+.curriculum-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.curriculum-actions button{border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--navy);padding:10px 12px;font-size:9px;font-weight:950;cursor:pointer}
+.curriculum-actions button:first-child{background:var(--navy);border-color:var(--navy);color:#fff}
+.private-top{display:grid;grid-template-columns:1.15fr .85fr;gap:12px;margin-bottom:12px}
+.private-overview-card{background:linear-gradient(145deg,#0b2f5b,#123f72);color:#fff}
+.private-overview-card small{color:#7ee4dc;font-size:8px;font-weight:950}
+.private-overview-card h4{margin:8px 0 5px;font-size:24px}
+.private-overview-card p{margin:0;color:#c7d7e4;font-size:10px;line-height:1.55}
+.private-overview-card button{margin-top:16px;border:0;border-radius:10px;background:#fff;color:var(--navy);padding:10px 12px;font-size:9px;font-weight:950;cursor:pointer}
+.private-checklist{border:1px solid var(--line);border-radius:17px;background:#fff;padding:17px}
+.private-checklist strong{display:block;color:var(--navy);font-size:13px;margin-bottom:10px}
+.private-checklist span{display:block;padding:7px 0;border-top:1px solid #edf1f4;color:#677c8f;font-size:9px}
+.private-student-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.private-student-card{border:1px solid var(--line);border-radius:15px;background:#fff;padding:15px}
+.private-student-card>div:first-child{display:flex;justify-content:space-between;gap:10px}
+.private-student-card span{color:var(--navy);font-weight:950}
+.private-student-card small{padding:4px 7px;border-radius:999px;background:#e8fbf7;color:#0c7a74;font-size:7px;font-weight:950}
+.private-student-card p{color:#74889a;font-size:9px;margin:16px 0 6px}
+.private-student-card strong{color:#526b80;font-size:9px}
+.private-actions{display:flex;justify-content:space-between;gap:8px;margin-top:14px}
+.private-actions button{border:0;border-radius:9px;background:#eef4f9;color:var(--blue);padding:8px 9px;font-size:8px;font-weight:950;cursor:pointer}
+.private-actions button:last-child{background:#fff2f3;color:#b6535c}
+.resource-layout{display:grid;grid-template-columns:.78fr 1.22fr;gap:12px}
+.resource-builder{display:grid;align-content:start;gap:12px}
+.resource-type-buttons{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.resource-type-buttons button{border:1px solid var(--line);border-radius:10px;background:#fff;color:#5f7487;padding:9px;text-align:left;font-size:8px;font-weight:900;cursor:pointer}
+.resource-type-buttons button.active{background:var(--navy);border-color:var(--navy);color:#fff}
+.resource-preview{background:linear-gradient(145deg,#fff9ef,#fff)}
+.resource-preview>small{color:#a97831;font-size:8px;font-weight:950;letter-spacing:.08em}
+.resource-preview h4{margin:7px 0 4px;color:var(--navy);font-size:25px}
+.resource-preview>p{margin:0;color:#768a9b;font-size:9px;line-height:1.5}
+.resource-preview ul{list-style:none;padding:0;margin:17px 0;display:grid;gap:7px}
+.resource-preview li{display:grid;grid-template-columns:32px 1fr;gap:8px;align-items:center;padding:9px 10px;border:1px solid #ece7de;border-radius:10px;background:#fff}
+.resource-preview li span{color:var(--coral);font-size:8px;font-weight:950}
+.resource-preview li b{color:#5b7184;font-size:9px}
+.resource-preview button{border:0;border-radius:10px;background:var(--navy);color:#fff;padding:10px 12px;font-size:9px;font-weight:950;cursor:pointer}
+.edu-local-note{display:flex;align-items:flex-start;gap:8px;margin-top:12px;padding:10px 11px;border-radius:11px;background:#fff8e9;color:#846126;font-size:8px;line-height:1.45}
+@media(max-width:1000px){.edu-os-intro,.curriculum-layout,.private-top,.resource-layout{grid-template-columns:1fr}.edu-workflow-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:650px){.edu-workflow-grid,.private-student-grid{grid-template-columns:1fr}.resource-type-buttons{grid-template-columns:1fr 1fr}.curriculum-result-card h4{font-size:22px}}
