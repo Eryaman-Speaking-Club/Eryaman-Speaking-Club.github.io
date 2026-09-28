@@ -9,6 +9,7 @@
   <link rel="icon" type="image/png" href="../favicon.png?v=20260922">
   <link rel="stylesheet" href="../esc-brand.css?v=20260923">
   <link rel="stylesheet" href="./educators.css?v=20260927-os1">
+  <link rel="stylesheet" href="./educators-guide.css?v=20260928-1">
 </head>
 <body>
   <div class="edu-noise" aria-hidden="true"></div>
@@ -20,6 +21,7 @@
     </a>
     <nav class="edu-topnav" aria-label="Educators menü">
       <a href="#how">Nasıl çalışır?</a>
+      <a href="#teacher-guide">Tanıtım</a>
       <a href="#teacher-demo">Öğretmen paneli</a>
       <a href="#student-demo">Öğrenci girişi</a>
       <a href="#roadmap">Gelişim Planı</a>
@@ -102,7 +104,7 @@
         <div class="mini-timeline">
           <span><i style="--w:22%"></i><b>Warm-up</b></span>
           <span><i style="--w:38%"></i><b>Vocabulary</b></span>
-          <span><i style="--w:58%"></i><b>Team Game</b></span>
+          <span><i style="--w:58%"></i><b>Practice Game</b></span>
           <span><i style="--w:78%"></i><b>Speaking</b></span>
           <span><i style="--w:100%"></i><b>Exit</b></span>
         </div>
@@ -114,7 +116,7 @@
       <div><span>01</span><b>Yaşa göre soru</b><small>Aynı CEFR seviyesi, farklı yaş dili.</small></div>
       <div><span>02</span><b>Seviyeye göre görev</b><small>Pre-A1’den B2’ye kademeli zorluk.</small></div>
       <div><span>03</span><b>Hazır ders akışı</b><small>20–60 dakikalık sınıf planı.</small></div>
-      <div><span>04</span><b>Canlı oyun modu</b><small>Takım oyunu + konuşma + sınıf kodu.</small></div>
+      <div><span>04</span><b>Esnek oyun modu</b><small>Takımsız, çift veya isteğe bağlı takım puanı.</small></div>
     </section>
 
     <section class="how-section" id="how">
@@ -130,6 +132,86 @@
         <article><span>2</span><div class="how-icon">✦</div><h3>Dersi oluştur</h3><p>Konu ve süreye göre warm-up, vocabulary, speaking ve oyun akışı gelsin.</p></article>
         <article><span>3</span><div class="how-icon">▶</div><h3>Sınıfta başlat</h3><p>Öğrenciler kodla girsin; öğretmen tahtadan akışı yönetsin.</p></article>
         <article><span>4</span><div class="how-icon">↗</div><h3>Sonucu gör</h3><p>Zorlanan kelimeler, katılım ve aktivite sonucu tek raporda toplansın.</p></article>
+      </div>
+    </section>
+
+
+    <section class="edu-guide-section" id="teacher-guide">
+      <div class="edu-guide-shell">
+        <div class="edu-guide-copy">
+          <span class="section-kicker">İLK KEZ Mİ KULLANIYORSUN?</span>
+          <h2>Öğretmen ne yapacağını ilk bakışta görsün.</h2>
+          <p>Educators'ın mantığı basit: sınıfını veya öğrencini seç, ders akışını oluştur, gerekiyorsa kısa bir oyun aç ve öğrenciyi konuştur. Takım ve puan sistemi zorunlu değil; yalnızca öğretmen istediğinde açılır.</p>
+          <div class="edu-guide-actions">
+            <button type="button" data-open-guide id="startGuideTour">▶ İnteraktif tanıtımı oynat</button>
+            <a href="#teacher-demo">Doğrudan panele git →</a>
+          </div>
+          <div class="edu-guide-keypoints">
+            <div><span>01</span><p><b>Ders planla</b><small>MEB, CEFR veya özel ders öğrencisinden başla.</small></p></div>
+            <div><span>02</span><p><b>Materyali seç</b><small>Vocabulary, grammar, speaking, worksheet veya homework.</small></p></div>
+            <div><span>03</span><p><b>Oyunu gerektiğinde kullan</b><small>Oyun dersin tamamı değil; kısa practice aşamasıdır.</small></p></div>
+            <div><span>04</span><p><b>Takım modu opsiyonel</b><small>Puan istemiyorsan Takımsız modda sadece Next ile ilerle.</small></p></div>
+          </div>
+        </div>
+
+        <div class="guide-demo-window" aria-label="Educators interaktif tanıtım">
+          <div class="guide-demo-toolbar">
+            <div><i></i><small>90 SN · PRODUCT TOUR</small></div>
+            <button type="button" id="guideAutoPlay">▶ Oynat</button>
+          </div>
+          <div class="guide-demo-stage" id="guideDemoStage">
+            <article class="guide-tour-slide active">
+              <small>1 / 4 · BAŞLANGIÇ</small>
+              <h3>Önce kimin için ders hazırladığını seç.</h3>
+              <p>Okul öğretmeni, özel ders öğretmeni ve speaking öğretmeni aynı paneli farklı yollarla kullanabilir.</p>
+              <div class="guide-mock">
+                <div class="guide-mock-row"><span class="active">MEB · 7. Sınıf</span><span>Private Student</span><span>General CEFR</span></div>
+                <div class="guide-mock-question"><small>TEACHING CONTEXT</small><strong>Grade 7 · Personal Life & Well-Being · Speaking</strong></div>
+              </div>
+            </article>
+
+            <article class="guide-tour-slide">
+              <small>2 / 4 · LESSON BUILDER</small>
+              <h3>Dersin iskeleti otomatik gelir.</h3>
+              <p>Warm-up, vocabulary, practice game, speaking ve exit. Öğretmen neyin neden orada olduğunu açıkça görür.</p>
+              <div class="guide-mock">
+                <div class="guide-mock-flow">
+                  <span>5 min <b>Warm-up</b><i>Konuyu aç</i></span>
+                  <span>8 min <b>Vocabulary</b><i>Hedef kelimeler</i></span>
+                  <span>10 min <b>Practice Game</b><i>İsteğe bağlı</i></span>
+                  <span>12 min <b>Speaking</b><i>Ana üretim</i></span>
+                  <span>5 min <b>Exit</b><i>Hızlı kontrol</i></span>
+                </div>
+              </div>
+            </article>
+
+            <article class="guide-tour-slide">
+              <small>3 / 4 · GAMES</small>
+              <h3>Oyun açınca önce nasıl oynanacağı görülür.</h3>
+              <p>Her oyunda amaç, yaklaşık süre ve oyun şekli gösterilir. Takım modu yalnızca istenirse açılır.</p>
+              <div class="guide-mode-demo">
+                <div><strong>✓ Takımsız</strong><span>Bireysel, çift veya tüm sınıf. Puan yok; sadece sorular ilerler.</span></div>
+                <div><strong>2 Takım</strong><span>Sınıf iki gruba ayrılır; öğretmen doğru cevaplarda puan ekler.</span></div>
+              </div>
+            </article>
+
+            <article class="guide-tour-slide">
+              <small>4 / 4 · LIVE CLASS</small>
+              <h3>Dersi tahtadan yönet.</h3>
+              <p>Soruyu göster, öğrenciyi konuştur, Next ile sonraki aşamaya geç. Takım puanı kullanıyorsan aynı ekranda tut.</p>
+              <div class="guide-mock">
+                <div class="guide-mock-question"><small>SPEAKING</small><strong>What food do you enjoy most? Give a reason.</strong></div>
+                <div class="guide-mock-row" style="margin-top:9px"><span class="active">Next question →</span><span>Takımsız</span><span>2 Takım</span></div>
+              </div>
+            </article>
+          </div>
+          <div class="guide-progress">
+            <button class="active" type="button" data-guide-dot aria-label="Adım 1"></button>
+            <button type="button" data-guide-dot aria-label="Adım 2"></button>
+            <button type="button" data-guide-dot aria-label="Adım 3"></button>
+            <button type="button" data-guide-dot aria-label="Adım 4"></button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -171,6 +253,7 @@
               <strong id="workspaceTitle">Good morning, Teacher 👋</strong>
             </div>
             <div class="workspace-actions">
+              <button class="ghost-button" type="button" id="openTeacherGuide" data-open-guide>Nasıl kullanılır?</button>
               <button class="ghost-button" type="button" data-open-student>Student view</button>
               <button class="solid-button" type="button" data-panel-target="builder">+ Create lesson</button>
             </div>
@@ -193,6 +276,10 @@
               <div><small>TEACHER OPERATING SYSTEM</small><h3>Bugün ne öğreteceksin?</h3></div>
               <p>Okul sınıfı, özel ders veya speaking dersi. Akışı seç; panel seni müfredat, ders planı, materyal ve oyuna götürsün.</p>
             </div>
+            <div class="first-use-banner" id="firstUseBanner">
+              <div><i>?</i><p><strong>İlk kez mi kullanıyorsun?</strong><span>2 dakikalık tur, ders planlama ve oyun modlarını gösterir.</span></p></div>
+              <div class="guide-banner-actions"><button type="button" id="bannerOpenGuide">Turu göster</button><button type="button" id="closeGuideBanner">Kapat</button></div>
+            </div>
             <div class="edu-workflow-grid">
               <button class="edu-workflow-card" type="button" data-workflow="curriculum"><small>MEB 2026–27</small><strong>Okul dersi hazırla</strong><span>Sınıf → tema → beceri → ders akışı.</span></button>
               <button class="edu-workflow-card" type="button" data-workflow="private"><small>1-TO-1</small><strong>Özel ders öğrencisi</strong><span>Seviye, hedef, ödev ve sonraki dersi takip et.</span></button>
@@ -209,7 +296,7 @@
                 <div class="card-head"><span>NEXT CLASS</span><b>Today · 14:20</b></div>
                 <h3>6-B · Travel & Speaking</h3>
                 <p>11–12 years · A2 · 40 minutes</p>
-                <div class="lesson-parts"><span>Warm-up</span><span>Vocabulary</span><span>Team Quiz</span><span>Speaking</span></div>
+                <div class="lesson-parts"><span>Warm-up</span><span>Vocabulary</span><span>Practice Game</span><span>Speaking</span></div>
                 <button type="button" data-panel-target="builder">Open lesson <span>→</span></button>
               </article>
               <article class="class-code-card">
@@ -402,9 +489,16 @@
                   <button type="button" id="newQuestion">↻ Another question</button>
                 </article>
                 <div class="generated-plan" id="generatedPlan"></div>
+                <div class="phase-guide" aria-label="Ders aşamalarının açıklaması">
+                  <div><b>Warm-up</b><span>Konuyu açar.</span></div>
+                  <div><b>Vocabulary</b><span>Hedef kelimeleri hazırlar.</span></div>
+                  <div><b>Practice Game</b><span>Kısa uygulama; takım şart değil.</span></div>
+                  <div><b>Speaking</b><span>Öğrenci dili üretir.</span></div>
+                  <div><b>Exit</b><span>Dersi hızlıca kontrol eder.</span></div>
+                </div>
                 <div class="output-actions">
-                  <button type="button" class="outline-button" id="saveDemoClass">Save class</button>
-                  <button type="button" class="solid-button" id="startDemoLesson">Start demo lesson ▶</button>
+                  <button type="button" class="outline-button" id="saveDemoClass">Ders planını kaydet</button>
+                  <button type="button" class="solid-button" id="startDemoLesson">Dersi başlat ▶</button>
                 </div>
               </div>
             </div>
@@ -446,6 +540,12 @@
               <div><small>ADAPTIVE GAME LIBRARY</small><h3>Sınıf profiline göre çalışan oyunlar.</h3></div>
               <a class="panel-link" href="../games/">Public Game Hub ↗</a>
             </div>
+            <div class="game-quick-guide">
+              <div><span>1</span><b>Oyunu seç</b><small>Hedef beceriye göre filtrele.</small></div>
+              <div><span>2</span><b>Nasıl oynanır?</b><small>Oyunu açınca kısa yönergeyi oku.</small></div>
+              <div><span>3</span><b>Modu seç</b><small>Takımsız veya 2 Takım.</small></div>
+              <div><span>4</span><b>Next ile ilerle</b><small>Puan yalnızca istersen kullanılır.</small></div>
+            </div>
             <div class="game-library-toolbar">
               <input id="gameSearch" type="search" placeholder="Oyun ara: vocabulary, speaking, team..." aria-label="Oyun ara">
               <div class="game-filter-row">
@@ -453,7 +553,7 @@
                 <button type="button" data-game-filter="vocab">Vocabulary</button>
                 <button type="button" data-game-filter="speaking">Speaking</button>
                 <button type="button" data-game-filter="grammar">Grammar</button>
-                <button type="button" data-game-filter="team">Team</button>
+                <button type="button" data-game-filter="team">Takım destekli</button>
               </div>
             </div>
             <div class="edu-game-grid" id="adaptiveGameGrid">
@@ -556,7 +656,7 @@
           <span><b>01</b> Şifre zorunlu değil</span>
           <span><b>02</b> Sadece sınıf kodu</span>
           <span><b>03</b> Yaşa uygun arayüz</span>
-          <span><b>04</b> Takım odaklı puan</span>
+          <span><b>04</b> Takım modu isteğe bağlı</span>
         </div>
       </div>
 
@@ -579,7 +679,7 @@
           <div class="waiting-card">
             <span>Teacher is starting...</span>
             <strong>Travel Speaking</strong>
-            <small>Team Blue · Player 4</small>
+            <small>Derse hazır · Player 4</small>
           </div>
           <button type="button" id="studentBack">← Back</button>
         </div>
@@ -594,7 +694,7 @@
       <div class="roadmap-grid">
         <article class="done"><span>V1</span><b>Teacher accounts & classes</b><p>Gerçek hesaplar, sınıf oluşturma, yaş + seviye profili ve öğrenci kodu.</p><em>LIVE</em></article>
         <article class="done"><span>V2</span><b>Student join</b><p>Telefondan sınıf kodu + ad ile katılım ve oturumun cihazda korunması.</p><em>LIVE</em></article>
-        <article class="done"><span>V3</span><b>Live classroom</b><p>Öğretmenin canlı ders durumu ve takım puanlarının backend üzerinde tutulması.</p><em>LIVE</em></article>
+        <article class="done"><span>V3</span><b>Live classroom</b><p>Öğretmenin canlı ders durumu ve opsiyonel takım puanlarının backend üzerinde tutulması.</p><em>LIVE</em></article>
         <article><span>V4</span><b>Subscription & schools</b><p>Teacher Pro, school licenses, admin panel ve ödeme.</p><em>LATER</em></article>
       </div>
     </section>
@@ -615,6 +715,14 @@
         <div><small id="gameModalType">ADAPTIVE GAME</small><h3 id="gameModalTitle">Taboo</h3></div>
         <span id="gameProfileBadge">12–14 · A2 · Travel</span>
       </div>
+      <div class="game-modal-help">
+        <div><small>NASIL OYNANIR?</small><strong id="gameHowText">Soruyu göster, öğrencinin cevap vermesine izin ver ve Next ile yeni tura geç.</strong></div>
+        <div><small>EN İYİ KULLANIM</small><strong id="gameBestFor">5–10 dk · Practice</strong></div>
+      </div>
+      <div class="mode-switch-row">
+        <div class="mode-switch-copy"><strong>Oyun modu</strong><span id="gameModeNote">Takımsız modda puan tutmak zorunda değilsin.</span></div>
+        <div class="mode-switch"><button class="active" type="button" data-game-mode="solo">Takımsız</button><button type="button" data-game-mode="team">2 Takım</button></div>
+      </div>
       <div class="game-task-card">
         <small id="gameTaskLabel">ROUND 1</small>
         <strong id="gameTaskMain">PASSPORT</strong>
@@ -625,10 +733,13 @@
         <button type="button" id="revealGameAnswer">Reveal / Hint</button>
         <button type="button" id="nextGameRound">Next round →</button>
       </div>
-      <div class="game-scorebar">
-        <button type="button" id="gameBlueMinus">−</button><span>BLUE <b id="gameBlueScore">0</b></span><button type="button" id="gameBluePlus">+</button>
-        <i></i>
-        <button type="button" id="gameOrangeMinus">−</button><span>ORANGE <b id="gameOrangeScore">0</b></span><button type="button" id="gameOrangePlus">+</button>
+      <div class="game-team-zone">
+        <div class="game-score-caption"><b>OPSİYONEL PUAN</b><span>Her doğru cevapta +1 kullanabilirsin.</span></div>
+        <div class="game-scorebar">
+          <button type="button" id="gameBlueMinus">−</button><span id="gameTeamOneLabel">TAKIM 1 <b id="gameBlueScore">0</b></span><button type="button" id="gameBluePlus">+</button>
+          <i></i>
+          <button type="button" id="gameOrangeMinus">−</button><span id="gameTeamTwoLabel">TAKIM 2 <b id="gameOrangeScore">0</b></span><button type="button" id="gameOrangePlus">+</button>
+        </div>
       </div>
     </div>
   </div>
@@ -645,22 +756,34 @@
         <h3 id="liveQuestion">Where would you like to travel?</h3>
         <p id="liveInstruction">Answer in 2–3 sentences.</p>
       </div>
-      <div class="live-teams">
-        <div><span>TEAM BLUE</span><strong id="blueScore">120</strong></div>
-        <div><span>TEAM ORANGE</span><strong id="orangeScore">110</strong></div>
+      <div class="mode-switch-row">
+        <div class="mode-switch-copy"><strong>Dersi nasıl yürüteceksin?</strong><span id="liveModeNote">Takımsız modda yalnızca Next ile ilerleyebilirsin.</span></div>
+        <div class="mode-switch"><button class="active" type="button" data-live-mode="solo">Takımsız</button><button type="button" data-live-mode="team">2 Takım</button></div>
+      </div>
+      <div class="live-mode-note">Puan sistemi bir ders zorunluluğu değildir. Speaking, pair-work veya bireysel etkinliklerde Takımsız seçili kalabilir.</div>
+      <div class="live-team-zone">
+        <div class="team-name-row">
+          <label>1. takımın adı<input id="teamOneName" type="text" value="Takım 1" maxlength="24"></label>
+          <label>2. takımın adı<input id="teamTwoName" type="text" value="Takım 2" maxlength="24"></label>
+        </div>
+        <div class="live-teams">
+          <div><span id="teamOneLabel">TAKIM 1</span><strong id="blueScore">0</strong></div>
+          <div><span id="teamTwoLabel">TAKIM 2</span><strong id="orangeScore">0</strong></div>
+        </div>
       </div>
       <div class="modal-controls">
-        <button type="button" id="addBlue">+10 Blue</button>
-        <button type="button" id="nextLiveQuestion">Next question →</button>
-        <button type="button" id="addOrange">+10 Orange</button>
+        <button type="button" id="addBlue">+10 Takım 1</button>
+        <button type="button" id="nextLiveQuestion">Sonraki aşama →</button>
+        <button type="button" id="addOrange">+10 Takım 2</button>
       </div>
     </div>
   </div>
 
   <script src="../esc-supabase-config.js?v=20260923"></script>
   <script src="../esc-supabase.js?v=20260923-edu"></script>
-  <script src="./educators.js?v=20260923-v2"></script>
-  <script src="./educators-core.js?v=20260923-live"></script>
+  <script src="./educators.js?v=20260928-clarity1"></script>
+  <script src="./educators-core.js?v=20260928-clarity1"></script>
   <script src="./educators-workspace.js?v=20260927-v1"></script>
+  <script src="./educators-guide.js?v=20260928-1"></script>
 </body>
 </html>
