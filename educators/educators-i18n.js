@@ -184,7 +184,22 @@
     "TAKIM 2":"TEAM 2",
     "+10 Takım 1":"+10 Team 1",
     "+10 Takım 2":"+10 Team 2",
-    "Derse hazır · Player 4":"Ready for class · Player 4"
+    "Derse hazır · Player 4":"Ready for class · Player 4",
+    "5. Sınıf":"Grade 5",
+    "6. Sınıf":"Grade 6",
+    "7. Sınıf":"Grade 7",
+    "8. Sınıf":"Grade 8",
+    "9. Sınıf":"Grade 9",
+    "10. Sınıf":"Grade 10",
+    "11. Sınıf":"Grade 11",
+    "12. Sınıf":"Grade 12",
+    "Okul müfredatı":"School curriculum",
+    "Öğretmen paneline gir":"Open teacher workspace",
+    "Öğretmen hesabı":"Teacher account",
+    "Sınıfı oluştur →":"Create class →",
+    "Yeni sınıf oluştur":"Create a new class",
+    "Ders planını kaydet":"Save lesson plan",
+    "Sonraki aşama →":"Next stage →"
   });
 
   const PLACEHOLDERS={
