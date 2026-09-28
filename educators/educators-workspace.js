@@ -14,14 +14,14 @@
   };
 
   const gradeMeta = {
-    "5":  {level:"A1-A2", age:"9-11",  status:"TYMM · 2026-27 aktif"},
-    "6":  {level:"A1-A2", age:"9-11",  status:"TYMM · 2026-27 aktif"},
-    "7":  {level:"A2-B1", age:"12-14", status:"TYMM · 2026-27 aktif"},
-    "8":  {level:"A2-B1", age:"12-14", status:"Geçiş sınıfı · eski program"},
-    "9":  {level:"B1.1",  age:"15-17", status:"TYMM · 2026-27 aktif"},
-    "10": {level:"B1.2",  age:"15-17", status:"TYMM · 2026-27 aktif"},
-    "11": {level:"B1.3",  age:"15-17", status:"TYMM · 2026-27 aktif"},
-    "12": {level:"B1+",   age:"15-17", status:"Geçiş sınıfı · eski program"}
+    "5":  {age:"9-11",  status:"TYMM · 2026–27 aktif"},
+    "6":  {age:"9-11",  status:"TYMM · 2026–27 aktif"},
+    "7":  {age:"12-14", status:"TYMM · 2026–27 aktif"},
+    "8":  {age:"12-14", status:"Önceki program · 2026–27"},
+    "9":  {age:"15-17", status:"TYMM · 2026–27 aktif"},
+    "10": {age:"15-17", status:"TYMM · 2026–27 aktif"},
+    "11": {age:"15-17", status:"TYMM · 2026–27 aktif"},
+    "12": {age:"15-17", status:"Önceki program · 2026–27"}
   };
 
   const fallbackThemes = ["Current Unit","Exam Revision","Vocabulary Review","Grammar Review","Speaking Practice","Listening Practice","Writing Task","Mixed Skills"];
@@ -39,6 +39,7 @@
   const track = $("#curriculumTrack");
   const theme = $("#curriculumTheme");
   const skill = $("#curriculumSkill");
+  const curriculumLevel = $("#curriculumLevel");
   const summaryTitle = $("#curriculumSummaryTitle");
   const summaryMeta = $("#curriculumSummaryMeta");
   const summaryTags = $("#curriculumSummaryTags");
@@ -46,6 +47,7 @@
   function currentThemes() {
     if (track?.value === "cefr") return ["Daily Life","Travel","Food & Culture","Technology","School & Education","Work & Career","Relationships","Global Issues"];
     if (track?.value === "private") return ["Student Goal","School Support","Speaking Confidence","Grammar Repair","Vocabulary Growth","Exam Support","Homework Review","Custom Topic"];
+    if (track?.value === "custom") return ["Custom Topic","Conversation Lesson","Revision","Exam Preparation","Project / Presentation","Teacher's Choice"];
     return themes[grade?.value] || fallbackThemes;
   }
 
@@ -57,21 +59,32 @@
     if (items.includes(previous)) theme.value = previous;
 
     const meta = gradeMeta[grade.value] || gradeMeta["7"];
-    let badge = "MEB 2026-27";
+    let badge = "MEB 2026–27";
     if (track.value === "cefr") badge = "GENERAL ENGLISH · CEFR";
     if (track.value === "private") badge = "PRIVATE TUTOR PATH";
+    if (track.value === "custom") badge = "CUSTOM / FREE LESSON";
+
+    $("[data-curriculum-grade]")?.toggleAttribute("hidden", track.value !== "meb");
+    $("[data-track-choice]").forEach(b => b.classList.toggle("active", b.dataset.trackChoice === track.value));
 
     if (summaryTitle) summaryTitle.textContent = theme.value || items[0];
-    if (summaryMeta) summaryMeta.textContent = badge + " · Grade " + grade.value + " · " + meta.level + " · " + (skill?.value || "Speaking");
+    const gradePart = track.value === "meb" ? " · Grade " + grade.value : "";
+    if (summaryMeta) summaryMeta.textContent = badge + gradePart + " · CEFR " + (curriculumLevel?.value || "A2") + " · " + (skill?.value || "Speaking");
     if (summaryTags) {
       const tags = track.value === "meb"
-        ? [meta.status, "Vocabulary", "Grammar", "Speaking", "Assessment"]
-        : ["Flexible sequence", "Speaking", "Vocabulary", "Grammar", "Homework"];
+        ? [meta.status, "Teacher-selected CEFR", "Vocabulary", "Grammar", "Speaking", "Assessment"]
+        : ["Flexible sequence", "Teacher control", "Speaking", "Vocabulary", "Grammar", "Homework"];
       summaryTags.innerHTML = tags.map(x => "<span>" + x + "</span>").join("");
     }
   }
 
-  [grade, track, theme, skill].forEach(el => el?.addEventListener("change", renderCurriculum));
+  $("[data-track-choice]").forEach(btn => btn.addEventListener("click", () => {
+    if (!track) return;
+    track.value = btn.dataset.trackChoice;
+    track.dispatchEvent(new Event("change", {bubbles:true}));
+  }));
+
+  [grade, track, theme, skill, curriculumLevel].forEach(el => el?.addEventListener("change", renderCurriculum));
   renderCurriculum();
 
   function mapTopic(name) {
@@ -86,19 +99,27 @@
 
   $("#curriculumBuildLesson")?.addEventListener("click", () => {
     const meta = gradeMeta[grade?.value] || gradeMeta["7"];
-    const level = meta.level.startsWith("A1") ? "A1" : meta.level.startsWith("A2") ? "A2" : "B1";
-    if ($("#className")) $("#className").value = "Grade " + (grade?.value || "7") + " · " + (theme?.value || "Lesson");
-    if ($("#ageGroup")) $("#ageGroup").value = meta.age;
-    if ($("#level")) $("#level").value = level;
-    if ($("#topic")) $("#topic").value = mapTopic(theme?.value);
-    if ($("#goal")) $("#goal").value = (skill?.value || "").toLowerCase().includes("vocab") ? "vocabulary" : (skill?.value || "").toLowerCase().includes("grammar") ? "grammar" : "speaking";
+    const selectedLevel = curriculumLevel?.value || "A2";
+    const isMeb = track?.value === "meb";
+    const titlePrefix = isMeb ? "Grade " + (grade?.value || "7") + " · " : "";
+    if ($("#className")) $("#className").value = titlePrefix + (theme?.value || "Lesson");
+    if (isMeb && $("#ageGroup")) $("#ageGroup").value = meta.age;
+    if ($("#level")) $("#level").value = selectedLevel;
+    const mapped = mapTopic(theme?.value);
+    if ($("#topic")) {
+      $("#topic").value = track?.value === "custom" ? "custom" : mapped;
+      $("#topic").dispatchEvent(new Event("change", {bubbles:true}));
+    }
+    if ($("#customTopic") && track?.value === "custom") $("#customTopic").value = theme?.value === "Custom Topic" ? "" : (theme?.value || "");
+    if ($("#goal")) $("#goal").value = (skill?.value || "").toLowerCase().includes("vocab") ? "vocabulary" : (skill?.value || "").toLowerCase().includes("grammar") ? "grammar" : (skill?.value || "").toLowerCase().includes("mixed") ? "mixed" : "speaking";
     $("#lessonForm")?.dispatchEvent(new Event("submit", {bubbles:true, cancelable:true}));
     activatePanel("builder");
   });
 
   $("#curriculumOpenResources")?.addEventListener("click", () => {
     const source = $("#resourceSource");
-    if (source) source.value = "Grade " + (grade?.value || "7") + " · " + (theme?.value || "Current Unit");
+    const prefix = track?.value === "meb" ? "Grade " + (grade?.value || "7") + " · " : "";
+    if (source) source.value = prefix + (theme?.value || "Current Unit");
     activatePanel("resources");
     renderResource("worksheet");
   });
