@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="../esc-brand.css?v=20260923">
   <link rel="stylesheet" href="./educators.css?v=20260927-os1">
   <link rel="stylesheet" href="./educators-guide.css?v=20260928-motion2">
+  <link rel="stylesheet" href="./educators-flex.css?v=20260928-1">
 </head>
 <body>
   <div class="edu-noise" aria-hidden="true"></div>
@@ -27,6 +28,10 @@
       <a href="#roadmap">Gelişim Planı</a>
     </nav>
     <div class="edu-top-actions">
+      <div class="edu-lang-switch" aria-label="Language">
+        <button class="active" type="button" data-edu-lang="tr">TR</button>
+        <button type="button" data-edu-lang="en">EN</button>
+      </div>
       <a class="text-link" href="../games/">Oyunlar</a>
       <button class="primary-link primary-button" type="button" data-teacher-login>Öğretmen girişi <span>→</span></button>
     </div>
@@ -330,44 +335,58 @@
             </div>
             <div class="curriculum-layout">
               <div class="curriculum-filter-card">
-                <label>Teaching path
-                  <select id="curriculumTrack">
-                    <option value="meb">MEB English · Türkiye</option>
-                    <option value="private">Private Tutor</option>
-                    <option value="cefr">General English · CEFR</option>
-                  </select>
-                </label>
-                <label>Grade
-                  <select id="curriculumGrade">
-                    <option value="5">5. Sınıf</option>
-                    <option value="6">6. Sınıf</option>
-                    <option value="7" selected>7. Sınıf</option>
-                    <option value="8">8. Sınıf</option>
-                    <option value="9">9. Sınıf</option>
-                    <option value="10">10. Sınıf</option>
-                    <option value="11">11. Sınıf</option>
-                    <option value="12">12. Sınıf</option>
-                  </select>
-                </label>
-                <label>Theme / unit<select id="curriculumTheme"></select></label>
-                <label>Main skill
-                  <select id="curriculumSkill">
-                    <option>Speaking</option>
-                    <option>Vocabulary</option>
-                    <option>Grammar</option>
-                    <option>Listening</option>
-                    <option>Reading</option>
-                    <option>Writing</option>
-                    <option>Mixed Skills</option>
-                  </select>
-                </label>
-                <div class="curriculum-filter-note">2026–27 geçişinde 8. ve 12. sınıflar eski programı sürdürdüğü için sistem bunları ayrı statüde gösterir.</div>
+                <div class="teaching-path-picker" role="radiogroup" aria-label="Teaching path">
+                  <button class="teaching-path-card active" type="button" data-track-choice="meb"><small>MEB 2026–27</small><strong>Okul müfredatı</strong><span>Sınıf ve resmî tema üzerinden ilerle.</span></button>
+                  <button class="teaching-path-card" type="button" data-track-choice="private"><small>1-TO-1</small><strong>Private Tutor</strong><span>Öğrenci hedefi ve seviyesine göre planla.</span></button>
+                  <button class="teaching-path-card" type="button" data-track-choice="cefr"><small>A1–B2</small><strong>General English</strong><span>CEFR ve beceri odaklı serbest akış.</span></button>
+                  <button class="teaching-path-card" type="button" data-track-choice="custom"><small>FREE MODE</small><strong>Serbest / Özel</strong><span>Müfredat zorunlu değil; öğretmen karar verir.</span></button>
+                </div>
+                <select id="curriculumTrack" class="visually-hidden-select" aria-label="Teaching path">
+                  <option value="meb">MEB English · Türkiye</option>
+                  <option value="private">Private Tutor</option>
+                  <option value="cefr">General English · CEFR</option>
+                  <option value="custom">Custom / Free</option>
+                </select>
+                <div class="curriculum-fields">
+                  <label data-curriculum-grade>Grade
+                    <select id="curriculumGrade">
+                      <option value="5">5. Sınıf</option>
+                      <option value="6">6. Sınıf</option>
+                      <option value="7" selected>7. Sınıf</option>
+                      <option value="8">8. Sınıf</option>
+                      <option value="9">9. Sınıf</option>
+                      <option value="10">10. Sınıf</option>
+                      <option value="11">11. Sınıf</option>
+                      <option value="12">12. Sınıf</option>
+                    </select>
+                  </label>
+                  <label>English level
+                    <select id="curriculumLevel">
+                      <option>Pre-A1</option><option>A1</option><option selected>A2</option><option>B1</option><option>B2</option>
+                    </select>
+                  </label>
+                  <label class="full">Theme / unit<select id="curriculumTheme"></select></label>
+                  <label class="full">Main skill
+                    <select id="curriculumSkill">
+                      <option>Speaking</option>
+                      <option>Vocabulary</option>
+                      <option>Grammar</option>
+                      <option>Listening</option>
+                      <option>Reading</option>
+                      <option>Writing</option>
+                      <option>Mixed Skills</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="curriculum-filter-note">2026–27 döneminde 5–7 ve 9–11. sınıflarda TYMM uygulanır; 8. ve 12. sınıflar önceki programı sürdürür.</div>
+                <div class="curriculum-verification"><i>✓</i><span>Resmî tema adları MEB kaynağına göre gösterilir; CEFR seviyesi öğretmenin seçimine bırakılır.</span></div>
               </div>
               <article class="curriculum-result-card">
                 <small>YOUR TEACHING CONTEXT</small>
                 <h4 id="curriculumSummaryTitle">Personal Life & Well-Being</h4>
-                <p id="curriculumSummaryMeta">MEB 2026-27 · Grade 7 · A2-B1 · Speaking</p>
+                <p id="curriculumSummaryMeta">MEB 2026-27 · Grade 7 · CEFR A2 · Speaking</p>
                 <div class="curriculum-summary-tags" id="curriculumSummaryTags"></div>
+                <div class="teacher-freedom-note"><b>Öğretmen kontrolü:</b> Bu seçimler öneri üretir; Lesson Builder'da yaş, seviye, süre, konu ve ders aşamalarının tamamını değiştirebilirsin.</div>
                 <div class="curriculum-actions">
                   <button type="button" id="curriculumBuildLesson">Build this lesson →</button>
                   <button type="button" id="curriculumOpenResources">Create resources</button>
@@ -454,7 +473,9 @@
                       <option value="hobbies">Hobbies</option>
                       <option value="technology">Technology</option>
                       <option value="daily-life">Daily Life</option>
+                      <option value="custom">Custom topic</option>
                     </select>
+                    <span class="custom-topic-wrap" id="customTopicWrap" hidden><input id="customTopic" type="text" maxlength="70" placeholder="Kendi konunu yaz"></span>
                   </label>
                   <label>Duration
                     <select id="duration">
@@ -478,6 +499,23 @@
                   <label>Student count
                     <input id="studentCount" type="number" min="1" max="60" value="22">
                   </label>
+                </div>
+                <div class="lesson-free-controls">
+                  <small>Ders yapısı · istediğini kullan, istediğini çıkar</small>
+                  <div class="lesson-presets" id="lessonPresets">
+                    <button class="active" type="button" data-lesson-preset="balanced">Dengeli</button>
+                    <button type="button" data-lesson-preset="speaking">Speaking ağırlıklı</button>
+                    <button type="button" data-lesson-preset="vocabulary">Vocabulary ağırlıklı</button>
+                    <button type="button" data-lesson-preset="grammar">Grammar ağırlıklı</button>
+                    <button type="button" data-lesson-preset="custom">Özel</button>
+                  </div>
+                  <div class="lesson-stage-picker" id="lessonStagePicker">
+                    <label><input type="checkbox" data-lesson-stage="warmup" checked> Warm-up</label>
+                    <label><input type="checkbox" data-lesson-stage="vocabulary" checked> Vocabulary</label>
+                    <label><input type="checkbox" data-lesson-stage="game" checked> Practice Game</label>
+                    <label><input type="checkbox" data-lesson-stage="speaking" checked> Speaking</label>
+                    <label><input type="checkbox" data-lesson-stage="exit" checked> Exit</label>
+                  </div>
                 </div>
                 <button class="generate-button" type="submit">Dersi oluştur <span>✦</span></button>
                 <div class="lesson-generate-status" id="lessonGenerateStatus" hidden aria-live="polite"></div>
@@ -793,5 +831,6 @@
   <script src="./educators-core.js?v=20260928-clarity1"></script>
   <script src="./educators-workspace.js?v=20260927-v1"></script>
   <script src="./educators-guide.js?v=20260928-motion2"></script>
+  <script src="./educators-i18n.js?v=20260928-1"></script>
 </body>
 </html>
