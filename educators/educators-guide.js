@@ -7,6 +7,8 @@
   let guideTimer=null;
   let soundEnabled=true;
   let audioCtx=null;
+  let speechRunId=0;
+  let voiceCache=[];
 
   const tourCopy={
     tr:{
@@ -17,10 +19,10 @@
         "Canlı derste Next ile ilerle; puan tamamen isteğe bağlı."
       ],
       narration:[
-        "Önce hangi sınıf veya öğrenci için çalıştığını seç. MEB, özel ders, genel İngilizce veya tamamen serbest ders yolundan başlayabilirsin.",
-        "Lesson Builder süre, seviye ve hedefe göre bir ders akışı hazırlar. Warm-up, vocabulary, practice game, speaking ve exit aşamalarından istemediklerini kaldırabilirsin.",
-        "Oyunlar kısa bir practice aşamasıdır. Takımsız oynayabilir, çift çalışması yapabilir veya istersen iki takım açıp puan tutabilirsin.",
-        "Canlı derste soruyu göster, öğrenciyi konuştur ve sonraki aşamaya geç. Sistem öğretmene yardım eder; dersin kontrolü öğretmendedir."
+        "Önce kimi öğreteceğini seç. Okul sınıfı olabilir, özel ders öğrencisi olabilir. İstersen MEB'den ilerle, istersen tamamen serbest bir ders hazırla.",
+        "Sonra dersini oluştur. Süreyi, seviyeyi ve hedefi sen seçiyorsun. Warm-up, vocabulary, practice game, speaking ve exit... İhtiyacın olmayan bölümü tek dokunuşla çıkarabilirsin.",
+        "Oyun kısmı da tamamen sana bağlı. Takım kurmak zorunda değilsin. Bireysel, çift çalışma ya da iki takım... Sınıfına hangisi uygunsa onu kullan.",
+        "Ders başladığında ekran senin akışını takip eder. Soruyu göster, öğrenciyi konuştur ve hazır olduğunda sonraki aşamaya geç. Kontrol her zaman öğretmende."
       ]
     },
     en:{
@@ -31,10 +33,10 @@
         "Move through the live lesson with Next; scoring is always optional."
       ],
       narration:[
-        "Start by choosing who you are teaching. You can use the MEB curriculum, a private student path, general English, or a fully custom lesson.",
-        "Lesson Builder creates a flow from your duration, level and goal. You can keep or remove warm-up, vocabulary, practice game, speaking and exit stages.",
-        "Games are short practice activities. Use them without teams, with pairs, or turn on two-team scoring only when it helps your class.",
-        "In live class, show the prompt, let students speak and move to the next stage. The system supports the teacher; the teacher stays in control."
+        "Start by choosing who you are teaching. It might be a school class or a private student. Use the curriculum when you want it, or build the lesson freely.",
+        "Next, shape the lesson around your time, level and goal. Warm-up, vocabulary, practice game, speaking and exit... keep only the parts your class actually needs.",
+        "Games are optional too. No teams, pair work, or two-team scoring... choose the format that fits your classroom.",
+        "When class starts, the screen follows your flow. Show the prompt, let students speak, and move on when you are ready. The teacher always stays in control."
       ]
     }
   };
@@ -58,19 +60,95 @@
     gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+duration);
     osc.connect(gain);gain.connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+duration);
   }
-  function speak(text){
-    if(!soundEnabled || !("speechSynthesis" in window))return;
-    window.speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(text);
-    u.lang=lang()==="en"?"en-US":"tr-TR";
-    u.rate=.98;u.pitch=1;u.volume=.88;
-    const voices=window.speechSynthesis.getVoices();
-    const voice=voices.find(v=>v.lang?.toLowerCase().startsWith(lang()==="en"?"en":"tr"));
-    if(voice)u.voice=voice;
-    window.speechSynthesis.speak(u);
+  function refreshVoices(){
+    if(!("speechSynthesis" in window))return [];
+    const voices=window.speechSynthesis.getVoices()||[];
+    if(voices.length)voiceCache=voices;
+    return voiceCache;
   }
+
+  function voiceScore(v,target){
+    const name=(v.name||"").toLowerCase();
+    const voiceLang=(v.lang||"").toLowerCase();
+    let score=0;
+    if(voiceLang.startsWith(target))score+=100;
+    if(/natural|neural|premium|enhanced/.test(name))score+=55;
+    if(/siri|ava|samantha|aria|jenny|sonia|guy|deniz|emel|ahmet|cem|yelda/.test(name))score+=32;
+    if(/google/.test(name))score+=15;
+    if(v.localService)score+=8;
+    if(/compact|espeak|festival/.test(name))score-=45;
+    return score;
+  }
+
+  function bestVoice(){
+    const target=lang()==="en"?"en":"tr";
+    const voices=refreshVoices();
+    return [...voices]
+      .filter(v=>(v.lang||"").toLowerCase().startsWith(target))
+      .sort((a,b)=>voiceScore(b,target)-voiceScore(a,target))[0]
+      || [...voices].sort((a,b)=>voiceScore(b,target)-voiceScore(a,target))[0]
+      || null;
+  }
+
+  function speechChunks(text){
+    return String(text||"")
+      .replace(/\.\.\./g,". ")
+      .split(/(?<=[.!?])\s+|\s*[—;:]\s*/)
+      .map(x=>x.trim())
+      .filter(Boolean);
+  }
+
+  function speak(text){
+    if(!soundEnabled || !("speechSynthesis" in window))return Promise.resolve();
+    stopSpeech();
+    const run=++speechRunId;
+    const chunks=speechChunks(text);
+    const voice=bestVoice();
+
+    return new Promise(resolve=>{
+      let index=0;
+      const next=()=>{
+        if(run!==speechRunId || !soundEnabled){resolve();return;}
+        if(index>=chunks.length){resolve();return;}
+
+        const chunk=chunks[index++];
+        const u=new SpeechSynthesisUtterance(chunk);
+        u.lang=lang()==="en"?"en-US":"tr-TR";
+        if(voice)u.voice=voice;
+
+        const isShort=chunk.length<45;
+        u.rate=lang()==="tr" ? (isShort?.93:.96) : (isShort?.94:.97);
+        u.pitch=lang()==="tr" ? 1.015 : 1.0;
+        u.volume=.96;
+
+        u.onstart=()=>{
+          $("#guideDemoStage")?.classList.add("is-speaking");
+        };
+        u.onend=()=>{
+          $("#guideDemoStage")?.classList.remove("is-speaking");
+          if(run!==speechRunId){resolve();return;}
+          window.setTimeout(next,index===chunks.length?80:220);
+        };
+        u.onerror=()=>{
+          $("#guideDemoStage")?.classList.remove("is-speaking");
+          window.setTimeout(next,80);
+        };
+
+        window.speechSynthesis.speak(u);
+      };
+      next();
+    });
+  }
+
   function stopSpeech(){
+    speechRunId++;
+    $("#guideDemoStage")?.classList.remove("is-speaking");
     if("speechSynthesis" in window)window.speechSynthesis.cancel();
+  }
+
+  if("speechSynthesis" in window){
+    refreshVoices();
+    window.speechSynthesis.addEventListener?.("voiceschanged",refreshVoices);
   }
 
   function showGuideSlide(i,{narrate=false}={}){
@@ -87,8 +165,8 @@
     }
     const caption=$("#guideCaption");
     if(caption)caption.textContent=copy().captions[guideIndex];
-    tone([520,620,720,820][guideIndex],.09);
-    if(narrate)speak(copy().narration[guideIndex]);
+    tone([520,620,720,820][guideIndex],.07,.018);
+    return narrate?speak(copy().narration[guideIndex]):Promise.resolve();
   }
 
   function stopGuide(){
@@ -99,25 +177,29 @@
     $("#guideDemoStage")?.classList.remove("is-playing");
   }
 
-  function scheduleNext(){
-    if(!guideTimer)return;
-    guideTimer=setTimeout(()=>{
+  async function playGuideSequence(){
+    while(guideTimer && guideIndex<4){
+      await showGuideSlide(guideIndex,{narrate:true});
+      if(!guideTimer)return;
+      await new Promise(resolve=>{
+        guideTimer=setTimeout(resolve,900);
+      });
+      if(!guideTimer)return;
       if(guideIndex>=3){stopGuide();return;}
-      showGuideSlide(guideIndex+1,{narrate:true});
-      scheduleNext();
-    },5200);
+      guideIndex++;
+    }
   }
 
   function startGuide(fromStart=false){
     stopGuide();
     ensureAudio();
+    refreshVoices();
     if(fromStart)guideIndex=0;
     const b=$("#guideAutoPlay");
     if(b)b.textContent=lang()==="en"?"❚❚ Pause":"❚❚ Duraklat";
     $("#guideDemoStage")?.classList.add("is-playing");
-    showGuideSlide(guideIndex,{narrate:true});
     guideTimer=setTimeout(()=>{},1);
-    scheduleNext();
+    playGuideSequence();
   }
 
   $("#guideAutoPlay")?.addEventListener("click",()=>{
