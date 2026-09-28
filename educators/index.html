@@ -8,7 +8,7 @@
   <title>Educators · Eryaman Speaking Club</title>
   <link rel="icon" type="image/png" href="../favicon.png?v=20260922">
   <link rel="stylesheet" href="../esc-brand.css?v=20260923">
-  <link rel="stylesheet" href="./educators.css?v=20260923-v2">
+  <link rel="stylesheet" href="./educators.css?v=20260927-os1">
 </head>
 <body>
   <div class="edu-noise" aria-hidden="true"></div>
@@ -70,16 +70,16 @@
       <div class="hero-glow glow-two" aria-hidden="true"></div>
       <div class="edu-hero-copy">
         <span class="pilot-badge"><i></i> EĞİTİMCİ PLATFORMU · TEACHER PLATFORM</span>
-        <h1>İngilizce dersini<br><em>oynat, konuştur, takip et.</em></h1>
-        <p>Öğretmen sınıfın yaşını, seviyesini ve konusunu seçer. Eryaman Speaking Club; o sınıfa uygun soruları, konuşma görevlerini ve oyun akışını hazırlar.</p>
+        <h1>İngilizce öğretmeninin<br><em>çalışma merkezi.</em></h1>
+        <p>Türkiye'deki gerçek öğretmen akışına göre tasarlandı: MEB müfredatı, özel ders öğrencileri, lesson builder, vocabulary, grammar, speaking, oyunlar, worksheet ve sınıf araçları tek yerde.</p>
         <div class="hero-actions">
           <button class="hero-primary hero-button" type="button" data-teacher-login>Öğretmen paneline gir <span>↘</span></button>
           <a class="hero-secondary" href="../join/">Öğrenci olarak katıl</a>
         </div>
         <div class="hero-proof">
-          <span><b>AGE</b> 6–8 · 9–11 · 12–14 · 15–17 · 18+</span>
-          <span><b>LEVEL</b> Pre-A1 · A1 · A2 · B1 · B2</span>
-          <span><b>MODE</b> Live · Homework · Practice</span>
+          <span><b>TÜRKİYE</b> MEB 2026–27 · TYMM</span>
+          <span><b>TEACHER</b> School · Private · Speaking</span>
+          <span><b>DEVICE</b> Phone · Tablet · Laptop · Smartboard</span>
         </div>
       </div>
 
@@ -147,9 +147,12 @@
             <div><b>Eryaman Speaking Club Educators</b><span>Teacher workspace</span></div>
           </div>
           <nav>
-            <button class="side-item active" data-panel="overview"><span>⌂</span> Overview</button>
+            <button class="side-item active" data-panel="overview"><span>⌂</span> Today</button>
+            <button class="side-item" data-panel="curriculum"><span>◎</span> Curriculum Hub</button>
             <button class="side-item" data-panel="classes"><span>▦</span> My Classes</button>
+            <button class="side-item" data-panel="private"><span>●</span> Private Students</button>
             <button class="side-item" data-panel="builder"><span>✦</span> Lesson Builder</button>
+            <button class="side-item" data-panel="resources"><span>▤</span> Resource Studio</button>
             <button class="side-item" data-panel="games"><span>◫</span> Game Library</button>
             <button class="side-item" data-panel="tools"><span>⚙</span> Classroom Tools</button>
             <button class="side-item" data-panel="reports"><span>↗</span> Reports</button>
@@ -174,15 +177,27 @@
           </div>
 
           <div class="mobile-workspace-tabs" aria-label="Teacher panel navigation">
-            <button class="active" data-panel="overview">Overview</button>
+            <button class="active" data-panel="overview">Today</button>
+            <button data-panel="curriculum">Curriculum</button>
             <button data-panel="classes">Classes</button>
+            <button data-panel="private">Private</button>
             <button data-panel="builder">Builder</button>
+            <button data-panel="resources">Resources</button>
             <button data-panel="games">Games</button>
             <button data-panel="tools">Tools</button>
             <button data-panel="reports">Reports</button>
           </div>
 
           <section class="workspace-panel active" data-panel-view="overview">
+            <div class="edu-os-intro">
+              <div><small>TEACHER OPERATING SYSTEM</small><h3>Bugün ne öğreteceksin?</h3></div>
+              <p>Okul sınıfı, özel ders veya speaking dersi. Akışı seç; panel seni müfredat, ders planı, materyal ve oyuna götürsün.</p>
+            </div>
+            <div class="edu-workflow-grid">
+              <button class="edu-workflow-card" type="button" data-workflow="curriculum"><small>MEB 2026–27</small><strong>Okul dersi hazırla</strong><span>Sınıf → tema → beceri → ders akışı.</span></button>
+              <button class="edu-workflow-card" type="button" data-workflow="private"><small>1-TO-1</small><strong>Özel ders öğrencisi</strong><span>Seviye, hedef, ödev ve sonraki dersi takip et.</span></button>
+              <button class="edu-workflow-card" type="button" data-workflow="games"><small>INSTANT CLASS</small><strong>Şimdi bir oyun aç</strong><span>Speaking, vocabulary, grammar veya takım oyunu.</span></button>
+            </div>
             <div class="metric-grid">
               <article><span>CLASSES</span><strong>3</strong><small>Active this week</small></article>
               <article><span>STUDENTS</span><strong>67</strong><small>Across all classes</small></article>
@@ -213,6 +228,60 @@
             </div>
           </section>
 
+
+          <section class="workspace-panel" data-panel-view="curriculum" id="curriculum-hub">
+            <div class="panel-header">
+              <div><small>CURRICULUM HUB</small><h3>Türkiye'deki öğretmen akışından başla.</h3></div>
+              <span class="adaptive-badge">MEB 2026–27 + CEFR</span>
+            </div>
+            <div class="curriculum-layout">
+              <div class="curriculum-filter-card">
+                <label>Teaching path
+                  <select id="curriculumTrack">
+                    <option value="meb">MEB English · Türkiye</option>
+                    <option value="private">Private Tutor</option>
+                    <option value="cefr">General English · CEFR</option>
+                  </select>
+                </label>
+                <label>Grade
+                  <select id="curriculumGrade">
+                    <option value="5">5. Sınıf</option>
+                    <option value="6">6. Sınıf</option>
+                    <option value="7" selected>7. Sınıf</option>
+                    <option value="8">8. Sınıf</option>
+                    <option value="9">9. Sınıf</option>
+                    <option value="10">10. Sınıf</option>
+                    <option value="11">11. Sınıf</option>
+                    <option value="12">12. Sınıf</option>
+                  </select>
+                </label>
+                <label>Theme / unit<select id="curriculumTheme"></select></label>
+                <label>Main skill
+                  <select id="curriculumSkill">
+                    <option>Speaking</option>
+                    <option>Vocabulary</option>
+                    <option>Grammar</option>
+                    <option>Listening</option>
+                    <option>Reading</option>
+                    <option>Writing</option>
+                    <option>Mixed Skills</option>
+                  </select>
+                </label>
+                <div class="curriculum-filter-note">2026–27 geçişinde 8. ve 12. sınıflar eski programı sürdürdüğü için sistem bunları ayrı statüde gösterir.</div>
+              </div>
+              <article class="curriculum-result-card">
+                <small>YOUR TEACHING CONTEXT</small>
+                <h4 id="curriculumSummaryTitle">Personal Life & Well-Being</h4>
+                <p id="curriculumSummaryMeta">MEB 2026-27 · Grade 7 · A2-B1 · Speaking</p>
+                <div class="curriculum-summary-tags" id="curriculumSummaryTags"></div>
+                <div class="curriculum-actions">
+                  <button type="button" id="curriculumBuildLesson">Build this lesson →</button>
+                  <button type="button" id="curriculumOpenResources">Create resources</button>
+                </div>
+              </article>
+            </div>
+          </section>
+
           <section class="workspace-panel" data-panel-view="classes">
             <div class="panel-header">
               <div><small>MY CLASSES</small><h3>Sınıflarını tek yerde yönet.</h3></div>
@@ -223,6 +292,32 @@
               <article><div><span>6-B</span><small>11–12 · A2</small></div><strong>22 students</strong><p>Travel · Hobbies · Past Simple</p><button data-use-class="6-B" data-age="12-14" data-level="A2">Use class →</button></article>
               <article><div><span>Teen Speaking</span><small>15–17 · B1</small></div><strong>21 students</strong><p>Technology · Opinions · Real life</p><button data-use-class="Teen Speaking" data-age="15-17" data-level="B1">Use class →</button></article>
             </div>
+          </section>
+
+
+          <section class="workspace-panel" data-panel-view="private" id="private-teaching">
+            <div class="panel-header">
+              <div><small>PRIVATE TUTOR WORKSPACE</small><h3>Özel ders öğrencisini dersten derse taşı.</h3></div>
+              <button class="solid-button" type="button" id="addPrivateStudent">+ Add student</button>
+            </div>
+            <div class="private-top">
+              <article class="private-overview-card">
+                <small>PRIVATE TEACHER FLOW</small>
+                <h4>Profil → ders → ödev → tekrar → ilerleme</h4>
+                <p>Özel ders öğretmeni ayrı Excel, not uygulaması ve oyun sekmeleri kullanmak yerine öğrencinin hedefini ve sonraki dersi aynı çalışma alanında tutar.</p>
+                <button type="button" data-workflow="builder">Plan a lesson →</button>
+              </article>
+              <div class="private-checklist">
+                <strong>Her öğrenci için</strong>
+                <span>✓ CEFR seviyesi + okul sınıfı</span>
+                <span>✓ Hedefler ve zorlandığı konular</span>
+                <span>✓ Son ders / sonraki ders</span>
+                <span>✓ Homework + revision list</span>
+                <span>✓ Speaking / vocabulary / grammar notları</span>
+              </div>
+            </div>
+            <div class="private-student-grid" id="privateStudentGrid"></div>
+            <div class="edu-local-note"><b>BETA</b><span>Bu hızlı sürümde özel öğrenci kartları cihazda saklanır. Sonraki backend adımında öğretmen hesabına bağlanacak.</span></div>
           </section>
 
           <section class="workspace-panel" data-panel-view="builder">
@@ -312,6 +407,37 @@
                   <button type="button" class="solid-button" id="startDemoLesson">Start demo lesson ▶</button>
                 </div>
               </div>
+            </div>
+          </section>
+
+
+          <section class="workspace-panel" data-panel-view="resources">
+            <div class="panel-header">
+              <div><small>RESOURCE STUDIO</small><h3>Bir ders konusunu altı farklı materyale çevir.</h3></div>
+              <span class="adaptive-badge">TEACH ON ANY DEVICE</span>
+            </div>
+            <div class="resource-layout">
+              <div class="resource-builder">
+                <label>Lesson / unit<input id="resourceSource" type="text" value="Grade 7 · Personal Life & Well-Being"></label>
+                <label>Student level
+                  <select><option>A1</option><option selected>A2</option><option>B1</option><option>B2</option></select>
+                </label>
+                <div class="resource-type-buttons" id="resourceTypeButtons">
+                  <button class="active" type="button" data-resource-kind="worksheet">Worksheet</button>
+                  <button type="button" data-resource-kind="vocab">Vocabulary</button>
+                  <button type="button" data-resource-kind="grammar">Grammar</button>
+                  <button type="button" data-resource-kind="speaking">Speaking cards</button>
+                  <button type="button" data-resource-kind="quiz">Mini quiz</button>
+                  <button type="button" data-resource-kind="homework">Homework</button>
+                </div>
+              </div>
+              <article class="resource-preview">
+                <small>RESOURCE BLUEPRINT</small>
+                <h4 id="resourcePreviewTitle">Printable Worksheet</h4>
+                <p id="resourcePreviewLead">Tek sayfada öğretmenin kullanacağı hızlı çalışma kâğıdı.</p>
+                <ul id="resourcePreviewItems"></ul>
+                <button type="button" id="copyResourcePlan">Copy resource plan</button>
+              </article>
             </div>
           </section>
 
@@ -535,5 +661,6 @@
   <script src="../esc-supabase.js?v=20260923-edu"></script>
   <script src="./educators.js?v=20260923-v2"></script>
   <script src="./educators-core.js?v=20260923-live"></script>
+  <script src="./educators-workspace.js?v=20260927-v1"></script>
 </body>
 </html>
