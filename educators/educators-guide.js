@@ -19,10 +19,10 @@
         "Canlı derste Next ile ilerle; puan tamamen isteğe bağlı."
       ],
       narration:[
-        "Hazırsan başlayalım! Önce kimi öğreteceğini seç. Bir okul sınıfı mı, yoksa özel ders öğrencisi mi? İstersen MEB üzerinden ilerle; istersen dersi tamamen kendin oluştur.",
-        "Şimdi dersin akışını kuruyoruz. Süreyi, seviyeyi ve hedefi sen belirliyorsun. Warm-up, vocabulary, practice game, speaking ve exit... İhtiyacın olmayan bir bölüm varsa, çıkar. Bu kadar.",
-        "Oyun kullanmak istersen seçenek sende. Takım kurmak zorunda değilsin. Bireysel çalış, çift çalıştır ya da iki takım oluştur. Sınıfına hangisi uyuyorsa, onu seç.",
-        "Ders başladığında ekran seninle birlikte ilerliyor. Soruyu göster, öğrenciyi konuştur... ve hazır olduğunda sonraki aşamaya geç. Unutma; kontrol her zaman sende."
+        "Hazırsan başlayalım. Önce kimi öğreteceğini seçiyorsun. Bir okul sınıfıyla çalışabilir ya da özel ders öğrencin için hazırlanabilirsin. İstersen MEB programından ilerle, istersen dersi tamamen kendin oluştur.",
+        "Şimdi dersin akışını hazırlıyoruz. Süreyi, seviyeyi ve hedefi sen belirliyorsun. Isınma, kelime çalışması, kısa bir oyun, konuşma ve ders sonu kontrolü. İhtiyacın olmayan bölümü çıkarabilir, dersini istediğin gibi düzenleyebilirsin.",
+        "Oyun kullanıp kullanmamak da tamamen sana bağlı. İstersen bireysel çalış, istersen öğrencileri eşleştir ya da iki takım oluştur. Sınıfın için hangi yöntem daha uygunsa onu seç.",
+        "Ders başladığında ekran seninle birlikte ilerler. Soruyu göster, öğrencilere düşünmeleri için zaman ver ve onları konuştur. Hazır olduğunda sonraki aşamaya geç. Dersin kontrolü her zaman sende."
       ]
     },
     en:{
@@ -147,11 +147,8 @@
   }
 
   function speechChunks(text){
-    return String(text||"")
-      .replace(/\.\.\./g,". ")
-      .split(/(?<=[.!?])\s+|\s*[—;:]\s*/)
-      .map(x=>x.trim())
-      .filter(Boolean);
+    const clean=String(text||"").replace(/\.\.\./g,", ").replace(/\s+/g," ").trim();
+    return clean?[clean]:[];
   }
 
   function unlockVoice(){
@@ -164,25 +161,19 @@
 
   function prosodyFor(chunk,index,total){
     const text=String(chunk||"").trim();
-    const excited=/!$/.test(text);
-    const question=/\?$/.test(text);
-    const emphasis=/^(hazırsan|şimdi|unutma|istersen|oyun|ders)/i.test(text);
-    const short=text.length<42;
+    const questionCount=(text.match(/\?/g)||[]).length;
+    const excited=/!/.test(text);
 
-    let rate=lang()==="tr" ? 1.00 : .99;
-    let pitch=lang()==="tr" ? 1.055 : 1.025;
-    let pause=190;
+    let rate=lang()==="tr" ? 1.035 : 1.01;
+    let pitch=lang()==="tr" ? 1.04 : 1.015;
 
-    if(short){rate+=.035;pause=145;}
-    if(excited){rate+=.045;pitch+=.035;pause=170;}
-    if(question){rate-=.005;pitch+=.055;pause=260;}
-    if(emphasis){rate+=.018;pitch+=.018;}
-    if(index===total-1){rate-=.018;pause=320;}
+    if(questionCount) pitch+=.012;
+    if(excited){rate+=.008;pitch+=.008;}
 
     return {
-      rate:Math.min(1.09,Math.max(.94,rate)),
-      pitch:Math.min(1.13,Math.max(.96,pitch)),
-      pause
+      rate:Math.min(1.065,Math.max(.98,rate)),
+      pitch:Math.min(1.075,Math.max(.98,pitch)),
+      pause:90
     };
   }
 
@@ -254,28 +245,12 @@
         await new Promise(r=>setTimeout(r,90));
       }
       if(!spoken){
-        updateVoiceStatus(lang()==="en"?"Voice could not start · try Sound test":"Ses başlatılamadı · Ses testi'ne bas");
+        updateVoiceStatus(lang()==="en"?"Voice could not start · press Play again":"Ses başlatılamadı · Play'e tekrar bas");
         return;
       }
       await new Promise(r=>setTimeout(r,prosody.pause));
     }
     updateVoiceStatus();
-  }
-
-  async function testVoice(){
-    soundEnabled=true;
-    const toggle=$("#guideSoundToggle");
-    if(toggle){
-      toggle.setAttribute("aria-pressed","true");
-      toggle.textContent=lang()==="en"?"🔊 Natural voice":"🔊 Doğal ses";
-    }
-    ensureAudio();
-    tone(690,.1,.028);
-    updateVoiceStatus(lang()==="en"?"Testing voice…":"Ses test ediliyor…");
-    unlockVoice();
-    await speak(lang()==="en"
-      ?"Hello. This is the Eryaman Speaking Club Educators voice test. If you can hear me, the narration is ready."
-      :"Merhaba! Şimdi daha canlı konuşuyorum. Sesim net geliyorsa, tanıtımı başlatabilirsin. Hazırsan başlayalım!");
   }
 
   function stopSpeech(){
@@ -349,7 +324,6 @@
     if(guideTimer)stopGuide(); else startGuide(false);
   });
   $("#guideReplay")?.addEventListener("click",()=>{ensureAudio();unlockVoice();startGuide(true);});
-  $("#guideVoiceTest")?.addEventListener("click",()=>{ensureAudio();unlockVoice();testVoice();});
   $("#guideSoundToggle")?.addEventListener("click",e=>{
     soundEnabled=!soundEnabled;
     e.currentTarget.setAttribute("aria-pressed",String(soundEnabled));
