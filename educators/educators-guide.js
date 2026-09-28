@@ -19,10 +19,10 @@
         "Canlı derste Next ile ilerle; puan tamamen isteğe bağlı."
       ],
       narration:[
-        "Önce kimi öğreteceğini seç. Okul sınıfı olabilir, özel ders öğrencisi olabilir. İstersen MEB'den ilerle, istersen tamamen serbest bir ders hazırla.",
-        "Sonra dersini oluştur. Süreyi, seviyeyi ve hedefi sen seçiyorsun. Warm-up, vocabulary, practice game, speaking ve exit... İhtiyacın olmayan bölümü tek dokunuşla çıkarabilirsin.",
-        "Oyun kısmı da tamamen sana bağlı. Takım kurmak zorunda değilsin. Bireysel, çift çalışma ya da iki takım... Sınıfına hangisi uygunsa onu kullan.",
-        "Ders başladığında ekran senin akışını takip eder. Soruyu göster, öğrenciyi konuştur ve hazır olduğunda sonraki aşamaya geç. Kontrol her zaman öğretmende."
+        "Hazırsan başlayalım! Önce kimi öğreteceğini seç. Bir okul sınıfı mı, yoksa özel ders öğrencisi mi? İstersen MEB üzerinden ilerle; istersen dersi tamamen kendin oluştur.",
+        "Şimdi dersin akışını kuruyoruz. Süreyi, seviyeyi ve hedefi sen belirliyorsun. Warm-up, vocabulary, practice game, speaking ve exit... İhtiyacın olmayan bir bölüm varsa, çıkar. Bu kadar.",
+        "Oyun kullanmak istersen seçenek sende. Takım kurmak zorunda değilsin. Bireysel çalış, çift çalıştır ya da iki takım oluştur. Sınıfına hangisi uyuyorsa, onu seç.",
+        "Ders başladığında ekran seninle birlikte ilerliyor. Soruyu göster, öğrenciyi konuştur... ve hazır olduğunda sonraki aşamaya geç. Unutma; kontrol her zaman sende."
       ]
     },
     en:{
@@ -74,8 +74,11 @@
     let score=0;
     if(voiceLang===target+"-"+(target==="tr"?"tr":"us"))score+=140;
     else if(voiceLang.startsWith(target))score+=110;
-    if(/natural|neural|premium|enhanced/.test(name))score+=85;
-    if(/siri|ava|samantha|aria|jenny|sonia|guy|deniz|emel|ahmet|cem|yelda/.test(name))score+=45;
+    if(/natural|neural|premium|enhanced/.test(name))score+=90;
+    if(target==="tr" && /yelda|emel|seda|selin|filiz|aylin|eda|zeynep|sibel|merve|deniz/.test(name))score+=75;
+    if(target==="tr" && /cem|ahmet|mehmet|murat|tolga/.test(name))score-=30;
+    if(target==="en" && /ava|samantha|aria|jenny|sonia|victoria|karen|moira|fiona|susan/.test(name))score+=60;
+    if(/siri/.test(name))score+=45;
     if(/google/.test(name))score+=24;
     if(/microsoft/.test(name))score+=18;
     if(v.localService)score+=10;
@@ -159,7 +162,31 @@
     }catch{}
   }
 
-  function speakUtterance(chunk,voice,run){
+  function prosodyFor(chunk,index,total){
+    const text=String(chunk||"").trim();
+    const excited=/!$/.test(text);
+    const question=/\?$/.test(text);
+    const emphasis=/^(hazırsan|şimdi|unutma|istersen|oyun|ders)/i.test(text);
+    const short=text.length<42;
+
+    let rate=lang()==="tr" ? 1.00 : .99;
+    let pitch=lang()==="tr" ? 1.055 : 1.025;
+    let pause=190;
+
+    if(short){rate+=.035;pause=145;}
+    if(excited){rate+=.045;pitch+=.035;pause=170;}
+    if(question){rate-=.005;pitch+=.055;pause=260;}
+    if(emphasis){rate+=.018;pitch+=.018;}
+    if(index===total-1){rate-=.018;pause=320;}
+
+    return {
+      rate:Math.min(1.09,Math.max(.94,rate)),
+      pitch:Math.min(1.13,Math.max(.96,pitch)),
+      pause
+    };
+  }
+
+  function speakUtterance(chunk,voice,run,prosody){
     return new Promise(resolve=>{
       if(run!==speechRunId || !soundEnabled){resolve(false);return;}
       let settled=false;
@@ -167,9 +194,8 @@
       const u=new SpeechSynthesisUtterance(chunk);
       u.lang=lang()==="en"?"en-US":"tr-TR";
       if(voice)u.voice=voice;
-      const isShort=chunk.length<45;
-      u.rate=lang()==="tr" ? (isShort ? .91 : .94) : (isShort ? .93 : .96);
-      u.pitch=lang()==="tr" ? 1.02 : 1.0;
+      u.rate=prosody?.rate || (lang()==="tr"?1.0:.99);
+      u.pitch=prosody?.pitch || (lang()==="tr"?1.055:1.025);
       u.volume=1;
 
       const finish=ok=>{
@@ -216,12 +242,14 @@
     const tries=[...candidates.slice(0,5),null];
     const chunks=speechChunks(text);
 
-    for(const chunk of chunks){
+    for(let i=0;i<chunks.length;i++){
+      const chunk=chunks[i];
       if(run!==speechRunId || !soundEnabled)return;
+      const prosody=prosodyFor(chunk,i,chunks.length);
       let spoken=false;
       for(const voice of tries){
         if(run!==speechRunId || !soundEnabled)return;
-        spoken=await speakUtterance(chunk,voice,run);
+        spoken=await speakUtterance(chunk,voice,run,prosody);
         if(spoken)break;
         await new Promise(r=>setTimeout(r,90));
       }
@@ -229,7 +257,7 @@
         updateVoiceStatus(lang()==="en"?"Voice could not start · try Sound test":"Ses başlatılamadı · Ses testi'ne bas");
         return;
       }
-      await new Promise(r=>setTimeout(r,180));
+      await new Promise(r=>setTimeout(r,prosody.pause));
     }
     updateVoiceStatus();
   }
@@ -247,7 +275,7 @@
     unlockVoice();
     await speak(lang()==="en"
       ?"Hello. This is the Eryaman Speaking Club Educators voice test. If you can hear me, the narration is ready."
-      :"Merhaba. Bu, Eryaman Speaking Club Educators ses testi. Beni duyabiliyorsan, tanıtım anlatımı hazır.");
+      :"Merhaba! Şimdi daha canlı konuşuyorum. Sesim net geliyorsa, tanıtımı başlatabilirsin. Hazırsan başlayalım!");
   }
 
   function stopSpeech(){
