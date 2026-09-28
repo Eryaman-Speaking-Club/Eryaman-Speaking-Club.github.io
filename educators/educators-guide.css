@@ -186,3 +186,15 @@
  .guide-demo-toolbar{align-items:flex-start;flex-direction:column}
  .guide-caption{left:14px;right:14px;bottom:12px}
 }
+
+
+/* 2026-09-28 · voice diagnostics */
+.guide-voice-status{
+  padding:8px 14px;border-top:1px solid rgba(255,255,255,.08);
+  background:#0b2749;color:#9fc2db;font-size:7px;font-weight:850;letter-spacing:.02em
+}
+.guide-voice-status:before{
+  content:"●";display:inline-block;margin-right:6px;color:#35c7b9;font-size:6px;vertical-align:1px
+}
+#guideVoiceTest{background:rgba(255,255,255,.14)!important}
+#guideVoiceTest:active{transform:translateY(1px)}
