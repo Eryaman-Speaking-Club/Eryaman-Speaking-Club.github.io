@@ -257,7 +257,7 @@
     return plan.length?plan:[
       {index:0,stage:'WARM-UP',title:'Warm-up speaking',duration:'5 min',prompt:$('#adaptiveQuestion')?.textContent||'Let’s start speaking.'},
       {index:1,stage:'VOCABULARY',title:topic+' vocabulary',duration:'8 min'},
-      {index:2,stage:'TEAM GAME',title:'Adaptive team game',duration:'10 min'},
+      {index:2,stage:'PRACTICE GAME',title:'Adaptive practice game',duration:'10 min'},
       {index:3,stage:'SPEAKING',title:'Speaking practice',duration:'12 min'},
       {index:4,stage:'EXIT',title:'Exit question',duration:Math.max(2,duration-35)+' min'}
     ];
