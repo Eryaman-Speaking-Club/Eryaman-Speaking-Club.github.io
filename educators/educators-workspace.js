@@ -208,10 +208,11 @@
   }
 
   $("#addPrivateStudent")?.addEventListener("click", () => {
-    const name = window.prompt("Öğrencinin adı?");
+    const en=document.documentElement.lang==="en";
+    const name = window.prompt(en?"Student name?":"Öğrencinin adı?");
     if (!name) return;
-    const level = window.prompt("Seviye? (A1, A2, B1, B2)", "A2") || "A2";
-    const goal = window.prompt("Ana hedef?", "Speaking confidence") || "Speaking confidence";
+    const level = window.prompt(en?"Level? (A1, A2, B1, B2)":"Seviye? (A1, A2, B1, B2)", "A2") || "A2";
+    const goal = window.prompt(en?"Main goal?":"Ana hedef?", "Speaking confidence") || "Speaking confidence";
     const list = loadPrivate();
     list.push({name:name.trim(), level:level.trim().toUpperCase(), goal:goal.trim(), next:"Planlanacak"});
     savePrivate(list);
