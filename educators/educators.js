@@ -271,10 +271,6 @@
     showPanel("builder");
   }));
 
-  $("#saveDemoClass")?.addEventListener("click", e=>{
-    const btn=e.currentTarget, old=btn.textContent; btn.textContent="Saved ✓"; setTimeout(()=>btn.textContent=old,1400);
-  });
-
   const modal=$("#lessonModal");
 
   function liveT(tr,en){
@@ -514,7 +510,7 @@
     if(!rows.length)return finishLiveLesson();
 
     if($("#nextLiveQuestion")?.dataset.action==="restart"||liveStageIndex>=rows.length){
-      startLiveLessonUI();
+      $("#startDemoLesson")?.click();
       return;
     }
 
