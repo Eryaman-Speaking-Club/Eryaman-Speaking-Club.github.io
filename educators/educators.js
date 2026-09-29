@@ -100,10 +100,16 @@
   let blue = 0, orange = 0;
 
   function getQuestions(){
-    const age = $("#ageGroup").value;
-    const level = $("#level").value;
-    const topic = $("#topic").value;
-    if (topic === "travel") return questionBank.travel[age][level];
+    const age = $("#ageGroup")?.value || "12-14";
+    const level = $("#level")?.value || "A2";
+    const topic = $("#topic")?.value || "daily-life";
+    if (topic === "travel") {
+      const exact = questionBank.travel?.[age]?.[level];
+      if (Array.isArray(exact) && exact.length) return exact;
+      const ageFallback = questionBank.travel?.[age];
+      const levelFallback = ageFallback?.A2 || ageFallback?.A1 || ageFallback?.B1;
+      if (Array.isArray(levelFallback) && levelFallback.length) return levelFallback;
+    }
     if (topic === "custom") {
       const custom = ($("#customTopic")?.value || "your chosen topic").trim() || "your chosen topic";
       const base = [
@@ -117,13 +123,15 @@
       return base.map((q,i)=>[q, supports[level] + (i>=4 && (level==="B1"||level==="B2") ? " Support your answer with an example." : "")]);
     }
     const base = generic[topic] || generic["daily-life"];
-    return base.map((q,i)=>[q, supports[level] + (i>=4 && (level==="B1"||level==="B2") ? " Give at least two reasons." : "")]);
+    return base.map((q,i)=>[q, (supports[level] || supports.A2) + (i>=4 && (level==="B1"||level==="B2") ? " Give at least two reasons." : "")]);
   }
 
   function renderQuestion(){
-    const qs = getQuestions();
-    questionIndex %= qs.length;
-    const [q,s] = qs[questionIndex];
+    const raw = getQuestions();
+    const qs = Array.isArray(raw) && raw.length ? raw : [["Let’s start with a simple question about today’s topic.", supports.A2]];
+    questionIndex = ((questionIndex % qs.length) + qs.length) % qs.length;
+    const pair = Array.isArray(qs[questionIndex]) ? qs[questionIndex] : [String(qs[questionIndex] || "Let’s start speaking."), supports.A2];
+    const [q,s] = pair;
     $("#adaptiveQuestion").textContent = q;
     $("#adaptiveSupport").textContent = s;
   }
@@ -274,8 +282,9 @@
     liveIndex=((liveIndex%total)+total)%total;
     const row=rows[liveIndex];
     const stage=$("b",row)?.textContent || "LIVE";
-    const qs=getQuestions();
-    const pair=qs[liveIndex % qs.length];
+    const rawQs=getQuestions();
+    const qs=Array.isArray(rawQs)&&rawQs.length?rawQs:[["Let’s start speaking.",supports.A2]];
+    const pair=Array.isArray(qs[liveIndex % qs.length])?qs[liveIndex % qs.length]:[String(qs[liveIndex % qs.length]||"Let’s start speaking."),supports.A2];
     $("#modalStep").textContent=(liveIndex+1)+" / "+total;
     $("#liveStage").textContent=stage.toUpperCase();
     if(stage==="Vocabulary"){
