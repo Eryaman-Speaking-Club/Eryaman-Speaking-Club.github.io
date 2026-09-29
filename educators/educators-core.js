@@ -258,7 +258,7 @@
         prompt:i===0?($('#adaptiveQuestion')?.textContent||'Let’s start speaking.'):null
       };
     });
-    return plan.length?plan:[
+    return Array.isArray(plan)&&plan.length?plan:[
       {index:0,stage:'WARM-UP',title:'Warm-up speaking',duration:'5 min',prompt:$('#adaptiveQuestion')?.textContent||'Let’s start speaking.'},
       {index:1,stage:'VOCABULARY',title:topic+' vocabulary',duration:'8 min'},
       {index:2,stage:'PRACTICE GAME',title:'Adaptive practice game',duration:'10 min'},
