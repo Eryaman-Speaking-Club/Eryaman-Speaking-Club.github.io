@@ -164,18 +164,32 @@
       '<button class="btn primary">Taslağa uygula</button></form>');
     $('#seoForm').onsubmit=e=>{e.preventDefault();const f=new FormData(e.currentTarget);workingSeo={title:f.get('title'),description:f.get('description'),og_title:f.get('og_title'),og_description:f.get('og_description'),og_image:f.get('og_image')};closeModal();toast('SEO taslağa uygulandı')};
   }
+  let saveBusy=false;
   async function saveDraft(){
     if(!A.canEdit())throw new Error('Bu hesap salt-okunur.');
-    const {data,error}=await A.state.db.from('esc_cms_pages').update({
-      draft_data:workingData,draft_seo:workingSeo,has_unpublished_changes:true,
-      updated_by:A.state.session.user.id,updated_at:new Date().toISOString()
-    }).eq('id',current.id).select('*').single();
-    if(error)throw error;current=data;toast('Taslak kaydedildi');return data;
+    if(saveBusy)throw new Error('Önceki kayıt işlemi hâlâ tamamlanıyor.');
+    saveBusy=true;
+    try{
+      const {data,error}=await A.state.db.from('esc_cms_pages').update({
+        draft_data:workingData,draft_seo:workingSeo,has_unpublished_changes:true,
+        updated_by:A.state.session.user.id,updated_at:new Date().toISOString()
+      }).eq('id',current.id).select('*').single();
+      if(error)throw error;
+      if(!data?.id)throw new Error('Taslak kaydedilemedi. Sayfayı yenileyip tekrar dene.');
+      current=data;toast('Taslak kaydedildi');return data;
+    } finally { saveBusy=false; }
   }
   async function publish(){
     await saveDraft();
-    const {data,error}=await A.state.db.rpc('esc_cms_publish_page',{p_page_id:current.id,p_note:'Eryaman Speaking Club yönetim panelinden yayınlandı'});
-    if(error)throw error;current=data;toast('Yayınlandı · canlı site güncellendi');
+    const pageId=current.id;
+    const {data,error}=await A.state.db.rpc('esc_cms_publish_page',{p_page_id:pageId,p_note:'Eryaman Speaking Club yönetim panelinden yayınlandı'});
+    if(error)throw error;
+    if(!data?.id)throw new Error('Yayınlama tamamlanamadı.');
+    current=data;
+    workingData=normalizeData(data.draft_data);
+    workingSeo=clone(data.draft_seo||{});
+    toast('Yayınlandı · canlı site güncellendi');
+    $('#editorState').className='pill published';
     $('#editorState').textContent='YAYINDA · v'+(data.version||0);
   }
   function loadFrame(){
