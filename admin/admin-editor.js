@@ -185,12 +185,13 @@
     const {data,error}=await A.state.db.rpc('esc_cms_publish_page',{p_page_id:pageId,p_note:'Eryaman Speaking Club yönetim panelinden yayınlandı'});
     if(error)throw error;
     if(!data?.id)throw new Error('Yayınlama tamamlanamadı.');
-    current=data;
-    workingData=normalizeData(data.draft_data);
-    workingSeo=clone(data.draft_seo||{});
-    toast('Yayınlandı · canlı site güncellendi');
-    $('#editorState').className='pill published';
-    $('#editorState').textContent='YAYINDA · v'+(data.version||0);
+    const {data:fresh,error:freshError}=await A.state.db.from('esc_cms_pages').select('*').eq('id',pageId).single();
+    if(freshError)throw freshError;
+    current=fresh;
+    workingData=normalizeData(fresh.draft_data);
+    workingSeo=clone(fresh.draft_seo||{});
+    toast('Yayınlandı · aynı sayfada yeni değişiklik yapıp tekrar yayınlayabilirsin');
+    return pageId;
   }
   function loadFrame(){
     frame=$('#liveEditorFrame');if(!frame)return;
@@ -212,7 +213,19 @@
     $('#editorPage').onchange=()=>renderEditor($('#editorPage').value);
     $('#reloadEditor').onclick=loadFrame;$('#sectionsBtn').onclick=sectionsModal;$('#seoBtn').onclick=seoModal;
     $('#saveDraftBtn').onclick=async()=>{try{await saveDraft();$('#editorState').textContent='TASLAK DEĞİŞİKLİK'}catch(e){alert(e.message)}};
-    $('#publishBtn').onclick=async e=>{e.currentTarget.disabled=true;try{await publish()}catch(x){alert(x.message)}finally{e.currentTarget.disabled=false}};
+    $('#publishBtn').onclick=async e=>{
+      const btn=e.currentTarget;
+      btn.disabled=true;
+      btn.textContent='Yayınlanıyor…';
+      try{
+        const pageId=await publish();
+        await renderEditor(pageId);
+      }catch(x){
+        alert(x.message||x);
+        btn.disabled=false;
+        btn.textContent='Yayınla';
+      }
+    };
     loadFrame();
   }
 
