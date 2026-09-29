@@ -27,15 +27,31 @@
         online:{firstMeetupFree:f.get('onlineFree')==='true',price:Number(f.get('onlinePrice')||0),currency:'TL',unitTr:'buluşma',unitEn:'meetup'}
       };
     };
+    let saving=false;
     const save=async publish=>{
-      const payload=collect();
-      let r=await A.state.db.from('esc_cms_settings').update({draft_data:payload,has_unpublished_changes:true,updated_by:A.state.session.user.id,updated_at:new Date().toISOString()}).eq('key','event_config');
-      if(r.error)throw r.error;
-      if(publish){r=await A.state.db.rpc('esc_cms_publish_setting',{p_key:'event_config'});if(r.error)throw r.error}
-      toast(publish?'Etkinlik ve fiyatlar canlı siteye yayınlandı':'Etkinlik taslağı kaydedildi');
+      if(saving)return;
+      saving=true;
+      const form=$('#eventConfigForm');
+      const buttons=[...form.querySelectorAll('button')];
+      buttons.forEach(b=>b.disabled=true);
+      try{
+        const payload=collect();
+        let r=await A.state.db.from('esc_cms_settings').update({draft_data:payload,has_unpublished_changes:true,updated_by:A.state.session.user.id,updated_at:new Date().toISOString()}).eq('key','event_config').select('key,draft_data,version,has_unpublished_changes').single();
+        if(r.error)throw r.error;
+        if(!r.data?.key)throw new Error('Etkinlik ayarı kaydedilemedi. Lütfen tekrar giriş yapıp yeniden dene.');
+        if(publish){
+          r=await A.state.db.rpc('esc_cms_publish_setting',{p_key:'event_config'});
+          if(r.error)throw r.error;
+          if(!r.data?.key)throw new Error('Yayınlama tamamlanamadı.');
+        }
+        toast(publish?'Etkinlik ve fiyatlar canlı siteye yayınlandı':'Etkinlik taslağı kaydedildi');
+      } finally {
+        saving=false;
+        buttons.forEach(b=>b.disabled=!A.canEdit());
+      }
     };
-    $('#saveEventDraft').onclick=async()=>{try{await save(false);eventsView()}catch(err){alert(err.message)}};
-    $('#eventConfigForm').onsubmit=async e=>{e.preventDefault();try{await save(true);eventsView()}catch(err){alert(err.message)}};
+    $('#saveEventDraft').onclick=async()=>{try{await save(false);await eventsView()}catch(err){alert(err.message||err)}};
+    $('#eventConfigForm').onsubmit=async e=>{e.preventDefault();try{await save(true);await eventsView()}catch(err){alert(err.message||err)}};
   }
 
   function gameContentStats(slug,config){
