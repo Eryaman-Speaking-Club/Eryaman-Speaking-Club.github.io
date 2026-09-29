@@ -343,3 +343,95 @@
   font-size:7px;
   font-weight:900;
 }
+
+
+/* 2026-09-29 · Live lesson flow */
+.plan-row.is-live-active{
+  border-color:#175ca8!important;
+  background:linear-gradient(135deg,#eef6ff,#f8fbff)!important;
+  box-shadow:0 0 0 3px rgba(23,92,168,.10),0 10px 24px rgba(8,31,59,.07)!important;
+  transform:translateX(4px);
+}
+.plan-row.is-live-active b{color:#0d4f8c}
+.plan-row.is-live-active span{
+  background:#175ca8!important;
+  color:#fff!important;
+}
+.plan-row.is-live-complete{
+  border-color:#c9e8df!important;
+  background:#f4fbf8!important;
+}
+.plan-row.is-live-complete b:after{
+  content:"  ✓";
+  color:#128178;
+}
+.plan-row.is-live-complete span{
+  background:#e4f6f0!important;
+  color:#0d7a72!important;
+}
+
+.live-progress{
+  margin:12px 0 4px;
+  padding:11px 13px;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:13px;
+  background:rgba(255,255,255,.045);
+}
+.live-progress-copy{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:8px;
+}
+.live-progress-copy span{
+  color:#a9bfd3;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.04em;
+}
+.live-progress-track{
+  height:7px;
+  overflow:hidden;
+  border-radius:999px;
+  background:rgba(255,255,255,.10);
+}
+.live-progress-track i{
+  display:block;
+  width:0;
+  height:100%;
+  border-radius:inherit;
+  background:linear-gradient(90deg,#36c2b8,#78ddd6);
+  transition:width .28s ease;
+}
+
+#startDemoLesson{
+  position:relative;
+  cursor:pointer;
+  transition:transform .16s ease,box-shadow .16s ease,opacity .16s ease;
+}
+#startDemoLesson:hover:not(:disabled){
+  transform:translateY(-2px);
+  box-shadow:0 12px 24px rgba(8,31,59,.20);
+}
+#startDemoLesson:active:not(:disabled){transform:translateY(0)}
+#startDemoLesson:disabled{
+  cursor:wait;
+  opacity:.7;
+}
+
+#nextLiveQuestion{
+  min-width:180px;
+  font-weight:950;
+  transition:transform .16s ease,box-shadow .16s ease;
+}
+#nextLiveQuestion:hover{transform:translateY(-1px)}
+#nextLiveQuestion[data-action="restart"]{
+  background:linear-gradient(135deg,#0d766f,#17a39a);
+  border-color:transparent;
+  color:#fff;
+}
+
+@media(max-width:650px){
+  .live-progress-copy{flex-direction:column;gap:3px}
+  #nextLiveQuestion{min-width:0}
+}
