@@ -304,22 +304,32 @@
 
   async function syncLiveFromModal() {
     if(!state.activeLive) return;
-    const scores={
-      blue:Number($('#blueScore')?.textContent||0),
-      orange:Number($('#orangeScore')?.textContent||0)
-    };
-    const stepText=$('#modalStep')?.textContent||'1 / 5';
-    const idx=Math.max(0,Number(stepText.split('/')[0].trim())-1);
-    state.activeLive=await window.ESCSupabase.updateEducatorSession(state.activeLive.id,{
-      current_index:idx,
+    const modal=$('#lessonModal');
+    const liveState=window.ESCEduLive?.getState?.()||{};
+    const stageIndex=Number.isFinite(Number(liveState.stageIndex))?Number(liveState.stageIndex):Number(modal?.dataset.stageIndex||0);
+    const questionIndex=Number.isFinite(Number(liveState.questionIndex))?Number(liveState.questionIndex):Number(modal?.dataset.questionIndex||0);
+    const completed=liveState.completed===true||modal?.dataset.completed==='true';
+    const patch={
+      current_index:Math.max(0,stageIndex),
       current_stage:$('#liveStage')?.textContent||'LIVE',
       current_payload:{
         title:$('#liveStage')?.textContent||'Live activity',
         prompt:$('#liveQuestion')?.textContent||'',
-        instruction:$('#liveInstruction')?.textContent||''
+        instruction:$('#liveInstruction')?.textContent||'',
+        stage_key:liveState.stageKey||modal?.dataset.stageKey||null,
+        question_index:Math.max(0,questionIndex),
+        completed
       },
-      scores
-    });
+      scores:{
+        blue:Number($('#blueScore')?.textContent||0),
+        orange:Number($('#orangeScore')?.textContent||0)
+      }
+    };
+    if(completed){
+      patch.status='completed';
+      patch.ended_at=new Date().toISOString();
+    }
+    state.activeLive=await window.ESCSupabase.updateEducatorSession(state.activeLive.id,patch);
   }
 
   async function syncGameToLive() {
@@ -379,13 +389,25 @@
 
     $('#startDemoLesson')?.addEventListener('click',async e=>{
       if(!state.session){openAuth('login');return;}
-      e.currentTarget.disabled=true;
-      try{await persistLesson(true);setTimeout(()=>syncLiveFromModal().catch(()=>{}),120);}
+      const btn=e.currentTarget;
+      const oldText=btn.textContent;
+      btn.disabled=true;
+      btn.textContent=window.ESCEduI18n?.getLang?.()==='en'?'Starting lesson…':'Ders başlatılıyor…';
+      try{
+        await persistLesson(true);
+        if(!window.ESCEduLive?.start)throw new Error('Canlı ders arayüzü yüklenemedi. Sayfayı yenileyip tekrar deneyin.');
+        window.ESCEduLive.start();
+        await syncLiveFromModal();
+      }
       catch(err){alert(humanError(err));}
-      finally{e.currentTarget.disabled=false;}
+      finally{
+        btn.disabled=false;
+        btn.textContent=oldText;
+      }
     });
 
     ['nextLiveQuestion','addBlue','addOrange'].forEach(id=>$('#'+id)?.addEventListener('click',()=>setTimeout(()=>syncLiveFromModal().catch(()=>{}),80)));
+    $('#closeLessonModal')?.addEventListener('click',()=>syncLiveFromModal().catch(()=>{}));
     $$('[data-launch-game]').forEach(b=>b.addEventListener('click',()=>setTimeout(()=>syncGameToLive().catch(()=>{}),120)));
     ['nextGameRound','gameBluePlus','gameBlueMinus','gameOrangePlus','gameOrangeMinus'].forEach(id=>$('#'+id)?.addEventListener('click',()=>setTimeout(()=>syncGameToLive().catch(()=>{}),80)));
 
