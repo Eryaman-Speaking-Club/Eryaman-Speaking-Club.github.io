@@ -290,3 +290,56 @@
   .output-actions{flex-direction:column}
   .output-actions button{width:100%}
 }
+
+.builder-form-head{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:4px 12px;
+  padding:0 0 16px;
+  border-bottom:1px solid #e5edf2;
+}
+.builder-form-head small{
+  display:block;
+  color:#17857f;
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:.12em;
+}
+.builder-form-head h4{
+  margin:4px 0 0;
+  color:#0b2747;
+  font-size:19px;
+  letter-spacing:-.025em;
+}
+.builder-form-head>span{
+  align-self:start;
+  padding:7px 10px;
+  border-radius:999px;
+  background:#eaf8f5;
+  color:#08746f;
+  font-size:8px;
+  font-weight:950;
+}
+.builder-form-head p{
+  grid-column:1/-1;
+  margin:8px 0 0;
+  color:#73889a;
+  font-size:9px;
+  line-height:1.55;
+}
+.builder-form-points{
+  grid-column:1/-1;
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:7px;
+}
+.builder-form-points b{
+  padding:6px 8px;
+  border:1px solid #e0e9ef;
+  border-radius:999px;
+  background:#fff;
+  color:#587186;
+  font-size:7px;
+  font-weight:900;
+}
