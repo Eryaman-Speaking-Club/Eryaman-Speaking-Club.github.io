@@ -248,17 +248,17 @@
     vocabulary:{goal:"vocabulary",stages:["warmup","vocabulary","game","speaking","exit"]},
     grammar:{goal:"grammar",stages:["warmup","vocabulary","game","speaking","exit"]}
   };
-  $("#lessonPresets [data-lesson-preset]").forEach(btn=>btn.addEventListener("click",()=>{
-    $("#lessonPresets [data-lesson-preset]").forEach(x=>x.classList.toggle("active",x===btn));
+  $$("#lessonPresets [data-lesson-preset]").forEach(btn=>btn.addEventListener("click",()=>{
+    $$("#lessonPresets [data-lesson-preset]").forEach(x=>x.classList.toggle("active",x===btn));
     const cfg=presetConfig[btn.dataset.lessonPreset];
     if(cfg){
       if($("#goal"))$("#goal").value=cfg.goal;
-      $("#lessonStagePicker [data-lesson-stage]").forEach(c=>c.checked=cfg.stages.includes(c.dataset.lessonStage));
+      $$("#lessonStagePicker [data-lesson-stage]").forEach(c=>c.checked=cfg.stages.includes(c.dataset.lessonStage));
     }
     syncPreview();
   }));
-  $("#lessonStagePicker [data-lesson-stage]").forEach(c=>c.addEventListener("change",()=>{
-    $("#lessonPresets [data-lesson-preset]").forEach(x=>x.classList.toggle("active",x.dataset.lessonPreset==="custom"));
+  $$("#lessonStagePicker [data-lesson-stage]").forEach(c=>c.addEventListener("change",()=>{
+    $$("#lessonPresets [data-lesson-preset]").forEach(x=>x.classList.toggle("active",x.dataset.lessonPreset==="custom"));
     syncPreview();
   }));
   syncCustomTopic();
