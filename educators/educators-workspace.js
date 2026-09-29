@@ -65,7 +65,7 @@
     if (track.value === "custom") badge = "CUSTOM / FREE LESSON";
 
     $("[data-curriculum-grade]")?.toggleAttribute("hidden", track.value !== "meb");
-    $("[data-track-choice]").forEach(b => b.classList.toggle("active", b.dataset.trackChoice === track.value));
+    $$("[data-track-choice]").forEach(b => b.classList.toggle("active", b.dataset.trackChoice === track.value));
 
     if (summaryTitle) summaryTitle.textContent = theme.value || items[0];
     const gradePart = track.value === "meb" ? " · Grade " + grade.value : "";
@@ -78,7 +78,7 @@
     }
   }
 
-  $("[data-track-choice]").forEach(btn => btn.addEventListener("click", () => {
+  $$("[data-track-choice]").forEach(btn => btn.addEventListener("click", () => {
     if (!track) return;
     track.value = btn.dataset.trackChoice;
     track.dispatchEvent(new Event("change", {bubbles:true}));
