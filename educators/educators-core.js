@@ -246,7 +246,7 @@
 
   function currentPlan() {
     const topic=$('#topic')?.value||'travel', duration=Number($('#duration')?.value||40);
-    const rows=$('.generated-plan .plan-row');
+    const rows=$$('.generated-plan .plan-row');
     const plan=rows.map((r,i)=>{
       const title=$('b',r)?.textContent||'Class activity';
       return {
