@@ -431,7 +431,7 @@
               </div>
             </div>
             <div class="private-student-grid" id="privateStudentGrid"></div>
-            <div class="edu-local-note"><b>BETA</b><span>Bu hızlı sürümde özel öğrenci kartları cihazda saklanır. Sonraki backend adımında öğretmen hesabına bağlanacak.</span></div>
+            <div class="edu-local-note"><b>BETA</b><span>Özel öğrenci kartları ve sınıf verileri öğretmen hesabıyla birlikte saklanır; giriş yaptığında farklı cihazlardan aynı sınıfa devam edebilirsin.</span></div>
           </section>
 
           <section class="workspace-panel" data-panel-view="builder">
@@ -442,6 +442,12 @@
 
             <div class="builder-layout">
               <form class="lesson-form" id="lessonForm">
+                <div class="builder-form-head">
+                  <div><small>CLASS PROFILE</small><h4>Set the class, then build.</h4></div>
+                  <span>Smart setup</span>
+                  <p>Age, CEFR level, topic, duration and class size work together to shape the prompt and lesson flow.</p>
+                  <div class="builder-form-points"><b>✓ 5 age groups</b><b>✓ Pre-A1–B2</b><b>✓ 20–60 min</b></div>
+                </div>
                 <label>Class name
                   <input id="className" type="text" value="6-B" maxlength="40">
                 </label>
