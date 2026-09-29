@@ -275,7 +275,7 @@
   });
 
   const modal=$("#lessonModal");
-  function liveRows(){ return $("#generatedPlan .plan-row"); }
+  function liveRows(){ return $$("#generatedPlan .plan-row"); }
   function updateLive(){
     const rows=liveRows();
     const total=Math.max(1,rows.length);
