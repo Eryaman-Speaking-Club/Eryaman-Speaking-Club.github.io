@@ -95,7 +95,8 @@
   };
 
   let questionIndex = 0;
-  let liveIndex = 0;
+  let liveStageIndex = 0;
+  let liveQuestionIndex = 0;
   let generationCount = 0;
   let blue = 0, orange = 0;
 
@@ -275,36 +276,285 @@
   });
 
   const modal=$("#lessonModal");
-  function liveRows(){ return $$("#generatedPlan .plan-row"); }
+
+  function liveT(tr,en){
+    return window.ESCEduI18n?.getLang?.()==="en" ? en : tr;
+  }
+
+  function liveRows(){
+    return $$("#generatedPlan .plan-row");
+  }
+
+  function safeQuestionPairs(){
+    const raw=getQuestions();
+    const fallback=[
+      ["What do you already know about today’s topic?", supports.A2],
+      ["What is one example connected to today’s topic?", supports.A2],
+      ["What part of this topic is most interesting to you?", supports.A2],
+      ["How does this topic connect to real life?", supports.A2],
+      ["What would you like to learn or discuss next?", supports.A2]
+    ];
+    const cleaned=(Array.isArray(raw)?raw:[]).map(item=>{
+      if(Array.isArray(item)) return [String(item[0]||"").trim(),String(item[1]||supports.A2).trim()];
+      return [String(item||"").trim(),supports.A2];
+    }).filter(item=>item[0]);
+    return cleaned.length ? cleaned : fallback;
+  }
+
+  function takeFiveUnique(primary,extras){
+    const out=[];
+    [...primary,...extras].forEach(item=>{
+      if(out.length>=5)return;
+      const pair=Array.isArray(item)?item:[String(item||""),supports.A2];
+      const q=String(pair[0]||"").trim();
+      if(!q||out.some(x=>x[0]===q))return;
+      out.push([q,String(pair[1]||supports.A2)]);
+    });
+    while(out.length<5){
+      const n=out.length+1;
+      out.push([
+        liveT("Bu konu hakkında "+n+". kısa fikrini paylaş.","Share one more short idea about this topic ("+n+")."),
+        supports.A2
+      ]);
+    }
+    return out.slice(0,5);
+  }
+
+  function stageQuestionSet(stageKey){
+    const qs=safeQuestionPairs();
+    const topic=($("#previewTopic")?.textContent||$("#topic")?.selectedOptions?.[0]?.textContent||"this topic").trim();
+    const lowerTopic=topic.toLocaleLowerCase("en-US");
+    const warmupExtras=[
+      [liveT("Bugünkü konu hakkında bildiğin bir şeyi söyle.","Say one thing you already know about today’s topic."),supports.A2],
+      [liveT("Bu konuyla ilgili bir örnek ver.","Give one example connected to this topic."),supports.A2],
+      [liveT("Bu konunun hangi kısmı sana daha ilginç geliyor?","Which part of this topic is most interesting to you?"),supports.A2],
+      [liveT("Bu konu günlük hayatında nerede karşına çıkıyor?","Where does this topic appear in your daily life?"),supports.A2],
+      [liveT("Bu konu hakkında bir arkadaşına hangi soruyu sorardın?","What question would you ask a classmate about this topic?"),supports.A2]
+    ];
+
+    if(stageKey==="warmup"){
+      return takeFiveUnique(qs,warmupExtras).map(([question,instruction])=>({question,instruction}));
+    }
+
+    if(stageKey==="vocabulary"){
+      return [
+        {question:liveT(topic+" ile ilgili bildiğin kelimeleri söyle.","Say the words you already know about "+lowerTopic+"."),instruction:liveT("Her öğrenci 1–2 kelime söylesin; tekrarları tahtada grupla.","Each student says 1–2 words; group repeated words on the board.")},
+        {question:liveT("Bu ders için en önemli 5 kelimeyi seç.","Choose the 5 most useful words for this lesson."),instruction:liveT("Anlamı ve telaffuzu hızlıca kontrol et.","Check meaning and pronunciation quickly.")},
+        {question:liveT("Hedef kelimelerden biriyle kısa bir cümle kur.","Use one target word in a short sentence."),instruction:liveT("Cümleyi seviyeye uygun ve kısa tut.","Keep the sentence short and level-appropriate.")},
+        {question:liveT("Hangi kelime en kolay, hangisi en zor? Neden?","Which word is easiest and which is hardest? Why?"),instruction:liveT("Öğrenciler karşılaştırıp kısa bir gerekçe versin.","Students compare and give a short reason.")},
+        {question:liveT("5 kelimeyi hızlı hatırlama turuyla tekrar et.","Review the 5 words with a quick recall round."),instruction:liveT("Bir sonraki aşamaya geçmeden önce son bir tekrar yap.","Do one final review before moving to the next stage.")}
+      ];
+    }
+
+    if(stageKey==="game"){
+      return [
+        {
+          question:liveT("Kısa Practice Game aşamasını başlat.","Start the short Practice Game stage."),
+          instruction:liveT("Takımsız, çiftler halinde veya isteğe bağlı iki takımla oynatabilirsin.","Use solo, pair work, or optional two-team mode.")
+        }
+      ];
+    }
+
+    if(stageKey==="speaking"){
+      const speakingExtras=[
+        [liveT(topic+" hakkında kendi görüşünü açıkla.","Explain your own view about "+lowerTopic+"."),supports.A2],
+        [liveT("Bir sınıf arkadaşının fikrine katılıyor musun? Neden?","Do you agree with a classmate’s idea? Why?"),supports.B1],
+        [liveT("Bu konu hakkında iki farklı bakış açısını karşılaştır.","Compare two different perspectives on this topic."),supports.B1],
+        [liveT("Gerçek hayattan bir örnek ver.","Give a real-life example."),supports.A2],
+        [liveT("Bu konu hakkında bir çözüm veya öneri sun.","Suggest one solution or recommendation about this topic."),supports.B1]
+      ];
+      return takeFiveUnique(qs.slice().reverse(),speakingExtras).map(([question,instruction])=>({question,instruction}));
+    }
+
+    if(stageKey==="exit"){
+      return [
+        {
+          question:liveT("Bugün öğrendiğin veya kullandığın bir şeyi söyle.","What is one thing you learned or used today?"),
+          instruction:liveT("Her öğrenci dersten çıkmadan önce tek bir kısa cevap versin.","Each student gives one short answer before the lesson ends.")
+        }
+      ];
+    }
+
+    return [{
+      question:liveT("Bir sonraki etkinliğe devam et.","Continue with the next activity."),
+      instruction:liveT("Öğretmen gerektiğinde yönergeyi sınıfa göre uyarlayabilir.","The teacher can adapt the instruction to the class when needed.")
+    }];
+  }
+
+  function stageLabelAt(index){
+    const row=liveRows()[index];
+    return $("b",row)?.textContent || liveT("Etkinlik","Activity");
+  }
+
+  function markPlanProgress(){
+    const rows=liveRows();
+    rows.forEach((row,i)=>{
+      row.classList.toggle("is-live-active",i===liveStageIndex);
+      row.classList.toggle("is-live-complete",i<liveStageIndex);
+    });
+  }
+
+  function paintLiveProgress(stageTotal,questionTotal){
+    if($("#liveProgressStage")){
+      $("#liveProgressStage").textContent=liveT(
+        "Aşama "+Math.min(liveStageIndex+1,stageTotal)+" / "+stageTotal,
+        "Stage "+Math.min(liveStageIndex+1,stageTotal)+" / "+stageTotal
+      );
+    }
+    if($("#liveProgressQuestion")){
+      $("#liveProgressQuestion").textContent=liveT(
+        "Soru "+Math.min(liveQuestionIndex+1,questionTotal)+" / "+questionTotal,
+        "Question "+Math.min(liveQuestionIndex+1,questionTotal)+" / "+questionTotal
+      );
+    }
+    const stagePct=stageTotal?((liveStageIndex+(questionTotal?liveQuestionIndex/questionTotal:0))/stageTotal)*100:0;
+    if($("#liveProgressFill"))$("#liveProgressFill").style.width=Math.max(0,Math.min(100,stagePct))+"%";
+  }
+
+  function finishLiveLesson(){
+    const rows=liveRows();
+    rows.forEach(row=>{
+      row.classList.remove("is-live-active");
+      row.classList.add("is-live-complete");
+    });
+    if(modal){
+      modal.dataset.stageIndex=String(rows.length);
+      modal.dataset.questionIndex="0";
+      modal.dataset.completed="true";
+    }
+    $("#modalStep").textContent=liveT("Ders tamamlandı","Lesson complete");
+    $("#liveStage").textContent=liveT("TAMAMLANDI","FINISHED");
+    $("#liveQuestion").textContent=liveT("Ders akışı tamamlandı ✓","Lesson flow completed ✓");
+    $("#liveInstruction").textContent=liveT("Tüm aşamaları tamamladın. İstersen dersi kapatabilir veya yeniden başlatabilirsin.","All stages are complete. You can close the lesson or start it again.");
+    if($("#liveProgressStage"))$("#liveProgressStage").textContent=liveT("Tüm aşamalar tamamlandı","All stages complete");
+    if($("#liveProgressQuestion"))$("#liveProgressQuestion").textContent="";
+    if($("#liveProgressFill"))$("#liveProgressFill").style.width="100%";
+    const next=$("#nextLiveQuestion");
+    if(next){
+      next.textContent=liveT("Dersi yeniden başlat ↻","Restart lesson ↻");
+      next.dataset.action="restart";
+    }
+  }
+
   function updateLive(){
     const rows=liveRows();
-    const total=Math.max(1,rows.length);
-    liveIndex=((liveIndex%total)+total)%total;
-    const row=rows[liveIndex];
-    const stage=$("b",row)?.textContent || "LIVE";
-    const rawQs=getQuestions();
-    const qs=Array.isArray(rawQs)&&rawQs.length?rawQs:[["Let’s start speaking.",supports.A2]];
-    const pair=Array.isArray(qs[liveIndex % qs.length])?qs[liveIndex % qs.length]:[String(qs[liveIndex % qs.length]||"Let’s start speaking."),supports.A2];
-    $("#modalStep").textContent=(liveIndex+1)+" / "+total;
-    $("#liveStage").textContent=stage.toUpperCase();
-    if(stage==="Vocabulary"){
-      $("#liveQuestion").textContent="Review the target vocabulary for "+($("#previewTopic")?.textContent||"this lesson")+".";
-      $("#liveInstruction").textContent="Check meaning, pronunciation and one example sentence.";
-    }else if(stage==="Practice Game"){
-      $("#liveQuestion").textContent="Open a short practice game or continue without a game.";
-      $("#liveInstruction").textContent="The teacher decides: no teams, pair work or optional team mode.";
-    }else if(stage==="Exit"){
-      $("#liveQuestion").textContent="What is one thing you learned or used today?";
-      $("#liveInstruction").textContent="Give one short answer before the lesson ends.";
-    }else{
-      $("#liveQuestion").textContent=pair[0];
-      $("#liveInstruction").textContent=pair[1];
+    if(!rows.length){
+      finishLiveLesson();
+      return;
     }
-    $("#modalClassName").textContent=$("#className").value || "Class";
+    if(liveStageIndex>=rows.length){
+      finishLiveLesson();
+      return;
+    }
+
+    const row=rows[liveStageIndex];
+    const stageKey=row?.dataset.stageKey||"warmup";
+    const stageTitle=$("b",row)?.textContent||stageKey;
+    const questions=stageQuestionSet(stageKey);
+    liveQuestionIndex=Math.max(0,Math.min(liveQuestionIndex,Math.max(0,questions.length-1)));
+    const item=questions[liveQuestionIndex]||questions[0];
+
+    if(modal){
+      modal.dataset.stageIndex=String(liveStageIndex);
+      modal.dataset.questionIndex=String(liveQuestionIndex);
+      modal.dataset.stageKey=stageKey;
+      modal.dataset.completed="false";
+    }
+
+    $("#modalStep").textContent=liveT(
+      "Aşama "+(liveStageIndex+1)+"/"+rows.length+" · Soru "+(liveQuestionIndex+1)+"/"+questions.length,
+      "Stage "+(liveStageIndex+1)+"/"+rows.length+" · Question "+(liveQuestionIndex+1)+"/"+questions.length
+    );
+    $("#liveStage").textContent=String(stageTitle).toUpperCase();
+    $("#liveQuestion").textContent=item.question;
+    $("#liveInstruction").textContent=item.instruction;
+    $("#modalClassName").textContent=$("#className").value||"Class";
+    paintLiveProgress(rows.length,questions.length);
+    markPlanProgress();
+
+    const next=$("#nextLiveQuestion");
+    if(next){
+      const lastQuestion=liveQuestionIndex===questions.length-1;
+      const lastStage=liveStageIndex===rows.length-1;
+      next.dataset.action="next";
+      if(lastQuestion&&lastStage){
+        next.textContent=liveT("Dersi tamamla ✓","Finish lesson ✓");
+      }else if(lastQuestion){
+        const nextLabel=stageLabelAt(liveStageIndex+1);
+        next.textContent=liveT(nextLabel+" aşamasına geç →","Go to "+nextLabel+" →");
+      }else{
+        next.textContent=liveT("Sonraki soru →","Next question →");
+      }
+    }
   }
-  $("#startDemoLesson")?.addEventListener("click",()=>{liveIndex=0;blue=0;orange=0;if($("#blueScore"))$("#blueScore").textContent=0;if($("#orangeScore"))$("#orangeScore").textContent=0;updateLive();modal.classList.add("open");modal.setAttribute("aria-hidden","false");});
-  $("#closeLessonModal")?.addEventListener("click",()=>{modal.classList.remove("open");modal.setAttribute("aria-hidden","true");});
-  $("#nextLiveQuestion")?.addEventListener("click",()=>{const total=Math.max(1,liveRows().length);liveIndex=(liveIndex+1)%total;updateLive();});
+
+  function startLiveLessonUI(){
+    liveStageIndex=0;
+    liveQuestionIndex=0;
+    blue=0;
+    orange=0;
+    if($("#blueScore"))$("#blueScore").textContent="0";
+    if($("#orangeScore"))$("#orangeScore").textContent="0";
+    const next=$("#nextLiveQuestion");
+    if(next)next.dataset.action="next";
+    updateLive();
+    modal?.classList.add("open");
+    modal?.setAttribute("aria-hidden","false");
+    document.body.classList.add("edu-modal-open");
+  }
+
+  function closeLiveLessonUI(){
+    modal?.classList.remove("open");
+    modal?.setAttribute("aria-hidden","true");
+    document.body.classList.remove("edu-modal-open");
+  }
+
+  function advanceLiveLesson(){
+    const rows=liveRows();
+    if(!rows.length)return finishLiveLesson();
+
+    if($("#nextLiveQuestion")?.dataset.action==="restart"||liveStageIndex>=rows.length){
+      startLiveLessonUI();
+      return;
+    }
+
+    const stageKey=rows[liveStageIndex]?.dataset.stageKey||"warmup";
+    const questions=stageQuestionSet(stageKey);
+
+    if(liveQuestionIndex<questions.length-1){
+      liveQuestionIndex++;
+      updateLive();
+      return;
+    }
+
+    if(liveStageIndex<rows.length-1){
+      liveStageIndex++;
+      liveQuestionIndex=0;
+      updateLive();
+      return;
+    }
+
+    liveStageIndex=rows.length;
+    liveQuestionIndex=0;
+    finishLiveLesson();
+  }
+
+  window.ESCEduLive={
+    start:startLiveLessonUI,
+    close:closeLiveLessonUI,
+    next:advanceLiveLesson,
+    refresh:updateLive,
+    getState:()=>({
+      stageIndex:liveStageIndex,
+      questionIndex:liveQuestionIndex,
+      completed:modal?.dataset.completed==="true",
+      stageKey:modal?.dataset.stageKey||null
+    })
+  };
+
+  $("#closeLessonModal")?.addEventListener("click",closeLiveLessonUI);
+  $("#lessonModal")?.addEventListener("click",e=>{if(e.target===modal)closeLiveLessonUI();});
+  $("#nextLiveQuestion")?.addEventListener("click",advanceLiveLesson);
   $("#addBlue")?.addEventListener("click",()=>{$("#blueScore").textContent=blue+=10;});
   $("#addOrange")?.addEventListener("click",()=>{$("#orangeScore").textContent=orange+=10;});
 
