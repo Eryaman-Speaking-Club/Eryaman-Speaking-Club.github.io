@@ -551,3 +551,15 @@
   .game-timer-actions{width:100%}
   .game-timer-actions button{flex:1}
 }
+
+.game-modal-card{
+  overflow-y:auto!important;
+  justify-content:flex-start!important;
+  overscroll-behavior:contain;
+}
+.game-modal-head{flex:0 0 auto}
+.game-task-card{
+  min-height:clamp(300px,46vh,520px)!important;
+  flex:0 0 auto;
+}
+.game-modal-help,.mode-switch-row,.game-modal-actions,.game-team-zone,.game-timer{flex:0 0 auto}
