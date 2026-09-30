@@ -975,6 +975,20 @@
     return out.toLowerCase()===clean.toLowerCase() ? clean.split("").reverse().join("") : out;
   }
 
+  function shuffleSentence(sentence){
+    const original=String(sentence||"").trim().split(/\s+/).filter(Boolean);
+    if(original.length<2)return original.join(" / ");
+    const arr=[...original];
+    for(let i=arr.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [arr[i],arr[j]]=[arr[j],arr[i]];
+    }
+    if(arr.join(" ")===original.join(" ")){
+      arr.push(arr.shift());
+    }
+    return arr.join(" / ");
+  }
+
   const tabooOverrides={
     passport:["document","border","visa","country","travel"],
     airport:["plane","flight","terminal","departure","travel"],
@@ -1189,7 +1203,7 @@
       },
       sentence:{
         label:"SENTENCE BUILDER",
-        main:sentence.split(" ").sort(()=>Math.random()-.5).join(" / "),
+        main:shuffleSentence(sentence),
         support:"Put the words in the correct order.",
         answer:[sentence],
         revealLabel:"Show correct sentence"
