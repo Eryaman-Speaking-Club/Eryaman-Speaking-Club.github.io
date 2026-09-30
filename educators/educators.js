@@ -965,22 +965,97 @@
   }
 
   function shuffleWord(word){
-    const arr=word.split("");
+    const clean=String(word||"word");
+    const arr=clean.split("");
     for(let i=arr.length-1;i>0;i--){
       const j=Math.floor(Math.random()*(i+1));
       [arr[i],arr[j]]=[arr[j],arr[i]];
     }
     const out=arr.join("");
-    return out.toLowerCase()===word.toLowerCase() ? word.split("").reverse().join("") : out;
+    return out.toLowerCase()===clean.toLowerCase() ? clean.split("").reverse().join("") : out;
+  }
+
+  const tabooOverrides={
+    passport:["document","border","visa","country","travel"],
+    airport:["plane","flight","terminal","departure","travel"],
+    luggage:["bag","suitcase","pack","baggage","travel"],
+    ticket:["buy","seat","entry","travel","paper"],
+    hotel:["room","stay","guest","reception","booking"],
+    journey:["travel","trip","route","distance","destination"],
+    platform:["train","station","track","wait","departure"],
+    destination:["place","arrive","trip","travel","location"],
+    departure:["leave","time","flight","station","arrival"],
+    reservation:["booking","room","table","seat","hotel"],
+    itinerary:["plan","schedule","trip","route","travel"],
+    accommodation:["hotel","room","stay","lodging","place"],
+    recipe:["cook","instructions","dish","food","ingredients"],
+    ingredient:["recipe","food","cook","dish","part"],
+    cuisine:["food","culture","cooking","country","style"],
+    nutrition:["health","food","diet","body","healthy"],
+    assignment:["homework","teacher","school","task","deadline"],
+    deadline:["time","finish","due","assignment","late"],
+    curriculum:["school","subjects","course","teach","content"],
+    privacy:["personal","information","data","secret","access"],
+    algorithm:["computer","rules","steps","data","program"],
+    automation:["technology","automatic","tasks","machine","human"],
+    commute:["work","home","travel","daily","transport"],
+    chores:["home","jobs","clean","routine","house"],
+    habit:["regular","routine","often","daily","behavior"]
+  };
+
+  const topicTabooFallbacks={
+    travel:["trip","travel","place","holiday","go","journey"],
+    food:["food","eat","cook","meal","taste","kitchen"],
+    school:["school","student","teacher","class","learn","study"],
+    hobbies:["hobby","free time","fun","activity","practice","skill"],
+    technology:["technology","device","screen","internet","computer","digital"],
+    "daily-life":["daily","routine","time","home","work","everyday"]
+  };
+
+  function tabooCluesFor(word,topic){
+    const target=String(word||"").toLowerCase();
+    const direct=tabooOverrides[target]||[];
+    const defTokens=String(definitions[target]||"")
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g," ")
+      .split(/\s+/)
+      .filter(x=>x.length>3&&!["that","where","when","with","from","someone","something","used","your","someone"].includes(x));
+    const fallback=topicTabooFallbacks[topic]||topicTabooFallbacks.travel;
+    const pool=[...direct,...defTokens,...fallback,...(vocab[topic]||[])];
+    const out=[];
+    pool.forEach(x=>{
+      const clean=String(x||"").trim();
+      if(!clean||clean.toLowerCase()===target||out.some(y=>y.toLowerCase()===clean.toLowerCase()))return;
+      out.push(clean);
+    });
+    return out.slice(0,5);
+  }
+
+  function missingWordChallenge(word,topicName){
+    const def=definitions[word];
+    if(def){
+      return {
+        main:"_____ — "+def,
+        support:"Which target word matches this definition?",
+        answer:[String(word).toUpperCase()]
+      };
+    }
+    return {
+      main:"Complete the missing "+topicName+" word: "+String(word).charAt(0).toUpperCase()+" "+"_ ".repeat(Math.max(2,String(word).length-1)).trim(),
+      support:"Use the topic and first letter as your clue.",
+      answer:[String(word).toUpperCase()]
+    };
   }
 
   function gamePrompt(type, round){
     const p=currentProfile();
     const words=profileWords();
-    const word=words[round % words.length];
+    const safeWords=Array.isArray(words)&&words.length?words:["word"];
+    const word=safeWords[Math.abs(Number(round)||0) % safeWords.length];
     const sentenceList=topicSentences[p.topic] || topicSentences.travel;
     const sentence=sentenceList[Math.min(sentenceList.length-1, p.level==="Pre-A1"||p.level==="A1"?0:p.level==="A2"?1:p.level==="B1"?2:3)];
     const topicName=p.topic.replace("-"," ");
+    const missing=missingWordChallenge(word,topicName);
     const genericQuestions = {
       travel:["Where would you like to travel next?","What makes a trip enjoyable?","Is it better to plan everything before a trip?"],
       food:["What meal could you eat every week?","What makes food healthy?","How does food connect people and cultures?"],
@@ -991,14 +1066,17 @@
     };
     const questions=genericQuestions[p.topic]||genericQuestions.travel;
     const qIndex = p.level==="Pre-A1"||p.level==="A1" ? 0 : p.level==="A2" ? 1 : 2;
-    const question=questions[(qIndex+round)%questions.length];
+    const question=questions[(qIndex+(Math.abs(Number(round)||0)))%questions.length];
 
     const data={
       taboo:{
         label:"TABOO · 60 SEC",
-        main:word.toUpperCase(),
-        support:"Explain the word without using the hidden taboo clues.",
-        answer:["Do not say",topicName,definitions[word] ? definitions[word].split(" ").slice(0,3).join(" ") : "related word"]
+        main:String(word).toUpperCase(),
+        support:"Explain the target word without saying any of the forbidden words below.",
+        visibleLabel:"DO NOT SAY",
+        visible:tabooCluesFor(word,p.topic),
+        answer:[],
+        timerSeconds:60
       },
       rather:{
         label:"WOULD YOU RATHER?",
@@ -1007,67 +1085,86 @@
              p.topic==="food" ? "Eat the SAME BREAKFAST or the SAME DINNER for a month?" :
              "Have more FREE TIME or more MONEY for experiences?",
         support:p.level==="Pre-A1"||p.level==="A1" ? "Choose one and give a short reason." : "Choose a side, explain why, then ask a follow-up question.",
-        answer:["A","B","Why?"]
+        visibleLabel:"YOUR TASK",
+        visible:["Choose A or B","Give a reason","Ask a follow-up"],
+        answer:[]
       },
       sentence:{
         label:"SENTENCE BUILDER",
         main:sentence.split(" ").sort(()=>Math.random()-.5).join(" / "),
         support:"Put the words in the correct order.",
-        answer:[sentence]
+        answer:[sentence],
+        revealLabel:"Show correct sentence"
       },
       wheel:{
         label:"SPEAKING WHEEL",
         main:question,
         support:p.level==="Pre-A1" ? "Use words or one short sentence." : p.level==="A1" ? "Answer in 1–2 sentences." : p.level==="A2" ? "Give a reason and ask one follow-up." : "Develop your answer and support it with an example.",
-        answer:["Think","Answer","Follow-up"]
+        visibleLabel:"SPEAKING FLOW",
+        visible:["Think","Answer","Follow-up"],
+        answer:[]
       },
       memory:{
         label:"MEMORY MATCH",
-        main:word.toUpperCase(),
-        support:"Which meaning matches this word?",
-        answer:[definitions[word] || `a useful ${topicName} word`]
+        main:String(word).toUpperCase(),
+        support:"Say or choose the meaning of this word.",
+        answer:[definitions[word] || ("a useful "+topicName+" word")],
+        revealLabel:"Show meaning"
       },
       quiz:{
-        label:"TEAM QUIZ",
-        main:`What does “${word}” mean?`,
-        support:"Teams discuss for 15 seconds, then answer.",
-        answer:[definitions[word] || `It is connected with ${topicName}.`]
+        label:"TEAM QUIZ · 15 SEC",
+        main:"What does “"+word+"” mean?",
+        support:"Discuss briefly, then give one clear answer.",
+        answer:[definitions[word] || ("It is connected with "+topicName+".")],
+        revealLabel:"Reveal answer",
+        timerSeconds:15
       },
       scramble:{
         label:"WORD SCRAMBLE",
         main:shuffleWord(word).toUpperCase(),
-        support:`Unscramble this ${topicName} word.`,
-        answer:[word.toUpperCase()]
+        support:"Unscramble this "+topicName+" word.",
+        answer:[String(word).toUpperCase()],
+        revealLabel:"Reveal word"
       },
       missing:{
         label:"MISSING WORD",
-        main:sentence.replace(new RegExp("\\b"+word+"\\b","i"),"_____"),
-        support:"Complete the sentence with the best word. If the target word is not in this sentence, suggest a natural alternative.",
-        answer:[sentence]
+        main:missing.main,
+        support:missing.support,
+        answer:missing.answer,
+        revealLabel:"Reveal missing word"
       },
       hotseat:{
         label:"HOT SEAT · 60 SEC",
         main:question,
-        support:"Answer quickly. Teacher presses Next for another prompt.",
-        answer:["Keep talking","No long pause","+1 point"]
+        support:"Answer quickly, then press Next for another prompt.",
+        visibleLabel:"RULES",
+        visible:["Keep talking","No long pause","Next = new prompt"],
+        answer:[],
+        timerSeconds:60
       },
       category:{
         label:"CATEGORY RACE · 30 SEC",
-        main:`Name ${p.level==="Pre-A1"?3:p.level==="A1"?5:p.level==="A2"?6:8} things connected with ${topicName}.`,
+        main:"Name "+(p.level==="Pre-A1"?3:p.level==="A1"?5:p.level==="A2"?6:8)+" things connected with "+topicName+".",
         support:"One point for each correct word. No repeats.",
-        answer:words.slice(0,8)
+        answer:safeWords.slice(0,8).map(x=>String(x).toUpperCase()),
+        revealLabel:"Show sample answers",
+        timerSeconds:30
       },
       roleplay:{
         label:"ROLE PLAY",
         main:(roleplays[p.topic]||roleplays.travel)[ageBand(p.age)],
         support:p.level==="Pre-A1"||p.level==="A1" ? "Use the useful phrases you know." : "Stay in role for at least one minute and reach a clear outcome.",
-        answer:["Student A","Student B","Swap roles"]
+        visibleLabel:"ROLE FLOW",
+        visible:["Student A starts","Student B responds","Swap roles"],
+        answer:[]
       },
       story:{
         label:"STORY CHAIN",
-        main:p.age==="6-8"||p.age==="9-11" ? `Yesterday, I found a strange ${word}...` : `Everything was normal until someone mentioned the ${word}...`,
+        main:p.age==="6-8"||p.age==="9-11" ? "Yesterday, I found a strange "+word+"..." : "Everything was normal until someone mentioned the "+word+"...",
         support:"Each student adds one sentence. Keep the story connected.",
-        answer:[p.level==="B1"||p.level==="B2" ? "Use at least one linking phrase." : "Use complete sentences."]
+        visibleLabel:"RULE",
+        visible:[p.level==="B1"||p.level==="B2" ? "Use at least one linking phrase" : "Use complete sentences"],
+        answer:[]
       },
       error:{
         label:"ERROR HUNTER",
@@ -1079,13 +1176,17 @@
         answer:[p.level==="Pre-A1"||p.level==="A1" ? "She goes to school every day." :
                 p.level==="A2" ? "I went there last weekend." :
                 p.level==="B1" ? "If I have time, I will join you." :
-                "Despite being tired, she continued working."]
+                "Despite being tired, she continued working."],
+        revealLabel:"Show correction"
       },
       pictionary:{
-        label:"PICTIONARY",
-        main:word.toUpperCase(),
-        support:"One student draws. No letters, numbers or speaking.",
-        answer:["Draw","Guess","30 sec"]
+        label:"PICTIONARY · 30 SEC",
+        main:String(word).toUpperCase(),
+        support:"One student draws the target. Others guess.",
+        visibleLabel:"DO NOT",
+        visible:["No letters","No numbers","No talking"],
+        answer:[],
+        timerSeconds:30
       },
       findsomeone:{
         label:"FIND SOMEONE WHO...",
@@ -1096,7 +1197,9 @@
              p.topic==="technology" ? "has deleted an app because it wasted time" :
              "changed one part of their daily routine recently",
         support:"Find one person, ask a follow-up question, then report the answer.",
-        answer:["Find","Ask","Report"]
+        visibleLabel:"3 STEPS",
+        visible:["Find","Ask","Report"],
+        answer:[]
       }
     };
     return data[type] || data.wheel;
