@@ -1053,7 +1053,8 @@
     const safeWords=Array.isArray(words)&&words.length?words:["word"];
     const word=safeWords[Math.abs(Number(round)||0) % safeWords.length];
     const sentenceList=topicSentences[p.topic] || topicSentences.travel;
-    const sentence=sentenceList[Math.min(sentenceList.length-1, p.level==="Pre-A1"||p.level==="A1"?0:p.level==="A2"?1:p.level==="B1"?2:3)];
+    const baseSentenceIndex=Math.min(sentenceList.length-1, p.level==="Pre-A1"||p.level==="A1"?0:p.level==="A2"?1:p.level==="B1"?2:3);
+    const sentence=sentenceList[(baseSentenceIndex+(Math.abs(Number(round)||0)))%sentenceList.length];
     const topicName=p.topic.replace("-"," ");
     const missing=missingWordChallenge(word,topicName);
     const genericQuestions = {
@@ -1066,7 +1067,107 @@
     };
     const questions=genericQuestions[p.topic]||genericQuestions.travel;
     const qIndex = p.level==="Pre-A1"||p.level==="A1" ? 0 : p.level==="A2" ? 1 : 2;
-    const question=questions[(qIndex+(Math.abs(Number(round)||0)))%questions.length];
+    const roundNo=Math.abs(Number(round)||0);
+    const question=questions[(qIndex+roundNo)%questions.length];
+
+    const ratherBank={
+      travel:["Travel by PLANE or TRAIN?","Visit a BIG CITY or a QUIET ISLAND?","Plan every detail or travel SPONTANEOUSLY?"],
+      food:["Eat the SAME BREAKFAST or the SAME DINNER for a month?","Give up SWEETS or FAST FOOD for a month?","Cook at HOME or eat at a RESTAURANT?"],
+      school:["Have MORE HOMEWORK or MORE EXAMS?","Study ALONE or with a GROUP?","Start school EARLIER or finish LATER?"],
+      hobbies:["Choose one hobby FOREVER or try a NEW hobby every month?","Do a hobby ALONE or with FRIENDS?","Spend free time OUTSIDE or ONLINE?"],
+      technology:["Give up SOCIAL MEDIA or VIDEO GAMES for a month?","Use only a PHONE or only a COMPUTER for a week?","Have MORE PRIVACY or MORE PERSONALIZATION online?"],
+      "daily-life":["Have more FREE TIME or more MONEY for experiences?","Wake up VERY EARLY or stay up VERY LATE?","Have a STRICT ROUTINE or a FLEXIBLE ROUTINE?"]
+    };
+    const ratherOptions=ratherBank[p.topic]||ratherBank["daily-life"];
+    const ratherPrompt=ratherOptions[roundNo%ratherOptions.length];
+
+    const categoryBank={
+      travel:["travel words","things you pack for a trip","places or services a traveller may use"],
+      food:["foods or ingredients","things you find in a kitchen","words that describe taste or food"],
+      school:["school objects","school subjects","things students do at school"],
+      hobbies:["hobbies or free-time activities","things used for hobbies","verbs connected with free time"],
+      technology:["devices or apps","things people do online","online safety or privacy words"],
+      "daily-life":["daily activities","places you go during a normal week","things you do before work or school"]
+    };
+    const categoryOptions=categoryBank[p.topic]||categoryBank["daily-life"];
+    const categoryPrompt=categoryOptions[roundNo%categoryOptions.length];
+
+    const findSomeoneBank={
+      travel:["has visited a place they want to return to","prefers train travel to flying","has planned a trip completely by themselves"],
+      food:["can cook a meal they are proud of","has tried a food they initially disliked","prefers cooking at home to eating out"],
+      school:["has learned something useful outside school","has a study technique that really works","would change one rule at school"],
+      hobbies:["started a new hobby in the last year","has a hobby most people do not know about","would like to learn a creative hobby"],
+      technology:["has deleted an app because it wasted time","uses a tool that saves them time every day","has changed a privacy setting recently"],
+      "daily-life":["changed one part of their daily routine recently","has a morning habit they recommend","is trying to spend less time on one daily activity"]
+    };
+    const findOptions=findSomeoneBank[p.topic]||findSomeoneBank["daily-life"];
+    const findPrompt=findOptions[roundNo%findOptions.length];
+
+    const errorBank={
+      "Pre-A1":[
+        ["She go to school every day.","She goes to school every day."],
+        ["He have a blue phone.","He has a blue phone."],
+        ["They is very happy today.","They are very happy today."]
+      ],
+      A1:[
+        ["She go to school every day.","She goes to school every day."],
+        ["I am play football on Fridays.","I play football on Fridays."],
+        ["He don't like spicy food.","He doesn't like spicy food."]
+      ],
+      A2:[
+        ["I have went there last weekend.","I went there last weekend."],
+        ["She didn't saw the message.","She didn't see the message."],
+        ["We are living here since 2024.","We have lived here since 2024."]
+      ],
+      B1:[
+        ["If I will have time, I will join you.","If I have time, I will join you."],
+        ["I suggested him to take the train.","I suggested that he take the train."],
+        ["Although it was raining, but we continued.","Although it was raining, we continued."]
+      ],
+      B2:[
+        ["Despite of being tired, she continued working.","Despite being tired, she continued working."],
+        ["Had I knew earlier, I would have changed it.","Had I known earlier, I would have changed it."],
+        ["The report, which I sent it yesterday, was incomplete.","The report, which I sent yesterday, was incomplete."]
+      ]
+    };
+    const errorOptions=errorBank[p.level]||errorBank.A2;
+    const errorItem=errorOptions[roundNo%errorOptions.length];
+
+    const roleplayVariantBank={
+      travel:{
+        child:["You are at a train station. Ask where the train goes and what time it leaves.","You are buying a ticket. Ask the price and destination.","You are lost on holiday. Ask someone for directions."],
+        teen:["You and a friend are planning a weekend trip with a limited budget. Agree on transport, accommodation and one activity.","Your train is delayed. Ask staff for information and decide what to do.","Two friends want different holiday destinations. Negotiate one plan."],
+        adult:["Your hotel room has a problem. Explain it politely and negotiate a practical solution with reception.","Your flight is cancelled. Ask the airline for alternatives and explain your priorities.","You are renting a car. Ask about price, insurance and return conditions."]
+      },
+      food:{
+        child:["You are ordering a snack. Ask for what you want and say thank you.","Ask a friend what food they like and choose one snack together.","You are in a café. Ask for a drink and one simple change."],
+        teen:["One person is a customer with a food allergy; the other is a waiter. Ask and answer clear questions.","Plan a low-cost meal with a friend and agree on ingredients.","A restaurant order is wrong. Explain the problem politely."],
+        adult:["A restaurant order is incorrect. Explain the problem politely and agree on a solution.","Book a table and ask about dietary requirements.","Discuss with a colleague where to eat when you have different preferences."]
+      },
+      school:{
+        child:["Ask a classmate what homework you have and when it is due.","Borrow a school item from a classmate and explain why you need it.","Ask the teacher for help with one task."],
+        teen:["A student asks a teacher for more time on an assignment. Explain the reason and respond.","Two students plan how to divide a group project.","Discuss whether a school rule should be changed."],
+        adult:["Discuss a training course with a colleague and decide which option fits your goals.","Ask a course administrator to change your schedule.","Give constructive feedback about a training session."]
+      },
+      hobbies:{
+        child:["Invite a friend to do a hobby with you after school.","Explain the rules of your favorite hobby to a friend.","Ask a friend to teach you a simple hobby skill."],
+        teen:["Persuade a friend to try your hobby for one month.","Plan a weekend activity when two friends prefer different hobbies.","Explain why your hobby deserves more time in your schedule."],
+        adult:["Explain a hobby to someone who thinks they are too busy to start anything new.","Join a local club and ask about schedule, cost and equipment.","Convince a friend to try a new activity with you."]
+      },
+      technology:{
+        child:["Ask a friend for help using a simple app.","Explain how to take and send a photo.","Ask permission before using someone else's device."],
+        teen:["One person wants to post a group photo; the other is uncomfortable. Discuss what to do.","A friend spends too much time on an app. Suggest practical changes.","Choose between two devices for school and justify the choice."],
+        adult:["Explain a digital service problem to customer support and ask for a specific solution.","Discuss a privacy concern with a service provider.","Negotiate a refund for a subscription you could not use."]
+      },
+      "daily-life":{
+        child:["Ask a friend what they do after school.","Plan an afternoon with a friend and agree on a time.","Explain your morning routine to a classmate."],
+        teen:["Two friends are trying to plan a study session around busy schedules.","One friend is always late. Discuss a solution.","Plan a balanced weekday with school, rest and free time."],
+        adult:["Two colleagues need to rearrange a meeting because one person's schedule changed.","Call to reschedule an appointment and offer alternatives.","Discuss how to share household tasks fairly."]
+      }
+    };
+    const band=ageBand(p.age);
+    const roleplayOptions=(roleplayVariantBank[p.topic]||roleplayVariantBank["daily-life"])[band]||[(roleplays[p.topic]||roleplays.travel)[band]];
+    const roleplayPrompt=roleplayOptions[roundNo%roleplayOptions.length];
 
     const data={
       taboo:{
@@ -1080,10 +1181,7 @@
       },
       rather:{
         label:"WOULD YOU RATHER?",
-        main:p.age==="6-8"||p.age==="9-11" ? "Travel by PLANE or TRAIN?" :
-             p.topic==="technology" ? "Give up SOCIAL MEDIA or VIDEO GAMES for a month?" :
-             p.topic==="food" ? "Eat the SAME BREAKFAST or the SAME DINNER for a month?" :
-             "Have more FREE TIME or more MONEY for experiences?",
+        main:ratherPrompt,
         support:p.level==="Pre-A1"||p.level==="A1" ? "Choose one and give a short reason." : "Choose a side, explain why, then ask a follow-up question.",
         visibleLabel:"YOUR TASK",
         visible:["Choose A or B","Give a reason","Ask a follow-up"],
@@ -1144,7 +1242,7 @@
       },
       category:{
         label:"CATEGORY RACE · 30 SEC",
-        main:"Name "+(p.level==="Pre-A1"?3:p.level==="A1"?5:p.level==="A2"?6:8)+" things connected with "+topicName+".",
+        main:"Name "+(p.level==="Pre-A1"?3:p.level==="A1"?5:p.level==="A2"?6:8)+" "+categoryPrompt+".",
         support:"One point for each correct word. No repeats.",
         answer:safeWords.slice(0,8).map(x=>String(x).toUpperCase()),
         revealLabel:"Show sample answers",
@@ -1152,7 +1250,7 @@
       },
       roleplay:{
         label:"ROLE PLAY",
-        main:(roleplays[p.topic]||roleplays.travel)[ageBand(p.age)],
+        main:roleplayPrompt,
         support:p.level==="Pre-A1"||p.level==="A1" ? "Use the useful phrases you know." : "Stay in role for at least one minute and reach a clear outcome.",
         visibleLabel:"ROLE FLOW",
         visible:["Student A starts","Student B responds","Swap roles"],
@@ -1168,15 +1266,9 @@
       },
       error:{
         label:"ERROR HUNTER",
-        main:p.level==="Pre-A1"||p.level==="A1" ? "She go to school every day." :
-             p.level==="A2" ? "I have went there last weekend." :
-             p.level==="B1" ? "If I will have time, I will join you." :
-             "Despite of being tired, she continued working.",
+        main:errorItem[0],
         support:"Find the error, correct it and explain the rule.",
-        answer:[p.level==="Pre-A1"||p.level==="A1" ? "She goes to school every day." :
-                p.level==="A2" ? "I went there last weekend." :
-                p.level==="B1" ? "If I have time, I will join you." :
-                "Despite being tired, she continued working."],
+        answer:[errorItem[1]],
         revealLabel:"Show correction"
       },
       pictionary:{
@@ -1190,12 +1282,7 @@
       },
       findsomeone:{
         label:"FIND SOMEONE WHO...",
-        main:p.topic==="travel" ? "has visited a place they want to return to" :
-             p.topic==="food" ? "can cook a meal they are proud of" :
-             p.topic==="school" ? "has learned something useful outside school" :
-             p.topic==="hobbies" ? "started a new hobby in the last year" :
-             p.topic==="technology" ? "has deleted an app because it wasted time" :
-             "changed one part of their daily routine recently",
+        main:findPrompt,
         support:"Find one person, ask a follow-up question, then report the answer.",
         visibleLabel:"3 STEPS",
         visible:["Find","Ask","Report"],
