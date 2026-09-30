@@ -1212,45 +1212,164 @@
     error:"Error Hunter",pictionary:"Pictionary Prompt",findsomeone:"Find Someone Who"
   };
 
-  let activeGame="taboo", gameRound=0, gameBlue=0, gameOrange=0;
+  let activeGame="taboo", gameRound=0, gameBlue=0, gameOrange=0, activeGamePrompt=null;
+  let gameTimerId=null, gameTimerInitial=0, gameTimerRemaining=0;
   const gameModal=$("#gameModal");
+
+  function gameLang(tr,en){
+    return window.ESCEduI18n?.getLang?.()==="en" ? en : tr;
+  }
+
+  function stopGameTimer(){
+    if(gameTimerId){
+      clearInterval(gameTimerId);
+      gameTimerId=null;
+    }
+    $("#gameTimer")?.classList.remove("running");
+  }
+
+  function formatGameTime(seconds){
+    const s=Math.max(0,Number(seconds)||0);
+    const m=Math.floor(s/60);
+    const r=String(s%60).padStart(2,"0");
+    return m+":"+r;
+  }
+
+  function paintGameTimer(){
+    const value=$("#gameTimerValue");
+    if(value)value.textContent=formatGameTime(gameTimerRemaining);
+    const start=$("#gameTimerStart");
+    if(start){
+      start.textContent=gameTimerId
+        ? gameLang("Duraklat","Pause")
+        : gameTimerRemaining<=0
+          ? gameLang("Yeniden başlat","Restart")
+          : gameLang("Başlat","Start");
+    }
+    $("#gameTimer")?.classList.toggle("finished",gameTimerInitial>0&&gameTimerRemaining<=0);
+  }
+
+  function configureGameTimer(seconds){
+    stopGameTimer();
+    gameTimerInitial=Math.max(0,Number(seconds)||0);
+    gameTimerRemaining=gameTimerInitial;
+    const wrap=$("#gameTimer");
+    if(wrap)wrap.hidden=!gameTimerInitial;
+    paintGameTimer();
+  }
+
+  function toggleGameTimer(){
+    if(!gameTimerInitial)return;
+    if(gameTimerId){
+      stopGameTimer();
+      paintGameTimer();
+      return;
+    }
+    if(gameTimerRemaining<=0)gameTimerRemaining=gameTimerInitial;
+    $("#gameTimer")?.classList.remove("finished");
+    gameTimerId=setInterval(()=>{
+      gameTimerRemaining=Math.max(0,gameTimerRemaining-1);
+      paintGameTimer();
+      if(gameTimerRemaining<=0){
+        stopGameTimer();
+        paintGameTimer();
+      }
+    },1000);
+    $("#gameTimer")?.classList.add("running");
+    paintGameTimer();
+  }
+
+  function resetGameTimer(){
+    stopGameTimer();
+    gameTimerRemaining=gameTimerInitial;
+    $("#gameTimer")?.classList.remove("finished");
+    paintGameTimer();
+  }
+
+  function renderGameExtra(d,revealed=false){
+    const extra=$("#gameTaskExtra");
+    if(!extra)return;
+    const visible=Array.isArray(d?.visible)?d.visible.filter(Boolean):[];
+    const answers=Array.isArray(d?.answer)?d.answer.filter(Boolean):[];
+    let html="";
+    if(visible.length){
+      html+='<div class="game-extra-group always-visible">';
+      html+='<b>'+esc(d.visibleLabel||gameLang("OYUN İPUÇLARI","GAME NOTES"))+'</b>';
+      html+='<div>'+visible.map(x=>'<span>'+esc(x)+'</span>').join("")+'</div></div>';
+    }
+    if(answers.length){
+      if(revealed){
+        html+='<div class="game-extra-group answer-group">';
+        html+='<b>'+esc(gameLang("CEVAP / İPUCU","ANSWER / HINT"))+'</b>';
+        html+='<div>'+answers.map(x=>'<span>'+esc(x)+'</span>').join("")+'</div></div>';
+      }else{
+        html+='<div class="game-hidden-note">'+esc(gameLang("Cevap gizli","Answer hidden"))+'</div>';
+      }
+    }
+    extra.classList.toggle("revealed",revealed);
+    extra.innerHTML=html;
+  }
+
+  function closeAdaptiveGame(){
+    stopGameTimer();
+    gameModal?.classList.remove("open");
+    gameModal?.setAttribute("aria-hidden","true");
+  }
+
   function paintGame(){
     const p=currentProfile();
     const d=gamePrompt(activeGame,gameRound);
+    activeGamePrompt=d;
     $("#gameModalTitle").textContent=gameNames[activeGame]||"Classroom Game";
     $("#gameModalType").textContent="ADAPTIVE GAME";
     $("#gameProfileBadge").textContent=`${p.age.replace("-","–")} · ${p.level} · ${p.topic.replace("-"," ")}`;
-    $("#gameTaskLabel").textContent=d.label;
-    $("#gameTaskMain").textContent=d.main;
-    $("#gameTaskSupport").textContent=d.support;
-    const extra=$("#gameTaskExtra");
-    if(extra){
-      extra.classList.remove("revealed");
-      extra.dataset.answer=JSON.stringify(d.answer||[]);
-      extra.innerHTML='<span>Answer / hint hidden</span>';
+    $("#gameTaskLabel").textContent=d.label||"CLASSROOM GAME";
+    $("#gameTaskMain").textContent=d.main||"Ready";
+    $("#gameTaskSupport").textContent=d.support||"Follow the instructions and continue.";
+    renderGameExtra(d,false);
+
+    const reveal=$("#revealGameAnswer");
+    const hasAnswer=Array.isArray(d.answer)&&d.answer.length>0;
+    if(reveal){
+      reveal.hidden=!hasAnswer;
+      reveal.textContent=d.revealLabel||gameLang("Cevabı / ipucunu göster","Reveal / Hint");
+      reveal.disabled=false;
     }
+
+    $("#nextGameRound").textContent=gameLang("Sonraki tur →","Next round →");
     $("#gameBlueScore").textContent=gameBlue;
     $("#gameOrangeScore").textContent=gameOrange;
+    configureGameTimer(d.timerSeconds||0);
   }
 
   $$("[data-launch-game]").forEach(b=>b.addEventListener("click",()=>{
     activeGame=b.dataset.launchGame;
-    gameRound=0;gameBlue=0;gameOrange=0;
+    gameRound=0;
+    gameBlue=0;
+    gameOrange=0;
     paintGame();
     gameModal?.classList.add("open");
     gameModal?.setAttribute("aria-hidden","false");
   }));
-  $("#closeGameModal")?.addEventListener("click",()=>{
-    gameModal?.classList.remove("open");gameModal?.setAttribute("aria-hidden","true");
+
+  $("#closeGameModal")?.addEventListener("click",closeAdaptiveGame);
+  $("#gameModal")?.addEventListener("click",e=>{if(e.target===gameModal)closeAdaptiveGame();});
+
+  $("#nextGameRound")?.addEventListener("click",()=>{
+    gameRound++;
+    paintGame();
   });
-  $("#nextGameRound")?.addEventListener("click",()=>{gameRound++;paintGame();});
-  $("#revealGameAnswer")?.addEventListener("click",()=>{
-    const extra=$("#gameTaskExtra");
-    if(!extra) return;
-    let a=[];try{a=JSON.parse(extra.dataset.answer||"[]")}catch{}
-    extra.classList.add("revealed");
-    extra.innerHTML=a.map(x=>`<span>${esc(x)}</span>`).join("") || "<span>No answer needed</span>";
+
+  $("#revealGameAnswer")?.addEventListener("click",e=>{
+    if(!activeGamePrompt)return;
+    renderGameExtra(activeGamePrompt,true);
+    e.currentTarget.disabled=true;
+    e.currentTarget.textContent=gameLang("Gösterildi ✓","Revealed ✓");
   });
+
+  $("#gameTimerStart")?.addEventListener("click",toggleGameTimer);
+  $("#gameTimerReset")?.addEventListener("click",resetGameTimer);
+
   $("#gameBluePlus")?.addEventListener("click",()=>{$("#gameBlueScore").textContent=++gameBlue;});
   $("#gameBlueMinus")?.addEventListener("click",()=>{$("#gameBlueScore").textContent=gameBlue=Math.max(0,gameBlue-1);});
   $("#gameOrangePlus")?.addEventListener("click",()=>{$("#gameOrangeScore").textContent=++gameOrange;});
@@ -1258,8 +1377,9 @@
 
   document.addEventListener("keydown",e=>{
     if(e.key==="Escape"){
-      gameModal?.classList.remove("open");
+      closeAdaptiveGame();
       $("#lessonModal")?.classList.remove("open");
+      $("#lessonModal")?.setAttribute("aria-hidden","true");
     }
   });
 })();
