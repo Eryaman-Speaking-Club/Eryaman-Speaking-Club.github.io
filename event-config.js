@@ -58,7 +58,8 @@
   function setPrice(card, amount, unit) {
     if (!card || amount === undefined || amount === null) return;
     const target = card.querySelector('.meetup-price-main');
-    if (target) target.innerHTML = '<strong>'+amount+' '+(CONFIG.pricing?.currency || CONFIG.online?.currency || 'TL')+'</strong><span>/ '+unit+'</span>';
+    const formatted = new Intl.NumberFormat(isEnglish ? 'en-US' : 'tr-TR').format(Number(amount));
+    if (target) target.innerHTML = '<strong>'+formatted+' '+(CONFIG.pricing?.currency || CONFIG.online?.currency || 'TL')+'</strong><span>/ '+unit+'</span>';
   }
 
   function applyPricing() {
@@ -67,8 +68,8 @@
       const title=(card.querySelector('h3')?.textContent||'').toLocaleLowerCase('tr-TR');
       if (card.classList.contains('online-plan')) setPrice(card,CONFIG.online.price,t('buluşma','meetup'));
       else if (title.includes('tek etkinlik') || title.includes('single')) setPrice(card,CONFIG.pricing.single,t('etkinlik','event'));
-      else if (title.includes('3 aylık') || title.includes('3 month')) setPrice(card,CONFIG.pricing.threeMonth,t('3 ay','3 months'));
-      else if (title.includes('1 aylık') || title.includes('1 month')) setPrice(card,CONFIG.pricing.oneMonth,t('ay','month'));
+      else if (title.includes('12 buluşma') || title.includes('12-meetup') || title.includes('12 meetup') || title.includes('3 aylık') || title.includes('3 month')) setPrice(card,CONFIG.pricing.threeMonth,t('12 buluşma','12 meetups'));
+      else if (title.includes('4 buluşma') || title.includes('4-meetup') || title.includes('4 meetup') || title.includes('1 aylık') || title.includes('1 month')) setPrice(card,CONFIG.pricing.oneMonth,t('4 buluşma','4 meetups'));
     });
   }
 
