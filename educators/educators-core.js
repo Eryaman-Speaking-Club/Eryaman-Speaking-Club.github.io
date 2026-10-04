@@ -611,6 +611,7 @@
     $('#closeLessonModal')?.addEventListener('click',()=>syncLiveFromModal().catch(()=>{}));
     $$('[data-launch-game]').forEach(b=>b.addEventListener('click',()=>setTimeout(()=>syncGameToLive().catch(()=>{}),120)));
     ['nextGameRound','gameBluePlus','gameBlueMinus','gameOrangePlus','gameOrangeMinus'].forEach(id=>$('#'+id)?.addEventListener('click',()=>setTimeout(()=>syncGameToLive().catch(()=>{}),80)));
+    document.addEventListener('esc:game-closed',()=>setTimeout(()=>syncLiveFromModal().catch(()=>{}),80));
 
     document.addEventListener('click',async e=>{
       const b=e.target.closest('[data-resume-live]');
