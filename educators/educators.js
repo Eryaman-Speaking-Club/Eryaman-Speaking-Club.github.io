@@ -500,6 +500,23 @@
     document.body.classList.add("edu-modal-open");
   }
 
+  function resumeLiveLessonUI(snapshot={}){
+    const rows=liveRows();
+    const maxStage=Math.max(0,rows.length-1);
+    liveStageIndex=Math.max(0,Math.min(Number(snapshot.current_index)||0,maxStage));
+    liveQuestionIndex=Math.max(0,Number(snapshot.current_payload?.question_index)||0);
+    blue=Number(snapshot.scores?.blue)||0;
+    orange=Number(snapshot.scores?.orange)||0;
+    if($("#blueScore"))$("#blueScore").textContent=String(blue);
+    if($("#orangeScore"))$("#orangeScore").textContent=String(orange);
+    const next=$("#nextLiveQuestion");
+    if(next)next.dataset.action="next";
+    updateLive();
+    modal?.classList.add("open");
+    modal?.setAttribute("aria-hidden","false");
+    document.body.classList.add("edu-modal-open");
+  }
+
   function closeLiveLessonUI(){
     modal?.classList.remove("open");
     modal?.setAttribute("aria-hidden","true");
@@ -538,6 +555,7 @@
 
   window.ESCEduLive={
     start:startLiveLessonUI,
+    resume:resumeLiveLessonUI,
     close:closeLiveLessonUI,
     next:advanceLiveLesson,
     refresh:updateLive,
