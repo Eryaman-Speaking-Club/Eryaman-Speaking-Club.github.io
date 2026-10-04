@@ -13,7 +13,7 @@
   async function getClient() {
     if (!isConfigured()) return null;
     if (!clientPromise) {
-      clientPromise = import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm')
+      clientPromise = import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/+esm')
         .then(({ createClient }) => createClient(config().url, config().anonKey, {
           auth: { persistSession:true, autoRefreshToken:true, detectSessionInUrl:true }
         }));
