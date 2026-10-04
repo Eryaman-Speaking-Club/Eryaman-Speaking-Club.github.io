@@ -196,7 +196,7 @@
   function printLesson(lesson) {
     const plan = Array.isArray(lesson.plan) ? lesson.plan : [];
     const rows = plan.map((step,i)=>`<tr><td>${i+1}</td><td>${esc(step.stage||step.title||'Stage')}</td><td>${esc(step.duration||'')}</td><td>${esc(step.prompt||step.mode||'')}</td></tr>`).join('');
-    const popup = window.open('','_blank','noopener,noreferrer');
+    const popup = window.open('','_blank','width=900,height=700');
     if(!popup) return alert('Yazdırma penceresi engellendi. Tarayıcıdan açılır pencerelere izin verin.');
     popup.document.write(`<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>${esc(lesson.title||'Ders Planı')}</title><style>
       body{font-family:Arial,sans-serif;color:#102d4e;margin:40px;line-height:1.5}h1{font-size:28px;margin:0 0 6px}.meta{color:#667b8e;margin-bottom:24px}
