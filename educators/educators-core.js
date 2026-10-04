@@ -179,9 +179,9 @@
 
     if (state.activeClass) {
       const fresh = state.classes.find(c => c.id === state.activeClass.id);
-      state.activeClass = fresh || state.classes[0] || null;
+      state.activeClass = fresh || state.classes.find(x=>x.is_active) || state.classes[0] || null;
     } else {
-      state.activeClass = state.classes[0] || null;
+      state.activeClass = state.classes.find(x=>x.is_active) || state.classes[0] || null;
     }
 
     state.activeLive = state.activeClass
@@ -247,11 +247,11 @@
       grid.innerHTML='<article class="empty-class-card"><h3>'+tx('Henüz sınıf yok.','No classes yet.')+'</h3><p>'+tx('“Yeni sınıf” ile ilk sınıfınızı oluşturun. Sistem otomatik katılım kodu üretir.','Create your first class. The system generates a join code automatically.')+'</p></article>';
       return;
     }
-    grid.innerHTML = state.classes.map(c => `<article class="${state.activeClass?.id===c.id?'selected-class':''}">
-      <div><span>${escapeHtml(c.name)}</span><small>${escapeHtml(c.age_group)} · ${escapeHtml(c.level)}</small></div>
+    grid.innerHTML = state.classes.map(c => `<article class="${state.activeClass?.id===c.id?'selected-class':''} ${c.is_active?'':'inactive-class'}">
+      <div><span>${escapeHtml(c.name)}</span><small>${escapeHtml(c.age_group)} · ${escapeHtml(c.level)} · ${c.is_active?tx("Aktif","Active"):tx("Kapalı","Closed")}</small></div>
       <strong>${c.students?.length || 0} ${tx("öğrenci","students")}</strong>
       <p>${escapeHtml(c.focus)} · ${tx("Kod","Code")} <b class="inline-code">${escapeHtml(c.join_code)}</b></p>
-      <div class="class-actions"><button type="button" data-live-class="${c.id}">${tx("Sınıfı kullan →","Use class →")}</button><button type="button" data-copy-class="${escapeHtml(c.join_code)}">${tx("Kodu kopyala","Copy code")}</button><button type="button" data-copy-class-link="${escapeHtml(c.join_code)}">${tx("Katılım linki","Copy join link")}</button></div>
+      <div class="class-actions"><button type="button" data-live-class="${c.id}" ${c.is_active?'':'disabled'}>${c.is_active?tx("Sınıfı kullan →","Use class →"):tx("Sınıf kapalı","Class closed")}</button><button type="button" data-copy-class="${escapeHtml(c.join_code)}" ${c.is_active?'':'disabled'}>${tx("Kodu kopyala","Copy code")}</button><button type="button" data-copy-class-link="${escapeHtml(c.join_code)}" ${c.is_active?'':'disabled'}>${tx("Katılım linki","Copy join link")}</button></div>
     </article>`).join('');
     $$('[data-live-class]',grid).forEach(b=>b.addEventListener('click',()=>{
       const c=state.classes.find(x=>x.id===b.dataset.liveClass); if(!c)return;
@@ -370,10 +370,18 @@
   }
 
   async function ensureActiveClass() {
-    if (state.activeClass) return state.activeClass;
-    if (!state.session) { openAuth('login'); throw new Error(tx('Önce öğretmen hesabına giriş yapın.','Sign in to your teacher account first.')); }
-    if (state.classes.length) {state.activeClass=state.classes[0];return state.activeClass;}
-    openClassModal();throw new Error(tx('Önce bir sınıf oluşturun.','Create a class first.'));
+    if (!state.session) {
+      openAuth('login');
+      throw new Error(tx('Önce öğretmen hesabına giriş yapın.','Sign in to your teacher account first.'));
+    }
+    if (state.activeClass?.is_active) return state.activeClass;
+    const active=state.classes.find(x=>x.is_active);
+    if (active) {
+      state.activeClass=active;
+      return active;
+    }
+    openClassModal();
+    throw new Error(tx('Aktif bir sınıf yok. Yeni bir sınıf oluşturun.','There is no active class. Create a new class.'));
   }
 
   async function persistLesson(startLive=false) {
@@ -484,12 +492,12 @@
     $('#eduClassForm')?.addEventListener('submit',createClass);
     $('[data-copy-code]')?.addEventListener('click',e=>{
       const code=state.activeClass?.join_code||'';
-      if(!code)return alert(tx('Önce bir sınıf oluşturun.','Create a class first.'));
+      if(!code||!state.activeClass?.is_active)return alert(tx('Aktif bir sınıf seçin.','Select an active class.'));
       copyText(code,e.currentTarget);
     });
     $('[data-copy-join-link]')?.addEventListener('click',e=>{
       const code=state.activeClass?.join_code||'';
-      if(!code)return alert(tx('Önce bir sınıf oluşturun.','Create a class first.'));
+      if(!code||!state.activeClass?.is_active)return alert(tx('Aktif bir sınıf seçin.','Select an active class.'));
       copyText(location.origin+'/join/?code='+encodeURIComponent(code),e.currentTarget);
     });
 
@@ -529,7 +537,7 @@
     // The embedded student demo stays on-page; the real student view opens from [data-open-student].
     $('[data-open-student]')?.addEventListener('click',()=>{
       const code=state.activeClass?.join_code||'';
-      if(!code)return alert(tx('Önce bir sınıf oluşturun.','Create a class first.'));
+      if(!code||!state.activeClass?.is_active)return alert(tx('Aktif bir sınıf seçin.','Select an active class.'));
       window.open('../join/?code='+encodeURIComponent(code),'_blank','noopener');
     });
 
