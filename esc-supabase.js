@@ -382,6 +382,20 @@
     return true;
   }
 
+  async function gradeEducatorAssignmentResult(resultId, score, feedback) {
+    const client = await getClient();
+    const session = await getSession();
+    if (!client || !session) throw new Error('Teacher login required.');
+    const numeric = score === '' || score === null || typeof score === 'undefined' ? null : Number(score);
+    const { data, error } = await client.rpc('edu_grade_assignment_result', {
+      p_result_id:resultId,
+      p_score:Number.isFinite(numeric) ? numeric : null,
+      p_feedback:String(feedback||'').trim().slice(0,1200)
+    });
+    if (error) throw error;
+    return data === true;
+  }
+
   async function listEducatorResults(limit = 500) {
     const client = await getClient();
     const session = await getSession();
@@ -700,7 +714,7 @@
     isConfigured,getClient,ping,getSession,onAuthStateChange,signUp,resendSignupConfirmation,sendPasswordReset,
     updatePassword,signIn,signOut,claimFirstAdmin,isAdmin,getGameContent,replaceGameContent,
     getGameSettings,saveGameSettings,ensureEducatorProfile,getEducatorProfile,updateEducatorProfile,createEducatorSchool,joinEducatorSchool,getEducatorSchoolState,shareEducatorSchoolLesson,unshareEducatorSchoolLesson,copyEducatorSchoolLesson,manageEducatorSchoolMember,leaveEducatorSchool,listEducatorClasses,
-    createEducatorClass,saveEducatorLesson,updateEducatorLesson,generateEducatorAssistantPack,getEducatorLesson,listEducatorLessons,deleteEducatorLesson,listEducatorResults,listEducatorSessions,
+    createEducatorClass,saveEducatorLesson,updateEducatorLesson,generateEducatorAssistantPack,getEducatorLesson,listEducatorLessons,deleteEducatorLesson,gradeEducatorAssignmentResult,listEducatorResults,listEducatorSessions,
     listPrivateStudents,createPrivateStudent,updatePrivateStudent,deletePrivateStudent,
     listAssignments,createAssignment,updateAssignment,deleteAssignment,
     listScheduleEvents,createScheduleEvent,updateScheduleEvent,deleteScheduleEvent,
