@@ -71,6 +71,49 @@
     </form>
   </div>
 
+  <div class="edu-class-layer" id="eduClassManageLayer" hidden>
+    <div class="edu-class-card class-manage-card">
+      <button class="edu-auth-close" id="eduClassManageClose" type="button" aria-label="Kapat">×</button>
+      <span class="edu-auth-kicker">CLASS MANAGEMENT</span>
+      <div class="class-manage-head">
+        <div><h2 id="manageClassHeading">Sınıfı yönet</h2><p id="manageClassMeta">Sınıf bilgileri ve öğrenci listesi</p></div>
+        <span class="class-status-pill" id="manageClassStatus">AKTİF</span>
+      </div>
+
+      <form id="eduClassManageForm">
+        <input id="manageClassId" type="hidden">
+        <label>Sınıf adı<input id="manageClassName" type="text" maxlength="80" required></label>
+        <div class="edu-class-two">
+          <label>Yaş grubu<select id="manageClassAge"><option value="6-8">6–8 · Kids</option><option value="9-11">9–11 · Junior</option><option value="12-14">12–14 · Pre-Teen</option><option value="15-17">15–17 · Teen</option><option value="18+">18+ · Adult</option></select></label>
+          <label>Seviye<select id="manageClassLevel"><option>Pre-A1</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option></select></label>
+        </div>
+        <div class="edu-class-two">
+          <label>Ana hedef<select id="manageClassFocus"><option value="speaking">Speaking</option><option value="vocabulary">Vocabulary</option><option value="grammar">Grammar</option><option value="mixed">Mixed</option></select></label>
+          <label>Maks. öğrenci<input id="manageClassMax" type="number" min="1" max="100" value="40"></label>
+        </div>
+        <div class="class-manage-code">
+          <div><small>CLASS CODE</small><strong id="manageClassCode">------</strong></div>
+          <button type="button" id="manageCopyCode">Kodu kopyala</button>
+          <button type="button" id="manageCopyLink">Katılım linkini kopyala</button>
+        </div>
+        <div class="class-manage-actions">
+          <button class="generate-button" id="manageClassSave" type="submit">Değişiklikleri kaydet →</button>
+          <button class="class-status-toggle" id="manageClassToggle" type="button">Sınıfı kapat</button>
+        </div>
+        <p class="edu-auth-message" id="eduClassManageMessage" hidden></p>
+      </form>
+
+      <div class="class-roster-section">
+        <div class="class-roster-head">
+          <div><small>STUDENT ROSTER</small><strong>Öğrenciler</strong><span id="manageRosterCount">0 aktif</span></div>
+          <button type="button" id="manageRosterRefresh">↻ Yenile</button>
+        </div>
+        <div class="class-roster-list" id="manageRosterList"></div>
+        <p class="class-roster-note">Öğrenciyi çıkarmak geçmiş sonuçlarını silmez. İstersen daha sonra yeniden aktif edebilirsin.</p>
+      </div>
+    </div>
+  </div>
+
   <main>
     <section class="edu-hero">
       <div class="hero-glow glow-one" aria-hidden="true"></div>
