@@ -569,6 +569,38 @@
   "OYUN": "GAME"
 });
 
+  Object.assign(TEXT,{
+  "Ayarlar": "Settings",
+  "Bir kez ayarla. Her derste hazır gelsin.": "Set it once. Start every lesson ready.",
+  "ÖĞRETMEN PROFİLİ": "TEACHER PROFILE",
+  "Varsayılan çalışma düzenin": "Your default teaching setup",
+  "Bu tercihler hesabına kaydedilir ve farklı cihazlarda da kullanılabilir.": "These preferences are saved to your account and available across devices.",
+  "Görünen ad": "Display name",
+  "Panel dili": "Workspace language",
+  "Öğretim tipi": "Teaching context",
+  "Sınıf + özel ders": "Class + private lessons",
+  "Okul / sınıf öğretmeni": "School / classroom teacher",
+  "Özel ders öğretmeni": "Private tutor",
+  "General English / speaking": "General English / speaking",
+  "Varsayılan yaş grubu": "Default age group",
+  "Varsayılan seviye": "Default level",
+  "Varsayılan ders süresi": "Default lesson duration",
+  "Ülke kodu": "Country code",
+  "Kurum / okul": "Institution / school",
+  "Tercihleri kaydet →": "Save preferences →",
+  "HESAP AYARLARI": "ACCOUNT SETTINGS",
+  "BU AYARLAR NEREDE KULLANILIR?": "WHERE ARE THESE SETTINGS USED?",
+  "Brief alanlarını varsayılanlarınla başlatır.": "Starts brief fields with your defaults.",
+  "Yeni derslerde seviye, yaş ve süreyi hazır getirir.": "Preloads level, age and duration for new lessons.",
+  "Yeni sınıf": "New class",
+  "Sınıf oluştururken sık kullandığın profili önerir.": "Suggests your usual profile when creating a class.",
+  "Tercihler kaydediliyor…": "Saving preferences…",
+  "Tercihler hesabına kaydedildi ✓": "Preferences saved to your account ✓",
+  "Tercihler kaydedilemedi.": "Could not save preferences.",
+  "Okul / sınıf": "School / class",
+  "Özel ders": "Private tutoring"
+});
+
   const PLACEHOLDERS={
     "Örn. 6-B / Junior Speaking":"e.g. 6-B / Junior Speaking",
     "En az 8 karakter":"At least 8 characters",
