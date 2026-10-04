@@ -6,6 +6,8 @@
   const state = { session:null, profile:null, classes:[], activeClass:null, activeLive:null, authMode:'login', classPoll:null, authUnsubscribe:null, entering:false };
 
   const t = (text) => window.ESCEduI18n?.t?.(text) || text;
+  const isEn = () => window.ESCEduI18n?.getLang?.() === "en";
+  const tx = (tr,en) => isEn() ? en : tr;
 
   function msg(el, text, ok=false) {
     if (!el) return;
@@ -173,26 +175,26 @@
     if (code) code.textContent = codeText;
     const desc = $('.class-code-card p');
     if (desc) desc.textContent = state.activeClass
-      ? `${state.activeClass.name} sınıfına telefondan /join/ sayfası üzerinden bu kodla katılın.`
-      : 'Önce bir sınıf oluşturun.';
+      ? tx(`${state.activeClass.name} sınıfına bu kodla katılın.`,`Join ${state.activeClass.name} with this code.`)
+      : tx("Önce bir sınıf oluşturun.","Create a class first.");
 
     const next = $('.next-lesson-card');
     if (next && state.activeClass) {
       $('h3', next).textContent = state.activeClass.name + ' · ' + (state.activeClass.focus || 'speaking');
-      $('p', next).textContent = `${state.activeClass.age_group.replace('-', '–')} years · ${state.activeClass.level} · ${state.activeClass.students?.length || 0} students`;
+      $('p', next).textContent = `${state.activeClass.age_group.replace('-', '–')} · ${state.activeClass.level} · ${state.activeClass.students?.length || 0} ${tx('öğrenci','students')}`;
       const head = $('.card-head b', next);
-      if (head) head.textContent = state.activeLive ? '● LIVE NOW' : 'Ready';
+      if (head) head.textContent = state.activeLive ? tx('● CANLI','● LIVE NOW') : tx('Hazır','Ready');
     }
 
     const table = $('.recent-table');
     if (table) {
       const title = $('.table-title span', table);
-      if (title) title.textContent = state.classes.length + ' classes';
+      if (title) title.textContent = state.classes.length + ' ' + tx('sınıf','classes');
       $$('.table-row:not(.table-head)', table).forEach(x=>x.remove());
       state.classes.slice(0,4).forEach(c => {
         const row=document.createElement('div');
         row.className='table-row';
-        row.innerHTML=`<b>${escapeHtml(c.name)}</b><span>${escapeHtml(c.age_group)} · ${escapeHtml(c.level)}</span><span>${c.students?.length || 0} students</span><span class="good">${c.is_active?'Active':'Closed'}</span>`;
+        row.innerHTML=`<b>${escapeHtml(c.name)}</b><span>${escapeHtml(c.age_group)} · ${escapeHtml(c.level)}</span><span>${c.students?.length || 0} ${tx('öğrenci','students')}</span><span class="good">${c.is_active?tx('Aktif','Active'):tx('Kapalı','Closed')}</span>`;
         table.appendChild(row);
       });
     }
@@ -202,18 +204,18 @@
     const grid=$('#classCardGrid');
     if (!grid) return;
     if (!state.session) {
-      grid.innerHTML='<article class="empty-class-card"><h3>Öğretmen girişi gerekli</h3><p>Sınıflar hesabınıza bağlı olarak burada görünür.</p></article>';
+      grid.innerHTML='<article class="empty-class-card"><h3>'+tx('Öğretmen girişi gerekli','Teacher sign-in required')+'</h3><p>'+tx('Sınıflar hesabınıza bağlı olarak burada görünür.','Your classes appear here after you sign in.')+'</p></article>';
       return;
     }
     if (!state.classes.length) {
-      grid.innerHTML='<article class="empty-class-card"><h3>Henüz sınıf yok.</h3><p>“New class” ile ilk sınıfınızı oluşturun. Sistem otomatik katılım kodu üretir.</p></article>';
+      grid.innerHTML='<article class="empty-class-card"><h3>'+tx('Henüz sınıf yok.','No classes yet.')+'</h3><p>'+tx('“Yeni sınıf” ile ilk sınıfınızı oluşturun. Sistem otomatik katılım kodu üretir.','Create your first class. The system generates a join code automatically.')+'</p></article>';
       return;
     }
     grid.innerHTML = state.classes.map(c => `<article class="${state.activeClass?.id===c.id?'selected-class':''}">
       <div><span>${escapeHtml(c.name)}</span><small>${escapeHtml(c.age_group)} · ${escapeHtml(c.level)}</small></div>
-      <strong>${c.students?.length || 0} students</strong>
-      <p>${escapeHtml(c.focus)} · Code <b class="inline-code">${escapeHtml(c.join_code)}</b></p>
-      <div class="class-actions"><button type="button" data-live-class="${c.id}">Use class →</button><button type="button" data-copy-class="${escapeHtml(c.join_code)}">Copy code</button><button type="button" data-copy-class-link="${escapeHtml(c.join_code)}">Copy join link</button></div>
+      <strong>${c.students?.length || 0} ${tx("öğrenci","students")}</strong>
+      <p>${escapeHtml(c.focus)} · ${tx("Kod","Code")} <b class="inline-code">${escapeHtml(c.join_code)}</b></p>
+      <div class="class-actions"><button type="button" data-live-class="${c.id}">${tx("Sınıfı kullan →","Use class →")}</button><button type="button" data-copy-class="${escapeHtml(c.join_code)}">${tx("Kodu kopyala","Copy code")}</button><button type="button" data-copy-class-link="${escapeHtml(c.join_code)}">${tx("Katılım linki","Copy join link")}</button></div>
     </article>`).join('');
     $$('[data-live-class]',grid).forEach(b=>b.addEventListener('click',()=>{
       const c=state.classes.find(x=>x.id===b.dataset.liveClass); if(!c)return;
@@ -428,8 +430,8 @@
     $('#eduAuthForm')?.addEventListener('submit',authSubmit);
     $('#eduForgotPassword')?.addEventListener('click',async()=>{
       const email=$('#teacherEmail')?.value.trim();
-      if(!email)return msg($('#eduAuthMessage'),'Önce e-posta adresinizi yazın.');
-      try{await window.ESCSupabase.sendPasswordReset(email,'/educators/');msg($('#eduAuthMessage'),'Şifre yenileme bağlantısı e-postanıza gönderildi.',true);}catch(err){msg($('#eduAuthMessage'),humanError(err));}
+      if(!email)return msg($('#eduAuthMessage'),tx('Önce e-posta adresinizi yazın.','Enter your email first.'));
+      try{await window.ESCSupabase.sendPasswordReset(email,'/educators/');msg($('#eduAuthMessage'),tx('Şifre yenileme bağlantısı e-postanıza gönderildi.','Password reset link sent to your email.'),true);}catch(err){msg($('#eduAuthMessage'),humanError(err));}
     });
     $('#newClassButton')?.addEventListener('click',openClassModal);
     $('#eduClassForm')?.addEventListener('submit',createClass);
