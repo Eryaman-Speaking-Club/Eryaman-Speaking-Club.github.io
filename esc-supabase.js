@@ -209,6 +209,44 @@
     return data;
   }
 
+
+  async function listEducatorLessons(limit = 100) {
+    const client = await getClient();
+    const session = await getSession();
+    if (!client || !session) throw new Error('Teacher login required.');
+    const safeLimit = Math.max(1, Math.min(Number(limit) || 100, 250));
+    const { data, error } = await client.from('edu_lessons')
+      .select('id,class_id,title,topic,duration_minutes,primary_goal,plan,status,created_at,updated_at')
+      .eq('teacher_id',session.user.id)
+      .order('updated_at',{ ascending:false })
+      .limit(safeLimit);
+    if (error) throw error;
+    return data || [];
+  }
+
+  async function deleteEducatorLesson(lessonId) {
+    const client = await getClient();
+    const session = await getSession();
+    if (!client || !session) throw new Error('Teacher login required.');
+    const { error } = await client.from('edu_lessons')
+      .delete().eq('id',lessonId).eq('teacher_id',session.user.id);
+    if (error) throw error;
+    return true;
+  }
+
+  async function listEducatorResults(limit = 500) {
+    const client = await getClient();
+    const session = await getSession();
+    if (!client || !session) throw new Error('Teacher login required.');
+    const safeLimit = Math.max(1, Math.min(Number(limit) || 500, 1500));
+    const { data, error } = await client.from('edu_student_results')
+      .select('id,student_id,class_id,session_id,activity_type,score,payload,created_at')
+      .order('created_at',{ ascending:false })
+      .limit(safeLimit);
+    if (error) throw error;
+    return data || [];
+  }
+
   async function startEducatorSession(payload) {
     const client = await getClient();
     const session = await getSession();
@@ -274,8 +312,8 @@
     isConfigured,getClient,ping,getSession,signUp,resendSignupConfirmation,sendPasswordReset,
     updatePassword,signIn,signOut,claimFirstAdmin,isAdmin,getGameContent,replaceGameContent,
     getGameSettings,saveGameSettings,ensureEducatorProfile,getEducatorProfile,listEducatorClasses,
-    createEducatorClass,saveEducatorLesson,startEducatorSession,updateEducatorSession,
-    getActiveEducatorSession,joinEducatorClass,getStudentState,submitStudentResult
+    createEducatorClass,saveEducatorLesson,listEducatorLessons,deleteEducatorLesson,listEducatorResults,
+    startEducatorSession,updateEducatorSession,getActiveEducatorSession,joinEducatorClass,getStudentState,submitStudentResult
   };
 })();
 
