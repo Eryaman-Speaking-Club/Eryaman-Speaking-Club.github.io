@@ -1280,9 +1280,11 @@
   }
 
   function closeAdaptiveGame(){
+    const wasOpen=gameModal?.classList.contains("open");
     stopGameTimer();
     gameModal?.classList.remove("open");
     gameModal?.setAttribute("aria-hidden","true");
+    if(wasOpen) document.dispatchEvent(new CustomEvent("esc:game-closed"));
   }
 
   function paintGame(){
@@ -1346,9 +1348,14 @@
 
   document.addEventListener("keydown",e=>{
     if(e.key==="Escape"){
-      closeAdaptiveGame();
-      $("#lessonModal")?.classList.remove("open");
-      $("#lessonModal")?.setAttribute("aria-hidden","true");
+      const gameWasOpen=gameModal?.classList.contains("open");
+      if(gameWasOpen){
+        closeAdaptiveGame();
+        return;
+      }
+      if($("#lessonModal")?.classList.contains("open")){
+        $("#closeLessonModal")?.click();
+      }
     }
   });
 })();
