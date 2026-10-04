@@ -166,14 +166,15 @@
       <div><span>${escapeHtml(c.name)}</span><small>${escapeHtml(c.age_group)} · ${escapeHtml(c.level)}</small></div>
       <strong>${c.students?.length || 0} students</strong>
       <p>${escapeHtml(c.focus)} · Code <b class="inline-code">${escapeHtml(c.join_code)}</b></p>
-      <div class="class-actions"><button type="button" data-live-class="${c.id}">Use class →</button><button type="button" data-copy-class="${escapeHtml(c.join_code)}">Copy code</button></div>
+      <div class="class-actions"><button type="button" data-live-class="${c.id}">Use class →</button><button type="button" data-copy-class="${escapeHtml(c.join_code)}">Copy code</button><button type="button" data-copy-class-link="${escapeHtml(c.join_code)}">Copy join link</button></div>
     </article>`).join('');
     $$('[data-live-class]',grid).forEach(b=>b.addEventListener('click',()=>{
       const c=state.classes.find(x=>x.id===b.dataset.liveClass); if(!c)return;
       state.activeClass=c; applyClassToBuilder(c); renderClasses();renderOverview();
       document.querySelector('[data-panel="builder"]')?.click();
     }));
-    $$('[data-copy-class]',grid).forEach(b=>b.addEventListener('click',()=>copyText(b.dataset.copyClass,b)));
+    $('[data-copy-class]',grid).forEach(b=>b.addEventListener('click',()=>copyText(b.dataset.copyClass,b)));
+    $('[data-copy-class-link]',grid).forEach(b=>b.addEventListener('click',()=>copyText(location.origin+'/join/?code='+encodeURIComponent(b.dataset.copyClassLink),b)));
   }
 
   function applyClassToBuilder(c) {
@@ -380,6 +381,11 @@
     $('#newClassButton')?.addEventListener('click',openClassModal);
     $('#eduClassForm')?.addEventListener('submit',createClass);
     $('[data-copy-code]')?.addEventListener('click',e=>copyText(state.activeClass?.join_code||'',e.currentTarget));
+    $('[data-copy-join-link]')?.addEventListener('click',e=>{
+      const code=state.activeClass?.join_code||'';
+      if(!code)return;
+      copyText(location.origin+'/join/?code='+encodeURIComponent(code),e.currentTarget);
+    });
 
     $('#saveDemoClass')?.addEventListener('click',async e=>{
       if(!state.session)return openAuth('login');
