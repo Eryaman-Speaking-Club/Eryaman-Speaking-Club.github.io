@@ -3,7 +3,7 @@
 
   const $ = (q, root=document) => root.querySelector(q);
   const $$ = (q, root=document) => [...root.querySelectorAll(q)];
-  const state = { session:null, profile:null, classes:[], activeClass:null, activeLive:null, authMode:'login', classPoll:null, authUnsubscribe:null, entering:false };
+  const state = { session:null, profile:null, classes:[], activeClass:null, activeLive:null, authMode:'login', classPoll:null, authUnsubscribe:null, entering:false, managedClassId:null };
 
   const t = (text) => window.ESCEduI18n?.t?.(text) || text;
   const isEn = () => window.ESCEduI18n?.getLang?.() === "en";
@@ -196,6 +196,7 @@
 
     renderClasses();
     renderOverview();
+    if(state.managedClassId && !$('#eduClassManageLayer')?.hidden) renderClassManage();
     if (initial && state.activeClass) {
       if(state.activeLive?.lesson_id){
         if($('#lessonForm')) $('#lessonForm').dataset.classId=state.activeClass.id;
@@ -294,7 +295,7 @@
       <div><span>${escapeHtml(c.name)}</span><small>${escapeHtml(c.age_group)} · ${escapeHtml(c.level)} · ${c.is_active?tx("Aktif","Active"):tx("Kapalı","Closed")}</small></div>
       <strong>${c.students?.length || 0} ${tx("öğrenci","students")}</strong>
       <p>${escapeHtml(c.focus)} · ${tx("Kod","Code")} <b class="inline-code">${escapeHtml(c.join_code)}</b></p>
-      <div class="class-actions"><button type="button" data-live-class="${c.id}" ${c.is_active?'':'disabled'}>${c.is_active?tx("Sınıfı kullan →","Use class →"):tx("Sınıf kapalı","Class closed")}</button><button type="button" data-copy-class="${escapeHtml(c.join_code)}" ${c.is_active?'':'disabled'}>${tx("Kodu kopyala","Copy code")}</button><button type="button" data-copy-class-link="${escapeHtml(c.join_code)}" ${c.is_active?'':'disabled'}>${tx("Katılım linki","Copy join link")}</button></div>
+      <div class="class-actions"><button type="button" data-live-class="${c.id}" ${c.is_active?'':'disabled'}>${c.is_active?tx("Sınıfı kullan →","Use class →"):tx("Sınıf kapalı","Class closed")}</button><button type="button" data-manage-class="${c.id}">${tx("Yönet","Manage")}</button><button type="button" data-copy-class="${escapeHtml(c.join_code)}" ${c.is_active?'':'disabled'}>${tx("Kodu kopyala","Copy code")}</button><button type="button" data-copy-class-link="${escapeHtml(c.join_code)}" ${c.is_active?'':'disabled'}>${tx("Katılım linki","Copy join link")}</button></div>
     </article>`).join('');
     $$('[data-live-class]',grid).forEach(b=>b.addEventListener('click',()=>{
       const c=state.classes.find(x=>x.id===b.dataset.liveClass); if(!c)return;
@@ -305,8 +306,149 @@
       state.activeClass=c; applyClassToBuilder(c); renderClasses();renderOverview();
       document.querySelector('[data-panel="builder"]')?.click();
     }));
+    $$('[data-manage-class]',grid).forEach(b=>b.addEventListener('click',()=>openClassManage(b.dataset.manageClass)));
     $$('[data-copy-class]',grid).forEach(b=>b.addEventListener('click',()=>copyText(b.dataset.copyClass,b)));
     $$('[data-copy-class-link]',grid).forEach(b=>b.addEventListener('click',()=>copyText(location.origin+'/join/?code='+encodeURIComponent(b.dataset.copyClassLink),b)));
+  }
+
+  function managedClass() {
+    return state.classes.find(x=>x.id===state.managedClassId)||null;
+  }
+
+  function rosterSeenLabel(value){
+    if(!value)return tx('Henüz görülmedi','Not seen yet');
+    try{
+      return new Intl.DateTimeFormat(isEn()?'en-GB':'tr-TR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}).format(new Date(value));
+    }catch{return '';}
+  }
+
+  function renderClassManage(){
+    const cls=managedClass();
+    if(!cls)return closeClassManage();
+
+    $('#manageClassId').value=cls.id;
+    $('#manageClassName').value=cls.name||'';
+    $('#manageClassAge').value=cls.age_group||'12-14';
+    $('#manageClassLevel').value=cls.level||'A2';
+    $('#manageClassFocus').value=cls.focus||'speaking';
+    $('#manageClassMax').value=String(cls.max_students||40);
+    $('#manageClassCode').textContent=cls.join_code||'------';
+    $('#manageClassHeading').textContent=cls.name||tx('Sınıfı yönet','Manage class');
+    $('#manageClassMeta').textContent=(cls.age_group||'')+' · '+(cls.level||'')+' · '+(cls.students?.length||0)+' '+tx('aktif öğrenci','active students');
+
+    const status=$('#manageClassStatus');
+    if(status){
+      status.textContent=cls.is_active?tx('AKTİF','ACTIVE'):tx('KAPALI','CLOSED');
+      status.classList.toggle('closed',!cls.is_active);
+    }
+    const toggle=$('#manageClassToggle');
+    if(toggle){
+      toggle.textContent=cls.is_active?tx('Sınıfı kapat','Close class'):tx('Sınıfı yeniden aç','Reopen class');
+      toggle.classList.toggle('reopen',!cls.is_active);
+    }
+
+    const roster=cls.all_students||[];
+    const activeCount=roster.filter(s=>s.is_active).length;
+    $('#manageRosterCount').textContent=activeCount+' '+tx('aktif','active')+' · '+roster.length+' '+tx('toplam','total');
+    const list=$('#manageRosterList');
+    if(list){
+      if(!roster.length){
+        list.innerHTML='<div class="class-roster-empty">'+tx('Henüz öğrenci katılmadı.','No students have joined yet.')+'</div>';
+      }else{
+        list.innerHTML=roster.map(s=>'<article class="class-roster-row '+(s.is_active?'':'inactive')+'"><span class="roster-avatar">'+escapeHtml((s.display_name||'?').trim().charAt(0).toUpperCase())+'</span><div><b>'+escapeHtml(s.display_name||tx('Öğrenci','Student'))+'</b><small>'+tx('Son görülme: ','Last seen: ')+escapeHtml(rosterSeenLabel(s.last_seen_at))+'</small></div><em>'+(s.is_active?tx('Aktif','Active'):tx('Pasif','Inactive'))+'</em><button type="button" data-roster-toggle="'+escapeHtml(s.id)+'" data-next-active="'+(s.is_active?'false':'true')+'">'+(s.is_active?tx('Çıkar','Remove'):tx('Geri al','Restore'))+'</button></article>').join('');
+        $$('[data-roster-toggle]',list).forEach(b=>b.addEventListener('click',()=>toggleRosterStudent(b.dataset.rosterToggle,b.dataset.nextActive==='true',b)));
+      }
+    }
+  }
+
+  function openClassManage(classId){
+    const cls=state.classes.find(x=>x.id===classId);
+    if(!cls)return;
+    state.managedClassId=cls.id;
+    const layer=$('#eduClassManageLayer');
+    if(layer)layer.hidden=false;
+    document.body.classList.add('edu-modal-open');
+    msg($('#eduClassManageMessage'),'');
+    renderClassManage();
+    setTimeout(()=>$('#manageClassName')?.focus(),50);
+  }
+
+  function closeClassManage(){
+    const layer=$('#eduClassManageLayer');
+    if(layer)layer.hidden=true;
+    state.managedClassId=null;
+    document.body.classList.remove('edu-modal-open');
+    msg($('#eduClassManageMessage'),'');
+  }
+
+  async function saveManagedClass(e){
+    e.preventDefault();
+    const cls=managedClass();
+    if(!cls)return;
+    const activeCount=(cls.all_students||[]).filter(s=>s.is_active).length;
+    const max=Math.max(1,Number($('#manageClassMax')?.value||40));
+    if(max<activeCount){
+      return msg($('#eduClassManageMessage'),tx('Maksimum öğrenci sayısı aktif öğrenci sayısından küçük olamaz.','Maximum students cannot be lower than the active student count.'));
+    }
+
+    const button=$('#manageClassSave');if(button)button.disabled=true;
+    msg($('#eduClassManageMessage'),tx('Sınıf güncelleniyor…','Updating class…'));
+    try{
+      await window.ESCSupabase.updateEducatorClass(cls.id,{
+        name:$('#manageClassName').value.trim(),
+        age_group:$('#manageClassAge').value,
+        level:$('#manageClassLevel').value,
+        focus:$('#manageClassFocus').value,
+        max_students:max
+      });
+      await refreshClasses(false);
+      msg($('#eduClassManageMessage'),tx('Sınıf güncellendi ✓','Class updated ✓'),true);
+      renderClassManage();
+      window.ESCAnalytics?.track?.('educator_class_updated','other');
+    }catch(err){msg($('#eduClassManageMessage'),humanError(err));}
+    finally{if(button)button.disabled=false;}
+  }
+
+  async function toggleManagedClass(){
+    const cls=managedClass();
+    if(!cls)return;
+    if(cls.is_active && state.activeLive?.class_id===cls.id){
+      return alert(tx('Canlı ders devam ederken sınıf kapatılamaz. Önce dersi tamamlayın.','You cannot close a class during a live lesson. Finish the lesson first.'));
+    }
+    const next=!cls.is_active;
+    if(!confirm(next?tx('Bu sınıf yeniden açılsın mı?','Reopen this class?'):tx('Bu sınıf kapatılsın mı? Öğrenci katılımı duracak, geçmiş veriler korunacak.','Close this class? Student access will stop and historical data will be kept.')))return;
+    const b=$('#manageClassToggle');if(b)b.disabled=true;
+    try{
+      await window.ESCSupabase.updateEducatorClass(cls.id,{is_active:next});
+      await refreshClasses(false);
+      renderClassManage();
+      msg($('#eduClassManageMessage'),next?tx('Sınıf yeniden açıldı ✓','Class reopened ✓'):tx('Sınıf kapatıldı ✓','Class closed ✓'),true);
+      window.ESCAnalytics?.track?.(next?'educator_class_reopened':'educator_class_closed','other');
+    }catch(err){msg($('#eduClassManageMessage'),humanError(err));}
+    finally{if(b)b.disabled=false;}
+  }
+
+  async function toggleRosterStudent(studentId,nextActive,button){
+    const cls=managedClass();
+    if(!cls)return;
+    if(nextActive){
+      const activeCount=(cls.all_students||[]).filter(s=>s.is_active).length;
+      if(activeCount>=Number(cls.max_students||40)){
+        return alert(tx('Sınıf kontenjanı dolu. Önce maksimum öğrenci sayısını artırın.','Class capacity is full. Increase the maximum student count first.'));
+      }
+    }else{
+      const student=(cls.all_students||[]).find(s=>s.id===studentId);
+      if(student && !confirm(tx(student.display_name+' sınıftan çıkarılsın mı? Geçmiş sonuçları korunacak.',student.display_name+' will be removed from the active roster. Historical results will be kept.')))return;
+    }
+
+    button.disabled=true;
+    try{
+      await window.ESCSupabase.updateEducatorStudent(studentId,{is_active:nextActive});
+      await refreshClasses(false);
+      renderClassManage();
+      window.ESCAnalytics?.track?.(nextActive?'educator_student_restored':'educator_student_removed','other');
+    }catch(err){alert(humanError(err));}
+    finally{button.disabled=false;}
   }
 
   function applyClassToBuilder(c) {
@@ -558,8 +700,10 @@
     $$('[data-teacher-signup]').forEach(b=>b.addEventListener('click',()=> state.session ? document.querySelector('#teacher-demo')?.scrollIntoView({behavior:'smooth'}) : openAuth('signup')));
     $('#eduAuthClose')?.addEventListener('click',closeAuth);
     $('#eduClassClose')?.addEventListener('click',closeClassModal);
+    $('#eduClassManageClose')?.addEventListener('click',closeClassManage);
     $('#eduAuthLayer')?.addEventListener('click',e=>{if(e.target.id==='eduAuthLayer')closeAuth();});
     $('#eduClassLayer')?.addEventListener('click',e=>{if(e.target.id==='eduClassLayer')closeClassModal();});
+    $('#eduClassManageLayer')?.addEventListener('click',e=>{if(e.target.id==='eduClassManageLayer')closeClassManage();});
     $$('[data-auth-mode]').forEach(b=>b.addEventListener('click',()=>{state.authMode=b.dataset.authMode;syncAuthMode();}));
     $('#eduAuthForm')?.addEventListener('submit',authSubmit);
     $('#eduForgotPassword')?.addEventListener('click',async()=>{
@@ -569,6 +713,11 @@
     });
     $('#newClassButton')?.addEventListener('click',openClassModal);
     $('#eduClassForm')?.addEventListener('submit',createClass);
+    $('#eduClassManageForm')?.addEventListener('submit',saveManagedClass);
+    $('#manageClassToggle')?.addEventListener('click',toggleManagedClass);
+    $('#manageRosterRefresh')?.addEventListener('click',()=>refreshClasses(false).catch(()=>{}));
+    $('#manageCopyCode')?.addEventListener('click',e=>{const cls=managedClass();if(cls?.join_code)copyText(cls.join_code,e.currentTarget);});
+    $('#manageCopyLink')?.addEventListener('click',e=>{const cls=managedClass();if(cls?.join_code)copyText(location.origin+'/join/?code='+encodeURIComponent(cls.join_code),e.currentTarget);});
     $('[data-copy-code]')?.addEventListener('click',e=>{
       const code=state.activeClass?.join_code||'';
       if(!code||!state.activeClass?.is_active)return alert(tx('Aktif bir sınıf seçin.','Select an active class.'));
