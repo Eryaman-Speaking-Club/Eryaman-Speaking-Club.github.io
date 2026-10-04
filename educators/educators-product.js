@@ -47,7 +47,7 @@
 
   function studentNameFor(id){
     for(const cls of state.classes){
-      const found=(cls.students||[]).find(s=>s.id===id);
+      const found=(cls.all_students||cls.students||[]).find(s=>s.id===id);
       if(found) return found.display_name||tx('Öğrenci','Student');
     }
     return tx('Öğrenci','Student');
