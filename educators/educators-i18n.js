@@ -528,6 +528,47 @@
   "School workspace, ekip kütüphanesi, lisanslama ve ödeme.": "School workspace, shared team library, licensing and payments."
 });
 
+  Object.assign(TEXT,{
+  "Teacher Assistant": "Teacher Assistant",
+  "Bir brief ver, ders paketini hazırla": "Give one brief, get a lesson pack",
+  "Ders planı + speaking + worksheet + ödev + oyun önerisi.": "Lesson plan + speaking + worksheet + homework + game suggestion.",
+  "Bir brief ver. Hazır ders paketi al.": "Give one brief. Get a ready lesson pack.",
+  "Konu, seviye ve hedefi yaz.": "Enter the topic, level and goal.",
+  "Plan, speaking, worksheet, ödev, oyun.": "Plan, speaking, worksheet, homework and game.",
+  "Lesson Builder'a aktar ve düzenle.": "Send it to Lesson Builder and edit.",
+  "Bugünkü ders için neye ihtiyacın var?": "What do you need for today's lesson?",
+  "Kısa yazman yeterli. Çıktı İngilizce dersi için hazırlanır; panel dili Türkçe veya İngilizce olabilir.": "A short brief is enough. The output is built for an English lesson; the workspace can be Turkish or English.",
+  "Konu / unit": "Topic / unit",
+  "Yaş grubu": "Age group",
+  "Seviye": "Level",
+  "Ders süresi": "Lesson duration",
+  "Öğrenci sayısı": "Student count",
+  "Ana hedef": "Primary goal",
+  "Ek not": "Extra note",
+  "opsiyonel": "optional",
+  "Ders paketini hazırla": "Build lesson pack",
+  "Bu beta sürüm yapılandırılmış öğretim kurallarıyla çalışır. Çıktıyı öğretmen kontrolüyle düzenleyip kullan.": "This beta uses structured teaching rules. Review and edit the output before using it.",
+  "Hazır olduğunda brief'i gönder.": "Send the brief when you're ready.",
+  "Burada tam ders paketi görünecek. İstersen Lesson Builder'a aktarabilir, istersen metni kopyalayabilirsin.": "Your complete lesson pack will appear here. Send it to Lesson Builder or copy the text.",
+  "Lesson Builder'a aktar →": "Send to Lesson Builder →",
+  "Paketi kopyala": "Copy pack",
+  "Üretim motoru: yapılandırılmış öğretim kuralları. Harici bir model yanıtı değildir; öğretmen düzenlemesi önerilir.": "Generation engine: structured teaching rules. This is not an external model response; teacher review is recommended.",
+  "Ders paketi hazır ✓": "Lesson pack ready ✓",
+  "Ders paketi hazırlanıyor…": "Building your lesson pack…",
+  "Teacher Assistant için öğretmen hesabına giriş yapın.": "Sign in to your teacher account to use Teacher Assistant.",
+  "Ders paketi oluşturulamadı.": "Could not generate the lesson pack.",
+  "Teacher Assistant paketi aktarıldı ✓ Düzenleyebilir, kaydedebilir veya başlatabilirsin.": "Teacher Assistant pack imported ✓ You can edit, save or start the lesson.",
+  "Kopyalandı ✓": "Copied ✓",
+  "Kopyalanamadı": "Copy failed",
+  "HEDEF KELİMELER": "TARGET VOCABULARY",
+  "DİL ODAĞI": "LANGUAGE FOCUS",
+  "DERS AKIŞI": "LESSON FLOW",
+  "SPEAKING SORULARI": "SPEAKING QUESTIONS",
+  "WORKSHEET TASLAĞI": "WORKSHEET BLUEPRINT",
+  "ÖDEV": "HOMEWORK",
+  "OYUN": "GAME"
+});
+
   const PLACEHOLDERS={
     "Örn. 6-B / Junior Speaking":"e.g. 6-B / Junior Speaking",
     "En az 8 karakter":"At least 8 characters",
