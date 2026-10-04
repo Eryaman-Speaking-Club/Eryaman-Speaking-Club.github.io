@@ -468,6 +468,42 @@
   "Önündeki dersler": "Your upcoming lessons"
 });
 
+  Object.assign(TEXT,{
+  "Henüz kaydedilmiş ders yok.": "No saved lessons yet.",
+  "İlk dersini oluşturup kaydettiğinde burada görünecek.": "Your first saved lesson will appear here.",
+  "İlk dersi oluştur →": "Create your first lesson →",
+  "Düzenle / kullan": "Edit / use",
+  "Kopyala": "Duplicate",
+  "Yazdır": "Print",
+  "Sil": "Delete",
+  "Henüz kayıtlı dersin yok.": "Your lesson library is empty.",
+  "Lesson Builder ile ilk dersini oluştur, kaydet ve bundan sonra tekrar tekrar kullan.": "Create and save your first lesson, then reuse it whenever you need.",
+  "+ İlk dersi oluştur": "+ Create your first lesson",
+  "Ders kopyalanamadı.": "Could not duplicate lesson.",
+  "Kaydedilmiş ders yüklendi ✓ Değiştirip yeniden kaydedebilir veya doğrudan başlatabilirsin.": "Saved lesson loaded ✓ Edit and save again, or start it directly.",
+  "Yazdırma penceresi engellendi. Tarayıcıdan açılır pencerelere izin verin.": "The print window was blocked. Allow pop-ups in your browser.",
+  "Ders Planı": "Lesson Plan",
+  "Aşama": "Stage",
+  "Süre": "Duration",
+  "Henüz öğrenci sonucu yok.": "No student results yet.",
+  "TÜM SINIFLAR": "ALL CLASSES",
+  "SINIF VERİSİ": "CLASS DATA",
+  "Bu özet gerçek öğrenci sonuçlarından hesaplanır.": "This summary is calculated from real student results.",
+  "Daha fazla puanlı etkinlik çalıştır.": "Run more scored activities.",
+  "Sonuç kaydı var; puanlı etkinlikler arttıkça zayıf beceriyi otomatik belirleyebiliriz.": "Results exist; more scored activities will make skill recommendations more reliable.",
+  "Serbest ders": "Independent lesson",
+  "Özel öğrenci": "Private student",
+  "Yaklaşan ders yok.": "No upcoming lessons.",
+  "Planlayıcıdan bugünün veya haftanın derslerini ekle.": "Add today’s or this week’s lessons from Planner.",
+  "Plan güncellenemedi.": "Could not update the event.",
+  "Plan silinemedi.": "Could not delete the event.",
+  "Plan eklenemedi.": "Could not add the event.",
+  "Bu plan silinsin mi?": "Delete this event?",
+  "Planlandı": "Scheduled",
+  "Tamamlandı": "Completed",
+  "Tamamla": "Complete"
+});
+
   const PLACEHOLDERS={
     "Örn. 6-B / Junior Speaking":"e.g. 6-B / Junior Speaking",
     "En az 8 karakter":"At least 8 characters",
