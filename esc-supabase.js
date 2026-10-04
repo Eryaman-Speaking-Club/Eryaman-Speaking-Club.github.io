@@ -399,6 +399,72 @@
     return true;
   }
 
+
+  async function listScheduleEvents(fromIso = null, toIso = null, limit = 200) {
+    const client = await getClient();
+    const session = await getSession();
+    if (!client || !session) throw new Error('Teacher login required.');
+    const safeLimit=Math.max(1,Math.min(Number(limit)||200,500));
+    let query=client.from('edu_schedule_events')
+      .select('id,class_id,private_student_id,lesson_id,title,starts_at,duration_minutes,notes,status,created_at,updated_at')
+      .eq('teacher_id',session.user.id)
+      .order('starts_at',{ascending:true})
+      .limit(safeLimit);
+    if(fromIso) query=query.gte('starts_at',fromIso);
+    if(toIso) query=query.lte('starts_at',toIso);
+    const {data,error}=await query;
+    if(error) throw error;
+    return data||[];
+  }
+
+  async function createScheduleEvent(payload) {
+    const client=await getClient();
+    const session=await getSession();
+    if(!client||!session) throw new Error('Teacher login required.');
+    const row={
+      teacher_id:session.user.id,
+      class_id:payload.class_id||null,
+      private_student_id:payload.private_student_id||null,
+      lesson_id:payload.lesson_id||null,
+      title:String(payload.title||'').trim().slice(0,120),
+      starts_at:payload.starts_at,
+      duration_minutes:Math.max(5,Math.min(Number(payload.duration_minutes)||40,300)),
+      notes:payload.notes?String(payload.notes).trim().slice(0,2000):null,
+      status:['scheduled','completed','cancelled'].includes(payload.status)?payload.status:'scheduled'
+    };
+    const {data,error}=await client.from('edu_schedule_events').insert(row).select('*').single();
+    if(error) throw error;
+    return data;
+  }
+
+  async function updateScheduleEvent(id,patch) {
+    const client=await getClient();
+    const session=await getSession();
+    if(!client||!session) throw new Error('Teacher login required.');
+    const clean={updated_at:new Date().toISOString()};
+    if('class_id' in patch) clean.class_id=patch.class_id||null;
+    if('private_student_id' in patch) clean.private_student_id=patch.private_student_id||null;
+    if('lesson_id' in patch) clean.lesson_id=patch.lesson_id||null;
+    if('title' in patch) clean.title=String(patch.title||'').trim().slice(0,120);
+    if('starts_at' in patch) clean.starts_at=patch.starts_at;
+    if('duration_minutes' in patch) clean.duration_minutes=Math.max(5,Math.min(Number(patch.duration_minutes)||40,300));
+    if('notes' in patch) clean.notes=patch.notes?String(patch.notes).trim().slice(0,2000):null;
+    if('status' in patch) clean.status=['scheduled','completed','cancelled'].includes(patch.status)?patch.status:'scheduled';
+    const {data,error}=await client.from('edu_schedule_events')
+      .update(clean).eq('id',id).eq('teacher_id',session.user.id).select('*').single();
+    if(error) throw error;
+    return data;
+  }
+
+  async function deleteScheduleEvent(id) {
+    const client=await getClient();
+    const session=await getSession();
+    if(!client||!session) throw new Error('Teacher login required.');
+    const {error}=await client.from('edu_schedule_events').delete().eq('id',id).eq('teacher_id',session.user.id);
+    if(error) throw error;
+    return true;
+  }
+
   async function startEducatorSession(payload) {
     const client = await getClient();
     const session = await getSession();
@@ -467,6 +533,7 @@
     createEducatorClass,saveEducatorLesson,listEducatorLessons,deleteEducatorLesson,listEducatorResults,listEducatorSessions,
     listPrivateStudents,createPrivateStudent,updatePrivateStudent,deletePrivateStudent,
     listAssignments,createAssignment,updateAssignment,deleteAssignment,
+    listScheduleEvents,createScheduleEvent,updateScheduleEvent,deleteScheduleEvent,
     startEducatorSession,updateEducatorSession,getActiveEducatorSession,joinEducatorClass,getStudentState,submitStudentResult
   };
 })();
