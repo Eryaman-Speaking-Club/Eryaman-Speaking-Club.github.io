@@ -98,6 +98,7 @@
       <div class="library-card-meta"><span>${planCount} aşama</span><span>${esc(lesson.status || 'saved')}</span></div>
       <div class="library-card-actions">
         <button type="button" data-lesson-use="${esc(lesson.id)}">Düzenle / kullan</button>
+        <button type="button" data-lesson-duplicate="${esc(lesson.id)}">Kopyala</button>
         <button type="button" data-lesson-print="${esc(lesson.id)}">Yazdır</button>
         <button type="button" class="danger-lite" data-lesson-delete="${esc(lesson.id)}">Sil</button>
       </div>
@@ -118,7 +119,26 @@
       const lesson=state.lessons.find(x=>x.id===b.dataset.lessonUse);
       if(lesson) loadLessonIntoBuilder(lesson);
     }));
-    $$('[data-lesson-print]',grid).forEach(b=>b.addEventListener('click',()=>{
+    $('[data-lesson-duplicate]',grid).forEach(b=>b.addEventListener('click',async()=>{
+      const lesson=state.lessons.find(x=>x.id===b.dataset.lessonDuplicate);
+      if(!lesson) return;
+      b.disabled=true;
+      try{
+        await window.ESCSupabase.saveEducatorLesson({
+          class_id:lesson.class_id,
+          title:((lesson.title||lesson.topic||'English lesson')+' · Kopya').slice(0,120),
+          topic:lesson.topic||'English',
+          duration_minutes:Number(lesson.duration_minutes||40),
+          primary_goal:lesson.primary_goal||'speaking',
+          plan:Array.isArray(lesson.plan)?lesson.plan:[],
+          status:'ready'
+        });
+        window.ESCAnalytics?.track?.('educator_lesson_duplicated','other');
+        await refreshData();
+      }catch(err){alert(err?.message||'Ders kopyalanamadı.');}
+      finally{b.disabled=false;}
+    }));
+    $('[data-lesson-print]',grid).forEach(b=>b.addEventListener('click',()=>{
       const lesson=state.lessons.find(x=>x.id===b.dataset.lessonPrint);
       if(lesson) printLesson(lesson);
     }));
@@ -190,8 +210,25 @@
 
     openPanel('builder');
     setTimeout(()=>{
+      const plan=Array.isArray(lesson.plan)?lesson.plan:[];
+      const planEl=$('#generatedPlan');
+      if(planEl && plan.length){
+        planEl.innerHTML=plan.map((step,i)=>{
+          const duration=esc(step.duration||'');
+          const title=esc(step.title||step.stage||('Stage '+(i+1)));
+          const mode=esc(step.mode||'Saved');
+          return '<div class="plan-row" data-stage-key="'+esc(String(step.stage||step.title||i).toLowerCase())+'"><span>'+duration+'</span><b>'+title+'</b><small>'+mode+'</small></div>';
+        }).join('');
+      }
+      const first=plan[0]||{};
+      if(first.prompt && $('#adaptiveQuestion')) $('#adaptiveQuestion').textContent=first.prompt;
+      if($('#lessonGenerateStatus')){
+        $('#lessonGenerateStatus').hidden=false;
+        $('#lessonGenerateStatus').className='lesson-generate-status is-ready';
+        $('#lessonGenerateStatus').textContent='Kaydedilmiş ders yüklendi ✓ Değiştirip yeniden kaydedebilir veya doğrudan başlatabilirsin.';
+      }
       document.querySelector('#lessonForm')?.scrollIntoView({behavior:'smooth',block:'start'});
-    },120);
+    },180);
   }
 
   function printLesson(lesson) {
@@ -209,13 +246,15 @@
   }
 
   function renderReports() {
-    const attempts = state.results.length;
-    const scored = state.results.filter(r => r.score !== null && r.score !== undefined && Number.isFinite(Number(r.score)));
+    const selectedClass=$('#reportClassFilter')?.value||'all';
+    const reportRows=selectedClass==='all'?state.results:state.results.filter(r=>r.class_id===selectedClass);
+    const attempts = reportRows.length;
+    const scored = reportRows.filter(r => r.score !== null && r.score !== undefined && Number.isFinite(Number(r.score)));
     const avg = scored.length ? scored.reduce((s,r)=>s+Number(r.score),0)/scored.length : null;
-    const students = new Set(state.results.map(r=>r.student_id).filter(Boolean)).size;
+    const students = new Set(reportRows.map(r=>r.student_id).filter(Boolean)).size;
     const groups = new Map();
 
-    state.results.forEach(r=>{
+    reportRows.forEach(r=>{
       const key=String(r.activity_type||'activity');
       if(!groups.has(key)) groups.set(key,{count:0,scores:[]});
       const g=groups.get(key); g.count++;
@@ -241,6 +280,8 @@
       }).join('');
     }
 
+    const scope=$('#reportScopeLabel');
+    if(scope) scope.textContent=selectedClass==='all'?'TÜM SINIFLAR':(classNameFor(selectedClass)+' · SINIF VERİSİ');
     const headline=$('#reportHeadline'), sub=$('#reportSubline');
     if(headline) headline.textContent=attempts ? (avg===null ? attempts+' öğrenci sonucu' : Math.round(avg)+'% genel ortalama') : 'Henüz yeterli veri yok';
     if(sub) sub.textContent=attempts ? 'Bu özet gerçek öğrenci sonuçlarından hesaplanır.' : 'Öğrenciler etkinlik tamamladıkça sonuçlar burada gerçek zamanlı özetlenir.';
@@ -275,6 +316,12 @@
       state.results=results||[];
       state.sessions=sessions||[];
       state.ready=true;
+      const reportSelect=$('#reportClassFilter');
+      if(reportSelect){
+        const previous=reportSelect.value||'all';
+        reportSelect.innerHTML='<option value="all">Tüm sınıflar</option>'+state.classes.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>').join('');
+        if([...reportSelect.options].some(o=>o.value===previous)) reportSelect.value=previous;
+      }
       renderSetup();renderRecent();renderLibrary();renderReports();
     } catch(err) {
       console.warn('Educators product refresh failed',err);
@@ -292,6 +339,8 @@
     $('#lessonLibrarySearch')?.addEventListener('input',applyLibraryFilters);
     $('#lessonLibraryGoal')?.addEventListener('change',applyLibraryFilters);
     $('#refreshLessonLibrary')?.addEventListener('click',refreshData);
+    $('#reportClassFilter')?.addEventListener('change',renderReports);
+    $('#refreshReports')?.addEventListener('click',refreshData);
 
     ['saveDemoClass','startDemoLesson'].forEach(id=>{
       $('#'+id)?.addEventListener('click',()=>setTimeout(refreshData,1100));
