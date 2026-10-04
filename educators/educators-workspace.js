@@ -184,7 +184,7 @@
   $("#copyResourcePlan")?.addEventListener("click", async e => {
     const title = $("#resourcePreviewTitle")?.textContent || "Resource";
     const source = $("#resourceSource")?.value || "Current lesson";
-    const items = $$$("#resourcePreviewItems b").map(x => "- " + x.textContent).join("\n");
+    const items = $("#resourcePreviewItems b").map(x => "- " + x.textContent).join("\n");
     try {
       await navigator.clipboard.writeText(title + "\n" + source + "\n\n" + items);
       const old = e.currentTarget.textContent;
