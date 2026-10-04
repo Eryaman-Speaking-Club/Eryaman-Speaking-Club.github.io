@@ -34,6 +34,17 @@
     return map[goal] || goal || 'English';
   }
 
+  function lessonStatusLabel(status){
+    const map={
+      draft:tx('Taslak','Draft'),
+      ready:tx('Hazır','Ready'),
+      active:tx('Aktif','Active'),
+      completed:tx('Tamamlandı','Completed'),
+      archived:tx('Arşiv','Archived')
+    };
+    return map[status]||status||tx('Hazır','Ready');
+  }
+
   function studentNameFor(id){
     for(const cls of state.classes){
       const found=(cls.students||[]).find(s=>s.id===id);
@@ -105,7 +116,7 @@
       </div>
       <h4>${esc(lesson.title || lesson.topic || 'English lesson')}</h4>
       <p>${esc(classNameFor(lesson.class_id))} · ${esc(lesson.topic || 'English')} · ${Number(lesson.duration_minutes || 0)} ${tx('dk','min')}</p>
-      <div class="library-card-meta"><span>${planCount} ${tx('aşama','stages')}</span><span>${esc(lesson.status || 'saved')}</span></div>
+      <div class="library-card-meta"><span>${planCount} ${tx('aşama','stages')}</span><span>${esc(lessonStatusLabel(lesson.status))}</span></div>
       <div class="library-card-actions">
         <button type="button" data-lesson-use="${esc(lesson.id)}">${tx('Düzenle / kullan','Edit / use')}</button>
         <button type="button" data-lesson-duplicate="${esc(lesson.id)}">${tx('Kopyala','Duplicate')}</button>
@@ -159,6 +170,8 @@
       b.disabled=true;
       try {
         await window.ESCSupabase.deleteEducatorLesson(lesson.id);
+        const form=$('#lessonForm');
+        if(form?.dataset.editingLessonId===lesson.id) delete form.dataset.editingLessonId;
         await refreshData();
       } catch (err) {
         alert(err?.message || tx('Ders silinemedi.','Could not delete lesson.'));
