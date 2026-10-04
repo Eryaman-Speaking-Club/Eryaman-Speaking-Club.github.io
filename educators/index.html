@@ -266,6 +266,7 @@
             <button class="side-item" data-panel="games"><span>◫</span> Oyun Kütüphanesi</button>
             <button class="side-item" data-panel="tools"><span>⚙</span> Sınıf Araçları</button>
             <button class="side-item" data-panel="reports"><span>↗</span> Raporlar</button>
+            <button class="side-item" data-panel="school"><span>◇</span> School Workspace <em class="side-beta">BETA</em></button>
             <button class="side-item" data-panel="settings"><span>⚙</span> Ayarlar</button>
           </nav>
           <div class="sidebar-plan">
@@ -302,6 +303,7 @@
             <button data-panel="games">Oyunlar</button>
             <button data-panel="tools">Araçlar</button>
             <button data-panel="reports">Raporlar</button>
+            <button data-panel="school">School Workspace</button>
             <button data-panel="settings">Ayarlar</button>
           </div>
 
@@ -960,6 +962,82 @@
             </div>
           </section>
 
+
+          <section class="workspace-panel" data-panel-view="school" id="school-workspace">
+            <div class="panel-header">
+              <div><small>SCHOOL WORKSPACE · BETA</small><h3>Dersleri ekip içinde paylaş.</h3></div>
+              <span class="adaptive-badge">TEACHER TEAM · SHARED LIBRARY</span>
+            </div>
+
+            <div id="schoolEmptyState" class="school-empty-layout">
+              <article class="school-intro-card">
+                <span>◇</span>
+                <small>OKUL / KURS / ÖĞRETMEN EKİBİ</small>
+                <h4>Tek başına hazırlanan dersi ekip bilgisine dönüştür.</h4>
+                <p>Bir School Workspace oluştur veya ekip koduyla mevcut bir alana katıl. İlk beta sürümde öğretmen listesi ve paylaşılan ders kütüphanesi çalışır.</p>
+                <div><b>✓ Kodla öğretmen katılımı</b><b>✓ Paylaşılan ders kütüphanesi</b><b>✓ Dersi kendi sınıfına kopyalama</b></div>
+              </article>
+              <div class="school-entry-grid">
+                <form class="school-entry-card" id="schoolCreateForm">
+                  <small>YENİ WORKSPACE</small>
+                  <strong>Okul / ekip oluştur</strong>
+                  <p>Ekip için tek bir paylaşım alanı aç.</p>
+                  <label>Okul / ekip adı<input id="schoolCreateName" type="text" maxlength="120" required placeholder="Örn. ABC English Department"></label>
+                  <button type="submit">Workspace oluştur →</button>
+                </form>
+                <form class="school-entry-card" id="schoolJoinForm">
+                  <small>EKİBE KATIL</small>
+                  <strong>Kodla workspace'e gir</strong>
+                  <p>Yöneticinin verdiği 8 karakterli kodu kullan.</p>
+                  <label>Ekip kodu<input id="schoolJoinCode" type="text" maxlength="8" required placeholder="AB12CD34"></label>
+                  <button type="submit">Ekibe katıl →</button>
+                </form>
+              </div>
+              <div class="lesson-generate-status" id="schoolEntryStatus" hidden aria-live="polite"></div>
+            </div>
+
+            <div id="schoolActiveState" hidden>
+              <div class="school-hero-card">
+                <div>
+                  <small>SCHOOL WORKSPACE</small>
+                  <h4 id="schoolName">English Department</h4>
+                  <p><span id="schoolRole">Teacher</span> · <span id="schoolSeatCount">1 / 20</span></p>
+                </div>
+                <div class="school-code-box">
+                  <small>TEACHER JOIN CODE</small>
+                  <strong id="schoolJoinCodeDisplay">--------</strong>
+                  <button type="button" id="schoolCopyCode">Kodu kopyala</button>
+                </div>
+              </div>
+
+              <div class="school-grid">
+                <article class="school-members-card">
+                  <div class="school-card-head"><div><small>EKİP</small><strong>Öğretmenler</strong></div><span id="schoolMemberBadge">0</span></div>
+                  <div id="schoolMemberList" class="school-member-list"></div>
+                  <button class="danger-lite school-leave" type="button" id="schoolLeave">Workspace'ten ayrıl</button>
+                </article>
+
+                <article class="school-share-card">
+                  <div class="school-card-head"><div><small>PAYLAŞ</small><strong>Kendi dersini ekip kütüphanesine ekle</strong></div></div>
+                  <label>Ders
+                    <select id="schoolOwnLesson"><option value="">Kaydedilmiş ders seç</option></select>
+                  </label>
+                  <button type="button" id="schoolShareLesson">Dersi ekiple paylaş →</button>
+                  <p>Paylaşım orijinal dersini değiştirmez. Ekipteki öğretmenler kendi sınıflarına bir kopya alır.</p>
+                </article>
+              </div>
+
+              <div class="school-library-shell">
+                <div class="school-library-head">
+                  <div><small>SHARED LIBRARY</small><strong>Ekip dersleri</strong><p>Bir dersi seçili sınıfına kopyala; kendi hesabında bağımsız olarak düzenle.</p></div>
+                  <label>Hedef sınıf<select id="schoolTargetClass"><option value="">Önce sınıf seç</option></select></label>
+                </div>
+                <div id="schoolSharedLessons" class="school-shared-lessons"></div>
+              </div>
+              <div class="lesson-generate-status" id="schoolStatus" hidden aria-live="polite"></div>
+            </div>
+          </section>
+
           <section class="workspace-panel" data-panel-view="settings" id="teacher-settings">
             <div class="panel-header">
               <div><small>TEACHING PREFERENCES</small><h3>Bir kez ayarla. Her derste hazır gelsin.</h3></div>
@@ -1089,7 +1167,8 @@
         <article class="done"><span>V3</span><b>Library & private students</b><p>Kaydedilmiş dersler, tekrar kullanım ve hesaba bağlı özel öğrenci profilleri.</p><em>LIVE</em></article>
         <article class="done"><span>V4</span><b>Assignments, planner & reports</b><p>Ödev teslimi, yaklaşan ders planı ve gerçek öğrenci sonuçlarından rapor.</p><em>LIVE</em></article>
         <article class="done"><span>V5</span><b>Teacher Assistant · Beta</b><p>Tek brief'ten ders, worksheet, speaking, homework ve oyun paketi; Lesson Builder'a tek tık aktarım.</p><em>LIVE</em></article>
-        <article><span>V6</span><b>Schools & subscriptions</b><p>School workspace, ekip kütüphanesi, lisanslama ve ödeme.</p><em>LATER</em></article>
+        <article class="done"><span>V6</span><b>School Workspace · Beta</b><p>Kodla ekip katılımı, öğretmen listesi, paylaşılan lesson library ve kendi sınıfına kopyalama.</p><em>LIVE</em></article>
+        <article><span>V7</span><b>Subscriptions & billing</b><p>Teacher Pro, okul lisansları, seat yönetimi ve ödeme altyapısı.</p><em>LATER</em></article>
       </div>
     </section>
 
@@ -1191,6 +1270,7 @@
   <script src="./educators-i18n.js?v=20261004-fullqa3"></script>
   <script src="./educators-assistant.js?v=20261004-assistant1"></script>
   <script src="./educators-settings.js?v=20261004-settings1"></script>
+  <script src="./educators-school.js?v=20261004-school1"></script>
   <script src="./educators-product.js?v=20261004-fullqa3"></script>
 </body>
 </html>
