@@ -155,7 +155,7 @@
     await refreshClasses(true);
     document.dispatchEvent(new CustomEvent('esc:educator-ready'));
     if (state.classPoll) clearInterval(state.classPoll);
-    state.classPoll = setInterval(() => refreshClasses(false).catch(()=>{}), 7000);
+    state.classPoll = setInterval(() => { if(!document.hidden) refreshClasses(false).catch(()=>{}); }, 7000);
   }
 
   function ensureLogoutButton() {
