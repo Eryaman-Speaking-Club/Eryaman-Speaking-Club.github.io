@@ -236,6 +236,7 @@
             <button class="side-item" data-panel="classes"><span>▦</span> My Classes</button>
             <button class="side-item" data-panel="private"><span>●</span> Private Students</button>
             <button class="side-item" data-panel="builder"><span>✦</span> Lesson Builder</button>
+            <button class="side-item" data-panel="library"><span>▣</span> My Library</button>
             <button class="side-item" data-panel="resources"><span>▤</span> Resource Studio</button>
             <button class="side-item" data-panel="games"><span>◫</span> Game Library</button>
             <button class="side-item" data-panel="tools"><span>⚙</span> Classroom Tools</button>
@@ -267,6 +268,7 @@
             <button data-panel="classes">Classes</button>
             <button data-panel="private">Private</button>
             <button data-panel="builder">Builder</button>
+            <button data-panel="library">My Library</button>
             <button data-panel="resources">Resources</button>
             <button data-panel="games">Games</button>
             <button data-panel="tools">Tools</button>
@@ -284,8 +286,27 @@
             </div>
             <div class="edu-workflow-grid">
               <button class="edu-workflow-card" type="button" data-workflow="curriculum"><small>MEB 2026–27</small><strong>Okul dersi hazırla</strong><span>Sınıf → tema → beceri → ders akışı.</span></button>
-              <button class="edu-workflow-card" type="button" data-workflow="private"><small>1-TO-1</small><strong>Özel ders öğrencisi</strong><span>Seviye, hedef, ödev ve sonraki dersi takip et.</span></button>
+              <button class="edu-workflow-card" type="button" data-workflow="builder"><small>QUICK BUILD</small><strong>Dakikalar içinde ders oluştur</strong><span>Yaş, seviye, konu ve süreyi seç; akışı hazırla.</span></button>
+              <button class="edu-workflow-card" type="button" data-workflow="library"><small>REUSE</small><strong>Kaydettiğim dersi aç</strong><span>Hazırladığın dersi tekrar kullan, düzenle veya yazdır.</span></button>
               <button class="edu-workflow-card" type="button" data-workflow="games"><small>INSTANT CLASS</small><strong>Şimdi bir oyun aç</strong><span>Speaking, vocabulary, grammar veya takım oyunu.</span></button>
+            </div>
+
+            <div class="teacher-retention-grid">
+              <article class="teacher-onboarding-card">
+                <div class="retention-card-head"><div><small>İLK KURULUM</small><strong>Platformu 4 adımda kendi çalışma alanın yap.</strong></div><span id="teacherSetupPercent">0%</span></div>
+                <div class="setup-progress"><i id="teacherSetupProgress"></i></div>
+                <div class="setup-steps" id="teacherSetupSteps">
+                  <button type="button" class="done" data-setup-step="account"><b>1</b><span><strong>Öğretmen hesabı</strong><small>Giriş yapıldı</small></span><em>✓</em></button>
+                  <button type="button" data-setup-step="class"><b>2</b><span><strong>İlk sınıfını oluştur</strong><small>Yaş ve seviyeyi bir kez tanımla</small></span><em>→</em></button>
+                  <button type="button" data-setup-step="lesson"><b>3</b><span><strong>İlk dersini kaydet</strong><small>Sonra tek tıkla yeniden kullan</small></span><em>→</em></button>
+                  <button type="button" data-setup-step="live"><b>4</b><span><strong>Sınıfta başlat</strong><small>Kodla öğrenci al ve canlı akışı dene</small></span><em>→</em></button>
+                </div>
+              </article>
+
+              <article class="recent-lessons-home">
+                <div class="retention-card-head"><div><small>MY LIBRARY</small><strong>Son kaydettiğin dersler</strong></div><button type="button" data-panel-target="library">Tümünü aç →</button></div>
+                <div class="recent-lesson-list" id="recentLessonList"><p>Kaydedilmiş dersler yükleniyor…</p></div>
+              </article>
             </div>
             <div class="metric-grid">
               <article><span>CLASSES</span><strong>3</strong><small>Active this week</small></article>
@@ -547,6 +568,32 @@
           </section>
 
 
+          <section class="workspace-panel" data-panel-view="library" id="lesson-library">
+            <div class="panel-header">
+              <div><small>MY LIBRARY</small><h3>Bir kez hazırla. Her sınıfta yeniden kullan.</h3></div>
+              <button class="solid-button" type="button" data-panel-target="builder">+ Yeni ders oluştur</button>
+            </div>
+            <div class="library-value-strip">
+              <div><b>Kaydet</b><span>Ders planlarını hesabında tut.</span></div>
+              <div><b>Yeniden kullan</b><span>Aynı yapıyı başka sınıfa uyarla.</span></div>
+              <div><b>Yazdır</b><span>Öğretmen planını tek tıkla çıktı al.</span></div>
+            </div>
+            <div class="lesson-library-toolbar">
+              <label><span>Derslerde ara</span><input id="lessonLibrarySearch" type="search" placeholder="Başlık, konu veya hedef ara…"></label>
+              <select id="lessonLibraryGoal" aria-label="Ders hedefi filtresi">
+                <option value="all">Tüm hedefler</option>
+                <option value="speaking">Speaking</option>
+                <option value="vocabulary">Vocabulary</option>
+                <option value="grammar">Grammar</option>
+                <option value="mixed">Mixed</option>
+              </select>
+              <button type="button" id="refreshLessonLibrary">↻ Yenile</button>
+            </div>
+            <div class="lesson-library-grid" id="lessonLibraryGrid" aria-live="polite">
+              <div class="library-empty"><strong>Derslerin yükleniyor…</strong><span>Kaydettiğin dersler burada görünecek.</span></div>
+            </div>
+          </section>
+
           <section class="workspace-panel" data-panel-view="resources">
             <div class="panel-header">
               <div><small>RESOURCE STUDIO</small><h3>Bir ders konusunu altı farklı materyale çevir.</h3></div>
@@ -663,25 +710,27 @@
 
           <section class="workspace-panel" data-panel-view="reports">
             <div class="panel-header">
-              <div><small>REPORTS</small><h3>Öğretmene işe yarayan veri.</h3></div>
-              <span class="adaptive-badge muted">CLASS DATA</span>
+              <div><small>REPORTS</small><h3>Öğretmene karar aldıran gerçek sınıf verisi.</h3></div>
+              <span class="adaptive-badge muted">LIVE CLASS DATA</span>
+            </div>
+            <div class="report-kpi-grid">
+              <article><small>SONUÇ KAYDI</small><strong id="reportAttemptCount">—</strong><span>Öğrenci etkinlikleri</span></article>
+              <article><small>ORTALAMA</small><strong id="reportAverageScore">—</strong><span>Puanlı etkinliklerde</span></article>
+              <article><small>AKTİF ÖĞRENCİ</small><strong id="reportStudentCount">—</strong><span>Sonuç gönderen</span></article>
+              <article><small>EN ÇOK ÇALIŞILAN</small><strong id="reportTopActivity">—</strong><span>Etkinlik türü</span></article>
             </div>
             <div class="report-grid">
               <article class="report-main">
-                <span>6-B · THIS WEEK</span>
-                <strong>79%</strong>
-                <small>Average activity accuracy</small>
-                <div class="bars">
-                  <div><b>Vocabulary</b><i><span style="--v:86%"></span></i><em>86%</em></div>
-                  <div><b>Grammar</b><i><span style="--v:68%"></span></i><em>68%</em></div>
-                  <div><b>Speaking participation</b><i><span style="--v:81%"></span></i><em>81%</em></div>
-                </div>
+                <span id="reportScopeLabel">SINIF VERİSİ</span>
+                <strong id="reportHeadline">Henüz yeterli veri yok</strong>
+                <small id="reportSubline">Öğrenciler etkinlik tamamladıkça sonuçlar burada gerçek zamanlı özetlenir.</small>
+                <div class="bars" id="reportActivityBars"></div>
               </article>
-              <article class="report-insight">
-                <small>REVISION SUGGESTION</small>
-                <h4>Bu üç kelimeyi tekrar et.</h4>
-                <div><span>departure</span><span>luggage</span><span>journey</span></div>
-                <p>Sınıfın en çok zorlandığı örnek içerikler burada gösterilecek.</p>
+              <article class="report-insight" id="reportInsightCard">
+                <small>SONRAKİ DERS ÖNERİSİ</small>
+                <h4 id="reportInsightTitle">Önce bir canlı etkinlik çalıştır.</h4>
+                <div id="reportInsightTags"></div>
+                <p id="reportInsightText">Platform, sonuçlar geldikçe hangi beceriyi tekrar etmenin daha mantıklı olduğunu gösterecek.</p>
               </article>
             </div>
           </section>
@@ -830,11 +879,12 @@
   </div>
 
   <script src="../esc-supabase-config.js?v=20260923"></script>
-  <script src="../esc-supabase.js?v=20260923-edu"></script>
+  <script src="../esc-supabase.js?v=20261004-library1"></script>
   <script src="./educators.js?v=20260930-games4"></script>
   <script src="./educators-core.js?v=20261004-platform2"></script>
   <script src="./educators-workspace.js?v=20260929-builder2"></script>
   <script src="./educators-guide.js?v=20260930-games3"></script>
   <script src="./educators-i18n.js?v=20260928-3"></script>
+  <script src="./educators-product.js?v=20261004-retention1"></script>
 </body>
 </html>
