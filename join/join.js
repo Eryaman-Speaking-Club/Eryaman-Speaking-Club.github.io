@@ -143,7 +143,8 @@
       if(sig!==lastSignature){lastSignature=sig;paint(data);}
     }catch(err){
       setConnected(false);
-      if(String(err?.message||'').includes('STUDENT_SESSION_NOT_FOUND')) leave(false);
+      const reason=String(err?.message||'');
+      if(reason.includes('STUDENT_SESSION_NOT_FOUND')||reason.includes('CLASS_NOT_AVAILABLE')) leave(true);
     }
   }
   async function join(e){
