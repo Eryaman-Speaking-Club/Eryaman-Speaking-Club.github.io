@@ -713,6 +713,15 @@
   "Sınıf kontenjanı dolu. Önce maksimum öğrenci sayısını artırın.": "Class capacity is full. Increase the maximum student count first."
 });
 
+  Object.assign(TEXT,{
+  "Öğretmen notu var": "Teacher note saved",
+  "Öğrenci notunu düzenle": "Edit student note",
+  "Öğretmen iç notu": "Private teacher note",
+  "Notu kaydet": "Save note",
+  "Öğrenci adı boş olamaz.": "Student name cannot be empty.",
+  "Örn. Speaking’de çekingen. Present Perfect tekrar et.": "e.g. Hesitant in speaking. Review Present Perfect."
+});
+
   const PLACEHOLDERS={
     "Örn. 6-B / Junior Speaking":"e.g. 6-B / Junior Speaking",
     "En az 8 karakter":"At least 8 characters",
