@@ -376,7 +376,7 @@
 
     $$('[data-assignment-share]',wrap).forEach(b=>b.addEventListener('click',async()=>{
       const code=b.dataset.classCode||'';
-      const url=location.origin+'/join/?code='+encodeURIComponent(code)+'#assignments';
+      const url=location.origin+'/join/?code='+encodeURIComponent(code)+'#assignmentZone';
       try{
         await navigator.clipboard.writeText(url);
         const old=b.textContent;b.textContent=tx('Kopyalandı ✓','Copied ✓');setTimeout(()=>b.textContent=old,1200);
