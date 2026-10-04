@@ -357,8 +357,9 @@
       if(!roster.length){
         list.innerHTML='<div class="class-roster-empty">'+tx('Henüz öğrenci katılmadı.','No students have joined yet.')+'</div>';
       }else{
-        list.innerHTML=roster.map(s=>'<article class="class-roster-row '+(s.is_active?'':'inactive')+'"><span class="roster-avatar">'+escapeHtml((s.display_name||'?').trim().charAt(0).toUpperCase())+'</span><div><b>'+escapeHtml(s.display_name||tx('Öğrenci','Student'))+'</b><small>'+tx('Son görülme: ','Last seen: ')+escapeHtml(rosterSeenLabel(s.last_seen_at))+'</small></div><em>'+(s.is_active?tx('Aktif','Active'):tx('Pasif','Inactive'))+'</em><button type="button" data-roster-toggle="'+escapeHtml(s.id)+'" data-next-active="'+(s.is_active?'false':'true')+'">'+(s.is_active?tx('Çıkar','Remove'):tx('Geri al','Restore'))+'</button></article>').join('');
+        list.innerHTML=roster.map(s=>'<article class="class-roster-row '+(s.is_active?'':'inactive')+'"><span class="roster-avatar">'+escapeHtml((s.display_name||'?').trim().charAt(0).toUpperCase())+'</span><div><b>'+escapeHtml(s.display_name||tx('Öğrenci','Student'))+(s.teacher_note?'<i class="roster-note-dot" title="'+escapeHtml(tx('Öğretmen notu var','Teacher note saved'))+'"></i>':'')+'</b><small>'+tx('Son görülme: ','Last seen: ')+escapeHtml(rosterSeenLabel(s.last_seen_at))+'</small></div><em>'+(s.is_active?tx('Aktif','Active'):tx('Pasif','Inactive'))+'</em><button type="button" data-roster-toggle="'+escapeHtml(s.id)+'" data-next-active="'+(s.is_active?'false':'true')+'">'+(s.is_active?tx('Çıkar','Remove'):tx('Geri al','Restore'))+'</button><details class="roster-student-notes"><summary>'+tx('Öğrenci notunu düzenle','Edit student note')+'</summary><div class="roster-note-editor"><label>'+tx('Görünen ad','Display name')+'<input type="text" maxlength="40" data-roster-name="'+escapeHtml(s.id)+'" value="'+escapeHtml(s.display_name||'')+'"></label><label>'+tx('Öğretmen iç notu','Private teacher note')+'<textarea rows="3" maxlength="1500" data-roster-note="'+escapeHtml(s.id)+'" placeholder="'+escapeHtml(tx('Örn. Speaking’de çekingen. Present Perfect tekrar et.','e.g. Hesitant in speaking. Review Present Perfect.'))+'">'+escapeHtml(s.teacher_note||'')+'</textarea></label><button type="button" data-roster-save="'+escapeHtml(s.id)+'">'+tx('Notu kaydet','Save note')+'</button></div></details></article>').join('');
         $$('[data-roster-toggle]',list).forEach(b=>b.addEventListener('click',()=>toggleRosterStudent(b.dataset.rosterToggle,b.dataset.nextActive==='true',b)));
+        $$('[data-roster-save]',list).forEach(b=>b.addEventListener('click',()=>saveRosterStudent(b.dataset.rosterSave,b)));
       }
     }
   }
@@ -428,6 +429,22 @@
       window.ESCAnalytics?.track?.(next?'educator_class_reopened':'educator_class_closed','other');
     }catch(err){msg($('#eduClassManageMessage'),humanError(err));}
     finally{if(b)b.disabled=false;}
+  }
+
+  async function saveRosterStudent(studentId,button){
+    const cls=managedClass();
+    if(!cls)return;
+    const name=$('[data-roster-name="'+CSS.escape(studentId)+'"]')?.value.trim()||'';
+    const note=$('[data-roster-note="'+CSS.escape(studentId)+'"]')?.value.trim()||'';
+    if(!name)return alert(tx('Öğrenci adı boş olamaz.','Student name cannot be empty.'));
+    button.disabled=true;
+    const old=button.textContent;button.textContent=tx('Kaydediliyor…','Saving…');
+    try{
+      await window.ESCSupabase.updateEducatorStudent(studentId,{display_name:name,teacher_note:note});
+      await refreshClasses(false);
+      renderClassManage();
+      window.ESCAnalytics?.track?.('educator_student_note_saved','other');
+    }catch(err){alert(humanError(err));button.disabled=false;button.textContent=old;}
   }
 
   async function toggleRosterStudent(studentId,nextActive,button){
