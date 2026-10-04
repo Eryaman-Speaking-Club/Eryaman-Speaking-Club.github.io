@@ -2,7 +2,8 @@
   "use strict";
 
   const $ = (s, r=document) => r.querySelector(s);
-  const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+  const $ = (s, r=document) => [...r.querySelectorAll(s)];
+  const escapeHtml = (v="") => String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]));
 
   const themes = {
     "5": ["School Life","Classroom Life","Personal Life","Family Life","Life in the Neighbourhood & City","Life in the World","Life in Nature","Life in the Universe & Future"],
@@ -205,64 +206,111 @@
   });
 
 
-  const privateKey = "escPrivateTutorStudentsV1";
-  const defaults = [
-    {name:"Deniz", level:"A2", goal:"Speaking confidence", next:"Travel · speaking"},
-    {name:"Mert", level:"B1", goal:"School support", next:"Grammar + homework"}
-  ];
+  let privateStudents = [];
 
-  function loadPrivate() {
+  const uiText = (tr,en) => document.documentElement.lang==="en" ? en : tr;
+
+  async function loadPrivateStudents() {
+    const grid=$("#privateStudentGrid");
+    if(grid) grid.innerHTML='<article class="private-student-card private-loading"><strong>'+uiText("Özel öğrenciler yükleniyor…","Loading private students…")+'</strong></article>';
     try {
-      const data = JSON.parse(localStorage.getItem(privateKey) || "null");
-      if (Array.isArray(data) && data.length) return data;
-    } catch {}
-    return defaults;
+      const session=await window.ESCSupabase?.getSession?.();
+      if(!session){
+        privateStudents=[];
+        renderPrivateStudents();
+        return;
+      }
+      privateStudents=await window.ESCSupabase.listPrivateStudents();
+      renderPrivateStudents();
+    } catch(err) {
+      if(grid) grid.innerHTML='<article class="private-student-card private-loading"><strong>'+uiText("Öğrenciler yüklenemedi.","Could not load students.")+'</strong><p>'+String(err?.message||"")+'</p></article>';
+    }
   }
 
-  function savePrivate(list) {
-    localStorage.setItem(privateKey, JSON.stringify(list));
+  function renderPrivateStudents() {
+    const grid=$("#privateStudentGrid");
+    if(!grid) return;
+    if(!privateStudents.length){
+      grid.innerHTML='<article class="private-student-card private-empty"><div><span>'+uiText("Henüz özel öğrenci yok.","No private students yet.")+'</span><small>'+uiText("HESABA BAĞLI","ACCOUNT SYNCED")+'</small></div><p>'+uiText("İlk öğrencini ekle; seviye, hedef ve sonraki ders notları tüm cihazlarında saklansın.","Add your first learner; level, goals and next-lesson notes will stay synced across devices.")+'</p><button type="button" data-private-empty-add>'+uiText("+ Öğrenci ekle","+ Add student")+'</button></article>';
+      grid.querySelector("[data-private-empty-add]")?.addEventListener("click",()=>$("#addPrivateStudent")?.click());
+      return;
+    }
+    grid.innerHTML=privateStudents.map(s=>{
+      const goals=Array.isArray(s.goals)&&s.goals.length?s.goals.join(", "):uiText("Hedef belirtilmedi","No goal yet");
+      const next=s.next_lesson_note||uiText("Sonraki ders planlanacak","Next lesson to be planned");
+      const homework=s.homework?'<small class="private-homework">'+uiText("Ödev: ","Homework: ")+escapeHtml(s.homework)+'</small>':"";
+      return '<article class="private-student-card" data-private-id="'+escapeHtml(s.id)+'"><div><span>'+escapeHtml(s.display_name)+'</span><small>'+escapeHtml(s.level)+(s.school_grade?' · '+escapeHtml(s.school_grade):'')+'</small></div><p>'+escapeHtml(goals)+'</p><strong>'+uiText("Sonraki: ","Next: ")+escapeHtml(next)+'</strong>'+homework+'<div class="private-actions"><button type="button" data-private-plan="'+escapeHtml(s.id)+'">'+uiText("Ders planla →","Plan lesson →")+'</button><button type="button" data-private-edit="'+escapeHtml(s.id)+'">'+uiText("Düzenle","Edit")+'</button><button type="button" data-private-delete="'+escapeHtml(s.id)+'">×</button></div></article>';
+    }).join("");
   }
 
-  function renderPrivate() {
-    const grid = $("#privateStudentGrid");
-    if (!grid) return;
-    const list = loadPrivate();
-    grid.innerHTML = list.map((s, i) =>
-      '<article class="private-student-card"><div><span>' + s.name + '</span><small>' + s.level + '</small></div><p>' + s.goal + '</p><strong>Next: ' + s.next + '</strong><div class="private-actions"><button type="button" data-private-plan="' + i + '">Plan lesson →</button><button type="button" data-private-delete="' + i + '">×</button></div></article>'
-    ).join("");
+  async function addPrivateStudent() {
+    const name=window.prompt(uiText("Öğrencinin adı?","Student name?"));
+    if(!name?.trim()) return;
+    const levelRaw=(window.prompt(uiText("Seviye? (Pre-A1, A1, A2, B1, B2)","Level? (Pre-A1, A1, A2, B1, B2)"),"A2")||"A2").trim();
+    const level=["Pre-A1","A1","A2","B1","B2"].includes(levelRaw)?levelRaw:"A2";
+    const goal=window.prompt(uiText("Ana hedef?","Main goal?"),uiText("Konuşma özgüveni","Speaking confidence"))||"";
+    const next=window.prompt(uiText("Sonraki ders notu?","Next lesson note?"),"")||"";
+    const btn=$("#addPrivateStudent"); if(btn) btn.disabled=true;
+    try{
+      await window.ESCSupabase.createPrivateStudent({
+        display_name:name.trim(),level,goals:goal.trim()?[goal.trim()]:[],next_lesson_note:next.trim()||null
+      });
+      window.ESCAnalytics?.track?.("educator_private_student_created","other");
+      await loadPrivateStudents();
+    }catch(err){window.alert(err?.message||uiText("Öğrenci eklenemedi.","Could not add student."));}
+    finally{if(btn) btn.disabled=false;}
   }
 
-  $("#addPrivateStudent")?.addEventListener("click", () => {
-    const en=document.documentElement.lang==="en";
-    const name = window.prompt(en?"Student name?":"Öğrencinin adı?");
-    if (!name) return;
-    const level = window.prompt(en?"Level? (A1, A2, B1, B2)":"Seviye? (A1, A2, B1, B2)", "A2") || "A2";
-    const goal = window.prompt(en?"Main goal?":"Ana hedef?", "Speaking confidence") || "Speaking confidence";
-    const list = loadPrivate();
-    list.push({name:name.trim(), level:level.trim().toUpperCase(), goal:goal.trim(), next:"Planlanacak"});
-    savePrivate(list);
-    renderPrivate();
-  });
+  async function editPrivateStudent(student) {
+    const goal=window.prompt(uiText("Ana hedef?","Main goal?"),Array.isArray(student.goals)?student.goals.join(", "):"");
+    if(goal===null) return;
+    const homework=window.prompt(uiText("Ödev / tekrar notu?","Homework / review note?"),student.homework||"");
+    if(homework===null) return;
+    const next=window.prompt(uiText("Sonraki ders notu?","Next lesson note?"),student.next_lesson_note||"");
+    if(next===null) return;
+    try{
+      await window.ESCSupabase.updatePrivateStudent(student.id,{
+        goals:goal.split(",").map(x=>x.trim()).filter(Boolean),
+        homework:homework.trim()||null,
+        next_lesson_note:next.trim()||null
+      });
+      await loadPrivateStudents();
+    }catch(err){window.alert(err?.message||uiText("Öğrenci güncellenemedi.","Could not update student."));}
+  }
 
-  $("#privateStudentGrid")?.addEventListener("click", e => {
-    const plan = e.target.closest("[data-private-plan]");
-    const del = e.target.closest("[data-private-delete]");
-    const list = loadPrivate();
-    if (plan) {
-      const s = list[Number(plan.dataset.privatePlan)];
-      if ($("#className")) $("#className").value = s.name + " · Private";
-      if ($("#level")) $("#level").value = ["Pre-A1","A1","A2","B1","B2"].includes(s.level) ? s.level : "A2";
-      if ($("#ageGroup")) $("#ageGroup").value = "18+";
-      if ($("#goal")) $("#goal").value = s.goal.toLowerCase().includes("grammar") ? "grammar" : "speaking";
-      $("#lessonForm")?.dispatchEvent(new Event("submit", {bubbles:true, cancelable:true}));
+  $("#addPrivateStudent")?.addEventListener("click",addPrivateStudent);
+
+  $("#privateStudentGrid")?.addEventListener("click",async e=>{
+    const plan=e.target.closest("[data-private-plan]");
+    const edit=e.target.closest("[data-private-edit]");
+    const del=e.target.closest("[data-private-delete]");
+    const id=plan?.dataset.privatePlan||edit?.dataset.privateEdit||del?.dataset.privateDelete;
+    const student=privateStudents.find(x=>x.id===id);
+    if(!student) return;
+    if(plan){
+      if($("#className")) $("#className").value=student.display_name+" · Private";
+      if($("#level")) $("#level").value=["Pre-A1","A1","A2","B1","B2"].includes(student.level)?student.level:"A2";
+      if($("#ageGroup")) $("#ageGroup").value="18+";
+      const goals=(student.goals||[]).join(" ").toLowerCase();
+      if($("#goal")) $("#goal").value=goals.includes("grammar")?"grammar":goals.includes("vocab")?"vocabulary":"speaking";
+      const custom=$("#customTopic");
+      const topic=$("#topic");
+      if(topic){topic.value="custom";topic.dispatchEvent(new Event("change",{bubbles:true}));}
+      if(custom) custom.value=student.next_lesson_note||student.focus_notes||"";
+      $("#lessonForm")?.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true}));
       activatePanel("builder");
+      return;
     }
-    if (del) {
-      list.splice(Number(del.dataset.privateDelete), 1);
-      savePrivate(list.length ? list : defaults);
-      renderPrivate();
+    if(edit){await editPrivateStudent(student);return;}
+    if(del){
+      if(!window.confirm(uiText("Bu öğrenci profili silinsin mi?","Delete this student profile?"))) return;
+      try{await window.ESCSupabase.deletePrivateStudent(student.id);await loadPrivateStudents();}
+      catch(err){window.alert(err?.message||uiText("Öğrenci silinemedi.","Could not delete student."));}
     }
   });
 
-  renderPrivate();
+  document.addEventListener("esc:educator-ready",loadPrivateStudents);
+  window.addEventListener("esc:languagechange",renderPrivateStudents);
+  setTimeout(loadPrivateStudents,900);
+
 })();
