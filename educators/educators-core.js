@@ -365,8 +365,8 @@
   }
 
   document.addEventListener('DOMContentLoaded',()=>{
-    $('[data-teacher-login]').forEach(b=>b.addEventListener('click',()=> state.session ? document.querySelector('#teacher-demo')?.scrollIntoView({behavior:'smooth'}) : openAuth('login')));
-    $('[data-teacher-signup]').forEach(b=>b.addEventListener('click',()=> state.session ? document.querySelector('#teacher-demo')?.scrollIntoView({behavior:'smooth'}) : openAuth('signup')));
+    $$('[data-teacher-login]').forEach(b=>b.addEventListener('click',()=> state.session ? document.querySelector('#teacher-demo')?.scrollIntoView({behavior:'smooth'}) : openAuth('login')));
+    $$('[data-teacher-signup]').forEach(b=>b.addEventListener('click',()=> state.session ? document.querySelector('#teacher-demo')?.scrollIntoView({behavior:'smooth'}) : openAuth('signup')));
     $('#eduAuthClose')?.addEventListener('click',closeAuth);
     $('#eduClassClose')?.addEventListener('click',closeClassModal);
     $('#eduAuthLayer')?.addEventListener('click',e=>{if(e.target.id==='eduAuthLayer')closeAuth();});
