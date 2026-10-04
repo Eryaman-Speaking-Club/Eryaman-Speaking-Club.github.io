@@ -502,7 +502,9 @@
     const session=await window.ESCSupabase.getSession().catch(()=>null);
     if(!session) return;
     try {
-      const from=new Date(Date.now()-24*60*60*1000).toISOString();
+      const fromDate=new Date();
+      fromDate.setHours(0,0,0,0);
+      const from=fromDate.toISOString();
       const to=new Date(Date.now()+90*24*60*60*1000).toISOString();
       const [classes,lessons,results,sessions,assignments,privateStudents,schedule]=await Promise.all([
         window.ESCSupabase.listEducatorClasses(),
