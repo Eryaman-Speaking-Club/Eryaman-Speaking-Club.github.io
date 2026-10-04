@@ -507,3 +507,6 @@
 .edu-lang-switch{display:flex;padding:3px;border:1px solid var(--line);border-radius:12px;background:#f3f6f8}
 .edu-lang-switch button{border:0;border-radius:9px;background:transparent;color:#718596;min-height:34px;padding:0 10px;font-size:11px;font-weight:900;cursor:pointer}
 .edu-lang-switch button.active{background:#fff;color:var(--navy);box-shadow:0 4px 12px rgba(8,31,59,.08)}
+
+.assignment-submission-count{display:flex;align-items:baseline;gap:6px;margin-top:12px;padding:9px 11px;border-radius:11px;background:#f3f7fa;width:max-content}
+.assignment-submission-count b{color:var(--navy);font-size:20px}.assignment-submission-count span{color:#718596;font-size:10px;font-weight:850}
