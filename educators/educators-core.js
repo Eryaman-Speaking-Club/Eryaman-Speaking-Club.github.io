@@ -215,11 +215,17 @@
 
     const code = $('.class-code-card strong');
     const codeText = state.activeClass?.join_code || '------';
+    const classUsable=!!state.activeClass?.is_active;
     if (code) code.textContent = codeText;
     const desc = $('.class-code-card p');
-    if (desc) desc.textContent = state.activeClass
+    if (desc) desc.textContent = classUsable
       ? tx(`${state.activeClass.name} sınıfına bu kodla katılın.`,`Join ${state.activeClass.name} with this code.`)
-      : tx("Önce bir sınıf oluşturun.","Create a class first.");
+      : state.activeClass
+        ? tx('Bu sınıf kapalı. Öğrenci katılımı devre dışı.','This class is closed. Student access is disabled.')
+        : tx("Önce bir sınıf oluşturun.","Create a class first.");
+    $('[data-copy-code]')?.toggleAttribute('disabled',!classUsable);
+    $('[data-copy-join-link]')?.toggleAttribute('disabled',!classUsable);
+    $('[data-open-student]')?.toggleAttribute('disabled',!classUsable);
 
     const next = $('.next-lesson-card');
     if (next && state.activeClass) {
