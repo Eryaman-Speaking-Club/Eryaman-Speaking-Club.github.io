@@ -129,7 +129,7 @@
       const lesson=state.lessons.find(x=>x.id===b.dataset.lessonUse);
       if(lesson) loadLessonIntoBuilder(lesson);
     }));
-    $('[data-lesson-duplicate]',grid).forEach(b=>b.addEventListener('click',async()=>{
+    $$('[data-lesson-duplicate]',grid).forEach(b=>b.addEventListener('click',async()=>{
       const lesson=state.lessons.find(x=>x.id===b.dataset.lessonDuplicate);
       if(!lesson) return;
       b.disabled=true;
@@ -148,7 +148,7 @@
       }catch(err){alert(err?.message||'Ders kopyalanamadı.');}
       finally{b.disabled=false;}
     }));
-    $('[data-lesson-print]',grid).forEach(b=>b.addEventListener('click',()=>{
+    $$('[data-lesson-print]',grid).forEach(b=>b.addEventListener('click',()=>{
       const lesson=state.lessons.find(x=>x.id===b.dataset.lessonPrint);
       if(lesson) printLesson(lesson);
     }));
@@ -352,7 +352,7 @@
       return '<article class="assignment-card"><div class="assignment-card-top"><span class="assignment-status '+esc(a.status)+'">'+esc(status)+'</span><small>'+esc(dueLabel(a.due_at))+'</small></div><h4>'+esc(a.title)+'</h4><p>'+esc(klass)+(a.instructions?' · '+esc(a.instructions):'')+'</p><div class="assignment-submission-count"><b>'+submissions.length+'</b><span>'+tx('teslim','submissions')+'</span></div>'+detail+'<div class="assignment-card-actions"><button type="button" data-assignment-share="'+esc(a.id)+'" data-class-code="'+esc(code)+'">'+tx('Öğrenci linkini kopyala','Copy student link')+'</button><button type="button" data-assignment-toggle="'+esc(a.id)+'">'+(a.status==='published'?tx('Kapat','Close'):tx('Yayınla','Publish'))+'</button><button type="button" class="danger-lite" data-assignment-delete="'+esc(a.id)+'">'+tx('Sil','Delete')+'</button></div></article>';
     }).join('');
 
-    $('[data-assignment-share]',wrap).forEach(b=>b.addEventListener('click',async()=>{
+    $$('[data-assignment-share]',wrap).forEach(b=>b.addEventListener('click',async()=>{
       const code=b.dataset.classCode||'';
       const url=location.origin+'/join/?code='+encodeURIComponent(code)+'#assignments';
       try{
@@ -360,14 +360,14 @@
         const old=b.textContent;b.textContent=tx('Kopyalandı ✓','Copied ✓');setTimeout(()=>b.textContent=old,1200);
       }catch{}
     }));
-    $('[data-assignment-toggle]',wrap).forEach(b=>b.addEventListener('click',async()=>{
+    $$('[data-assignment-toggle]',wrap).forEach(b=>b.addEventListener('click',async()=>{
       const a=state.assignments.find(x=>x.id===b.dataset.assignmentToggle);if(!a)return;
       b.disabled=true;
       try{await window.ESCSupabase.updateAssignment(a.id,{status:a.status==='published'?'closed':'published'});await refreshData();}
       catch(err){alert(err?.message||tx('Ödev güncellenemedi.','Could not update assignment.'));}
       finally{b.disabled=false;}
     }));
-    $('[data-assignment-delete]',wrap).forEach(b=>b.addEventListener('click',async()=>{
+    $$('[data-assignment-delete]',wrap).forEach(b=>b.addEventListener('click',async()=>{
       const a=state.assignments.find(x=>x.id===b.dataset.assignmentDelete);if(!a)return;
       if(!confirm(tx('Bu ödev silinsin mi?','Delete this assignment?')))return;
       b.disabled=true;
@@ -436,10 +436,10 @@
       const status=ev.status==='completed'?tx('Tamamlandı','Completed'):tx('Planlandı','Scheduled');
       return '<article class="planner-event '+esc(ev.status)+'"><div class="planner-event-time"><b>'+esc(fmtTime(ev.starts_at))+'</b><span>'+Number(ev.duration_minutes||40)+' '+tx('dk','min')+'</span></div><div class="planner-event-copy"><small>'+esc(plannerTargetLabel(ev))+'</small><strong>'+esc(ev.title)+'</strong><p>'+esc(ev.notes||'')+'</p></div><div class="planner-event-actions">'+(ev.status==='completed'?'':'<button type="button" data-planner-complete="'+esc(ev.id)+'">'+tx('Tamamla','Complete')+'</button>')+'<button type="button" class="danger-lite" data-planner-delete="'+esc(ev.id)+'">'+tx('Sil','Delete')+'</button></div></article>';
     }).join('');
-    $('[data-planner-complete]',list).forEach(b=>b.addEventListener('click',async()=>{
+    $$('[data-planner-complete]',list).forEach(b=>b.addEventListener('click',async()=>{
       b.disabled=true;try{await window.ESCSupabase.updateScheduleEvent(b.dataset.plannerComplete,{status:'completed'});await refreshData();}catch(err){alert(err?.message||tx('Plan güncellenemedi.','Could not update event.'));}finally{b.disabled=false;}
     }));
-    $('[data-planner-delete]',list).forEach(b=>b.addEventListener('click',async()=>{
+    $$('[data-planner-delete]',list).forEach(b=>b.addEventListener('click',async()=>{
       if(!confirm(tx('Bu plan silinsin mi?','Delete this event?')))return;
       b.disabled=true;try{await window.ESCSupabase.deleteScheduleEvent(b.dataset.plannerDelete);await refreshData();}catch(err){alert(err?.message||tx('Plan silinemedi.','Could not delete event.'));}finally{b.disabled=false;}
     }));
