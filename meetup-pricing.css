@@ -31,3 +31,57 @@
     min-width:0;
   }
 }
+
+
+/* 2026-10-04 · limited-time pricing messaging */
+.pricing-limited-banner{
+  grid-column:1/-1;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  margin:0 0 20px;
+  padding:16px 20px;
+  border:1px solid #f1c9a7;
+  border-radius:20px;
+  background:linear-gradient(135deg,#fff8ef,#fffdf8);
+  box-shadow:0 14px 38px rgba(189,117,22,.08);
+}
+.pricing-limited-banner strong{
+  color:#9a5d10;
+  font-size:12px;
+  font-weight:1000;
+  letter-spacing:.06em;
+}
+.pricing-limited-banner span{
+  color:#6f8193;
+  font-size:13px;
+  line-height:1.45;
+  text-align:right;
+}
+.online-limited-price{
+  display:inline-flex;
+  align-items:center;
+  margin:14px 0 2px;
+  padding:9px 12px;
+  border-radius:999px;
+  background:#fff6e8;
+  border:1px solid #f2d6ad;
+  color:#9a5d10;
+  font-size:12px;
+  font-weight:900;
+}
+@media(max-width:700px){
+  .pricing-limited-banner{
+    align-items:flex-start;
+    flex-direction:column;
+    padding:15px 16px;
+  }
+  .pricing-limited-banner span{
+    text-align:left;
+  }
+  .online-limited-price{
+    border-radius:16px;
+    line-height:1.4;
+  }
+}
