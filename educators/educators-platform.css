@@ -510,3 +510,12 @@
 
 .assignment-submission-count{display:flex;align-items:baseline;gap:6px;margin-top:12px;padding:9px 11px;border-radius:11px;background:#f3f7fa;width:max-content}
 .assignment-submission-count b{color:var(--navy);font-size:20px}.assignment-submission-count span{color:#718596;font-size:10px;font-weight:850}
+
+.assignment-submissions{margin-top:10px;border:1px solid var(--line);border-radius:12px;background:#fbfcfd;overflow:hidden}
+.assignment-submissions summary{cursor:pointer;list-style:none;padding:10px 12px;color:var(--blue);font-size:10px;font-weight:950}
+.assignment-submissions summary::-webkit-details-marker{display:none}
+.assignment-submissions summary b{display:inline-grid;place-items:center;min-width:22px;height:22px;margin-left:5px;border-radius:999px;background:#e7f0f8;color:var(--navy);font-size:9px}
+.assignment-submissions>div{display:grid;border-top:1px solid var(--line)}
+.assignment-submissions article{display:grid;grid-template-columns:120px 1fr auto;gap:10px;align-items:start;padding:10px 12px;border-top:1px solid #edf1f4}
+.assignment-submissions article:first-child{border-top:0}.assignment-submissions strong{color:var(--navy);font-size:11px}.assignment-submissions span{color:#61798d;font-size:11px;line-height:1.45}.assignment-submissions small{color:#91a0ad;font-size:9px}
+@media(max-width:650px){.assignment-submissions article{grid-template-columns:1fr}.assignment-submissions small{margin-top:-4px}}
