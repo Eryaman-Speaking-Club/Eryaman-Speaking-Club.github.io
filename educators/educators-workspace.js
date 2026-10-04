@@ -310,7 +310,11 @@
   });
 
   document.addEventListener("esc:educator-ready",loadPrivateStudents);
-  window.addEventListener("esc:languagechange",renderPrivateStudents);
+  window.addEventListener("esc:languagechange",()=>{
+    renderPrivateStudents();
+    const active=$("#resourceTypeButtons [data-resource-kind].active")?.dataset.resourceKind || "worksheet";
+    renderResource(active);
+  });
   setTimeout(loadPrivateStudents,900);
 
 })();
