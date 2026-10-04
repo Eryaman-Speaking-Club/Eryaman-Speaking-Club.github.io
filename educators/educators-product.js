@@ -34,6 +34,14 @@
     return map[goal] || goal || 'English';
   }
 
+  function studentNameFor(id){
+    for(const cls of state.classes){
+      const found=(cls.students||[]).find(s=>s.id===id);
+      if(found) return found.display_name||tx('Öğrenci','Student');
+    }
+    return tx('Öğrenci','Student');
+  }
+
   function renderSetup() {
     const done = {
       account:true,
@@ -336,8 +344,12 @@
       const klass=classNameFor(a.class_id);
       const status=a.status==='published'?tx('Yayında','Published'):a.status==='closed'?tx('Kapalı','Closed'):tx('Taslak','Draft');
       const code=state.classes.find(x=>x.id===a.class_id)?.join_code||'';
-      const submissions=state.results.filter(r=>r.activity_type==='assignment' && r.payload?.assignment_id===a.id).length;
-      return '<article class="assignment-card"><div class="assignment-card-top"><span class="assignment-status '+esc(a.status)+'">'+esc(status)+'</span><small>'+esc(dueLabel(a.due_at))+'</small></div><h4>'+esc(a.title)+'</h4><p>'+esc(klass)+(a.instructions?' · '+esc(a.instructions):'')+'</p><div class="assignment-submission-count"><b>'+submissions+'</b><span>'+tx('teslim','submissions')+'</span></div><div class="assignment-card-actions"><button type="button" data-assignment-share="'+esc(a.id)+'" data-class-code="'+esc(code)+'">'+tx('Öğrenci linkini kopyala','Copy student link')+'</button><button type="button" data-assignment-toggle="'+esc(a.id)+'">'+(a.status==='published'?tx('Kapat','Close'):tx('Yayınla','Publish'))+'</button><button type="button" class="danger-lite" data-assignment-delete="'+esc(a.id)+'">'+tx('Sil','Delete')+'</button></div></article>';
+      const submissionRows=state.results.filter(r=>r.activity_type==='assignment' && r.payload?.assignment_id===a.id);
+      const uniqueMap=new Map();
+      submissionRows.forEach(r=>{if(!uniqueMap.has(r.student_id))uniqueMap.set(r.student_id,r);});
+      const submissions=[...uniqueMap.values()];
+      const detail=submissions.length?'<details class="assignment-submissions"><summary>'+tx('Teslimleri gör','View submissions')+' <b>'+submissions.length+'</b></summary><div>'+submissions.map(r=>'<article><strong>'+esc(studentNameFor(r.student_id))+'</strong><span>'+esc(r.payload?.response||tx('Not bırakmadı.','No written note.'))+'</span><small>'+esc(fmtDate(r.created_at))+'</small></article>').join('')+'</div></details>':'';
+      return '<article class="assignment-card"><div class="assignment-card-top"><span class="assignment-status '+esc(a.status)+'">'+esc(status)+'</span><small>'+esc(dueLabel(a.due_at))+'</small></div><h4>'+esc(a.title)+'</h4><p>'+esc(klass)+(a.instructions?' · '+esc(a.instructions):'')+'</p><div class="assignment-submission-count"><b>'+submissions.length+'</b><span>'+tx('teslim','submissions')+'</span></div>'+detail+'<div class="assignment-card-actions"><button type="button" data-assignment-share="'+esc(a.id)+'" data-class-code="'+esc(code)+'">'+tx('Öğrenci linkini kopyala','Copy student link')+'</button><button type="button" data-assignment-toggle="'+esc(a.id)+'">'+(a.status==='published'?tx('Kapat','Close'):tx('Yayınla','Publish'))+'</button><button type="button" class="danger-lite" data-assignment-delete="'+esc(a.id)+'">'+tx('Sil','Delete')+'</button></div></article>';
     }).join('');
 
     $('[data-assignment-share]',wrap).forEach(b=>b.addEventListener('click',async()=>{
