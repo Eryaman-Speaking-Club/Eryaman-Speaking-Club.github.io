@@ -461,3 +461,49 @@
   .library-card-actions{grid-template-columns:1fr 1fr!important}
   .library-card-actions button:first-child{grid-column:1/-1}
 }
+
+
+/* Assignments / homework center */
+.assignment-layout{display:grid;grid-template-columns:minmax(300px,.72fr) minmax(0,1.28fr);gap:16px}
+.assignment-builder,.assignment-list-shell{border:1px solid var(--line);border-radius:20px;background:#fff;padding:24px}
+.assignment-builder{display:grid;gap:13px}
+.assignment-builder-head small,.assignment-list-head small{display:block;color:var(--teal);font-size:10px;font-weight:1000;letter-spacing:.1em}
+.assignment-builder-head strong,.assignment-list-head strong{display:block;margin-top:6px;color:var(--navy);font-size:22px;line-height:1.2}
+.assignment-builder-head p{margin:7px 0 5px;color:#718596;font-size:13px;line-height:1.55}
+.assignment-builder label{display:grid;gap:6px;color:#5f7689;font-size:12px;font-weight:900}
+.assignment-builder label>span{color:#91a0ad;font-size:10px;font-weight:750}
+.assignment-builder input,.assignment-builder select,.assignment-builder textarea{
+  width:100%;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--navy);padding:12px 13px;font:inherit;font-size:14px;outline:none
+}
+.assignment-builder textarea{resize:vertical;min-height:105px}
+.assignment-builder input:focus,.assignment-builder select:focus,.assignment-builder textarea:focus{border-color:#82a9ce;box-shadow:0 0 0 4px rgba(23,92,168,.08)}
+.assignment-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.assignment-list-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px}
+.assignment-list-head button{min-height:40px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--navy);padding:0 12px;font-size:11px;font-weight:950;cursor:pointer}
+.assignment-list{display:grid;gap:10px}
+.assignment-card{padding:18px;border:1px solid var(--line);border-radius:16px;background:#fff}
+.assignment-card-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.assignment-status{display:inline-flex;padding:6px 9px;border-radius:999px;background:#eef3f7;color:#61798d;font-size:9px;font-weight:950}
+.assignment-status.published{background:#e6f7f3;color:#087c75}.assignment-status.closed{background:#f1f2f4;color:#74818c}.assignment-status.draft{background:#fff4dc;color:#9a6d11}
+.assignment-card-top small{color:#8a9ba9;font-size:10px}
+.assignment-card h4{margin:13px 0 6px;color:var(--navy);font-size:19px}
+.assignment-card>p{margin:0;color:#718596;font-size:12px;line-height:1.5}
+.assignment-card-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}
+.assignment-card-actions button{min-height:38px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--navy);padding:0 10px;font-size:10px;font-weight:900;cursor:pointer}
+.assignment-card-actions button:first-child{background:var(--navy);border-color:var(--navy);color:#fff}
+.assignment-card-actions .danger-lite{color:#a34d57}
+.assignment-empty{display:grid;place-items:center;text-align:center;min-height:260px;padding:30px;border:1px dashed #cad8e2;border-radius:16px;background:#fbfcfd}
+.assignment-empty strong{color:var(--navy);font-size:20px}.assignment-empty span{margin-top:6px;color:#718596;font-size:12px;line-height:1.5}
+@media(max-width:1000px){.assignment-layout{grid-template-columns:1fr}}
+@media(max-width:620px){.assignment-builder,.assignment-list-shell{padding:18px}.assignment-two{grid-template-columns:1fr}.assignment-card-actions{display:grid}.assignment-card-actions button{width:100%}}
+
+/* Session restore state */
+.teacher-session-restore .session-spinner{display:block;width:38px;height:38px;margin:20px auto 0;border:4px solid #e1e8ee;border-top-color:var(--teal);border-radius:50%;animation:eduSpin .8s linear infinite}
+@keyframes eduSpin{to{transform:rotate(360deg)}}
+
+/* Clear bilingual switch + universal product brand */
+.educator-brand-title{display:grid!important;gap:1px}
+.educator-brand-title b{font-size:14px;line-height:1.1}.educator-brand-title small{font-size:8px;color:#8193a3;font-weight:750}
+.edu-lang-switch{display:flex;padding:3px;border:1px solid var(--line);border-radius:12px;background:#f3f6f8}
+.edu-lang-switch button{border:0;border-radius:9px;background:transparent;color:#718596;min-height:34px;padding:0 10px;font-size:11px;font-weight:900;cursor:pointer}
+.edu-lang-switch button.active{background:#fff;color:var(--navy);box-shadow:0 4px 12px rgba(8,31,59,.08)}
