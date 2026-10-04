@@ -37,6 +37,13 @@
     return data.session || null;
   }
 
+  async function onAuthStateChange(callback) {
+    const client = await getClient();
+    if (!client || typeof callback !== 'function') return () => {};
+    const { data } = client.auth.onAuthStateChange((event, session) => callback(event, session));
+    return () => data?.subscription?.unsubscribe?.();
+  }
+
   async function signUp(email, password, redirectPath = '/esc-studio/') {
     const client = await getClient();
     if (!client) throw new Error('Supabase is not configured.');
@@ -324,7 +331,7 @@
   }
 
   window.ESCSupabase = {
-    isConfigured,getClient,ping,getSession,signUp,resendSignupConfirmation,sendPasswordReset,
+    isConfigured,getClient,ping,getSession,onAuthStateChange,signUp,resendSignupConfirmation,sendPasswordReset,
     updatePassword,signIn,signOut,claimFirstAdmin,isAdmin,getGameContent,replaceGameContent,
     getGameSettings,saveGameSettings,ensureEducatorProfile,getEducatorProfile,listEducatorClasses,
     createEducatorClass,saveEducatorLesson,listEducatorLessons,deleteEducatorLesson,listEducatorResults,listEducatorSessions,
