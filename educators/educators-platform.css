@@ -387,3 +387,52 @@
   .library-card-actions{grid-template-columns:1fr 1fr}
   .library-card-actions button:first-child{grid-column:1/-1}
 }
+
+
+/* Sales value proposition */
+.edu-value-section{
+  padding:100px max(28px,calc((100vw - 1520px)/2));
+  background:#fff;
+}
+.edu-value-head{
+  display:grid;grid-template-columns:1.08fr .92fr;gap:54px;align-items:end;margin-bottom:36px;
+}
+.edu-value-head h2{
+  margin:10px 0 0;color:var(--navy);font-size:clamp(44px,5vw,72px);line-height:.98;letter-spacing:-.055em;
+}
+.edu-value-head>p{margin:0;color:#6e8294;font-size:17px;line-height:1.7}
+.edu-value-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.edu-value-grid article{
+  min-height:285px;padding:24px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(180deg,#fff,#f9fbfc);
+  box-shadow:0 16px 42px rgba(8,31,59,.05);
+}
+.edu-value-grid article>span{display:block;color:#c7d3dd;font-size:28px;font-weight:1000}
+.edu-value-grid strong{display:block;margin-top:28px;color:var(--navy);font-size:23px;line-height:1.15;letter-spacing:-.03em}
+.edu-value-grid p{margin:10px 0 0;color:#718596;font-size:14px;line-height:1.6}
+.edu-value-grid small{display:block;margin-top:18px;color:var(--teal);font-size:10px;font-weight:950;letter-spacing:.06em}
+.edu-value-cta{
+  display:grid;grid-template-columns:1fr auto;gap:28px;align-items:center;margin-top:22px;padding:26px 28px;
+  border-radius:24px;background:linear-gradient(135deg,#081f3b,#0c3d6d);color:#fff;
+}
+.edu-value-cta small{display:block;color:#75ded6;font-size:10px;font-weight:1000;letter-spacing:.12em}
+.edu-value-cta strong{display:block;margin-top:7px;font-size:24px;line-height:1.2}
+.edu-value-cta span{display:block;margin-top:6px;color:#bfd0dc;font-size:13px;line-height:1.55}
+.edu-value-actions{display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end}
+.edu-value-actions button,.edu-value-actions a{
+  min-height:48px;display:flex;align-items:center;justify-content:center;border-radius:13px;padding:0 16px;font-size:12px;font-weight:950;cursor:pointer;text-decoration:none;
+}
+.edu-value-actions button{border:0;background:#fff;color:var(--navy)}
+.edu-value-actions a{border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);color:#fff}
+
+@media(max-width:1100px){
+  .edu-value-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:760px){
+  .edu-value-section{padding:72px 18px}
+  .edu-value-head{grid-template-columns:1fr;gap:16px}
+  .edu-value-head>p{font-size:15px}
+  .edu-value-grid{grid-template-columns:1fr}
+  .edu-value-grid article{min-height:auto}
+  .edu-value-cta{grid-template-columns:1fr;padding:22px}
+  .edu-value-actions{justify-content:stretch;display:grid}
+}
