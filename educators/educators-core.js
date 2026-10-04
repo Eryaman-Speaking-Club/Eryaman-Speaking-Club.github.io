@@ -264,9 +264,14 @@
 
   function applyClassToBuilder(c) {
     if (!c) return;
+    const form=$('#lessonForm');
+    if(form){
+      form.dataset.classId=c.id;
+      delete form.dataset.editingLessonId;
+    }
     const map={className:c.name,ageGroup:c.age_group,level:c.level,goal:c.focus};
     Object.entries(map).forEach(([id,val])=>{ const el=$('#'+id); if(el) el.value=val; });
-    $('#lessonForm')?.dispatchEvent(new Event('submit',{cancelable:true,bubbles:true}));
+    form?.dispatchEvent(new Event('submit',{cancelable:true,bubbles:true}));
   }
 
   async function copyText(text, button) {
@@ -374,12 +379,23 @@
       openAuth('login');
       throw new Error(tx('Önce öğretmen hesabına giriş yapın.','Sign in to your teacher account first.'));
     }
+
+    const requestedId=$('#lessonForm')?.dataset.classId||'';
+    const requested=requestedId?state.classes.find(x=>x.id===requestedId && x.is_active):null;
+    if(requested){
+      state.activeClass=requested;
+      return requested;
+    }
+
     if (state.activeClass?.is_active) return state.activeClass;
+
     const active=state.classes.find(x=>x.is_active);
     if (active) {
       state.activeClass=active;
+      if($('#lessonForm')) $('#lessonForm').dataset.classId=active.id;
       return active;
     }
+
     openClassModal();
     throw new Error(tx('Aktif bir sınıf yok. Yeni bir sınıf oluşturun.','There is no active class. Create a new class.'));
   }
@@ -387,7 +403,9 @@
   async function persistLesson(startLive=false) {
     const c=await ensureActiveClass();
     const plan=currentPlan();
-    const lesson=await window.ESCSupabase.saveEducatorLesson({
+    const form=$('#lessonForm');
+    const editingLessonId=form?.dataset.editingLessonId||'';
+    const payload={
       class_id:c.id,
       title:(c.name+' · '+(($('#topic')?.value==='custom'?$('#customTopic')?.value:$('#topic')?.selectedOptions[0]?.textContent)||'English')).slice(0,120),
       topic:((($('#topic')?.value==='custom'?$('#customTopic')?.value:$('#topic')?.selectedOptions[0]?.textContent)||'English')).slice(0,80),
@@ -395,7 +413,14 @@
       primary_goal:$('#goal')?.value||'speaking',
       plan,
       status:startLive?'active':'ready'
-    });
+    };
+    const lesson=editingLessonId
+      ? await window.ESCSupabase.updateEducatorLesson(editingLessonId,payload)
+      : await window.ESCSupabase.saveEducatorLesson(payload);
+    if(form && lesson?.id){
+      form.dataset.editingLessonId=lesson.id;
+      form.dataset.classId=lesson.class_id||c.id;
+    }
     window.ESCAnalytics?.track?.('educator_lesson_saved','other');
     if(startLive){
       if(state.activeLive) {
@@ -442,6 +467,9 @@
       patch.ended_at=new Date().toISOString();
     }
     state.activeLive=await window.ESCSupabase.updateEducatorSession(state.activeLive.id,patch);
+    if(completed && state.activeLive?.lesson_id){
+      await window.ESCSupabase.updateEducatorLesson(state.activeLive.lesson_id,{status:'completed'}).catch(()=>{});
+    }
   }
 
   async function syncGameToLive() {
