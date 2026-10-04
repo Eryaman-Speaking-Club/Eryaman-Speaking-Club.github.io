@@ -3,6 +3,7 @@
   const $=q=>document.querySelector(q);
   const TOKEN_KEY='esc-edu-student-token-v1';
   const NAME_KEY='esc-edu-student-name-v1';
+  const CLASS_CODE_KEY='esc-edu-student-class-code-v1';
   const LANG_KEY='esc-student-lang-v1';
   let token='', state=null, poll=null, lastSignature='', lang='tr';
   const tx=(tr,en)=>lang==='en'?en:tr;
@@ -135,15 +136,15 @@
     try{
       token=localStorage.getItem(TOKEN_KEY)||randomToken();
       const data=await window.ESCSupabase.joinEducatorClass(code,name,token);
-      localStorage.setItem(TOKEN_KEY,token);localStorage.setItem(NAME_KEY,name);
+      localStorage.setItem(TOKEN_KEY,token);localStorage.setItem(NAME_KEY,name);localStorage.setItem(CLASS_CODE_KEY,code);
       showMessage('',true);paint({student:{display_name:name},...data});
       lastSignature=signature({student:{display_name:name},...data});
       startPolling();
     }catch(err){showMessage(friendly(err));}
     finally{b.disabled=false;}
   }
-  function startPolling(){if(poll)clearInterval(poll);poll=setInterval(refresh,2000);}
-  function leave(reload=true){if(poll)clearInterval(poll);poll=null;token='';state=null;lastSignature='';localStorage.removeItem(TOKEN_KEY);localStorage.removeItem(NAME_KEY);if(reload)location.href='./';}
+  function startPolling(){if(poll)clearInterval(poll);poll=setInterval(refresh,3500);}
+  function leave(reload=true){if(poll)clearInterval(poll);poll=null;token='';state=null;lastSignature='';localStorage.removeItem(TOKEN_KEY);localStorage.removeItem(CLASS_CODE_KEY);if(reload)location.href='./';}
   async function result(kind){
     if(!token||!state?.session?.id)return;
     const button=document.querySelector(`[data-result="${kind}"]`);if(button)button.disabled=true;
@@ -158,7 +159,13 @@
     applyLanguage(queryLang==='en'||queryLang==='tr'?queryLang:(savedLang==='en'||savedLang==='tr'?savedLang:((navigator.language||'').toLowerCase().startsWith('tr')?'tr':'en')));
     if(code)$('#joinCode').value=code.toUpperCase();
     const savedName=localStorage.getItem(NAME_KEY)||'';if(savedName)$('#joinName').value=savedName;
+    const savedClassCode=(localStorage.getItem(CLASS_CODE_KEY)||'').toUpperCase();
     token=localStorage.getItem(TOKEN_KEY)||'';
+    if(code && token && savedClassCode && savedClassCode!==code.toUpperCase()){
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(CLASS_CODE_KEY);
+      token='';
+    }
     if(token){
       try{const data=await window.ESCSupabase.getStudentState(token);paint(data);lastSignature=signature(data);startPolling();return;}catch{leave(false);}
     }
