@@ -538,12 +538,15 @@
     return data;
   }
 
-  async function getActiveEducatorSession(classId) {
+  async function getActiveEducatorSession(classId = null) {
     const client = await getClient();
     if (!client) return null;
-    const { data, error } = await client.from('edu_live_sessions').select('*')
-      .eq('class_id',classId).in('status',['waiting','active','paused'])
-      .order('started_at',{ascending:false}).limit(1).maybeSingle();
+    let query=client.from('edu_live_sessions').select('*')
+      .in('status',['waiting','active','paused'])
+      .order('started_at',{ascending:false})
+      .limit(1);
+    if(classId) query=query.eq('class_id',classId);
+    const { data, error } = await query.maybeSingle();
     if (error) throw error;
     return data;
   }
