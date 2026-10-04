@@ -193,6 +193,11 @@
 
   function loadLessonIntoBuilder(lesson) {
     window.ESCAnalytics?.track?.('educator_lesson_reused','other');
+    const form=$('#lessonForm');
+    if(form){
+      form.dataset.editingLessonId=lesson.id;
+      form.dataset.classId=lesson.class_id;
+    }
     const klass = state.classes.find(c=>c.id===lesson.class_id);
     const className = $('#className');
     const age = $('#ageGroup');
@@ -545,6 +550,13 @@
     }
     setupActions();
     setPlannerDefaultStart();
+
+    document.addEventListener('click',e=>{
+      const fresh=e.target.closest('[data-panel-target="builder"],[data-open-builder],[data-empty-create],#curriculumBuildLesson');
+      if(!fresh)return;
+      const form=$('#lessonForm');
+      if(form) delete form.dataset.editingLessonId;
+    });
     $('#lessonLibrarySearch')?.addEventListener('input',applyLibraryFilters);
     $('#lessonLibraryGoal')?.addEventListener('change',applyLibraryFilters);
     $('#refreshLessonLibrary')?.addEventListener('click',refreshData);
