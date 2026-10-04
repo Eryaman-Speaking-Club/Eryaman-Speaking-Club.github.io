@@ -79,6 +79,7 @@
     if (title) title.textContent = 'Merhaba, ' + teacherName() + ' 👋';
     ensureLogoutButton();
     await refreshClasses(true);
+    document.dispatchEvent(new CustomEvent('esc:educator-ready'));
     if (state.classPoll) clearInterval(state.classPoll);
     state.classPoll = setInterval(() => refreshClasses(false).catch(()=>{}), 7000);
   }
