@@ -75,7 +75,7 @@
     $("[data-curriculum-grade]")?.toggleAttribute("hidden", track.value !== "meb");
     const gradeNumber = Number(grade.value || 0);
     $("[data-upper-program]")?.toggleAttribute("hidden", !(track.value === "meb" && gradeNumber >= 9 && gradeNumber <= 11));
-    $("[data-track-choice]").forEach(b => b.classList.toggle("active", b.dataset.trackChoice === track.value));
+    $$("[data-track-choice]").forEach(b => b.classList.toggle("active", b.dataset.trackChoice === track.value));
 
     if (summaryTitle) summaryTitle.textContent = theme.value || items[0];
     const gradePart = track.value === "meb" ? " · Grade " + grade.value : "";
@@ -184,7 +184,7 @@
   $("#copyResourcePlan")?.addEventListener("click", async e => {
     const title = $("#resourcePreviewTitle")?.textContent || "Resource";
     const source = $("#resourceSource")?.value || "Current lesson";
-    const items = $$("#resourcePreviewItems b").map(x => "- " + x.textContent).join("\n");
+    const items = $$$("#resourcePreviewItems b").map(x => "- " + x.textContent).join("\n");
     try {
       await navigator.clipboard.writeText(title + "\n" + source + "\n\n" + items);
       const old = e.currentTarget.textContent;
