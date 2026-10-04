@@ -18,6 +18,7 @@
 
   function openAuth(mode='login') {
     state.authMode = mode;
+    window.ESCAnalytics?.track?.('educator_auth_open_'+mode,'other');
     const layer = $('#eduAuthLayer');
     if (!layer) return;
     layer.hidden = false;
@@ -214,6 +215,7 @@
         max_students:Number($('#newClassMax').value||40)
       });
       state.activeClass={...created,students:[]};
+      window.ESCAnalytics?.track?.('educator_class_created','other');
       msg($('#eduClassMessage'),`Sınıf hazır. Katılım kodu: ${created.join_code}`,true);
       await refreshClasses(false);
       setTimeout(()=>{closeClassModal();applyClassToBuilder(state.activeClass);},900);
@@ -233,13 +235,16 @@
         if(data.session){
           state.session=data.session;
           state.profile=await window.ESCSupabase.ensureEducatorProfile($('#teacherName').value.trim()||email.split('@')[0]);
+          window.ESCAnalytics?.track?.('educator_signup_completed','other');
           closeAuth(); await enterTeacher(); document.querySelector('#teacher-demo')?.scrollIntoView({behavior:'smooth',block:'start'});
         }else{
+          window.ESCAnalytics?.track?.('educator_signup_confirmation_sent','other');
           msg($('#eduAuthMessage'),'Hesap oluşturuldu. E-postanıza gelen doğrulama bağlantısını açın; ardından öğretmen paneline giriş yapın.',true);
         }
       }else{
         const data=await window.ESCSupabase.signIn(email,password);
         state.session=data.session;
+        window.ESCAnalytics?.track?.('educator_login_completed','other');
         closeAuth();await enterTeacher();document.querySelector('#teacher-demo')?.scrollIntoView({behavior:'smooth',block:'start'});
       }
     }catch(err){msg($('#eduAuthMessage'),humanError(err));}
@@ -288,6 +293,7 @@
       plan,
       status:startLive?'active':'ready'
     });
+    window.ESCAnalytics?.track?.('educator_lesson_saved','other');
     if(startLive){
       if(state.activeLive) {
         await window.ESCSupabase.updateEducatorSession(state.activeLive.id,{status:'completed',ended_at:new Date().toISOString()}).catch(()=>{});
@@ -300,6 +306,7 @@
         scores:{blue:0,orange:0}
       });
       renderOverview();
+      window.ESCAnalytics?.track?.('educator_live_started','other');
     }
     return {lesson,plan};
   }
