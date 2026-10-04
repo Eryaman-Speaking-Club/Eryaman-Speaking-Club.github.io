@@ -317,6 +317,15 @@
     return data;
   }
 
+  async function manageEducatorSchoolMember(userId, action) {
+    const client=await getClient();
+    const session=await getSession();
+    if(!client||!session) throw new Error('Teacher login required.');
+    const {data,error}=await client.rpc('edu_manage_school_member',{p_user_id:userId,p_action:action});
+    if(error) throw error;
+    return data===true;
+  }
+
   async function leaveEducatorSchool() {
     const client=await getClient();
     const session=await getSession();
@@ -690,7 +699,7 @@
   window.ESCSupabase = {
     isConfigured,getClient,ping,getSession,onAuthStateChange,signUp,resendSignupConfirmation,sendPasswordReset,
     updatePassword,signIn,signOut,claimFirstAdmin,isAdmin,getGameContent,replaceGameContent,
-    getGameSettings,saveGameSettings,ensureEducatorProfile,getEducatorProfile,updateEducatorProfile,createEducatorSchool,joinEducatorSchool,getEducatorSchoolState,shareEducatorSchoolLesson,unshareEducatorSchoolLesson,copyEducatorSchoolLesson,leaveEducatorSchool,listEducatorClasses,
+    getGameSettings,saveGameSettings,ensureEducatorProfile,getEducatorProfile,updateEducatorProfile,createEducatorSchool,joinEducatorSchool,getEducatorSchoolState,shareEducatorSchoolLesson,unshareEducatorSchoolLesson,copyEducatorSchoolLesson,manageEducatorSchoolMember,leaveEducatorSchool,listEducatorClasses,
     createEducatorClass,saveEducatorLesson,updateEducatorLesson,generateEducatorAssistantPack,getEducatorLesson,listEducatorLessons,deleteEducatorLesson,listEducatorResults,listEducatorSessions,
     listPrivateStudents,createPrivateStudent,updatePrivateStudent,deletePrivateStudent,
     listAssignments,createAssignment,updateAssignment,deleteAssignment,
