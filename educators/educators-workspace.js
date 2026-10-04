@@ -2,7 +2,7 @@
   "use strict";
 
   const $ = (s, r=document) => r.querySelector(s);
-  const $ = (s, r=document) => [...r.querySelectorAll(s)];
+  const $$ = (s, r=document) => [...r.querySelectorAll(s)];
   const escapeHtml = (v="") => String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]));
 
   const themes = {
