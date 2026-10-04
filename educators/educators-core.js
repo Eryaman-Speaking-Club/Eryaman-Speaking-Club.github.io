@@ -253,7 +253,7 @@
     e.preventDefault();
     const submit=e.currentTarget.querySelector('[type="submit"]');
     submit.disabled=true;
-    msg($('#eduClassMessage'),'Sınıf oluşturuluyor…');
+    msg($('#eduClassMessage'),tx('Sınıf oluşturuluyor…','Creating class…'));
     try {
       const created=await window.ESCSupabase.createEducatorClass({
         name:$('#newClassName').value.trim(),
@@ -264,7 +264,7 @@
       });
       state.activeClass={...created,students:[]};
       window.ESCAnalytics?.track?.('educator_class_created','other');
-      msg($('#eduClassMessage'),`Sınıf hazır. Katılım kodu: ${created.join_code}`,true);
+      msg($('#eduClassMessage'),tx(`Sınıf hazır. Katılım kodu: ${created.join_code}`,`Class ready. Join code: ${created.join_code}`),true);
       await refreshClasses(false);
       setTimeout(()=>{closeClassModal();applyClassToBuilder(state.activeClass);},900);
     } catch(err) {
@@ -275,7 +275,7 @@
   async function authSubmit(e) {
     e.preventDefault();
     const submit=$('#eduAuthSubmit');submit.disabled=true;
-    msg($('#eduAuthMessage'), state.authMode==='signup'?'Hesap oluşturuluyor…':'Giriş yapılıyor…');
+    msg($('#eduAuthMessage'), state.authMode==='signup'?tx('Hesap oluşturuluyor…','Creating account…'):tx('Giriş yapılıyor…','Signing in…'));
     try {
       const email=$('#teacherEmail').value.trim(), password=$('#teacherPassword').value;
       if(state.authMode==='signup'){
@@ -287,7 +287,7 @@
           closeAuth(); await enterTeacher(); document.querySelector('#teacher-demo')?.scrollIntoView({behavior:'smooth',block:'start'});
         }else{
           window.ESCAnalytics?.track?.('educator_signup_confirmation_sent','other');
-          msg($('#eduAuthMessage'),'Hesap oluşturuldu. E-postanıza gelen doğrulama bağlantısını açın; ardından öğretmen paneline giriş yapın.',true);
+          msg($('#eduAuthMessage'),tx('Hesap oluşturuldu. E-postanıza gelen doğrulama bağlantısını açın; ardından öğretmen paneline giriş yapın.','Account created. Open the verification link in your email, then sign in to the teacher platform.'),true);
         }
       }else{
         const data=await window.ESCSupabase.signIn(email,password);
@@ -407,12 +407,12 @@
   }
 
   function humanError(err) {
-    const raw=String(err?.message||err||'İşlem tamamlanamadı.');
-    if(/email not confirmed/i.test(raw)) return 'E-posta adresinizi doğruladıktan sonra giriş yapabilirsiniz.';
-    if(/invalid login credentials/i.test(raw)) return 'E-posta veya şifre hatalı.';
-    if(/user already registered/i.test(raw)) return 'Bu e-posta ile zaten bir hesap var.';
-    if(/rate limit/i.test(raw)) return 'Çok fazla deneme yapıldı. Bir süre sonra tekrar deneyin.';
-    return raw.replace('Database error saving new user','Hesap oluşturulamadı.');
+    const raw=String(err?.message||err||tx('İşlem tamamlanamadı.','The action could not be completed.'));
+    if(/email not confirmed/i.test(raw)) return tx('E-posta adresinizi doğruladıktan sonra giriş yapabilirsiniz.','Confirm your email address before signing in.');
+    if(/invalid login credentials/i.test(raw)) return tx('E-posta veya şifre hatalı.','Email or password is incorrect.');
+    if(/user already registered/i.test(raw)) return tx('Bu e-posta ile zaten bir hesap var.','An account already exists for this email.');
+    if(/rate limit/i.test(raw)) return tx('Çok fazla deneme yapıldı. Bir süre sonra tekrar deneyin.','Too many attempts. Try again later.');
+    return raw.replace('Database error saving new user',tx('Hesap oluşturulamadı.','Account could not be created.'));
   }
 
   function escapeHtml(v) {
