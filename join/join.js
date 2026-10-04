@@ -123,7 +123,8 @@
     }
   }
   async function refresh(){
-    if(!token)return;
+    if(!token||document.hidden)return;
+    if(!navigator.onLine){setConnected(false);return;}
     try{
       const data=await window.ESCSupabase.getStudentState(token);
       setConnected(true);
