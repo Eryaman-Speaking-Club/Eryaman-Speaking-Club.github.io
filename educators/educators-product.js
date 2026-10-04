@@ -370,7 +370,11 @@
       const uniqueMap=new Map();
       submissionRows.forEach(r=>{if(!uniqueMap.has(r.student_id))uniqueMap.set(r.student_id,r);});
       const submissions=[...uniqueMap.values()];
-      const detail=submissions.length?'<details class="assignment-submissions"><summary>'+tx('Teslimleri gör','View submissions')+' <b>'+submissions.length+'</b></summary><div>'+submissions.map(r=>'<article><strong>'+esc(studentNameFor(r.student_id))+'</strong><span>'+esc(r.payload?.response||tx('Not bırakmadı.','No written note.'))+'</span><small>'+esc(fmtDate(r.created_at))+'</small></article>').join('')+'</div></details>':'';
+      const detail=submissions.length?'<details class="assignment-submissions"><summary>'+tx('Teslimleri gör','View submissions')+' <b>'+submissions.length+'</b></summary><div>'+submissions.map(r=>{
+        const score=(r.score===null||typeof r.score==='undefined')?'':String(Math.round(Number(r.score)||0));
+        const feedback=r.payload?.teacher_feedback||'';
+        return '<article class="assignment-submission-item"><div class="assignment-submission-head"><strong>'+esc(studentNameFor(r.student_id))+'</strong><small>'+esc(fmtDate(r.created_at))+'</small></div><span class="assignment-response">'+esc(r.payload?.response||tx('Not bırakmadı.','No written note.'))+'</span><div class="assignment-grade-box"><label>'+tx('Puan','Score')+'<input type="number" min="0" max="100" step="1" value="'+esc(score)+'" data-grade-score="'+esc(r.id)+'" placeholder="—"></label><label>'+tx('Öğretmen geri bildirimi','Teacher feedback')+'<textarea rows="2" maxlength="1200" data-grade-feedback="'+esc(r.id)+'" placeholder="'+esc(tx('Kısa ve uygulanabilir geri bildirim yaz.','Write short, actionable feedback.'))+'">'+esc(feedback)+'</textarea></label><button type="button" data-assignment-grade="'+esc(r.id)+'">'+tx('Geri bildirimi kaydet','Save feedback')+'</button></div></article>';
+      }).join('')+'</div></details>':'';
       return '<article class="assignment-card"><div class="assignment-card-top"><span class="assignment-status '+esc(a.status)+'">'+esc(status)+'</span><small>'+esc(dueLabel(a.due_at))+'</small></div><h4>'+esc(a.title)+'</h4><p>'+esc(klass)+(a.instructions?' · '+esc(a.instructions):'')+'</p><div class="assignment-submission-count"><b>'+submissions.length+'</b><span>'+tx('teslim','submissions')+'</span></div>'+detail+'<div class="assignment-card-actions"><button type="button" data-assignment-share="'+esc(a.id)+'" data-class-code="'+esc(code)+'">'+tx('Öğrenci linkini kopyala','Copy student link')+'</button><button type="button" data-assignment-toggle="'+esc(a.id)+'">'+(a.status==='published'?tx('Kapat','Close'):tx('Yayınla','Publish'))+'</button><button type="button" class="danger-lite" data-assignment-delete="'+esc(a.id)+'">'+tx('Sil','Delete')+'</button></div></article>';
     }).join('');
 
@@ -382,6 +386,25 @@
         const old=b.textContent;b.textContent=tx('Kopyalandı ✓','Copied ✓');setTimeout(()=>b.textContent=old,1200);
       }catch{}
     }));
+    $$('[data-assignment-grade]',wrap).forEach(b=>b.addEventListener('click',async()=>{
+      const id=b.dataset.assignmentGrade;
+      const score=wrap.querySelector('[data-grade-score="'+CSS.escape(id)+'"]')?.value ?? '';
+      const feedback=wrap.querySelector('[data-grade-feedback="'+CSS.escape(id)+'"]')?.value.trim() || '';
+      const old=b.textContent;
+      b.disabled=true;b.textContent=tx('Kaydediliyor…','Saving…');
+      try{
+        await window.ESCSupabase.gradeEducatorAssignmentResult(id,score,feedback);
+        b.textContent=tx('Kaydedildi ✓','Saved ✓');
+        setTimeout(()=>{b.textContent=old;},1100);
+        await refreshData();
+        window.ESCAnalytics?.track?.('educator_assignment_feedback_saved','other');
+      }catch(err){
+        b.textContent=tx('Tekrar dene','Try again');
+        setTimeout(()=>{b.textContent=old;},1300);
+        alert(err?.message||tx('Geri bildirim kaydedilemedi.','Could not save feedback.'));
+      }finally{b.disabled=false;}
+    }));
+
     $$('[data-assignment-toggle]',wrap).forEach(b=>b.addEventListener('click',async()=>{
       const a=state.assignments.find(x=>x.id===b.dataset.assignmentToggle);if(!a)return;
       b.disabled=true;
