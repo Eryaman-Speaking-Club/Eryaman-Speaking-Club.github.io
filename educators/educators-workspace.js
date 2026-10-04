@@ -13,6 +13,8 @@
     "11": ["School Life & Education","Classroom Life & Learning","Personal Life & Well-Being","Family Life & Home","Life in the Neighbourhood, City & Social Life","Life in the World & Culture","Life in Nature & Global Problems","Life in the Universe & Future"]
   };
 
+  const upperThemesPrep = ["School Life & Education","Classroom Life & Learning","Personal Life & Well-Being","Family Life & Home","Life in the Neighbourhood, City & Social Life","Life in the World & Culture","Life in Nature & Global Problems","Life in the Universe & Future"];
+
   const gradeMeta = {
     "5":  {age:"9-11",  status:"TYMM · 2026–27 aktif"},
     "6":  {age:"9-11",  status:"TYMM · 2026–27 aktif"},
@@ -40,6 +42,7 @@
   const theme = $("#curriculumTheme");
   const skill = $("#curriculumSkill");
   const curriculumLevel = $("#curriculumLevel");
+  const upperProgram = $("#curriculumUpperProgram");
   const summaryTitle = $("#curriculumSummaryTitle");
   const summaryMeta = $("#curriculumSummaryMeta");
   const summaryTags = $("#curriculumSummaryTags");
@@ -48,6 +51,8 @@
     if (track?.value === "cefr") return ["Daily Life","Travel","Food & Culture","Technology","School & Education","Work & Career","Relationships","Global Issues"];
     if (track?.value === "private") return ["Student Goal","School Support","Speaking Confidence","Grammar Repair","Vocabulary Growth","Exam Support","Homework Review","Custom Topic"];
     if (track?.value === "custom") return ["Custom Topic","Conversation Lesson","Revision","Exam Preparation","Project / Presentation","Teacher's Choice"];
+    const g = Number(grade?.value || 0);
+    if (track?.value === "meb" && g >= 9 && g <= 11 && upperProgram?.value === "prep") return upperThemesPrep;
     return themes[grade?.value] || fallbackThemes;
   }
 
@@ -65,11 +70,16 @@
     if (track.value === "custom") badge = "CUSTOM / FREE LESSON";
 
     $("[data-curriculum-grade]")?.toggleAttribute("hidden", track.value !== "meb");
-    $$("[data-track-choice]").forEach(b => b.classList.toggle("active", b.dataset.trackChoice === track.value));
+    const gradeNumber = Number(grade.value || 0);
+    $("[data-upper-program]")?.toggleAttribute("hidden", !(track.value === "meb" && gradeNumber >= 9 && gradeNumber <= 11));
+    $("[data-track-choice]").forEach(b => b.classList.toggle("active", b.dataset.trackChoice === track.value));
 
     if (summaryTitle) summaryTitle.textContent = theme.value || items[0];
     const gradePart = track.value === "meb" ? " · Grade " + grade.value : "";
-    if (summaryMeta) summaryMeta.textContent = badge + gradePart + " · CEFR " + (curriculumLevel?.value || "A2") + " · " + (skill?.value || "Speaking");
+    const programPart = track.value === "meb" && gradeNumber >= 9 && gradeNumber <= 11
+      ? (upperProgram?.value === "prep" ? " · After Prep" : " · Regular 9–12")
+      : "";
+    if (summaryMeta) summaryMeta.textContent = badge + gradePart + programPart + " · CEFR " + (curriculumLevel?.value || "A2") + " · " + (skill?.value || "Speaking");
     if (summaryTags) {
       const tags = track.value === "meb"
         ? [meta.status, "Teacher-selected CEFR", "Vocabulary", "Grammar", "Speaking", "Assessment"]
@@ -84,7 +94,7 @@
     track.dispatchEvent(new Event("change", {bubbles:true}));
   }));
 
-  [grade, track, theme, skill, curriculumLevel].forEach(el => el?.addEventListener("change", renderCurriculum));
+  [grade, track, theme, skill, curriculumLevel, upperProgram].forEach(el => el?.addEventListener("change", renderCurriculum));
   renderCurriculum();
 
   function mapTopic(name) {
