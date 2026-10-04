@@ -161,13 +161,17 @@
     const savedName=localStorage.getItem(NAME_KEY)||'';if(savedName)$('#joinName').value=savedName;
     const savedClassCode=(localStorage.getItem(CLASS_CODE_KEY)||'').toUpperCase();
     token=localStorage.getItem(TOKEN_KEY)||'';
-    if(code && token && savedClassCode && savedClassCode!==code.toUpperCase()){
+    if(code && token && (!savedClassCode || savedClassCode!==code.toUpperCase())){
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(CLASS_CODE_KEY);
       token='';
     }
     if(token){
-      try{const data=await window.ESCSupabase.getStudentState(token);paint(data);lastSignature=signature(data);startPolling();return;}catch{leave(false);}
+      try{
+        const data=await window.ESCSupabase.getStudentState(token);
+        if(data?.class?.join_code)localStorage.setItem(CLASS_CODE_KEY,String(data.class.join_code).toUpperCase());
+        paint(data);lastSignature=signature(data);startPolling();return;
+      }catch{leave(false);}
     }
     $('#joinView').hidden=false;$('#classroomView').hidden=true;
   }
