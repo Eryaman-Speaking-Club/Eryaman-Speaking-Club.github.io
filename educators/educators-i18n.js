@@ -207,6 +207,142 @@
     "Sonraki aşama →":"Next stage →"
   });
 
+  Object.assign(TEXT,{
+    "Öğretmen Platformu": "Teacher Platform",
+    "Neden?": "Why?",
+    "Platforma gir": "Open platform",
+    "Her İngilizce öğretmeni için": "For every English teacher",
+    "tam çalışma alanı.": "one complete workspace.",
+    "İster Türkiye’de MEB ile, ister CEFR ile, ister özel ders veriyor ol: sınıfını, ders planını, materyallerini, oyunlarını ve öğrenci katılımını tek çalışma alanından yönet. Türkçe veya English kullan; menüler sade, kontroller büyük ve okunaklı.": "Whether you teach with MEB in Türkiye, CEFR, or private lessons, manage classes, lesson plans, resources, games and student participation in one workspace. Use Turkish or English with clear menus and large, readable controls.",
+    "HER ÖĞRETMEN İÇİN": "FOR EVERY TEACHER",
+    "Platformu Türkçe veya English kullan. MEB, CEFR, private tutoring ve serbest ders akışlarından ihtiyacına uygun olanı seç.": "Use the platform in Turkish or English. Choose MEB, CEFR, private tutoring or a fully custom teaching path.",
+    "Türkçe + English": "Turkish + English",
+    "MEB + CEFR + Private Tutor": "MEB + CEFR + Private Tutor",
+    "ÖĞRETMEN ÇALIŞMA ALANI": "TEACHER WORKSPACE",
+    "MÜFREDAT MERKEZİ": "CURRICULUM HUB",
+    "SINIFLARIM": "MY CLASSES",
+    "ÖZEL DERS ALANI": "PRIVATE TUTOR WORKSPACE",
+    "DERSLERİM": "MY LIBRARY",
+    "RAPORLAR": "REPORTS",
+    "CANLI SINIF VERİSİ": "LIVE CLASS DATA",
+    "Bugün": "Today",
+    "Müfredat": "Curriculum",
+    "Sınıflarım": "My Classes",
+    "Özel Öğrenciler": "Private Students",
+    "Ders Oluşturucu": "Lesson Builder",
+    "Derslerim": "My Library",
+    "Materyal Stüdyosu": "Resource Studio",
+    "Oyun Kütüphanesi": "Game Library",
+    "Sınıf Araçları": "Classroom Tools",
+    "Raporlar": "Reports",
+    "EĞİTİMCİ PLATFORMU · TEACHER PLATFORM": "EDUCATOR PLATFORM · TEACHER PLATFORM",
+    "Öğretmen platformunu aç": "Open teacher platform",
+    "Öğretmen platformuna gir": "Enter teacher platform",
+    "Öğrenci koduyla katıl": "Join with a student code",
+    "Oyun kütüphanesini aç": "Open game library",
+    "Büyük ve okunaklı arayüz": "Large, readable interface",
+    "Tek yerden ders yönetimi": "Manage teaching in one place",
+    "MEB + CEFR akışı": "MEB + CEFR workflow",
+    "2026–27 sınıf ve tema seçimiyle başla.": "Start with the 2026–27 grade and theme.",
+    "Kaydet + tekrar kullan": "Save + reuse",
+    "Derslerin hesabında kalsın, yeniden aç ve yazdır.": "Keep lessons in your account, reopen and print them.",
+    "NEDEN HER GÜN AÇILSIN?": "WHY USE IT EVERY DAY?",
+    "Öğretmenin beş ayrı aracını": "Replace five separate teacher tools",
+    "tek çalışma akışına indir.": "with one teaching workflow.",
+    "Hedefimiz yeni bir oyun sitesi olmak değil. Ders hazırlama, MEB teması, materyal, sınıf içi etkinlik, kaydetme ve sonuç takibini aynı öğretmen hesabında birleştirmek.": "This is not just another game site. It combines lesson planning, MEB themes, resources, classroom activities, saved work and results in one teacher account.",
+    "MEB’den doğrudan derse": "From MEB directly to a lesson",
+    "2026–27 TYMM akışında 5–7 ve 9–11. sınıflardan tema ve beceriyi seç; Lesson Builder’a geç.": "Choose a theme and skill for Grades 5–7 or 9–11 in the 2026–27 TYMM flow, then move straight to Lesson Builder.",
+    "Türkiye’ye göre başlangıç": "Start from the Türkiye curriculum",
+    "Bir kez hazırla, tekrar kullan": "Prepare once, reuse",
+    "Kaydettiğin dersler My Library’de kalır. Sonraki sınıfta yeniden aç, düzenle veya yazdır.": "Saved lessons stay in My Library. Reopen, edit or print them for another class.",
+    "Hazırlık emeğini kaybetme": "Keep the work you already did",
+    "Sınıfta sekme değiştirme": "Stop switching tabs in class",
+    "Ders akışı, speaking prompt, oyun, sınıf kodu ve canlı kontrol aynı platform içinde ilerler.": "Lesson flow, speaking prompts, games, class code and live controls stay in the same platform.",
+    "Tek öğretmen çalışma alanı": "One teacher workspace",
+    "Sonraki dersi veriye göre planla": "Plan the next lesson from data",
+    "Öğrenci sonuçları geldikçe rapor ekranı gerçek etkinlik verisini ve tekrar edilmesi gereken alanı gösterir.": "As results arrive, reports show real activity data and what may need review.",
+    "Rapor → karar → yeni ders": "Report → decision → next lesson",
+    "ÖĞRETMEN HESABI": "TEACHER ACCOUNT",
+    "İlk sınıfını oluştur ve kendi ders kütüphaneni başlat.": "Create your first class and start your own lesson library.",
+    "Öğrenciler sınıf koduyla katılır; öğretmen tarafındaki içerikler hesabına bağlı kalır.": "Students join with a class code; teacher content stays linked to your account.",
+    "Ücretsiz hesap oluştur →": "Create free account →",
+    "Platformu incele": "Explore platform",
+    "İlk sürümün odağı öğretmenin hazırlık süresini azaltmak. İçerik, sınıf profilinden otomatik türetilir; öğretmen isterse düzenler.": "The first goal is to reduce preparation time. Content is generated from the class profile and can always be edited by the teacher.",
+    "Yaş, seviye, öğrenci sayısı ve ders hedefini seç.": "Choose age, level, student count and lesson goal.",
+    "Konu ve süreye göre warm-up, vocabulary, speaking ve oyun akışı gelsin.": "Build a warm-up, vocabulary, speaking and game flow from the topic and duration.",
+    "Öğrenciler kodla girsin; öğretmen tahtadan akışı yönetsin.": "Students join with a code; the teacher controls the flow from the board.",
+    "Zorlanan kelimeler, katılım ve aktivite sonucu tek raporda toplansın.": "Collect difficult words, participation and activity results in one report.",
+    "İlk kez mi kullanıyorsun?": "First time here?",
+    "Dakikalar içinde ders oluştur": "Build a lesson in minutes",
+    "Yaş, seviye, konu ve süreyi seç; akışı hazırla.": "Choose age, level, topic and duration; generate the flow.",
+    "Kaydettiğim dersi aç": "Open a saved lesson",
+    "Hazırladığın dersi tekrar kullan, düzenle veya yazdır.": "Reuse, edit or print a lesson you already prepared.",
+    "İLK KURULUM": "GET STARTED",
+    "Platformu 4 adımda kendi çalışma alanın yap.": "Make the platform your workspace in four steps.",
+    "Giriş yapıldı": "Signed in",
+    "İlk sınıfını oluştur": "Create your first class",
+    "Yaş ve seviyeyi bir kez tanımla": "Set age and level once",
+    "İlk dersini kaydet": "Save your first lesson",
+    "Sonra tek tıkla yeniden kullan": "Reuse it later with one click",
+    "Sınıfta başlat": "Start it in class",
+    "Kodla öğrenci al ve canlı akışı dene": "Let students join by code and try the live flow",
+    "Son kaydettiğin dersler": "Recently saved lessons",
+    "Tümünü aç →": "Open all →",
+    "Kaydedilmiş dersler yükleniyor…": "Loading saved lessons…",
+    "Kodu kopyala": "Copy code",
+    "Katılım linkini kopyala": "Copy join link",
+    "Lise programı": "Upper-secondary programme",
+    "Hazırlık sonrası program": "After-prep programme",
+    "Resmî tema adları MEB kaynağına göre gösterilir; lisede Regular ve Hazırlık sonrası program ayrımı yapılır.": "Official theme names follow MEB sources; upper-secondary Regular and After-Prep programmes are separated.",
+    "MEB kaynağı ↗": "MEB source ↗",
+    "Profil → ders → ödev → tekrar → ilerleme": "Profile → lesson → homework → review → progress",
+    "Özel ders öğretmeni ayrı Excel, not uygulaması ve oyun sekmeleri kullanmak yerine öğrencinin hedefini ve sonraki dersi aynı çalışma alanında tutar.": "Instead of separate spreadsheets, notes and game tabs, private tutors can keep learner goals and the next lesson in one workspace.",
+    "Sınıflar ve kaydedilmiş dersler öğretmen hesabına bağlıdır. Private Students kartları şu an bu cihazda saklanır; hesaplar arası senkronizasyon backend fazında eklenecek.": "Classes and saved lessons are linked to the teacher account. Private Student cards are currently stored on this device; account sync will be added in the backend phase.",
+    "Bir kez hazırla. Her sınıfta yeniden kullan.": "Prepare once. Reuse in every class.",
+    "+ Yeni ders oluştur": "+ Create lesson",
+    "Kaydet": "Save",
+    "Ders planlarını hesabında tut.": "Keep lesson plans in your account.",
+    "Yeniden kullan": "Reuse",
+    "Aynı yapıyı başka sınıfa uyarla.": "Adapt the same structure for another class.",
+    "Yazdır": "Print",
+    "Öğretmen planını tek tıkla çıktı al.": "Print the teacher plan with one click.",
+    "Derslerde ara": "Search lessons",
+    "Tüm hedefler": "All goals",
+    "↻ Yenile": "↻ Refresh",
+    "Derslerin yükleniyor…": "Loading your lessons…",
+    "Kaydettiğin dersler burada görünecek.": "Saved lessons will appear here.",
+    "Planı kopyala": "Copy plan",
+    "Yazdır / PDF": "Print / PDF",
+    "Öğretmene karar aldıran gerçek sınıf verisi.": "Real class data that helps teachers decide what to do next.",
+    "Tüm sınıflar": "All classes",
+    "↻ Veriyi yenile": "↻ Refresh data",
+    "SONUÇ KAYDI": "RESULT RECORDS",
+    "Öğrenci etkinlikleri": "Student activities",
+    "Puanlı etkinliklerde": "Across scored activities",
+    "AKTİF ÖĞRENCİ": "ACTIVE STUDENTS",
+    "Sonuç gönderen": "Students who submitted results",
+    "EN ÇOK ÇALIŞILAN": "MOST PRACTISED",
+    "Etkinlik türü": "Activity type",
+    "SINIF VERİSİ": "CLASS DATA",
+    "Henüz yeterli veri yok": "Not enough data yet",
+    "Öğrenciler etkinlik tamamladıkça sonuçlar burada gerçek zamanlı özetlenir.": "Results are summarised here as students complete activities.",
+    "SONRAKİ DERS ÖNERİSİ": "NEXT LESSON SUGGESTION",
+    "Önce bir canlı etkinlik çalıştır.": "Run a live activity first.",
+    "Platform, sonuçlar geldikçe hangi beceriyi tekrar etmenin daha mantıklı olduğunu gösterecek.": "As results arrive, the platform will suggest which skill may need review.",
+    "Öğrenci karmaşık menüler görmez. Öğretmenin verdiği kodu girer, adını yazar ve aktif derse katılır.": "Students do not see complex menus. They enter the teacher's code, type their name and join the active class.",
+    "Hesap gerekmez. Öğretmeninizin verdiği sınıf kodunu girin.": "No account needed. Enter the class code from your teacher.",
+    "Planla → oynat → konuştur → takip et.": "Plan → run → speak → track.",
+    "OTURUM KONTROLÜ": "SESSION CHECK",
+    "Hesabınız açılıyor…": "Opening your account…",
+    "Kayıtlı oturumunuz güvenli şekilde geri yükleniyor. Yeniden giriş yapmanız gerekmiyor.": "Your saved session is being restored securely. You do not need to sign in again.",
+    "Sınıflarınızı yönetmek için giriş yapın.": "Sign in to manage your classes.",
+    "Gerçek sınıf kodları, öğrenci katılımları ve ders kayıtları hesabınıza bağlıdır.": "Real class codes, student participation and lesson records are linked to your account.",
+    "Öğretmen girişi →": "Teacher sign in →",
+    "Çıkış": "Sign out",
+    "Ücretsiz öğretmen hesabı oluştur": "Create a free teacher account",
+    "Hesabınız açıldığında sınıflarınız ve dersleriniz cihazdan bağımsız olarak kaydedilir.": "Once your account is created, classes and lessons are saved across devices."
+});
+
   const PLACEHOLDERS={
     "Örn. 6-B / Junior Speaking":"e.g. 6-B / Junior Speaking",
     "En az 8 karakter":"At least 8 characters",
@@ -247,12 +383,23 @@
     current=lang==="en"?"en":"tr";
     document.documentElement.lang=current;
     try{localStorage.setItem(STORAGE,current);}catch{}
+    try{
+      const url=new URL(location.href);
+      url.searchParams.set("lang",current);
+      history.replaceState(null,"",url.pathname+url.search+url.hash);
+    }catch{}
     document.querySelectorAll("[data-edu-lang]").forEach(b=>b.classList.toggle("active",b.dataset.eduLang===current));
     translateTree(document.body);
     window.dispatchEvent(new CustomEvent("esc:languagechange",{detail:{lang:current}}));
   }
   function init(){
-    try{current=localStorage.getItem(STORAGE)==="en"?"en":"tr";}catch{}
+    const params=new URLSearchParams(location.search);
+    const queryLang=params.get("lang");
+    let saved="";
+    try{saved=localStorage.getItem(STORAGE)||"";}catch{}
+    if(queryLang==="tr"||queryLang==="en") current=queryLang;
+    else if(saved==="tr"||saved==="en") current=saved;
+    else current=(navigator.language||"").toLowerCase().startsWith("tr")?"tr":"en";
     document.querySelectorAll("[data-edu-lang]").forEach(b=>b.addEventListener("click",()=>setLang(b.dataset.eduLang)));
     setLang(current);
     const obs=new MutationObserver(records=>{
