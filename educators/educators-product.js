@@ -289,6 +289,7 @@
       $('#'+id)?.addEventListener('click',()=>setTimeout(refreshData,1100));
     });
 
+    document.addEventListener('esc:educator-ready',refreshData);
     document.addEventListener('visibilitychange',()=>{if(!document.hidden) refreshData();});
     setTimeout(refreshData,500);
     setTimeout(refreshData,1800);
