@@ -3,7 +3,9 @@
 
   const $ = (q, root=document) => root.querySelector(q);
   const $$ = (q, root=document) => [...root.querySelectorAll(q)];
-  const state = { session:null, profile:null, classes:[], activeClass:null, activeLive:null, authMode:'login', classPoll:null };
+  const state = { session:null, profile:null, classes:[], activeClass:null, activeLive:null, authMode:'login', classPoll:null, authUnsubscribe:null, entering:false };
+
+  const t = (text) => window.ESCEduI18n?.t?.(text) || text;
 
   function msg(el, text, ok=false) {
     if (!el) return;
@@ -36,36 +38,80 @@
   function syncAuthMode() {
     const signup = state.authMode === 'signup';
     $('#teacherNameWrap').hidden = !signup;
-    $('#eduAuthTitle').textContent = signup ? 'Ücretsiz öğretmen hesabı oluştur' : 'Öğretmen hesabına giriş yap';
-    $('#eduAuthIntro').textContent = signup
+    $('#eduAuthTitle').textContent = t(signup ? 'Ücretsiz öğretmen hesabı oluştur' : 'Öğretmen hesabına giriş yap');
+    $('#eduAuthIntro').textContent = t(signup
       ? 'Hesabınız açıldığında sınıflarınız ve dersleriniz cihazdan bağımsız olarak kaydedilir.'
-      : 'Sınıflarınız, öğrenci kodlarınız ve dersleriniz hesabınıza kaydedilir.';
-    $('#eduAuthSubmit').textContent = signup ? 'Hesap oluştur →' : 'Giriş yap →';
+      : 'Sınıflarınız, öğrenci kodlarınız ve dersleriniz hesabınıza kaydedilir.');
+    $('#eduAuthSubmit').textContent = t(signup ? 'Hesap oluştur →' : 'Giriş yap →');
     $('#teacherPassword').autocomplete = signup ? 'new-password' : 'current-password';
     $$('[data-auth-mode]').forEach(b => b.classList.toggle('active', b.dataset.authMode === state.authMode));
     msg($('#eduAuthMessage'),'');
   }
 
+  function showRestoringWorkspace() {
+    const app = $('#teacherApp');
+    if (!app) return;
+    app.classList.add('teacher-locked');
+    $('.teacher-lock-card')?.remove();
+    const lock = document.createElement('div');
+    lock.className = 'teacher-lock-card teacher-session-restore';
+    lock.innerHTML = '<span>'+t('OTURUM KONTROLÜ')+'</span><h3>'+t('Hesabınız açılıyor…')+'</h3><p>'+t('Kayıtlı oturumunuz güvenli şekilde geri yükleniyor. Yeniden giriş yapmanız gerekmiyor.')+'</p><i class="session-spinner" aria-hidden="true"></i>';
+    app.appendChild(lock);
+  }
+
+  async function restoreTeacherSession(session) {
+    if (!session?.user?.id || state.entering) return;
+    if (state.session?.user?.id === session.user.id && state.profile) return;
+    state.entering = true;
+    state.session = session;
+    try {
+      await enterTeacher();
+    } catch (err) {
+      console.warn('Teacher session restore failed', err);
+      state.session = null;
+      showLockedWorkspace();
+    } finally {
+      state.entering = false;
+    }
+  }
+
   async function bootAuth() {
     if (!window.ESCSupabase?.isConfigured()) return;
+    showRestoringWorkspace();
     try {
-      state.session = await window.ESCSupabase.getSession();
-      if (state.session) await enterTeacher();
-      else showLockedWorkspace();
-    } catch {
-      showLockedWorkspace();
+      if (!state.authUnsubscribe && window.ESCSupabase.onAuthStateChange) {
+        state.authUnsubscribe = await window.ESCSupabase.onAuthStateChange((event, session) => {
+          setTimeout(() => {
+            if (session) restoreTeacherSession(session);
+            else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+              state.session=null;state.profile=null;state.classes=[];state.activeClass=null;state.activeLive=null;
+              showLockedWorkspace();
+            }
+          }, 0);
+        });
+      }
+      const session = await window.ESCSupabase.getSession();
+      if (session) await restoreTeacherSession(session);
+      else setTimeout(() => {
+        if (!state.session && !state.entering) showLockedWorkspace();
+      }, 900);
+    } catch (err) {
+      console.warn('Teacher auth boot failed', err);
+      setTimeout(() => {
+        if (!state.session && !state.entering) showLockedWorkspace();
+      }, 300);
     }
   }
 
   function showLockedWorkspace() {
     $('#teacherApp')?.classList.add('teacher-locked');
     const title = $('#workspaceTitle');
-    if (title) title.textContent = 'Öğretmen hesabınızla giriş yapın';
+    if (title) title.textContent = t('Öğretmen hesabınızla giriş yapın');
     const app = $('#teacherApp');
     if (app && !$('.teacher-lock-card', app)) {
       const lock = document.createElement('div');
       lock.className = 'teacher-lock-card';
-      lock.innerHTML = '<span>TEACHER LOGIN</span><h3>Sınıflarınızı yönetmek için giriş yapın.</h3><p>Gerçek sınıf kodları, öğrenci katılımları ve ders kayıtları hesabınıza bağlıdır.</p><button type="button" data-teacher-login>Öğretmen girişi →</button>';
+      lock.innerHTML = '<span>TEACHER LOGIN</span><h3>'+t('Sınıflarınızı yönetmek için giriş yapın.')+'</h3><p>'+t('Gerçek sınıf kodları, öğrenci katılımları ve ders kayıtları hesabınıza bağlıdır.')+'</p><button type="button" data-teacher-login>'+t('Öğretmen girişi →')+'</button>';
       app.appendChild(lock);
       lock.querySelector('[data-teacher-login]').addEventListener('click', () => openAuth('login'));
     }
@@ -77,7 +123,7 @@
     $('#teacherApp')?.classList.remove('teacher-locked');
     $('.teacher-lock-card')?.remove();
     const title = $('#workspaceTitle');
-    if (title) title.textContent = 'Merhaba, ' + teacherName() + ' 👋';
+    if (title) title.textContent = (window.ESCEduI18n?.getLang?.()==='en' ? 'Hello, ' : 'Merhaba, ') + teacherName() + ' 👋';
     ensureLogoutButton();
     await refreshClasses(true);
     document.dispatchEvent(new CustomEvent('esc:educator-ready'));
@@ -90,7 +136,7 @@
     const wrap = $('.workspace-actions');
     if (!wrap) return;
     const b = document.createElement('button');
-    b.id='eduLogout'; b.type='button'; b.className='ghost-button'; b.textContent='Çıkış';
+    b.id='eduLogout'; b.type='button'; b.className='ghost-button'; b.textContent=t('Çıkış');
     b.addEventListener('click', async () => {
       await window.ESCSupabase.signOut();
       state.session=null;state.profile=null;state.classes=[];state.activeClass=null;state.activeLive=null;
@@ -429,6 +475,12 @@
     $('#joinDemoClass')?.addEventListener('click',()=>{location.href='../join/?code='+encodeURIComponent($('#studentCode')?.value.trim()||'');});
     $('[data-open-student]')?.addEventListener('click',()=>{window.open('../join/?code='+encodeURIComponent(state.activeClass?.join_code||''),'_blank');});
 
+    window.addEventListener('esc:languagechange',()=>{
+      syncAuthMode();
+      if(state.session && $('#workspaceTitle')) $('#workspaceTitle').textContent=(window.ESCEduI18n?.getLang?.()==='en'?'Hello, ':'Merhaba, ')+teacherName()+' 👋';
+      if($('#eduLogout')) $('#eduLogout').textContent=t('Çıkış');
+      renderClasses();renderOverview();
+    });
     bootAuth();
   });
 })();
