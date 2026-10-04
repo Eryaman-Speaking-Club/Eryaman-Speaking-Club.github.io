@@ -545,6 +545,7 @@
     if(/invalid login credentials/i.test(raw)) return tx('E-posta veya şifre hatalı.','Email or password is incorrect.');
     if(/user already registered/i.test(raw)) return tx('Bu e-posta ile zaten bir hesap var.','An account already exists for this email.');
     if(/rate limit/i.test(raw)) return tx('Çok fazla deneme yapıldı. Bir süre sonra tekrar deneyin.','Too many attempts. Try again later.');
+    if(/edu_live_sessions_one_active_per_teacher_idx|duplicate key.*edu_live_sessions/i.test(raw)) return tx('Başka bir canlı ders zaten açık. Sayfayı yenileyip canlı derse geri dönün.','Another live lesson is already active. Refresh the page and resume it.');
     return raw.replace('Database error saving new user',tx('Hesap oluşturulamadı.','Account could not be created.'));
   }
 
