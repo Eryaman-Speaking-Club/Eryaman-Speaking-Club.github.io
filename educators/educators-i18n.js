@@ -722,6 +722,17 @@
   "Örn. Speaking’de çekingen. Present Perfect tekrar et.": "e.g. Hesitant in speaking. Review Present Perfect."
 });
 
+  Object.assign(TEXT,{
+  "SONRAKİ DERS": "NEXT CLASS",
+  "İlk sınıfını oluşturduğunda ders planın burada görünecek.": "Your lesson plan will appear here after you create your first class.",
+  "Sınıf oluştur": "Create class",
+  "CANLI SINIF KODU": "LIVE CLASS CODE",
+  "Önce bir sınıf oluşturun.": "Create a class first.",
+  "0 sınıf": "0 classes",
+  "Profil": "Profile",
+  "Öğrenci": "Student"
+});
+
   const PLACEHOLDERS={
     "Örn. 6-B / Junior Speaking":"e.g. 6-B / Junior Speaking",
     "En az 8 karakter":"At least 8 characters",
