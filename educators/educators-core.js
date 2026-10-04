@@ -176,12 +176,18 @@
   async function refreshClasses(initial=false) {
     if (!state.session) return;
     state.classes = await window.ESCSupabase.listEducatorClasses();
-    if (!state.activeClass && state.classes.length) state.activeClass = state.classes[0];
+
     if (state.activeClass) {
       const fresh = state.classes.find(c => c.id === state.activeClass.id);
-      if (fresh) state.activeClass = fresh;
-      state.activeLive = await window.ESCSupabase.getActiveEducatorSession(state.activeClass.id).catch(()=>null);
+      state.activeClass = fresh || state.classes[0] || null;
+    } else {
+      state.activeClass = state.classes[0] || null;
     }
+
+    state.activeLive = state.activeClass
+      ? await window.ESCSupabase.getActiveEducatorSession(state.activeClass.id).catch(()=>null)
+      : null;
+
     renderClasses();
     renderOverview();
     if (initial && state.activeClass) applyClassToBuilder(state.activeClass);
