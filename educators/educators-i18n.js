@@ -485,6 +485,13 @@
   function setLang(lang){
     current=lang==="en"?"en":"tr";
     document.documentElement.lang=current;
+    document.title=current==="en"
+      ? "English Teacher Platform · Lesson Planning & Classroom Tools"
+      : "English Teacher Platform · Ders Planlama ve Sınıf Araçları";
+    const meta=document.querySelector('meta[name="description"]');
+    if(meta)meta.setAttribute("content",current==="en"
+      ? "English Teacher Platform with lesson planning, CEFR and MEB paths, class management, assignments, games, resources and reports."
+      : "English Teacher Platform: İngilizce öğretmenleri için Türkçe ve English destekli ders planlama, CEFR, MEB, sınıf yönetimi, ödev, oyun, materyal ve rapor araçları.");
     try{localStorage.setItem(STORAGE,current);}catch{}
     try{
       const url=new URL(location.href);
