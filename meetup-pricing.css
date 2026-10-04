@@ -19,3 +19,15 @@
 @media(min-width:981px){.meetup-price-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}}
 .meetup-price-card.best-online{position:relative;border:2px solid #79ccc4;box-shadow:0 26px 68px rgba(22,166,162,.18)}
 .online-best-badge{position:absolute;top:-14px;left:22px;right:22px;min-height:30px;display:grid;place-items:center;border-radius:999px;background:#138e8a;color:#fff;font-size:9px;font-weight:1000;letter-spacing:.1em;box-shadow:0 8px 24px rgba(19,142,138,.18)}
+
+
+/* 2026-10-04 · strict 3x2 pricing grid */
+@media (min-width:701px){
+  .meetup-price-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    gap:18px !important;
+  }
+  .meetup-price-card{
+    min-width:0;
+  }
+}
