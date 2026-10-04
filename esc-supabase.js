@@ -206,7 +206,7 @@
     if (!classes?.length) return [];
     const ids = classes.map(c => c.id);
     const { data:students, error:studentError } = await client.from('edu_students')
-      .select('id,class_id,display_name,last_seen_at,is_active').in('class_id', ids);
+      .select('id,class_id,display_name,last_seen_at,is_active,teacher_note').in('class_id', ids);
     if (studentError) throw studentError;
     const grouped = new Map();
     (students || []).forEach(s => {
@@ -266,11 +266,12 @@
     if (!client || !session) throw new Error('Teacher login required.');
     const clean={};
     if ('display_name' in patch) clean.display_name=String(patch.display_name||'').trim().slice(0,40);
+    if ('teacher_note' in patch) clean.teacher_note=String(patch.teacher_note||'').trim().slice(0,1500)||null;
     if ('is_active' in patch) clean.is_active=patch.is_active===true;
     const { data, error } = await client.from('edu_students')
       .update(clean)
       .eq('id',studentId)
-      .select('id,class_id,display_name,last_seen_at,is_active')
+      .select('id,class_id,display_name,last_seen_at,is_active,teacher_note')
       .single();
     if (error) throw error;
     return data;
