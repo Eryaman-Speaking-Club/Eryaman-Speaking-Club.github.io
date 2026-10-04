@@ -446,6 +446,28 @@
   "Sonraki soru →": "Next question →"
 });
 
+  Object.assign(TEXT,{
+  "Planlayıcı": "Planner",
+  "BUGÜNÜN PLANI": "TODAY'S PLAN",
+  "Yaklaşan derslerin": "Upcoming lessons",
+  "Planlayıcıyı aç →": "Open planner →",
+  "Plan yükleniyor…": "Loading schedule…",
+  "Ders gününü platformdan yönet.": "Manage your teaching day from the platform.",
+  "YENİ PLAN": "NEW EVENT",
+  "Takvime ders ekle": "Add a lesson to your calendar",
+  "Sınıf, özel öğrenci veya serbest bir ders için tarih ve saat belirle.": "Choose a date and time for a class, private learner or independent lesson.",
+  "Bağlantı": "Link to",
+  "Serbest ders / bağlantısız": "Independent lesson / no link",
+  "Ders başlığı": "Lesson title",
+  "Tarih ve saat": "Date and time",
+  "Süre (dk)": "Duration (min)",
+  "Not": "Note",
+  "Hazırlanacak materyal, hedef veya kısa not…": "Resource to prepare, goal or short note…",
+  "Takvime ekle →": "Add to calendar →",
+  "YAKLAŞAN": "UPCOMING",
+  "Önündeki dersler": "Your upcoming lessons"
+});
+
   const PLACEHOLDERS={
     "Örn. 6-B / Junior Speaking":"e.g. 6-B / Junior Speaking",
     "En az 8 karakter":"At least 8 characters",
