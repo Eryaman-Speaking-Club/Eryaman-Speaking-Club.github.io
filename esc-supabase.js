@@ -247,6 +247,21 @@
     return data || [];
   }
 
+
+  async function listEducatorSessions(limit = 100) {
+    const client = await getClient();
+    const session = await getSession();
+    if (!client || !session) throw new Error('Teacher login required.');
+    const safeLimit = Math.max(1, Math.min(Number(limit) || 100, 300));
+    const { data, error } = await client.from('edu_live_sessions')
+      .select('id,class_id,lesson_id,status,current_index,current_stage,started_at,ended_at,updated_at')
+      .eq('teacher_id',session.user.id)
+      .order('started_at',{ ascending:false })
+      .limit(safeLimit);
+    if (error) throw error;
+    return data || [];
+  }
+
   async function startEducatorSession(payload) {
     const client = await getClient();
     const session = await getSession();
@@ -312,7 +327,7 @@
     isConfigured,getClient,ping,getSession,signUp,resendSignupConfirmation,sendPasswordReset,
     updatePassword,signIn,signOut,claimFirstAdmin,isAdmin,getGameContent,replaceGameContent,
     getGameSettings,saveGameSettings,ensureEducatorProfile,getEducatorProfile,listEducatorClasses,
-    createEducatorClass,saveEducatorLesson,listEducatorLessons,deleteEducatorLesson,listEducatorResults,
+    createEducatorClass,saveEducatorLesson,listEducatorLessons,deleteEducatorLesson,listEducatorResults,listEducatorSessions,
     startEducatorSession,updateEducatorSession,getActiveEducatorSession,joinEducatorClass,getStudentState,submitStudentResult
   };
 })();
