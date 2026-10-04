@@ -614,8 +614,14 @@
   }
 
   window.ESCEduProduct={
-    loadLessonById(id){
-      const lesson=state.lessons.find(x=>x.id===id);
+    async loadLessonById(id){
+      let lesson=state.lessons.find(x=>x.id===id);
+      if(!lesson){
+        lesson=await window.ESCSupabase.getEducatorLesson(id).catch(()=>null);
+        if(lesson){
+          state.lessons=[lesson,...state.lessons.filter(x=>x.id!==lesson.id)];
+        }
+      }
       if(!lesson)return false;
       loadLessonIntoBuilder(lesson);
       return true;
