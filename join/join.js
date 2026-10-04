@@ -15,23 +15,27 @@
   }
   function showMessage(text,ok=false){const el=$('#joinMessage');el.textContent=text;el.hidden=!text;el.classList.toggle('ok',ok);}
   function friendly(err){
-    const s=String(err?.message||err||'Katılım tamamlanamadı.');
-    if(s.includes('CLASS_NOT_FOUND'))return 'Bu sınıf kodu bulunamadı veya sınıf kapalı.';
-    if(s.includes('CLASS_FULL'))return 'Bu sınıfın kontenjanı dolu.';
-    if(s.includes('INVALID_NAME'))return 'Lütfen adını yaz.';
-    if(s.includes('INVALID_CLASS_CODE'))return 'Sınıf kodunu kontrol et.';
-    if(s.includes('STUDENT_SESSION_NOT_FOUND'))return 'Öğrenci oturumun bulunamadı. Yeniden katıl.';
+    const s=String(err?.message||err||tx('Katılım tamamlanamadı.','Could not join the class.'));
+    if(s.includes('CLASS_NOT_FOUND'))return tx('Bu sınıf kodu bulunamadı veya sınıf kapalı.','This class code was not found or the class is closed.');
+    if(s.includes('CLASS_FULL'))return tx('Bu sınıfın kontenjanı dolu.','This class is full.');
+    if(s.includes('INVALID_NAME'))return tx('Lütfen adını yaz.','Enter your name.');
+    if(s.includes('INVALID_CLASS_CODE'))return tx('Sınıf kodunu kontrol et.','Check the class code.');
+    if(s.includes('TOKEN_CLASS_MISMATCH'))return tx('Bu cihazdaki eski sınıf oturumu yenilendi. Tekrar katıl.','Your previous class session was reset. Please join again.');
+    if(s.includes('STUDENT_SESSION_NOT_FOUND'))return tx('Öğrenci oturumun bulunamadı. Yeniden katıl.','Your student session was not found. Join again.');
     return s;
   }
   function setConnected(ok){
     const pill=$('.connection-pill');pill?.classList.toggle('offline',!ok);
-    $('#connectionText').textContent=ok?'Connected':'Reconnecting…';
+    $('#connectionText').textContent=ok?tx('Bağlı','Connected'):tx('Yeniden bağlanıyor…','Reconnecting…');
   }
   function signature(d){return JSON.stringify([d?.class?.id,d?.session?.id,d?.session?.status,d?.session?.current_index,d?.session?.current_stage,d?.session?.current_payload,d?.session?.scores,d?.assignments]);}
 
   function applyLanguage(next){
     lang=next==='en'?'en':'tr';
     document.documentElement.lang=lang;
+    document.title=tx('Sınıfa Katıl · English Teacher Platform','Join Class · English Teacher Platform');
+    const meta=document.querySelector('meta[name="description"]');
+    if(meta)meta.setAttribute('content',tx('Öğretmeninin verdiği sınıf koduyla derse ve ödevlere katıl.','Join lessons and assignments with the class code from your teacher.'));
     try{localStorage.setItem(LANG_KEY,lang);}catch{}
     document.querySelectorAll('[data-join-lang]').forEach(b=>b.classList.toggle('active',b.dataset.joinLang===lang));
     const set=(sel,tr,en)=>{const el=$(sel);if(el)el.textContent=tx(tr,en);};
@@ -132,13 +136,17 @@
   async function join(e){
     e.preventDefault();
     const code=$('#joinCode').value.trim().toUpperCase(), name=$('#joinName').value.trim();
-    const b=$('#joinButton');b.disabled=true;showMessage('Sınıfa bağlanılıyor…');
+    const b=$('#joinButton');b.disabled=true;showMessage(tx('Sınıfa bağlanılıyor…','Joining class…'));
     try{
       token=localStorage.getItem(TOKEN_KEY)||randomToken();
       const data=await window.ESCSupabase.joinEducatorClass(code,name,token);
       localStorage.setItem(TOKEN_KEY,token);localStorage.setItem(NAME_KEY,name);localStorage.setItem(CLASS_CODE_KEY,code);
-      showMessage('',true);paint({student:{display_name:name},...data});
-      lastSignature=signature({student:{display_name:name},...data});
+      showMessage('',true);
+      let fullState=null;
+      try{fullState=await window.ESCSupabase.getStudentState(token);}catch{}
+      const painted=fullState||{student:{display_name:name},...data};
+      paint(painted);
+      lastSignature=signature(painted);
       startPolling();
     }catch(err){showMessage(friendly(err));}
     finally{b.disabled=false;}
@@ -148,7 +156,7 @@
   async function result(kind){
     if(!token||!state?.session?.id)return;
     const button=document.querySelector(`[data-result="${kind}"]`);if(button)button.disabled=true;
-    try{await window.ESCSupabase.submitStudentResult(token,state.session.id,kind,kind==='participated'?100:0,{stage:state.session.current_stage||''});if(button){const old=button.textContent;button.textContent='Sent ✓';setTimeout(()=>button.textContent=old,1200);}}
+    try{await window.ESCSupabase.submitStudentResult(token,state.session.id,kind,kind==='participated'?100:0,{stage:state.session.current_stage||''});if(button){const old=button.textContent;button.textContent=tx('Gönderildi ✓','Sent ✓');setTimeout(()=>button.textContent=old,1200);}}
     catch{}
     finally{if(button)button.disabled=false;}
   }
