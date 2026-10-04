@@ -215,6 +215,18 @@
       $('p', next).textContent = state.activeClass.age_group.replace('-', '–') + ' · ' + state.activeClass.level + ' · ' + (state.activeClass.students?.length || 0) + ' ' + tx('öğrenci','students');
       const head = $('.card-head b', next);
       if (head) head.textContent = state.activeLive ? tx('● CANLI','● LIVE NOW') : tx('Hazır','Ready');
+      const action=$('button',next);
+      if(action){
+        if(state.activeLive){
+          action.removeAttribute('data-panel-target');
+          action.setAttribute('data-resume-live','');
+          action.innerHTML=tx('Canlı derse dön <span>→</span>','Resume live lesson <span>→</span>');
+        }else{
+          action.removeAttribute('data-resume-live');
+          action.setAttribute('data-panel-target','builder');
+          action.innerHTML=tx('Dersi aç <span>→</span>','Open lesson <span>→</span>');
+        }
+      }
     } else if (next) {
       const h=$('h3',next), p=$('p',next), head=$('.card-head b',next);
       if(h) h.textContent=tx('Henüz sınıf yok','No class yet');
@@ -467,9 +479,12 @@
       patch.ended_at=new Date().toISOString();
     }
     state.activeLive=await window.ESCSupabase.updateEducatorSession(state.activeLive.id,patch);
-    if(completed && state.activeLive?.lesson_id){
-      await window.ESCSupabase.updateEducatorLesson(state.activeLive.lesson_id,{status:'completed'}).catch(()=>{});
+    if(completed){
+      const lessonId=state.activeLive?.lesson_id;
+      if(lessonId) await window.ESCSupabase.updateEducatorLesson(lessonId,{status:'completed'}).catch(()=>{});
+      state.activeLive=null;
     }
+    renderOverview();
   }
 
   async function syncGameToLive() {
@@ -561,6 +576,17 @@
     $('#closeLessonModal')?.addEventListener('click',()=>syncLiveFromModal().catch(()=>{}));
     $$('[data-launch-game]').forEach(b=>b.addEventListener('click',()=>setTimeout(()=>syncGameToLive().catch(()=>{}),120)));
     ['nextGameRound','gameBluePlus','gameBlueMinus','gameOrangePlus','gameOrangeMinus'].forEach(id=>$('#'+id)?.addEventListener('click',()=>setTimeout(()=>syncGameToLive().catch(()=>{}),80)));
+
+    document.addEventListener('click',e=>{
+      const b=e.target.closest('[data-resume-live]');
+      if(!b||!state.activeLive)return;
+      const snapshot=state.activeLive;
+      if(snapshot.lesson_id) window.ESCEduProduct?.loadLessonById?.(snapshot.lesson_id);
+      setTimeout(()=>{
+        if(window.ESCEduLive?.resume) window.ESCEduLive.resume(snapshot);
+        else alert(tx('Canlı ders arayüzü yüklenemedi. Sayfayı yenileyin.','The live lesson interface did not load. Refresh the page.'));
+      },snapshot.lesson_id?220:0);
+    });
 
     // The embedded student demo stays on-page; the real student view opens from [data-open-student].
     $('[data-open-student]')?.addEventListener('click',()=>{
