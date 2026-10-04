@@ -108,6 +108,9 @@
     $('#classroomName').textContent=d.class?.name||'English Class';
     $('#classroomMeta').textContent=`${d.class?.age_group||''} · ${d.class?.level||''} · CODE ${d.class?.join_code||''}`;
     renderAssignments(d.assignments||[]);
+    if(location.hash==='#assignmentZone'){
+      setTimeout(()=>$('#assignmentZone')?.scrollIntoView({behavior:'smooth',block:'start'}),80);
+    }
     const session=d.session;
     $('#waitingState').hidden=Boolean(session);
     $('#liveState').hidden=!session || session.status==='completed';
