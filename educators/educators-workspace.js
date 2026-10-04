@@ -8,9 +8,11 @@
     "5": ["School Life","Classroom Life","Personal Life","Family Life","Life in the Neighbourhood & City","Life in the World","Life in Nature","Life in the Universe & Future"],
     "6": ["School Life","Classroom Life","Personal Life","Family Life","Life in the Neighbourhood & City","Life in the World & Culture","Life in Nature & Global Problems","Life in the Universe & Future"],
     "7": ["School Life & Education","Classroom Life & Learning","Personal Life & Well-Being","Family Life & Home","Life in the Neighbourhood & City and Social Life","Life in the World & Culture","Life in Nature","Life in the Universe & Future"],
+    "8": ["Friendship","Teen Life","In The Kitchen","On The Phone","The Internet","Adventures","Tourism","Chores","Science","Natural Forces"],
     "9": ["School Life","Classroom Life","Personal Life: Physical Appearance & Personality","Family Life","Life in the House & Neighbourhood","Life in the City & Country","Life in the World & Nature","Life in the Universe & Future"],
     "10": ["School Life & Education","Classroom Life & Learning","Personal Life & Well-Being","Family Life & Home","Life in the Neighbourhood, City & Social Life","Life in the World & Culture","Life in Nature & Global Problems","Life in the Universe & Future"],
-    "11": ["School Life & Education","Classroom Life & Learning","Personal Life & Well-Being","Family Life & Home","Life in the Neighbourhood, City & Social Life","Life in the World & Culture","Life in Nature & Global Problems","Life in the Universe & Future"]
+    "11": ["School Life & Education","Classroom Life & Learning","Personal Life & Well-Being","Family Life & Home","Life in the Neighbourhood, City & Social Life","Life in the World & Culture","Life in Nature & Global Problems","Life in the Universe & Future"],
+    "12": ["Music","Friendship","Human Rights","Coming Soon","Psychology","Favors","News Stories","Alternative Energy","Technology","Manners"]
   };
 
   const upperThemesPrep = ["School Life & Education","Classroom Life & Learning","Personal Life & Well-Being","Family Life & Home","Life in the Neighbourhood, City & Social Life","Life in the World & Culture","Life in Nature & Global Problems","Life in the Universe & Future"];
