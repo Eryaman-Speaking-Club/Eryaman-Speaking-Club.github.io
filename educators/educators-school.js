@@ -5,7 +5,7 @@
   const tx=(tr,en)=>document.documentElement.lang==="en"?en:tr;
   const esc=(v="")=>String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]));
   let state={school:null,members:[],shared_lessons:[]};
-  let lessons=[],classes=[],loading=false;
+  let lessons=[],classes=[],loading=false,currentUserId="";
 
   function status(text,ok=false,entry=false){
     const el=$(entry?"#schoolEntryStatus":"#schoolStatus");
@@ -41,10 +41,22 @@
     const list=$("#schoolMemberList");
     if(!list)return;
     const members=state.members||[];
+    const ownerMode=state.school?.role==="owner";
     $("#schoolMemberBadge").textContent=String(members.length);
-    list.innerHTML=members.map(m=>
-      '<div class="school-member-row"><span>'+esc((m.display_name||"T").trim().charAt(0).toUpperCase())+'</span><p><b>'+esc(m.display_name||"Teacher")+'</b><small>'+esc(roleLabel(m.role))+'</small></p></div>'
-    ).join("") || '<p class="school-empty-copy">'+tx("Henüz ekip üyesi yok.","No team members yet.")+'</p>';
+    list.innerHTML=members.map(m=>{
+      const manageable=ownerMode && m.user_id!==currentUserId;
+      const roleButton=m.role==="admin"
+        ? '<button type="button" data-school-member-action="demote" data-user-id="'+esc(m.user_id)+'">'+tx("Teacher yap","Make teacher")+'</button>'
+        : m.role==="teacher"
+          ? '<button type="button" data-school-member-action="promote" data-user-id="'+esc(m.user_id)+'">'+tx("Admin yap","Make admin")+'</button>'
+          : '';
+      const actions=manageable
+        ? '<div class="school-member-actions">'+roleButton+'<button type="button" data-school-member-action="transfer" data-user-id="'+esc(m.user_id)+'">'+tx("Sahipliği devret","Transfer ownership")+'</button><button type="button" class="danger-lite" data-school-member-action="remove" data-user-id="'+esc(m.user_id)+'">'+tx("Çıkar","Remove")+'</button></div>'
+        : '';
+      return '<div class="school-member-row"><span>'+esc((m.display_name||"T").trim().charAt(0).toUpperCase())+'</span><p><b>'+esc(m.display_name||"Teacher")+'</b><small>'+esc(roleLabel(m.role))+'</small></p>'+actions+'</div>';
+    }).join("") || '<p class="school-empty-copy">'+tx("Henüz ekip üyesi yok.","No team members yet.")+'</p>';
+
+    $$("[data-school-member-action]",list).forEach(b=>b.addEventListener("click",()=>manageMember(b.dataset.userId,b.dataset.schoolMemberAction,b)));
   }
 
   function populateControls(){
@@ -111,6 +123,7 @@
     try{
       const session=await window.ESCSupabase?.getSession?.();
       if(!session)return;
+      currentUserId=session.user?.id||"";
       const results=await Promise.all([
         window.ESCSupabase.getEducatorSchoolState(),
         window.ESCSupabase.listEducatorLessons(150),
@@ -190,6 +203,26 @@
     try{
       await window.ESCSupabase.unshareEducatorSchoolLesson(shareId);
       await load(true);
+    }catch(err){status(humanError(err));}
+    finally{button.disabled=false;}
+  }
+
+  async function manageMember(userId,action,button){
+    if(!userId||!action)return;
+    const prompts={
+      remove:tx("Bu öğretmen ekipten çıkarılsın mı?","Remove this teacher from the team?"),
+      promote:tx("Bu öğretmen admin yapılsın mı?","Make this teacher an admin?"),
+      demote:tx("Bu admin tekrar teacher rolüne alınsın mı?","Change this admin back to teacher?"),
+      transfer:tx("School Workspace sahipliğini bu öğretmene devretmek istediğine emin misin? Sen admin rolüne geçeceksin.","Transfer School Workspace ownership to this teacher? You will become an admin.")
+    };
+    if(!confirm(prompts[action]||tx("Bu işlem uygulansın mı?","Apply this action?")))return;
+    button.disabled=true;
+    status(tx("Ekip güncelleniyor…","Updating team…"));
+    try{
+      await window.ESCSupabase.manageEducatorSchoolMember(userId,action);
+      status(tx("Ekip güncellendi ✓","Team updated ✓"),true);
+      await load(true);
+      window.ESCAnalytics?.track?.("educator_school_member_"+action,"other");
     }catch(err){status(humanError(err));}
     finally{button.disabled=false;}
   }
