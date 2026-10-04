@@ -178,14 +178,17 @@
     if (!classes?.length) return [];
     const ids = classes.map(c => c.id);
     const { data:students, error:studentError } = await client.from('edu_students')
-      .select('id,class_id,display_name,last_seen_at,is_active').in('class_id', ids).eq('is_active', true);
+      .select('id,class_id,display_name,last_seen_at,is_active').in('class_id', ids);
     if (studentError) throw studentError;
     const grouped = new Map();
     (students || []).forEach(s => {
       if (!grouped.has(s.class_id)) grouped.set(s.class_id, []);
       grouped.get(s.class_id).push(s);
     });
-    return classes.map(c => ({ ...c, students:grouped.get(c.id) || [] }));
+    return classes.map(c => {
+      const roster=grouped.get(c.id) || [];
+      return { ...c, students:roster.filter(s=>s.is_active), all_students:roster };
+    });
   }
 
   async function createEducatorClass(payload) {
