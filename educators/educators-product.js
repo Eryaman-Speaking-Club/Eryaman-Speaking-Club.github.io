@@ -328,7 +328,10 @@
     }
     if(lesson){
       const prev=lesson.value;
-      lesson.innerHTML='<option value="">'+tx('Ders seçmeden devam et','Continue without a saved lesson')+'</option>'+state.lessons.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.title||x.topic||'English lesson')+'</option>').join('');
+      const classId=cls?.value||'';
+      const lessons=classId?state.lessons.filter(x=>x.class_id===classId):[];
+      lesson.disabled=!classId;
+      lesson.innerHTML='<option value="">'+(classId?tx('Ders seçmeden devam et','Continue without a saved lesson'):tx('Önce sınıf seç','Choose a class first'))+'</option>'+lessons.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.title||x.topic||'English lesson')+'</option>').join('');
       if([...lesson.options].some(o=>o.value===prev)) lesson.value=prev;
     }
   }
@@ -547,6 +550,13 @@
     $('#refreshReports')?.addEventListener('click',refreshData);
     $('#refreshAssignments')?.addEventListener('click',refreshData);
     $('#assignmentForm')?.addEventListener('submit',submitAssignmentForm);
+    $('#assignmentClass')?.addEventListener('change',()=>{
+      const title=$('#assignmentTitle'), instructions=$('#assignmentInstructions');
+      if($('#assignmentLesson')) $('#assignmentLesson').value='';
+      if(title) title.value='';
+      if(instructions) instructions.value='';
+      populateAssignmentControls();
+    });
     $('#plannerForm')?.addEventListener('submit',submitPlannerForm);
     $('#refreshPlanner')?.addEventListener('click',refreshData);
     $('#plannerTarget')?.addEventListener('change',()=>{
