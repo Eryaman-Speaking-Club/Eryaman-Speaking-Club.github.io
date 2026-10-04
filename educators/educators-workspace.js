@@ -188,7 +188,7 @@
     try {
       await navigator.clipboard.writeText(title + "\n" + source + "\n\n" + items);
       const old = e.currentTarget.textContent;
-      e.currentTarget.textContent = "Copied ✓";
+      e.currentTarget.textContent = uiText("Kopyalandı ✓","Copied ✓");
       setTimeout(() => e.currentTarget.textContent = old, 1200);
     } catch {}
   });
@@ -199,9 +199,9 @@
     const source = $("#resourceSource")?.value || "Current lesson";
     const items = $$("#resourcePreviewItems b").map(x => x.textContent);
     const win = window.open("", "_blank", "width=900,height=700");
-    if (!win) return window.alert("Yazdırma penceresi engellendi. Tarayıcıdan açılır pencerelere izin verin.");
+    if (!win) return window.alert(uiText("Yazdırma penceresi engellendi. Tarayıcıdan açılır pencerelere izin verin.","The print window was blocked. Allow pop-ups in your browser."));
     const safe = v => String(v || "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
-    win.document.write('<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>'+safe(title)+'</title><style>body{font-family:Arial,sans-serif;margin:38px;color:#102d4e;line-height:1.5}.brand{font-weight:800;color:#0b2f5b;margin-bottom:28px}h1{font-size:30px;margin:0 0 8px}.source{color:#657b8e;margin-bottom:22px}ol{padding-left:24px}li{padding:10px 0;border-bottom:1px solid #e3e9ee;font-size:16px}@media print{body{margin:18mm}}</style></head><body><div class="brand">Eryaman Speaking Club Educators</div><h1>'+safe(title)+'</h1><p>'+safe(lead)+'</p><div class="source">'+safe(source)+'</div><ol>'+items.map(x=>'<li>'+safe(x)+'</li>').join('')+'</ol><script>window.onload=()=>window.print()<\/script></body></html>');
+    win.document.write('<!doctype html><html lang="'+(document.documentElement.lang==="en"?"en":"tr")+'"><head><meta charset="utf-8"><title>'+safe(title)+'</title><style>body{font-family:Arial,sans-serif;margin:38px;color:#102d4e;line-height:1.5}.brand{font-weight:800;color:#0b2f5b;margin-bottom:28px}h1{font-size:30px;margin:0 0 8px}.source{color:#657b8e;margin-bottom:22px}ol{padding-left:24px}li{padding:10px 0;border-bottom:1px solid #e3e9ee;font-size:16px}@media print{body{margin:18mm}}</style></head><body><div class="brand">English Teacher Platform</div><h1>'+safe(title)+'</h1><p>'+safe(lead)+'</p><div class="source">'+safe(source)+'</div><ol>'+items.map(x=>'<li>'+safe(x)+'</li>').join('')+'</ol><script>window.onload=()=>window.print()<\/script></body></html>');
     win.document.close();
   });
 
