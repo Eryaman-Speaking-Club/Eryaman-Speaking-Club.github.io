@@ -80,7 +80,14 @@
     if(!items.length){list.innerHTML='';return;}
     list.innerHTML=items.map(a=>{
       const due=a.due_at?new Intl.DateTimeFormat(lang==='en'?'en-GB':'tr-TR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}).format(new Date(a.due_at)):tx('Son tarih yok','No due date');
-      if(a.completed)return '<article class="student-assignment completed"><div class="student-assignment-top"><span>'+tx('TESLİM EDİLDİ','COMPLETED')+'</span><small>'+esc(due)+'</small></div><h3>'+esc(a.title)+'</h3><p>'+esc(a.instructions||'')+'</p><b>✓ '+tx('Bu ödevi tamamladın.','You completed this assignment.')+'</b></article>';
+      if(a.completed){
+        const score=(a.score===null||typeof a.score==='undefined')?'':Math.round(Number(a.score)||0);
+        const feedback=a.teacher_feedback||'';
+        const review=(score!==''||feedback)
+          ? '<div class="student-assignment-feedback"><small>'+tx('ÖĞRETMEN GERİ BİLDİRİMİ','TEACHER FEEDBACK')+'</small>'+(score!==''?'<strong>'+score+'/100</strong>':'')+(feedback?'<p>'+esc(feedback)+'</p>':'')+'</div>'
+          : '';
+        return '<article class="student-assignment completed"><div class="student-assignment-top"><span>'+tx('TESLİM EDİLDİ','COMPLETED')+'</span><small>'+esc(due)+'</small></div><h3>'+esc(a.title)+'</h3><p>'+esc(a.instructions||'')+'</p><b>✓ '+tx('Bu ödevi tamamladın.','You completed this assignment.')+'</b>'+review+'</article>';
+      }
       if(a.overdue)return '<article class="student-assignment overdue"><div class="student-assignment-top"><span>'+tx('SÜRE DOLDU','CLOSED')+'</span><small>'+esc(due)+'</small></div><h3>'+esc(a.title)+'</h3><p>'+esc(a.instructions||'')+'</p><b>'+tx('Son teslim tarihi geçti. Yeni teslim kabul edilmiyor.','The deadline has passed. New submissions are closed.')+'</b></article>';
       return '<article class="student-assignment"><div class="student-assignment-top"><span>'+tx('YAPILACAK','TO DO')+'</span><small>'+esc(due)+'</small></div><h3>'+esc(a.title)+'</h3><p>'+esc(a.instructions||tx('Öğretmeninin verdiği görevi tamamla.','Complete the task from your teacher.'))+'</p><label>'+tx('Kısa cevabın / notun','Your short answer / note')+'<textarea rows="3" maxlength="1200" data-assignment-response="'+esc(a.id)+'" placeholder="'+esc(tx('Buraya yaz…','Write here…'))+'"></textarea></label><button type="button" data-assignment-submit="'+esc(a.id)+'">'+tx('Ödevi teslim et →','Submit assignment →')+'</button></article>';
     }).join('');
