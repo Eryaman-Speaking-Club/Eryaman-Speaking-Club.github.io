@@ -3,7 +3,9 @@
 
   const $ = (q, root=document) => root.querySelector(q);
   const $$ = (q, root=document) => [...root.querySelectorAll(q)];
-  const state = { lessons:[], classes:[], results:[], sessions:[], ready:false };
+  const state = { lessons:[], classes:[], results:[], sessions:[], assignments:[], ready:false };
+  const en = () => document.documentElement.lang === 'en';
+  const tx = (tr,enText) => en() ? enText : tr;
 
   const esc = (v='') => String(v).replace(/[&<>"']/g, ch => ({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
@@ -12,7 +14,7 @@
   function fmtDate(value) {
     if (!value) return '';
     try {
-      return new Intl.DateTimeFormat('tr-TR',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(value));
+      return new Intl.DateTimeFormat(en()?'en-GB':'tr-TR',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(value));
     } catch { return ''; }
   }
 
@@ -300,21 +302,111 @@
     }
   }
 
+
+  function dueLabel(value){
+    if(!value) return tx('Son tarih yok','No due date');
+    try{
+      return new Intl.DateTimeFormat(en()?'en-GB':'tr-TR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}).format(new Date(value));
+    }catch{return '';}
+  }
+
+  function populateAssignmentControls(){
+    const cls=$('#assignmentClass'), lesson=$('#assignmentLesson');
+    if(cls){
+      const prev=cls.value;
+      cls.innerHTML='<option value="">'+tx('Önce sınıf seç','Choose a class')+'</option>'+state.classes.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>').join('');
+      if([...cls.options].some(o=>o.value===prev)) cls.value=prev;
+    }
+    if(lesson){
+      const prev=lesson.value;
+      lesson.innerHTML='<option value="">'+tx('Ders seçmeden devam et','Continue without a saved lesson')+'</option>'+state.lessons.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.title||x.topic||'English lesson')+'</option>').join('');
+      if([...lesson.options].some(o=>o.value===prev)) lesson.value=prev;
+    }
+  }
+
+  function renderAssignments(){
+    populateAssignmentControls();
+    const wrap=$('#assignmentList');
+    if(!wrap) return;
+    if(!state.assignments.length){
+      wrap.innerHTML='<div class="assignment-empty"><strong>'+tx('Henüz ödev yok.','No assignments yet.')+'</strong><span>'+tx('İlk görevi oluşturduğunda öğrencilerin sınıf ekranında görünecek.','Your first published task will appear automatically on the student class screen.')+'</span></div>';
+      return;
+    }
+    wrap.innerHTML=state.assignments.map(a=>{
+      const klass=classNameFor(a.class_id);
+      const status=a.status==='published'?tx('Yayında','Published'):a.status==='closed'?tx('Kapalı','Closed'):tx('Taslak','Draft');
+      const code=state.classes.find(x=>x.id===a.class_id)?.join_code||'';
+      return '<article class="assignment-card"><div class="assignment-card-top"><span class="assignment-status '+esc(a.status)+'">'+esc(status)+'</span><small>'+esc(dueLabel(a.due_at))+'</small></div><h4>'+esc(a.title)+'</h4><p>'+esc(klass)+(a.instructions?' · '+esc(a.instructions):'')+'</p><div class="assignment-card-actions"><button type="button" data-assignment-share="'+esc(a.id)+'" data-class-code="'+esc(code)+'">'+tx('Öğrenci linkini kopyala','Copy student link')+'</button><button type="button" data-assignment-toggle="'+esc(a.id)+'">'+(a.status==='published'?tx('Kapat','Close'):tx('Yayınla','Publish'))+'</button><button type="button" class="danger-lite" data-assignment-delete="'+esc(a.id)+'">'+tx('Sil','Delete')+'</button></div></article>';
+    }).join('');
+
+    $('[data-assignment-share]',wrap).forEach(b=>b.addEventListener('click',async()=>{
+      const code=b.dataset.classCode||'';
+      const url=location.origin+'/join/?code='+encodeURIComponent(code)+'#assignments';
+      try{
+        await navigator.clipboard.writeText(url);
+        const old=b.textContent;b.textContent=tx('Kopyalandı ✓','Copied ✓');setTimeout(()=>b.textContent=old,1200);
+      }catch{}
+    }));
+    $('[data-assignment-toggle]',wrap).forEach(b=>b.addEventListener('click',async()=>{
+      const a=state.assignments.find(x=>x.id===b.dataset.assignmentToggle);if(!a)return;
+      b.disabled=true;
+      try{await window.ESCSupabase.updateAssignment(a.id,{status:a.status==='published'?'closed':'published'});await refreshData();}
+      catch(err){alert(err?.message||tx('Ödev güncellenemedi.','Could not update assignment.'));}
+      finally{b.disabled=false;}
+    }));
+    $('[data-assignment-delete]',wrap).forEach(b=>b.addEventListener('click',async()=>{
+      const a=state.assignments.find(x=>x.id===b.dataset.assignmentDelete);if(!a)return;
+      if(!confirm(tx('Bu ödev silinsin mi?','Delete this assignment?')))return;
+      b.disabled=true;
+      try{await window.ESCSupabase.deleteAssignment(a.id);await refreshData();}
+      catch(err){alert(err?.message||tx('Ödev silinemedi.','Could not delete assignment.'));}
+      finally{b.disabled=false;}
+    }));
+  }
+
+  async function submitAssignmentForm(e){
+    e.preventDefault();
+    const classId=$('#assignmentClass')?.value||'';
+    const lessonId=$('#assignmentLesson')?.value||'';
+    const title=$('#assignmentTitle')?.value.trim()||'';
+    if(!classId||!title)return;
+    const button=$('#assignmentSubmit');if(button)button.disabled=true;
+    try{
+      const lesson=state.lessons.find(x=>x.id===lessonId);
+      const dueRaw=$('#assignmentDue')?.value||'';
+      await window.ESCSupabase.createAssignment({
+        class_id:classId,
+        lesson_id:lessonId||null,
+        title,
+        instructions:$('#assignmentInstructions')?.value.trim()||null,
+        due_at:dueRaw?new Date(dueRaw).toISOString():null,
+        status:$('#assignmentStatus')?.value||'published',
+        payload:lesson?{lesson_title:lesson.title||lesson.topic,topic:lesson.topic,goal:lesson.primary_goal,plan:lesson.plan||[]}:{}
+      });
+      window.ESCAnalytics?.track?.('educator_assignment_created','other');
+      e.currentTarget.reset();
+      await refreshData();
+    }catch(err){alert(err?.message||tx('Ödev oluşturulamadı.','Could not create assignment.'));}
+    finally{if(button)button.disabled=false;}
+  }
+
   async function refreshData() {
     if(!window.ESCSupabase?.isConfigured?.()) return;
     const session=await window.ESCSupabase.getSession().catch(()=>null);
     if(!session) return;
     try {
-      const [classes,lessons,results,sessions]=await Promise.all([
+      const [classes,lessons,results,sessions,assignments]=await Promise.all([
         window.ESCSupabase.listEducatorClasses(),
         window.ESCSupabase.listEducatorLessons(150),
         window.ESCSupabase.listEducatorResults(1000),
-        window.ESCSupabase.listEducatorSessions(150)
+        window.ESCSupabase.listEducatorSessions(150),
+        window.ESCSupabase.listAssignments(150)
       ]);
       state.classes=classes||[];
       state.lessons=lessons||[];
       state.results=results||[];
       state.sessions=sessions||[];
+      state.assignments=assignments||[];
       state.ready=true;
       const reportSelect=$('#reportClassFilter');
       if(reportSelect){
@@ -322,7 +414,7 @@
         reportSelect.innerHTML='<option value="all">Tüm sınıflar</option>'+state.classes.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>').join('');
         if([...reportSelect.options].some(o=>o.value===previous)) reportSelect.value=previous;
       }
-      renderSetup();renderRecent();renderLibrary();renderReports();
+      renderSetup();renderRecent();renderLibrary();renderAssignments();renderReports();
     } catch(err) {
       console.warn('Educators product refresh failed',err);
     }
@@ -332,8 +424,9 @@
     const dateLabel = $('#workspaceDateLabel');
     if (dateLabel) {
       const now = new Date();
-      const label = new Intl.DateTimeFormat('tr-TR',{weekday:'long',day:'numeric',month:'long'}).format(now);
-      dateLabel.textContent = label.toLocaleUpperCase('tr-TR') + ' · TEACHER SPACE';
+      const locale=en()?'en-GB':'tr-TR';
+      const label = new Intl.DateTimeFormat(locale,{weekday:'long',day:'numeric',month:'long'}).format(now);
+      dateLabel.textContent = label.toLocaleUpperCase(locale) + ' · '+tx('ÖĞRETMEN ALANI','TEACHER SPACE');
     }
     setupActions();
     $('#lessonLibrarySearch')?.addEventListener('input',applyLibraryFilters);
@@ -341,12 +434,24 @@
     $('#refreshLessonLibrary')?.addEventListener('click',refreshData);
     $('#reportClassFilter')?.addEventListener('change',renderReports);
     $('#refreshReports')?.addEventListener('click',refreshData);
+    $('#refreshAssignments')?.addEventListener('click',refreshData);
+    $('#assignmentForm')?.addEventListener('submit',submitAssignmentForm);
+    $('#assignmentLesson')?.addEventListener('change',()=>{
+      const lesson=state.lessons.find(x=>x.id===$('#assignmentLesson')?.value);
+      if(lesson && $('#assignmentTitle') && !$('#assignmentTitle').value.trim()) $('#assignmentTitle').value=lesson.title||lesson.topic||'';
+      if(lesson && $('#assignmentInstructions') && !$('#assignmentInstructions').value.trim()) $('#assignmentInstructions').value=tx('Ders planındaki görevi tamamla ve derste tekrar konuşmaya hazır gel.','Complete the task from this lesson and come ready to use it again in class.');
+    });
 
     ['saveDemoClass','startDemoLesson'].forEach(id=>{
       $('#'+id)?.addEventListener('click',()=>setTimeout(refreshData,1100));
     });
 
     document.addEventListener('esc:educator-ready',refreshData);
+    window.addEventListener('esc:languagechange',()=>{
+      const date=$('#workspaceDateLabel');
+      if(date){const now=new Date(),locale=en()?'en-GB':'tr-TR';date.textContent=new Intl.DateTimeFormat(locale,{weekday:'long',day:'numeric',month:'long'}).format(now).toLocaleUpperCase(locale)+' · '+tx('ÖĞRETMEN ALANI','TEACHER SPACE');}
+      renderRecent();renderLibrary();renderAssignments();renderReports();
+    });
     document.addEventListener('visibilitychange',()=>{if(!document.hidden) refreshData();});
     setTimeout(refreshData,500);
     setTimeout(refreshData,1800);
