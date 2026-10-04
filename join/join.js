@@ -158,7 +158,14 @@
   async function result(kind){
     if(!token||!state?.session?.id)return;
     const button=document.querySelector(`[data-result="${kind}"]`);if(button)button.disabled=true;
-    try{await window.ESCSupabase.submitStudentResult(token,state.session.id,kind,kind==='participated'?100:0,{stage:state.session.current_stage||''});if(button){const old=button.textContent;button.textContent=tx('Gönderildi ✓','Sent ✓');setTimeout(()=>button.textContent=old,1200);}}
+    const payload=state.session?.current_payload||{};
+    const activityKey=[
+      state.session?.current_stage||'',
+      payload.stage_key||payload.kind||'',
+      payload.question_index ?? '',
+      String(payload.prompt||'').slice(0,80)
+    ].join('|').slice(0,180);
+    try{await window.ESCSupabase.submitStudentResult(token,state.session.id,kind,kind==='participated'?100:0,{stage:state.session.current_stage||'',activity_key:activityKey});if(button){const old=button.textContent;button.textContent=tx('Gönderildi ✓','Sent ✓');setTimeout(()=>button.textContent=old,1200);}}
     catch{}
     finally{if(button)button.disabled=false;}
   }
