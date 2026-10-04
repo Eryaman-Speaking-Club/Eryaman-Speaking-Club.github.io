@@ -232,6 +232,19 @@
   }
 
 
+  async function getEducatorLesson(lessonId) {
+    const client = await getClient();
+    const session = await getSession();
+    if (!client || !session) throw new Error('Teacher login required.');
+    const { data, error } = await client.from('edu_lessons')
+      .select('id,class_id,title,topic,duration_minutes,primary_goal,plan,status,created_at,updated_at')
+      .eq('id',lessonId)
+      .eq('teacher_id',session.user.id)
+      .maybeSingle();
+    if (error) throw error;
+    return data || null;
+  }
+
   async function listEducatorLessons(limit = 100) {
     const client = await getClient();
     const session = await getSession();
@@ -553,7 +566,7 @@
     isConfigured,getClient,ping,getSession,onAuthStateChange,signUp,resendSignupConfirmation,sendPasswordReset,
     updatePassword,signIn,signOut,claimFirstAdmin,isAdmin,getGameContent,replaceGameContent,
     getGameSettings,saveGameSettings,ensureEducatorProfile,getEducatorProfile,listEducatorClasses,
-    createEducatorClass,saveEducatorLesson,updateEducatorLesson,listEducatorLessons,deleteEducatorLesson,listEducatorResults,listEducatorSessions,
+    createEducatorClass,saveEducatorLesson,updateEducatorLesson,getEducatorLesson,listEducatorLessons,deleteEducatorLesson,listEducatorResults,listEducatorSessions,
     listPrivateStudents,createPrivateStudent,updatePrivateStudent,deletePrivateStudent,
     listAssignments,createAssignment,updateAssignment,deleteAssignment,
     listScheduleEvents,createScheduleEvent,updateScheduleEvent,deleteScheduleEvent,
