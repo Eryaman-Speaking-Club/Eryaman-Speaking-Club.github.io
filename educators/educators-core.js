@@ -333,6 +333,8 @@
     $('#manageClassFocus').value=cls.focus||'speaking';
     $('#manageClassMax').value=String(cls.max_students||40);
     $('#manageClassCode').textContent=cls.join_code||'------';
+    $('#manageCopyCode')?.toggleAttribute('disabled',!cls.is_active);
+    $('#manageCopyLink')?.toggleAttribute('disabled',!cls.is_active);
     $('#manageClassHeading').textContent=cls.name||tx('Sınıfı yönet','Manage class');
     $('#manageClassMeta').textContent=(cls.age_group||'')+' · '+(cls.level||'')+' · '+(cls.students?.length||0)+' '+tx('aktif öğrenci','active students');
 
