@@ -224,7 +224,7 @@
       privateStudents=await window.ESCSupabase.listPrivateStudents();
       renderPrivateStudents();
     } catch(err) {
-      if(grid) grid.innerHTML='<article class="private-student-card private-loading"><strong>'+uiText("Öğrenciler yüklenemedi.","Could not load students.")+'</strong><p>'+String(err?.message||"")+'</p></article>';
+      if(grid) grid.innerHTML='<article class="private-student-card private-loading"><strong>'+uiText("Öğrenciler yüklenemedi.","Could not load students.")+'</strong><p>'+escapeHtml(String(err?.message||""))+'</p></article>';
     }
   }
 
