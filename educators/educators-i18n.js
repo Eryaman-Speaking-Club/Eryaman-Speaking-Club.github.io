@@ -504,6 +504,20 @@
   "Tamamla": "Complete"
 });
 
+  Object.assign(TEXT,{
+  "AKTİF SINIF": "ACTIVE CLASSES",
+  "Hesabındaki sınıflar": "Classes in your account",
+  "ÖĞRENCİ": "STUDENTS",
+  "Tüm sınıflarda": "Across all classes",
+  "CANLI DERS": "LIVE CLASS",
+  "Şu anda aktif": "Active right now",
+  "SEÇİLİ SINIF": "SELECTED CLASS",
+  "Çalışma alanı": "Current workspace",
+  "Henüz sınıf yok": "No class yet",
+  "İlk sınıfını oluştur; ders ve öğrenci akışı burada görünsün.": "Create your first class to start planning lessons and students.",
+  "Plan yok": "No plan"
+});
+
   const PLACEHOLDERS={
     "Örn. 6-B / Junior Speaking":"e.g. 6-B / Junior Speaking",
     "En az 8 karakter":"At least 8 characters",
