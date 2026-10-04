@@ -5,7 +5,7 @@
   const NAME_KEY='esc-edu-student-name-v1';
   const CLASS_CODE_KEY='esc-edu-student-class-code-v1';
   const LANG_KEY='esc-student-lang-v1';
-  let token='', state=null, poll=null, lastSignature='', lang='tr';
+  let token='', state=null, poll=null, lastSignature='', lang='tr', assignmentHashHandled=false;
   const tx=(tr,en)=>lang==='en'?en:tr;
   const esc=(v='')=>String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]));
 
@@ -108,7 +108,8 @@
     $('#classroomName').textContent=d.class?.name||'English Class';
     $('#classroomMeta').textContent=`${d.class?.age_group||''} · ${d.class?.level||''} · CODE ${d.class?.join_code||''}`;
     renderAssignments(d.assignments||[]);
-    if(location.hash==='#assignmentZone'){
+    if(location.hash==='#assignmentZone'&&!assignmentHashHandled){
+      assignmentHashHandled=true;
       setTimeout(()=>$('#assignmentZone')?.scrollIntoView({behavior:'smooth',block:'start'}),80);
     }
     const session=d.session;
