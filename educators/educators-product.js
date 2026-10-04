@@ -260,7 +260,7 @@
     const selectedClass=$('#reportClassFilter')?.value||'all';
     const reportRows=selectedClass==='all'?state.results:state.results.filter(r=>r.class_id===selectedClass);
     const attempts = reportRows.length;
-    const scored = reportRows.filter(r => r.score !== null && r.score !== undefined && Number.isFinite(Number(r.score)));
+    const scored = reportRows.filter(r => r.activity_type!=='assignment' && r.score !== null && r.score !== undefined && Number.isFinite(Number(r.score)));
     const avg = scored.length ? scored.reduce((s,r)=>s+Number(r.score),0)/scored.length : null;
     const students = new Set(reportRows.map(r=>r.student_id).filter(Boolean)).size;
     const groups = new Map();
@@ -269,7 +269,7 @@
       const key=String(r.activity_type||'activity');
       if(!groups.has(key)) groups.set(key,{count:0,scores:[]});
       const g=groups.get(key); g.count++;
-      if(r.score!==null && r.score!==undefined && Number.isFinite(Number(r.score))) g.scores.push(Number(r.score));
+      if(r.activity_type!=='assignment' && r.score!==null && r.score!==undefined && Number.isFinite(Number(r.score))) g.scores.push(Number(r.score));
     });
 
     const sorted=[...groups.entries()].sort((a,b)=>b[1].count-a[1].count);
