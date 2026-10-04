@@ -548,3 +548,5 @@
 .planner-empty{display:grid;place-items:center;min-height:250px;text-align:center;border:1px dashed #cad8e2;border-radius:16px;background:#fbfcfd;padding:30px}.planner-empty strong{color:var(--navy);font-size:20px}.planner-empty span{margin-top:5px;color:#718596;font-size:12px}
 @media(max-width:1100px){.today-planner-list{grid-template-columns:1fr}.planner-layout{grid-template-columns:1fr}}
 @media(max-width:650px){.planner-form,.planner-agenda{padding:18px}.planner-two{grid-template-columns:1fr}.planner-event{grid-template-columns:1fr}.planner-event-actions{display:grid;grid-template-columns:1fr 1fr}}
+
+.metric-grid article:nth-child(4) strong{font-size:clamp(20px,2vw,30px)!important;line-height:1.08;overflow-wrap:anywhere;word-break:break-word}
