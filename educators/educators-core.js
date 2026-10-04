@@ -371,9 +371,9 @@
 
   async function ensureActiveClass() {
     if (state.activeClass) return state.activeClass;
-    if (!state.session) { openAuth('login'); throw new Error('Önce öğretmen hesabına giriş yapın.'); }
+    if (!state.session) { openAuth('login'); throw new Error(tx('Önce öğretmen hesabına giriş yapın.','Sign in to your teacher account first.')); }
     if (state.classes.length) {state.activeClass=state.classes[0];return state.activeClass;}
-    openClassModal();throw new Error('Önce bir sınıf oluşturun.');
+    openClassModal();throw new Error(tx('Önce bir sınıf oluşturun.','Create a class first.'));
   }
 
   async function persistLesson(startLive=false) {
