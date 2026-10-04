@@ -596,6 +596,7 @@
   "use strict";
   const $ = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+  const toolText = (tr,en) => window.ESCEduI18n?.getLang?.()==="en" ? en : tr;
   const STUDENT_KEY = "escEducatorsStudentNamesV2";
 
   function esc(value){
@@ -636,7 +637,7 @@
     const list = names();
     const out = $("#pickedStudent");
     if(!out) return;
-    if(!list.length){ out.textContent = "Add names"; return; }
+    if(!list.length){ out.textContent = toolText("İsim ekle","Add names"); return; }
     let ticks = 0;
     const spin = setInterval(() => {
       out.textContent = list[Math.floor(Math.random()*list.length)];
@@ -655,7 +656,7 @@
     list.forEach((n,i)=>teams[i%count].push(n));
     const out = $("#madeTeams");
     if(!out) return;
-    out.innerHTML = list.length ? teams.map((t,i)=>`<div class="made-team"><b>Team ${i+1}</b><br>${t.map(esc).join(" · ") || "—"}</div>`).join("") : '<div class="made-team">Add student names first.</div>';
+    out.innerHTML = list.length ? teams.map((t,i)=>`<div class="made-team"><b>${toolText("Takım","Team")} ${i+1}</b><br>${t.map(esc).join(" · ") || "—"}</div>`).join("") : '<div class="made-team">'+toolText("Önce öğrenci isimlerini ekle.","Add student names first.")+'</div>';
   });
 
   let timerSeconds = 120;
@@ -671,26 +672,30 @@
   $$("[data-timer-min]").forEach(b=>b.addEventListener("click",()=>{
     timerSeconds = timerInitial = Number(b.dataset.timerMin)*60;
     if(timerHandle){clearInterval(timerHandle);timerHandle=null;}
-    $("#timerStart").textContent = "Start";
+    $("#timerStart").textContent = toolText("Başlat","Start");
     paintTimer();
   }));
   $("#timerStart")?.addEventListener("click", e=>{
     if(timerHandle){
-      clearInterval(timerHandle); timerHandle=null; e.currentTarget.textContent="Start"; return;
+      clearInterval(timerHandle); timerHandle=null; e.currentTarget.textContent=toolText("Başlat","Start"); return;
     }
-    e.currentTarget.textContent="Pause";
+    if(timerSeconds<=0){
+      timerSeconds=timerInitial;
+      paintTimer();
+    }
+    e.currentTarget.textContent=toolText("Duraklat","Pause");
     timerHandle=setInterval(()=>{
       timerSeconds=Math.max(0,timerSeconds-1);paintTimer();
       if(timerSeconds<=0){
-        clearInterval(timerHandle);timerHandle=null;e.currentTarget.textContent="Start";
-        if(timerDisplay) timerDisplay.textContent="TIME!";
+        clearInterval(timerHandle);timerHandle=null;e.currentTarget.textContent=toolText("Başlat","Start");
+        if(timerDisplay) timerDisplay.textContent=toolText("SÜRE!","TIME!");
       }
     },1000);
   });
   $("#timerReset")?.addEventListener("click",()=>{
     if(timerHandle){clearInterval(timerHandle);timerHandle=null;}
     timerSeconds=timerInitial;paintTimer();
-    if($("#timerStart")) $("#timerStart").textContent="Start";
+    if($("#timerStart")) $("#timerStart").textContent=toolText("Başlat","Start");
   });
   paintTimer();
 
