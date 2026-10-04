@@ -719,3 +719,14 @@
   .school-member-row{grid-template-columns:34px 1fr}
   .school-member-actions{grid-column:1/-1;justify-content:flex-start;padding-top:3px}
 }
+
+.assignment-submission-item{display:grid;gap:8px}
+.assignment-submission-head{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.assignment-submission-head strong{font-size:11px;color:#173a58}
+.assignment-submission-head small{font-size:9px;color:#7b8ea0}
+.assignment-response{display:block;padding:9px 10px;border-radius:9px;background:#f8fbfd;font-size:10.5px;line-height:1.5;color:#47647b}
+.assignment-grade-box{display:grid;grid-template-columns:90px minmax(0,1fr) auto;gap:8px;align-items:end;padding-top:5px}
+.assignment-grade-box label{display:grid;gap:5px;font-size:9px;font-weight:800;color:#587087}
+.assignment-grade-box input,.assignment-grade-box textarea{width:100%;border:1px solid #d2dee8;border-radius:8px;background:#fff;padding:8px;color:#173a58;font:inherit;font-weight:500;resize:vertical}
+.assignment-grade-box button{min-height:36px;border:0;border-radius:8px;background:#173f65;color:#fff;padding:8px 10px;font-size:9px;font-weight:850;cursor:pointer}
+@media(max-width:720px){.assignment-grade-box{grid-template-columns:1fr}.assignment-grade-box button{width:100%}}
