@@ -8,13 +8,16 @@
   <title>Sınıfa Katıl · Eryaman Speaking Club</title>
   <link rel="icon" type="image/png" href="../favicon.png?v=20260922">
   <link rel="stylesheet" href="../esc-brand.css?v=20260923">
-  <link rel="stylesheet" href="./join.css?v=20260923">
+  <link rel="stylesheet" href="./join.css?v=20261004-assignments2">
 </head>
 <body>
   <div class="join-bg" aria-hidden="true"><i></i><i></i><i></i></div>
   <header class="join-header">
-    <a class="esc-brand" href="../educators/"><span class="esc-brand-mark"><img src="../esc-center-symbol.webp" alt=""></span><span class="esc-brand-title">Eryaman Speaking Club</span></a>
-    <a href="../educators/" class="teacher-link">Öğretmen misiniz? <b>Teacher panel →</b></a>
+    <a class="esc-brand" href="../educators/"><span class="esc-brand-mark"><img src="../esc-center-symbol.webp" alt=""></span><span class="esc-brand-title">English Teacher Platform</span></a>
+    <div class="join-header-actions">
+      <div class="join-lang-switch" aria-label="Language"><button class="active" type="button" data-join-lang="tr">Türkçe</button><button type="button" data-join-lang="en">English</button></div>
+      <a href="../educators/" class="teacher-link" data-jt="teacherLink">Öğretmen misiniz? <b>Öğretmen paneli →</b></a>
+    </div>
   </header>
 
   <main class="join-shell">
@@ -43,9 +46,14 @@
 
       <div class="student-identity">
         <span class="avatar" id="studentAvatar">E</span>
-        <div><small>JOINED AS</small><b id="studentDisplayName">Efe</b></div>
-        <button type="button" id="leaveClass">Leave</button>
+        <div><small data-jt="joinedAs">KATILAN</small><b id="studentDisplayName">Efe</b></div>
+        <button type="button" id="leaveClass" data-jt="leave">Ayrıl</button>
       </div>
+
+      <section class="assignment-zone" id="assignmentZone" hidden>
+        <div class="assignment-zone-head"><div><small data-jt="assignmentsKicker">ÖDEVLER</small><strong data-jt="assignmentsTitle">Sınıf ödevların</strong></div><span id="assignmentCount">0</span></div>
+        <div class="student-assignment-list" id="studentAssignmentList"></div>
+      </section>
 
       <div class="waiting-state" id="waitingState">
         <div class="pulse-orbit"><i></i><i></i><i></i><span>EN</span></div>
@@ -86,7 +94,7 @@
   </main>
 
   <script src="../esc-supabase-config.js?v=20260923"></script>
-  <script src="../esc-supabase.js?v=20260923-edu"></script>
-  <script src="./join.js?v=20260923"></script>
+  <script src="../esc-supabase.js?v=20261004-assignment5"></script>
+  <script src="./join.js?v=20261004-assignments3"></script>
 </body>
 </html>
