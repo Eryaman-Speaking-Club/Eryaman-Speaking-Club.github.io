@@ -222,8 +222,8 @@
       state.activeClass=c; applyClassToBuilder(c); renderClasses();renderOverview();
       document.querySelector('[data-panel="builder"]')?.click();
     }));
-    $('[data-copy-class]',grid).forEach(b=>b.addEventListener('click',()=>copyText(b.dataset.copyClass,b)));
-    $('[data-copy-class-link]',grid).forEach(b=>b.addEventListener('click',()=>copyText(location.origin+'/join/?code='+encodeURIComponent(b.dataset.copyClassLink),b)));
+    $$('[data-copy-class]',grid).forEach(b=>b.addEventListener('click',()=>copyText(b.dataset.copyClass,b)));
+    $$('[data-copy-class-link]',grid).forEach(b=>b.addEventListener('click',()=>copyText(location.origin+'/join/?code='+encodeURIComponent(b.dataset.copyClassLink),b)));
   }
 
   function applyClassToBuilder(c) {
