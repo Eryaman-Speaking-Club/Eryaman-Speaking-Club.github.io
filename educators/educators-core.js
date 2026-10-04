@@ -474,7 +474,7 @@
     $$('[data-launch-game]').forEach(b=>b.addEventListener('click',()=>setTimeout(()=>syncGameToLive().catch(()=>{}),120)));
     ['nextGameRound','gameBluePlus','gameBlueMinus','gameOrangePlus','gameOrangeMinus'].forEach(id=>$('#'+id)?.addEventListener('click',()=>setTimeout(()=>syncGameToLive().catch(()=>{}),80)));
 
-    $('#joinDemoClass')?.addEventListener('click',()=>{location.href='../join/?code='+encodeURIComponent($('#studentCode')?.value.trim()||'');});
+    // The embedded student demo stays on-page; the real student view opens from [data-open-student].
     $('[data-open-student]')?.addEventListener('click',()=>{window.open('../join/?code='+encodeURIComponent(state.activeClass?.join_code||''),'_blank');});
 
     window.addEventListener('esc:languagechange',()=>{
