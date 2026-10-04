@@ -498,13 +498,31 @@
     const session = await getSession();
     if (!client || !session) throw new Error('Teacher login required.');
     if (!payload?.class_id) throw new Error('Class is required.');
+
     const endedAt = new Date().toISOString();
-    const { error:closeError } = await client.from('edu_live_sessions')
-      .update({ status:'completed', ended_at:endedAt, updated_at:endedAt })
+    const { data:openSessions, error:openError } = await client.from('edu_live_sessions')
+      .select('id,lesson_id')
       .eq('teacher_id',session.user.id)
-      .eq('class_id',payload.class_id)
       .in('status',['waiting','active','paused']);
-    if (closeError) throw closeError;
+    if (openError) throw openError;
+
+    if (openSessions?.length) {
+      const { error:closeError } = await client.from('edu_live_sessions')
+        .update({ status:'completed', ended_at:endedAt, updated_at:endedAt })
+        .eq('teacher_id',session.user.id)
+        .in('status',['waiting','active','paused']);
+      if (closeError) throw closeError;
+
+      const lessonIds=[...new Set(openSessions.map(x=>x.lesson_id).filter(Boolean))];
+      if(lessonIds.length){
+        const { error:lessonError } = await client.from('edu_lessons')
+          .update({ status:'completed', updated_at:endedAt })
+          .eq('teacher_id',session.user.id)
+          .in('id',lessonIds);
+        if (lessonError) throw lessonError;
+      }
+    }
+
     const { data, error } = await client.from('edu_live_sessions')
       .insert({ ...payload, teacher_id:session.user.id }).select('*').single();
     if (error) throw error;
