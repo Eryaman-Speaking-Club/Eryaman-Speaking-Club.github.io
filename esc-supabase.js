@@ -235,6 +235,16 @@
   }
 
 
+  async function generateEducatorAssistantPack(payload = {}) {
+    const client = await getClient();
+    const session = await getSession();
+    if (!client || !session) throw new Error('Teacher login required.');
+    const { data, error } = await client.functions.invoke('educator-assistant', { body:payload });
+    if (error) throw error;
+    if (!data?.ok || !data?.pack) throw new Error(data?.error || 'Assistant could not generate a lesson pack.');
+    return data.pack;
+  }
+
   async function getEducatorLesson(lessonId) {
     const client = await getClient();
     const session = await getSession();
@@ -590,7 +600,7 @@
     isConfigured,getClient,ping,getSession,onAuthStateChange,signUp,resendSignupConfirmation,sendPasswordReset,
     updatePassword,signIn,signOut,claimFirstAdmin,isAdmin,getGameContent,replaceGameContent,
     getGameSettings,saveGameSettings,ensureEducatorProfile,getEducatorProfile,listEducatorClasses,
-    createEducatorClass,saveEducatorLesson,updateEducatorLesson,getEducatorLesson,listEducatorLessons,deleteEducatorLesson,listEducatorResults,listEducatorSessions,
+    createEducatorClass,saveEducatorLesson,updateEducatorLesson,generateEducatorAssistantPack,getEducatorLesson,listEducatorLessons,deleteEducatorLesson,listEducatorResults,listEducatorSessions,
     listPrivateStudents,createPrivateStudent,updatePrivateStudent,deletePrivateStudent,
     listAssignments,createAssignment,updateAssignment,deleteAssignment,
     listScheduleEvents,createScheduleEvent,updateScheduleEvent,deleteScheduleEvent,
