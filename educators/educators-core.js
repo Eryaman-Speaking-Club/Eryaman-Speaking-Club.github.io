@@ -243,7 +243,7 @@
     catch {
       const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
     }
-    if(button){const old=button.textContent;button.textContent='Copied ✓';setTimeout(()=>button.textContent=old,1200);}
+    if(button){const old=button.textContent;button.textContent=tx('Kopyalandı ✓','Copied ✓');setTimeout(()=>button.textContent=old,1200);}
   }
 
   function openClassModal() {
@@ -440,19 +440,24 @@
     });
     $('#newClassButton')?.addEventListener('click',openClassModal);
     $('#eduClassForm')?.addEventListener('submit',createClass);
-    $('[data-copy-code]')?.addEventListener('click',e=>copyText(state.activeClass?.join_code||'',e.currentTarget));
+    $('[data-copy-code]')?.addEventListener('click',e=>{
+      const code=state.activeClass?.join_code||'';
+      if(!code)return alert(tx('Önce bir sınıf oluşturun.','Create a class first.'));
+      copyText(code,e.currentTarget);
+    });
     $('[data-copy-join-link]')?.addEventListener('click',e=>{
       const code=state.activeClass?.join_code||'';
-      if(!code)return;
+      if(!code)return alert(tx('Önce bir sınıf oluşturun.','Create a class first.'));
       copyText(location.origin+'/join/?code='+encodeURIComponent(code),e.currentTarget);
     });
 
     $('#saveDemoClass')?.addEventListener('click',async e=>{
       if(!state.session)return openAuth('login');
-      e.currentTarget.disabled=true;
-      try{await persistLesson(false);e.currentTarget.textContent='Saved ✓';setTimeout(()=>e.currentTarget.textContent='Save lesson',1200);}
+      const btn=e.currentTarget, old=btn.textContent;
+      btn.disabled=true;
+      try{await persistLesson(false);btn.textContent=tx('Kaydedildi ✓','Saved ✓');setTimeout(()=>btn.textContent=old,1200);}
       catch(err){alert(humanError(err));}
-      finally{e.currentTarget.disabled=false;}
+      finally{btn.disabled=false;}
     });
 
     $('#startDemoLesson')?.addEventListener('click',async e=>{
@@ -463,7 +468,7 @@
       btn.textContent=window.ESCEduI18n?.getLang?.()==='en'?'Starting lesson…':'Ders başlatılıyor…';
       try{
         await persistLesson(true);
-        if(!window.ESCEduLive?.start)throw new Error('Canlı ders arayüzü yüklenemedi. Sayfayı yenileyip tekrar deneyin.');
+        if(!window.ESCEduLive?.start)throw new Error(tx('Canlı ders arayüzü yüklenemedi. Sayfayı yenileyip tekrar deneyin.','The live lesson interface did not load. Refresh the page and try again.'));
         window.ESCEduLive.start();
         await syncLiveFromModal();
       }
@@ -480,7 +485,11 @@
     ['nextGameRound','gameBluePlus','gameBlueMinus','gameOrangePlus','gameOrangeMinus'].forEach(id=>$('#'+id)?.addEventListener('click',()=>setTimeout(()=>syncGameToLive().catch(()=>{}),80)));
 
     // The embedded student demo stays on-page; the real student view opens from [data-open-student].
-    $('[data-open-student]')?.addEventListener('click',()=>{window.open('../join/?code='+encodeURIComponent(state.activeClass?.join_code||''),'_blank');});
+    $('[data-open-student]')?.addEventListener('click',()=>{
+      const code=state.activeClass?.join_code||'';
+      if(!code)return alert(tx('Önce bir sınıf oluşturun.','Create a class first.'));
+      window.open('../join/?code='+encodeURIComponent(code),'_blank','noopener');
+    });
 
     window.addEventListener('esc:languagechange',()=>{
       syncAuthMode();
