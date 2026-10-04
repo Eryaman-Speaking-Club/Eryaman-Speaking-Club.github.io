@@ -237,6 +237,45 @@
     return data;
   }
 
+  async function updateEducatorClass(classId, patch = {}) {
+    const client = await getClient();
+    const session = await getSession();
+    if (!client || !session) throw new Error('Teacher login required.');
+
+    const clean={ updated_at:new Date().toISOString() };
+    if ('name' in patch) clean.name=String(patch.name||'').trim().slice(0,80);
+    if ('age_group' in patch) clean.age_group=['6-8','9-11','12-14','15-17','18+'].includes(patch.age_group)?patch.age_group:'12-14';
+    if ('level' in patch) clean.level=['Pre-A1','A1','A2','B1','B2'].includes(patch.level)?patch.level:'A2';
+    if ('focus' in patch) clean.focus=['speaking','vocabulary','grammar','mixed'].includes(patch.focus)?patch.focus:'speaking';
+    if ('max_students' in patch) clean.max_students=Math.max(1,Math.min(Number(patch.max_students)||40,100));
+    if ('is_active' in patch) clean.is_active=patch.is_active===true;
+
+    const { data, error } = await client.from('edu_classes')
+      .update(clean)
+      .eq('id',classId)
+      .eq('teacher_id',session.user.id)
+      .select('id,name,age_group,level,focus,join_code,max_students,is_active,created_at,updated_at')
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  async function updateEducatorStudent(studentId, patch = {}) {
+    const client = await getClient();
+    const session = await getSession();
+    if (!client || !session) throw new Error('Teacher login required.');
+    const clean={};
+    if ('display_name' in patch) clean.display_name=String(patch.display_name||'').trim().slice(0,40);
+    if ('is_active' in patch) clean.is_active=patch.is_active===true;
+    const { data, error } = await client.from('edu_students')
+      .update(clean)
+      .eq('id',studentId)
+      .select('id,class_id,display_name,last_seen_at,is_active')
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
   async function saveEducatorLesson(payload) {
     const client = await getClient();
     const session = await getSession();
@@ -714,7 +753,7 @@
     isConfigured,getClient,ping,getSession,onAuthStateChange,signUp,resendSignupConfirmation,sendPasswordReset,
     updatePassword,signIn,signOut,claimFirstAdmin,isAdmin,getGameContent,replaceGameContent,
     getGameSettings,saveGameSettings,ensureEducatorProfile,getEducatorProfile,updateEducatorProfile,createEducatorSchool,joinEducatorSchool,getEducatorSchoolState,shareEducatorSchoolLesson,unshareEducatorSchoolLesson,copyEducatorSchoolLesson,manageEducatorSchoolMember,leaveEducatorSchool,listEducatorClasses,
-    createEducatorClass,saveEducatorLesson,updateEducatorLesson,generateEducatorAssistantPack,getEducatorLesson,listEducatorLessons,deleteEducatorLesson,gradeEducatorAssignmentResult,listEducatorResults,listEducatorSessions,
+    createEducatorClass,updateEducatorClass,updateEducatorStudent,saveEducatorLesson,updateEducatorLesson,generateEducatorAssistantPack,getEducatorLesson,listEducatorLessons,deleteEducatorLesson,gradeEducatorAssignmentResult,listEducatorResults,listEducatorSessions,
     listPrivateStudents,createPrivateStudent,updatePrivateStudent,deletePrivateStudent,
     listAssignments,createAssignment,updateAssignment,deleteAssignment,
     listScheduleEvents,createScheduleEvent,updateScheduleEvent,deleteScheduleEvent,
