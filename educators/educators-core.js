@@ -405,11 +405,11 @@
       const title=$('b',r)?.textContent||'Class activity';
       return {
         index:i,
-        stage:title.toUpperCase(),
+        stage:(r.dataset.stageKey||title).toUpperCase(),
         title,
         duration:$('span',r)?.textContent||'',
         mode:$('small',r)?.textContent||'',
-        prompt:i===0?($('#adaptiveQuestion')?.textContent||'Let’s start speaking.'):null
+        prompt:r.dataset.prompt || (i===0?($('#adaptiveQuestion')?.textContent||'Let’s start speaking.'):null)
       };
     });
     return Array.isArray(plan)&&plan.length?plan:[
