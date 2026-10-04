@@ -263,6 +263,69 @@
   }
 
 
+  async function createEducatorSchool(name) {
+    const client=await getClient();
+    const session=await getSession();
+    if(!client||!session) throw new Error('Teacher login required.');
+    const {data,error}=await client.rpc('edu_create_school',{p_name:String(name||'').trim()});
+    if(error) throw error;
+    return data;
+  }
+
+  async function joinEducatorSchool(code) {
+    const client=await getClient();
+    const session=await getSession();
+    if(!client||!session) throw new Error('Teacher login required.');
+    const {data,error}=await client.rpc('edu_join_school',{p_join_code:String(code||'').trim().toUpperCase()});
+    if(error) throw error;
+    return data;
+  }
+
+  async function getEducatorSchoolState() {
+    const client=await getClient();
+    const session=await getSession();
+    if(!client||!session) throw new Error('Teacher login required.');
+    const {data,error}=await client.rpc('edu_get_school_state');
+    if(error) throw error;
+    return data||{school:null,members:[],shared_lessons:[]};
+  }
+
+  async function shareEducatorSchoolLesson(schoolId,lessonId) {
+    const client=await getClient();
+    const session=await getSession();
+    if(!client||!session) throw new Error('Teacher login required.');
+    const {data,error}=await client.rpc('edu_share_school_lesson',{p_school_id:schoolId,p_lesson_id:lessonId});
+    if(error) throw error;
+    return data===true;
+  }
+
+  async function unshareEducatorSchoolLesson(shareId) {
+    const client=await getClient();
+    const session=await getSession();
+    if(!client||!session) throw new Error('Teacher login required.');
+    const {data,error}=await client.rpc('edu_unshare_school_lesson',{p_share_id:shareId});
+    if(error) throw error;
+    return data===true;
+  }
+
+  async function copyEducatorSchoolLesson(shareId,classId) {
+    const client=await getClient();
+    const session=await getSession();
+    if(!client||!session) throw new Error('Teacher login required.');
+    const {data,error}=await client.rpc('edu_copy_school_lesson',{p_share_id:shareId,p_class_id:classId});
+    if(error) throw error;
+    return data;
+  }
+
+  async function leaveEducatorSchool() {
+    const client=await getClient();
+    const session=await getSession();
+    if(!client||!session) throw new Error('Teacher login required.');
+    const {data,error}=await client.rpc('edu_leave_school');
+    if(error) throw error;
+    return data===true;
+  }
+
   async function generateEducatorAssistantPack(payload = {}) {
     const client = await getClient();
     const session = await getSession();
@@ -627,7 +690,7 @@
   window.ESCSupabase = {
     isConfigured,getClient,ping,getSession,onAuthStateChange,signUp,resendSignupConfirmation,sendPasswordReset,
     updatePassword,signIn,signOut,claimFirstAdmin,isAdmin,getGameContent,replaceGameContent,
-    getGameSettings,saveGameSettings,ensureEducatorProfile,getEducatorProfile,updateEducatorProfile,listEducatorClasses,
+    getGameSettings,saveGameSettings,ensureEducatorProfile,getEducatorProfile,updateEducatorProfile,createEducatorSchool,joinEducatorSchool,getEducatorSchoolState,shareEducatorSchoolLesson,unshareEducatorSchoolLesson,copyEducatorSchoolLesson,leaveEducatorSchool,listEducatorClasses,
     createEducatorClass,saveEducatorLesson,updateEducatorLesson,generateEducatorAssistantPack,getEducatorLesson,listEducatorLessons,deleteEducatorLesson,listEducatorResults,listEducatorSessions,
     listPrivateStudents,createPrivateStudent,updatePrivateStudent,deletePrivateStudent,
     listAssignments,createAssignment,updateAssignment,deleteAssignment,
