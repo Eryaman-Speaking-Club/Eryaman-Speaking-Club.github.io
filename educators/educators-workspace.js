@@ -4,6 +4,7 @@
   const $ = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => [...r.querySelectorAll(s)];
   const escapeHtml = (v="") => String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]));
+  const langText = (tr,en) => document.documentElement.lang==="en" ? en : tr;
 
   const themes = {
     "5": ["School Life","Classroom Life","Personal Life","Family Life","Life in the Neighbourhood & City","Life in the World","Life in Nature","Life in the Universe & Future"],
@@ -19,14 +20,14 @@
   const upperThemesPrep = ["School Life & Education","Classroom Life & Learning","Personal Life & Well-Being","Family Life & Home","Life in the Neighbourhood, City & Social Life","Life in the World & Culture","Life in Nature & Global Problems","Life in the Universe & Future"];
 
   const gradeMeta = {
-    "5":  {age:"9-11",  status:"TYMM · 2026–27 aktif"},
-    "6":  {age:"9-11",  status:"TYMM · 2026–27 aktif"},
-    "7":  {age:"12-14", status:"TYMM · 2026–27 aktif"},
-    "8":  {age:"12-14", status:"Önceki program · 2026–27"},
-    "9":  {age:"15-17", status:"TYMM · 2026–27 aktif"},
-    "10": {age:"15-17", status:"TYMM · 2026–27 aktif"},
-    "11": {age:"15-17", status:"TYMM · 2026–27 aktif"},
-    "12": {age:"15-17", status:"Önceki program · 2026–27"}
+    "5":  {age:"9-11",  statusTr:"TYMM · 2026–27 aktif", statusEn:"TYMM · 2026–27 active"},
+    "6":  {age:"9-11",  statusTr:"TYMM · 2026–27 aktif", statusEn:"TYMM · 2026–27 active"},
+    "7":  {age:"12-14", statusTr:"TYMM · 2026–27 aktif", statusEn:"TYMM · 2026–27 active"},
+    "8":  {age:"12-14", statusTr:"Önceki program · 2026–27", statusEn:"Previous programme · 2026–27"},
+    "9":  {age:"15-17", statusTr:"TYMM · 2026–27 aktif", statusEn:"TYMM · 2026–27 active"},
+    "10": {age:"15-17", statusTr:"TYMM · 2026–27 aktif", statusEn:"TYMM · 2026–27 active"},
+    "11": {age:"15-17", statusTr:"TYMM · 2026–27 aktif", statusEn:"TYMM · 2026–27 active"},
+    "12": {age:"15-17", statusTr:"Önceki program · 2026–27", statusEn:"Previous programme · 2026–27"}
   };
 
   const fallbackThemes = ["Current Unit","Exam Revision","Vocabulary Review","Grammar Review","Speaking Practice","Listening Practice","Writing Task","Mixed Skills"];
@@ -78,15 +79,15 @@
     $$("[data-track-choice]").forEach(b => b.classList.toggle("active", b.dataset.trackChoice === track.value));
 
     if (summaryTitle) summaryTitle.textContent = theme.value || items[0];
-    const gradePart = track.value === "meb" ? " · Grade " + grade.value : "";
+    const gradePart = track.value === "meb" ? " · " + langText("Sınıf ","Grade ") + grade.value : "";
     const programPart = track.value === "meb" && gradeNumber >= 9 && gradeNumber <= 11
-      ? (upperProgram?.value === "prep" ? " · After Prep" : " · Regular 9–12")
+      ? (upperProgram?.value === "prep" ? langText(" · Hazırlık sonrası"," · After Prep") : langText(" · Normal 9–12"," · Regular 9–12"))
       : "";
     if (summaryMeta) summaryMeta.textContent = badge + gradePart + programPart + " · CEFR " + (curriculumLevel?.value || "A2") + " · " + (skill?.value || "Speaking");
     if (summaryTags) {
       const tags = track.value === "meb"
-        ? [meta.status, "Teacher-selected CEFR", "Vocabulary", "Grammar", "Speaking", "Assessment"]
-        : ["Flexible sequence", "Teacher control", "Speaking", "Vocabulary", "Grammar", "Homework"];
+        ? [document.documentElement.lang==="en"?meta.statusEn:meta.statusTr, langText("Öğretmenin seçtiği CEFR","Teacher-selected CEFR"), "Vocabulary", "Grammar", "Speaking", langText("Değerlendirme","Assessment")]
+        : [langText("Esnek sıra","Flexible sequence"), langText("Öğretmen kontrolü","Teacher control"), "Speaking", "Vocabulary", "Grammar", langText("Ödev","Homework")];
       summaryTags.innerHTML = tags.map(x => "<span>" + x + "</span>").join("");
     }
   }
@@ -140,32 +141,32 @@
   const resourceTemplates = {
     worksheet: {
       title:"Printable Worksheet",
-      lead:"Tek sayfada öğretmenin kullanacağı hızlı çalışma kâğıdı.",
+      leadTr:"Tek sayfada öğretmenin kullanacağı hızlı çalışma kâğıdı.", leadEn:"A quick one-page worksheet ready for classroom use.",
       items:["Warm-up: 3 quick questions","Vocabulary: 8 target words","Grammar: 5 contextual items","Speaking: pair task","Exit ticket: 1 reflection"]
     },
     vocab: {
       title:"Vocabulary Pack",
-      lead:"Kelime öğretimi + tekrar + hızlı kontrol için tek paket.",
+      leadTr:"Kelime öğretimi + tekrar + hızlı kontrol için tek paket.", leadEn:"One compact pack for vocabulary teaching, review and a quick check.",
       items:["8 target words","Student-friendly definitions","Example sentences","Matching round","Speaking challenge"]
     },
     grammar: {
       title:"Grammar in Context",
-      lead:"Kural ezberinden çok kullanım odaklı mini akış.",
+      leadTr:"Kural ezberinden çok kullanım odaklı mini akış.", leadEn:"A short usage-focused sequence instead of rule memorisation.",
       items:["Notice the form","2 model sentences","Controlled practice","Error hunter","Speaking transfer"]
     },
     speaking: {
       title:"Speaking Cards",
-      lead:"Aynı konuyu farklı öğrenci tiplerine göre konuştur.",
+      leadTr:"Aynı konuyu farklı öğrenci tiplerine göre konuştur.", leadEn:"Use the same topic with prompts for different student profiles.",
       items:["Easy prompt","Follow-up prompt","Opinion prompt","Pair role-play","Challenge card"]
     },
     quiz: {
       title:"Mini Quiz",
-      lead:"Ders sonu veya bir sonraki ders başlangıcı için kontrol.",
+      leadTr:"Ders sonu veya bir sonraki ders başlangıcı için kontrol.", leadEn:"A quick check for the end of class or the start of the next lesson.",
       items:["3 vocabulary questions","2 grammar questions","1 listening-ready prompt","1 speaking check","Auto-review list"]
     },
     homework: {
       title:"Homework Pack",
-      lead:"Özel ders ve sınıf öğretmeni için kısa, net ödev.",
+      leadTr:"Özel ders ve sınıf öğretmeni için kısa, net ödev.", leadEn:"Short, clear homework for private tutors and classroom teachers.",
       items:["5-minute vocabulary review","Grammar micro-task","Voice-note speaking task","Short writing task","Next lesson check"]
     }
   };
@@ -174,7 +175,7 @@
     const data = resourceTemplates[kind] || resourceTemplates.worksheet;
     $$("#resourceTypeButtons button").forEach(b => b.classList.toggle("active", b.dataset.resourceKind === kind));
     if ($("#resourcePreviewTitle")) $("#resourcePreviewTitle").textContent = data.title;
-    if ($("#resourcePreviewLead")) $("#resourcePreviewLead").textContent = data.lead;
+    if ($("#resourcePreviewLead")) $("#resourcePreviewLead").textContent = document.documentElement.lang==="en" ? data.leadEn : data.leadTr;
     if ($("#resourcePreviewItems")) $("#resourcePreviewItems").innerHTML = data.items.map((x, i) => "<li><span>0" + (i+1) + "</span><b>" + x + "</b></li>").join("");
   }
 
@@ -312,6 +313,7 @@
   document.addEventListener("esc:educator-ready",loadPrivateStudents);
   window.addEventListener("esc:languagechange",()=>{
     renderPrivateStudents();
+    renderCurriculum();
     const active=$("#resourceTypeButtons [data-resource-kind].active")?.dataset.resourceKind || "worksheet";
     renderResource(active);
   });
