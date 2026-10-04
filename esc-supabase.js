@@ -152,7 +152,7 @@
     const clean = String(displayName || session.user.email?.split('@')[0] || 'Teacher').trim().slice(0,80);
     const { data, error } = await client.from('educator_profiles')
       .upsert({ user_id:session.user.id, display_name:clean || 'Teacher' }, { onConflict:'user_id' })
-      .select('user_id,display_name,role,plan').single();
+      .select('user_id,display_name,role,plan,preferred_language,teaching_context,default_age_group,default_level,default_duration,country_code,institution_name,onboarding_completed').single();
     if (error) throw error;
     return data;
   }
@@ -162,7 +162,35 @@
     const session = await getSession();
     if (!client || !session) return null;
     const { data, error } = await client.from('educator_profiles')
-      .select('user_id,display_name,role,plan').eq('user_id',session.user.id).maybeSingle();
+      .select('user_id,display_name,role,plan,preferred_language,teaching_context,default_age_group,default_level,default_duration,country_code,institution_name,onboarding_completed').eq('user_id',session.user.id).maybeSingle();
+    if (error) throw error;
+    return data;
+  }
+
+  async function updateEducatorProfile(patch = {}) {
+    const client = await getClient();
+    const session = await getSession();
+    if (!client || !session) throw new Error('Teacher login required.');
+
+    const clean={ updated_at:new Date().toISOString() };
+    if ('display_name' in patch) clean.display_name=String(patch.display_name||'').trim().slice(0,80);
+    if ('preferred_language' in patch) clean.preferred_language=['tr','en'].includes(patch.preferred_language)?patch.preferred_language:'tr';
+    if ('teaching_context' in patch) clean.teaching_context=['school','private','mixed','general'].includes(patch.teaching_context)?patch.teaching_context:'mixed';
+    if ('default_age_group' in patch) clean.default_age_group=['6-8','9-11','12-14','15-17','18+'].includes(patch.default_age_group)?patch.default_age_group:'12-14';
+    if ('default_level' in patch) clean.default_level=['Pre-A1','A1','A2','B1','B2'].includes(patch.default_level)?patch.default_level:'A2';
+    if ('default_duration' in patch) clean.default_duration=Math.max(20,Math.min(Number(patch.default_duration)||40,120));
+    if ('country_code' in patch) {
+      const cc=String(patch.country_code||'').trim().toUpperCase().slice(0,2);
+      clean.country_code=/^[A-Z]{2}$/.test(cc)?cc:null;
+    }
+    if ('institution_name' in patch) clean.institution_name=String(patch.institution_name||'').trim().slice(0,120)||null;
+    if ('onboarding_completed' in patch) clean.onboarding_completed=patch.onboarding_completed===true;
+
+    const { data, error } = await client.from('educator_profiles')
+      .update(clean)
+      .eq('user_id',session.user.id)
+      .select('user_id,display_name,role,plan,preferred_language,teaching_context,default_age_group,default_level,default_duration,country_code,institution_name,onboarding_completed')
+      .single();
     if (error) throw error;
     return data;
   }
@@ -599,7 +627,7 @@
   window.ESCSupabase = {
     isConfigured,getClient,ping,getSession,onAuthStateChange,signUp,resendSignupConfirmation,sendPasswordReset,
     updatePassword,signIn,signOut,claimFirstAdmin,isAdmin,getGameContent,replaceGameContent,
-    getGameSettings,saveGameSettings,ensureEducatorProfile,getEducatorProfile,listEducatorClasses,
+    getGameSettings,saveGameSettings,ensureEducatorProfile,getEducatorProfile,updateEducatorProfile,listEducatorClasses,
     createEducatorClass,saveEducatorLesson,updateEducatorLesson,generateEducatorAssistantPack,getEducatorLesson,listEducatorLessons,deleteEducatorLesson,listEducatorResults,listEducatorSessions,
     listPrivateStudents,createPrivateStudent,updatePrivateStudent,deletePrivateStudent,
     listAssignments,createAssignment,updateAssignment,deleteAssignment,
