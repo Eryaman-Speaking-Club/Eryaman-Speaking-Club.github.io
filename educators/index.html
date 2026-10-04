@@ -258,7 +258,8 @@
             <button class="side-item" data-panel="curriculum"><span>◎</span> Müfredat</button>
             <button class="side-item" data-panel="classes"><span>▦</span> Sınıflarım</button>
             <button class="side-item" data-panel="private"><span>●</span> Özel Öğrenciler</button>
-            <button class="side-item" data-panel="builder"><span>✦</span> Ders Oluşturucu</button>
+            <button class="side-item" data-panel="assistant"><span>✦</span> Teacher Assistant <em class="side-beta">BETA</em></button>
+            <button class="side-item" data-panel="builder"><span>＋</span> Ders Oluşturucu</button>
             <button class="side-item" data-panel="library"><span>▣</span> Derslerim</button>
             <button class="side-item" data-panel="assignments"><span>✓</span> Ödevler</button>
             <button class="side-item" data-panel="resources"><span>▤</span> Materyal Stüdyosu</button>
@@ -292,6 +293,7 @@
             <button data-panel="curriculum">Müfredat</button>
             <button data-panel="classes">Sınıflarım</button>
             <button data-panel="private">Özel Öğrenciler</button>
+            <button data-panel="assistant">Teacher Assistant</button>
             <button data-panel="builder">Ders Oluşturucu</button>
             <button data-panel="library">Derslerim</button>
             <button data-panel="assignments">Ödevler</button>
@@ -311,6 +313,7 @@
               <div class="guide-banner-actions"><button type="button" id="bannerOpenGuide">Turu göster</button><button type="button" id="closeGuideBanner">Kapat</button></div>
             </div>
             <div class="edu-workflow-grid">
+              <button class="edu-workflow-card assistant-workflow-card" type="button" data-workflow="assistant"><small>TEACHER ASSISTANT · BETA</small><strong>Bir brief ver, ders paketini hazırla</strong><span>Ders planı + speaking + worksheet + ödev + oyun önerisi.</span></button>
               <button class="edu-workflow-card" type="button" data-workflow="curriculum"><small>MEB 2026–27</small><strong>Okul dersi hazırla</strong><span>Sınıf → tema → beceri → ders akışı.</span></button>
               <button class="edu-workflow-card" type="button" data-workflow="builder"><small>QUICK BUILD</small><strong>Dakikalar içinde ders oluştur</strong><span>Yaş, seviye, konu ve süreyi seç; akışı hazırla.</span></button>
               <button class="edu-workflow-card" type="button" data-workflow="library"><small>REUSE</small><strong>Kaydettiğim dersi aç</strong><span>Hazırladığın dersi tekrar kullan, düzenle veya yazdır.</span></button>
@@ -508,6 +511,112 @@
             </div>
             <div class="private-student-grid" id="privateStudentGrid"></div>
             <div class="edu-local-note"><b>BETA</b><span>Sınıflar, kaydedilmiş dersler ve özel öğrenci profilleri öğretmen hesabına bağlıdır. Aynı hesapla farklı cihazlardan kaldığın yerden devam edebilirsin.</span></div>
+          </section>
+
+
+          <section class="workspace-panel" data-panel-view="assistant" id="teacher-assistant">
+            <div class="panel-header">
+              <div><small>TEACHER ASSISTANT · BETA</small><h3>Bir brief ver. Hazır ders paketi al.</h3></div>
+              <span class="adaptive-badge">ACCOUNT-SYNCED · PRIVATE</span>
+            </div>
+            <div class="assistant-value-strip">
+              <div><b>1 brief</b><span>Konu, seviye ve hedefi yaz.</span></div>
+              <div><b>5 çıktı</b><span>Plan, speaking, worksheet, ödev, oyun.</span></div>
+              <div><b>1 tık</b><span>Lesson Builder'a aktar ve düzenle.</span></div>
+            </div>
+            <div class="assistant-layout">
+              <form class="assistant-form" id="assistantForm">
+                <div class="assistant-form-head">
+                  <small>LESSON BRIEF</small>
+                  <strong>Bugünkü ders için neye ihtiyacın var?</strong>
+                  <p>Kısa yazman yeterli. Çıktı İngilizce dersi için hazırlanır; panel dili Türkçe veya İngilizce olabilir.</p>
+                </div>
+                <label>Konu / unit
+                  <input id="assistantTopic" type="text" maxlength="100" required placeholder="Örn. Travel, Food, Present Perfect, Job Interviews">
+                </label>
+                <div class="form-two">
+                  <label>Yaş grubu
+                    <select id="assistantAge">
+                      <option value="6-8">6–8</option><option value="9-11">9–11</option>
+                      <option value="12-14" selected>12–14</option><option value="15-17">15–17</option><option value="18+">18+</option>
+                    </select>
+                  </label>
+                  <label>Seviye
+                    <select id="assistantLevel">
+                      <option>Pre-A1</option><option>A1</option><option selected>A2</option><option>B1</option><option>B2</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="form-two">
+                  <label>Ders süresi
+                    <select id="assistantDuration">
+                      <option value="20">20 dk</option><option value="30">30 dk</option><option value="40" selected>40 dk</option>
+                      <option value="50">50 dk</option><option value="60">60 dk</option><option value="90">90 dk</option>
+                    </select>
+                  </label>
+                  <label>Öğrenci sayısı
+                    <input id="assistantClassSize" type="number" min="1" max="80" value="8">
+                  </label>
+                </div>
+                <label>Ana hedef
+                  <select id="assistantGoal">
+                    <option value="speaking" selected>Speaking</option>
+                    <option value="vocabulary">Vocabulary</option>
+                    <option value="grammar">Grammar</option>
+                    <option value="mixed">Mixed</option>
+                  </select>
+                </label>
+                <label>Ek not <span>opsiyonel</span>
+                  <textarea id="assistantContext" rows="5" maxlength="500" placeholder="Örn. Öğrenciler konuşmaktan çekiniyor. Pair-work ağırlıklı olsun. Yarın sınavları var."></textarea>
+                </label>
+                <button class="generate-button assistant-generate" id="assistantGenerate" type="submit">Ders paketini hazırla <span>✦</span></button>
+                <div class="lesson-generate-status" id="assistantStatus" hidden aria-live="polite"></div>
+                <p class="form-note">Bu beta sürüm yapılandırılmış öğretim kurallarıyla çalışır. Çıktıyı öğretmen kontrolüyle düzenleyip kullan.</p>
+              </form>
+
+              <div class="assistant-output" id="assistantOutput">
+                <div class="assistant-empty" id="assistantEmpty">
+                  <span>✦</span>
+                  <strong>Hazır olduğunda brief'i gönder.</strong>
+                  <p>Burada tam ders paketi görünecek. İstersen Lesson Builder'a aktarabilir, istersen metni kopyalayabilirsin.</p>
+                </div>
+                <div id="assistantResult" hidden>
+                  <div class="assistant-result-head">
+                    <div><small>READY-TO-TEACH PACK</small><h4 id="assistantResultTitle">Lesson pack</h4></div>
+                    <span id="assistantResultMeta">A2 · 40 min</span>
+                  </div>
+                  <p class="assistant-objective" id="assistantObjective"></p>
+                  <div class="assistant-chip-row" id="assistantVocab"></div>
+                  <div class="assistant-result-grid">
+                    <article class="assistant-plan-card">
+                      <small>LESSON FLOW</small>
+                      <div id="assistantPlan"></div>
+                    </article>
+                    <article>
+                      <small>SPEAKING QUESTIONS</small>
+                      <ol id="assistantSpeaking"></ol>
+                    </article>
+                    <article>
+                      <small>WORKSHEET BLUEPRINT</small>
+                      <ol id="assistantWorksheet"></ol>
+                    </article>
+                    <article>
+                      <small>HOMEWORK</small>
+                      <ol id="assistantHomework"></ol>
+                    </article>
+                  </div>
+                  <article class="assistant-game-card">
+                    <div><small>GAME SUGGESTION</small><strong id="assistantGameName">Speaking Wheel</strong></div>
+                    <p id="assistantGameText"></p>
+                  </article>
+                  <div class="assistant-actions">
+                    <button type="button" class="solid-button" id="assistantApplyBuilder">Lesson Builder'a aktar →</button>
+                    <button type="button" class="outline-button" id="assistantCopyPack">Paketi kopyala</button>
+                  </div>
+                  <div class="edu-local-note assistant-engine-note"><b>BETA</b><span>Üretim motoru: yapılandırılmış öğretim kuralları. Harici bir model yanıtı değildir; öğretmen düzenlemesi önerilir.</span></div>
+                </div>
+              </div>
+            </div>
           </section>
 
           <section class="workspace-panel" data-panel-view="builder">
@@ -1000,6 +1109,7 @@
   <script src="./educators-workspace.js?v=20261004-fullqa3"></script>
   <script src="./educators-guide.js?v=20261004-fullqa3"></script>
   <script src="./educators-i18n.js?v=20261004-fullqa3"></script>
+  <script src="./educators-assistant.js?v=20261004-assistant1"></script>
   <script src="./educators-product.js?v=20261004-fullqa3"></script>
 </body>
 </html>
