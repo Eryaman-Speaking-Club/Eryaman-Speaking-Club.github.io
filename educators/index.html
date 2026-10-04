@@ -254,6 +254,7 @@
           </div>
           <nav>
             <button class="side-item active" data-panel="overview"><span>⌂</span> Bugün</button>
+            <button class="side-item" data-panel="planner"><span>◷</span> Planlayıcı</button>
             <button class="side-item" data-panel="curriculum"><span>◎</span> Müfredat</button>
             <button class="side-item" data-panel="classes"><span>▦</span> Sınıflarım</button>
             <button class="side-item" data-panel="private"><span>●</span> Özel Öğrenciler</button>
@@ -287,6 +288,7 @@
 
           <div class="mobile-workspace-tabs" aria-label="Teacher panel navigation">
             <button class="active" data-panel="overview">Bugün</button>
+            <button data-panel="planner">Planlayıcı</button>
             <button data-panel="curriculum">Müfredat</button>
             <button data-panel="classes">Sınıflarım</button>
             <button data-panel="private">Özel Öğrenciler</button>
@@ -332,6 +334,10 @@
                 <div class="recent-lesson-list" id="recentLessonList"><p>Kaydedilmiş dersler yükleniyor…</p></div>
               </article>
             </div>
+            <div class="today-planner-strip" id="todayPlannerStrip">
+              <div class="today-planner-head"><div><small>BUGÜNÜN PLANI</small><strong>Yaklaşan derslerin</strong></div><button type="button" data-panel-target="planner">Planlayıcıyı aç →</button></div>
+              <div class="today-planner-list" id="todayPlannerList"><p>Plan yükleniyor…</p></div>
+            </div>
             <div class="metric-grid">
               <article><span>CLASSES</span><strong>3</strong><small>Active this week</small></article>
               <article><span>STUDENTS</span><strong>67</strong><small>Across all classes</small></article>
@@ -362,6 +368,36 @@
             </div>
           </section>
 
+
+          <section class="workspace-panel" data-panel-view="planner" id="teacher-planner">
+            <div class="panel-header">
+              <div><small>TEACHER PLANNER</small><h3>Ders gününü platformdan yönet.</h3></div>
+              <span class="adaptive-badge">TODAY + UPCOMING</span>
+            </div>
+            <div class="planner-layout">
+              <form class="planner-form" id="plannerForm">
+                <div class="planner-form-head"><small>YENİ PLAN</small><strong>Takvime ders ekle</strong><p>Sınıf, özel öğrenci veya serbest bir ders için tarih ve saat belirle.</p></div>
+                <label>Bağlantı
+                  <select id="plannerTarget"><option value="">Serbest ders / bağlantısız</option></select>
+                </label>
+                <label>Ders başlığı
+                  <input id="plannerTitle" type="text" maxlength="120" required placeholder="Örn. 6-B · Travel Speaking">
+                </label>
+                <div class="planner-two">
+                  <label>Tarih ve saat<input id="plannerStart" type="datetime-local" required></label>
+                  <label>Süre (dk)<input id="plannerDuration" type="number" min="5" max="300" value="40"></label>
+                </div>
+                <label>Not
+                  <textarea id="plannerNotes" rows="4" maxlength="2000" placeholder="Hazırlanacak materyal, hedef veya kısa not…"></textarea>
+                </label>
+                <button class="generate-button" type="submit" id="plannerSubmit">Takvime ekle →</button>
+              </form>
+              <div class="planner-agenda">
+                <div class="planner-agenda-head"><div><small>YAKLAŞAN</small><strong>Önündeki dersler</strong></div><button type="button" id="refreshPlanner">↻ Yenile</button></div>
+                <div class="planner-list" id="plannerList" aria-live="polite"><p>Plan yükleniyor…</p></div>
+              </div>
+            </div>
+          </section>
 
           <section class="workspace-panel" data-panel-view="curriculum" id="curriculum-hub">
             <div class="panel-header">
@@ -955,13 +991,13 @@
   </div>
 
   <script src="../esc-supabase-config.js?v=20260923"></script>
-  <script src="../esc-supabase.js?v=20261004-assignment6"></script>
+  <script src="../esc-supabase.js?v=20261004-planner7"></script>
   <script src="../site-analytics.js?v=20261004-educator-funnel1"></script>
   <script src="./educators.js?v=20260930-games4"></script>
   <script src="./educators-core.js?v=20261004-session10"></script>
   <script src="./educators-workspace.js?v=20261004-private6"></script>
   <script src="./educators-guide.js?v=20260930-games3"></script>
   <script src="./educators-i18n.js?v=20261004-global4"></script>
-  <script src="./educators-product.js?v=20261004-assignments10"></script>
+  <script src="./educators-product.js?v=20261004-planner11"></script>
 </body>
 </html>
