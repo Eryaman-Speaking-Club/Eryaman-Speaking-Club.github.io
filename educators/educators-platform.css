@@ -730,3 +730,50 @@
 .assignment-grade-box input,.assignment-grade-box textarea{width:100%;border:1px solid #d2dee8;border-radius:8px;background:#fff;padding:8px;color:#173a58;font:inherit;font-weight:500;resize:vertical}
 .assignment-grade-box button{min-height:36px;border:0;border-radius:8px;background:#173f65;color:#fff;padding:8px 10px;font-size:9px;font-weight:850;cursor:pointer}
 @media(max-width:720px){.assignment-grade-box{grid-template-columns:1fr}.assignment-grade-box button{width:100%}}
+
+
+/* Full class management */
+.class-manage-card{width:min(760px,calc(100vw - 28px));max-height:min(90vh,860px);overflow:auto}
+.class-manage-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:14px}
+.class-manage-head h2{margin:4px 0 0}
+.class-manage-head p{margin:4px 0 0;font-size:11px;color:#71869a}
+.class-status-pill{flex:none;padding:6px 9px;border-radius:999px;background:#e9f7ef;color:#347653;font-size:9px;font-weight:900;letter-spacing:.08em}
+.class-status-pill.closed{background:#f5e9eb;color:#9a4d58}
+.class-manage-code{display:grid;grid-template-columns:minmax(120px,1fr) auto auto;gap:8px;align-items:center;padding:11px 12px;margin-top:11px;border:1px solid #dce6ef;border-radius:12px;background:#f8fbfd}
+.class-manage-code small{display:block;font-size:8px;font-weight:900;letter-spacing:.11em;color:#6e8395}
+.class-manage-code strong{display:block;margin-top:2px;font-size:18px;letter-spacing:.13em;color:#173f65}
+.class-manage-code button{border:0;border-radius:8px;padding:8px 9px;background:#e9f1f7;color:#315b7b;font-size:9px;font-weight:850;cursor:pointer}
+.class-manage-actions{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:11px}
+.class-status-toggle{border:1px solid #edcdd1;border-radius:10px;background:#fff2f3;color:#994d58;padding:0 13px;font-size:10px;font-weight:850;cursor:pointer}
+.class-status-toggle.reopen{border-color:#cbe5d4;background:#eef9f2;color:#367654}
+.class-roster-section{margin-top:18px;padding-top:16px;border-top:1px solid #e1e9ef}
+.class-roster-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:10px}
+.class-roster-head small{display:block;font-size:8px;font-weight:900;letter-spacing:.12em;color:#6a8295}
+.class-roster-head strong{display:inline-block;margin-top:3px;font-size:15px;color:#173a58}
+.class-roster-head span{margin-left:7px;font-size:9px;color:#71869a}
+.class-roster-head button{border:0;border-radius:8px;background:#edf4f9;color:#315d80;padding:7px 9px;font-size:9px;font-weight:800;cursor:pointer}
+.class-roster-list{display:grid;gap:6px;max-height:330px;overflow:auto;padding-right:2px}
+.class-roster-row{display:grid;grid-template-columns:34px minmax(0,1fr) auto auto;gap:9px;align-items:center;padding:8px 9px;border:1px solid #e2e9ef;border-radius:10px;background:#fff}
+.class-roster-row.inactive{opacity:.65;background:#f8f9fa}
+.roster-avatar{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:#eaf2f9;color:#2f628e;font-size:11px;font-weight:900}
+.class-roster-row b{display:block;font-size:10.5px;color:#173a58}
+.class-roster-row small{display:block;margin-top:2px;font-size:8.5px;color:#7b8ea0}
+.class-roster-row em{font-style:normal;font-size:8.5px;font-weight:850;color:#4b7a60}
+.class-roster-row.inactive em{color:#985867}
+.class-roster-row button{border:0;border-radius:8px;padding:7px 8px;background:#edf4f9;color:#315d80;font-size:8.5px;font-weight:850;cursor:pointer}
+.class-roster-row:not(.inactive) button{background:#f8e9eb;color:#984d58}
+.class-roster-empty{padding:18px;text-align:center;border:1px dashed #d8e3eb;border-radius:10px;font-size:10px;color:#71869a}
+.class-roster-note{margin:9px 0 0;font-size:9.5px;line-height:1.45;color:#7b8ea0}
+#classCardGrid .class-actions{display:flex;gap:6px;flex-wrap:wrap}
+#classCardGrid [data-manage-class]{background:#eef4f8;color:#315b7b}
+@media(max-width:640px){
+  .class-manage-head{display:block}
+  .class-status-pill{display:inline-block;margin-top:8px}
+  .class-manage-code{grid-template-columns:1fr 1fr}
+  .class-manage-code>div{grid-column:1/-1}
+  .class-manage-actions{grid-template-columns:1fr}
+  .class-status-toggle{min-height:40px}
+  .class-roster-row{grid-template-columns:34px 1fr auto}
+  .class-roster-row em{display:none}
+  .class-roster-row button{grid-column:2/-1;justify-self:start}
+}
