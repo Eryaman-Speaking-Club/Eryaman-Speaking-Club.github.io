@@ -269,6 +269,74 @@
     return data || [];
   }
 
+
+  async function listPrivateStudents() {
+    const client = await getClient();
+    const session = await getSession();
+    if (!client || !session) throw new Error('Teacher login required.');
+    const { data, error } = await client.from('edu_private_students')
+      .select('id,display_name,level,school_grade,goals,focus_notes,homework,last_lesson_note,next_lesson_note,next_lesson_at,difficult_topics,is_active,created_at,updated_at')
+      .eq('teacher_id',session.user.id)
+      .eq('is_active',true)
+      .order('updated_at',{ascending:false});
+    if (error) throw error;
+    return data || [];
+  }
+
+  async function createPrivateStudent(payload) {
+    const client = await getClient();
+    const session = await getSession();
+    if (!client || !session) throw new Error('Teacher login required.');
+    const row = {
+      teacher_id:session.user.id,
+      display_name:String(payload.display_name||'').trim().slice(0,80),
+      level:['Pre-A1','A1','A2','B1','B2'].includes(payload.level)?payload.level:'A2',
+      school_grade:payload.school_grade?String(payload.school_grade).trim().slice(0,40):null,
+      goals:Array.isArray(payload.goals)?payload.goals.map(x=>String(x).trim()).filter(Boolean).slice(0,12):[],
+      focus_notes:payload.focus_notes?String(payload.focus_notes).trim().slice(0,1500):null,
+      homework:payload.homework?String(payload.homework).trim().slice(0,1500):null,
+      last_lesson_note:payload.last_lesson_note?String(payload.last_lesson_note).trim().slice(0,1500):null,
+      next_lesson_note:payload.next_lesson_note?String(payload.next_lesson_note).trim().slice(0,1500):null,
+      next_lesson_at:payload.next_lesson_at||null,
+      difficult_topics:Array.isArray(payload.difficult_topics)?payload.difficult_topics.map(x=>String(x).trim()).filter(Boolean).slice(0,20):[]
+    };
+    const { data, error } = await client.from('edu_private_students').insert(row).select('*').single();
+    if (error) throw error;
+    return data;
+  }
+
+  async function updatePrivateStudent(id, patch) {
+    const client = await getClient();
+    const session = await getSession();
+    if (!client || !session) throw new Error('Teacher login required.');
+    const clean = {};
+    if ('display_name' in patch) clean.display_name=String(patch.display_name||'').trim().slice(0,80);
+    if ('level' in patch) clean.level=['Pre-A1','A1','A2','B1','B2'].includes(patch.level)?patch.level:'A2';
+    if ('school_grade' in patch) clean.school_grade=patch.school_grade?String(patch.school_grade).trim().slice(0,40):null;
+    if ('goals' in patch) clean.goals=Array.isArray(patch.goals)?patch.goals.map(x=>String(x).trim()).filter(Boolean).slice(0,12):[];
+    if ('focus_notes' in patch) clean.focus_notes=patch.focus_notes?String(patch.focus_notes).trim().slice(0,1500):null;
+    if ('homework' in patch) clean.homework=patch.homework?String(patch.homework).trim().slice(0,1500):null;
+    if ('last_lesson_note' in patch) clean.last_lesson_note=patch.last_lesson_note?String(patch.last_lesson_note).trim().slice(0,1500):null;
+    if ('next_lesson_note' in patch) clean.next_lesson_note=patch.next_lesson_note?String(patch.next_lesson_note).trim().slice(0,1500):null;
+    if ('next_lesson_at' in patch) clean.next_lesson_at=patch.next_lesson_at||null;
+    if ('difficult_topics' in patch) clean.difficult_topics=Array.isArray(patch.difficult_topics)?patch.difficult_topics.map(x=>String(x).trim()).filter(Boolean).slice(0,20):[];
+    clean.updated_at=new Date().toISOString();
+    const { data, error } = await client.from('edu_private_students')
+      .update(clean).eq('id',id).eq('teacher_id',session.user.id).select('*').single();
+    if (error) throw error;
+    return data;
+  }
+
+  async function deletePrivateStudent(id) {
+    const client = await getClient();
+    const session = await getSession();
+    if (!client || !session) throw new Error('Teacher login required.');
+    const { error } = await client.from('edu_private_students')
+      .delete().eq('id',id).eq('teacher_id',session.user.id);
+    if (error) throw error;
+    return true;
+  }
+
   async function startEducatorSession(payload) {
     const client = await getClient();
     const session = await getSession();
@@ -335,6 +403,7 @@
     updatePassword,signIn,signOut,claimFirstAdmin,isAdmin,getGameContent,replaceGameContent,
     getGameSettings,saveGameSettings,ensureEducatorProfile,getEducatorProfile,listEducatorClasses,
     createEducatorClass,saveEducatorLesson,listEducatorLessons,deleteEducatorLesson,listEducatorResults,listEducatorSessions,
+    listPrivateStudents,createPrivateStudent,updatePrivateStudent,deletePrivateStudent,
     startEducatorSession,updateEducatorSession,getActiveEducatorSession,joinEducatorClass,getStudentState,submitStudentResult
   };
 })();
