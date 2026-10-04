@@ -280,6 +280,12 @@
   }
 
   function bind() {
+    const dateLabel = $('#workspaceDateLabel');
+    if (dateLabel) {
+      const now = new Date();
+      const label = new Intl.DateTimeFormat('tr-TR',{weekday:'long',day:'numeric',month:'long'}).format(now);
+      dateLabel.textContent = label.toLocaleUpperCase('tr-TR') + ' · TEACHER SPACE';
+    }
     setupActions();
     $('#lessonLibrarySearch')?.addEventListener('input',applyLibraryFilters);
     $('#lessonLibraryGoal')?.addEventListener('change',applyLibraryFilters);
