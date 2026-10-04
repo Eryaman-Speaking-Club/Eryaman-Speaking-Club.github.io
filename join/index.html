@@ -27,7 +27,7 @@
       <p>Öğretmeninin ekranda gösterdiği sınıf kodunu ve adını gir. Öğrenci hesabı veya e-posta gerekmez.</p>
       <form id="joinForm">
         <label>Sınıf kodu
-          <input id="joinCode" type="text" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Örn. A7K29Q" required>
+          <input id="joinCode" type="text" minlength="6" maxlength="8" pattern="[A-Fa-f0-9]{6,8}" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Örn. A7C29F4B" required>
         </label>
         <label>Adın
           <input id="joinName" type="text" maxlength="40" autocomplete="given-name" placeholder="Örn. Efe" required>
