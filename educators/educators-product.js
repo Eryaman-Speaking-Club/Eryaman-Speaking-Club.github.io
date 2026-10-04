@@ -245,7 +245,7 @@
           const duration=esc(step.duration||'');
           const title=esc(step.title||step.stage||('Stage '+(i+1)));
           const mode=esc(step.mode||'Saved');
-          return '<div class="plan-row" data-stage-key="'+esc(String(step.stage||step.title||i).toLowerCase())+'"><span>'+duration+'</span><b>'+title+'</b><small>'+mode+'</small></div>';
+          return '<div class="plan-row" data-stage-key="'+esc(String(step.stage||step.title||i).toLowerCase())+'" data-prompt="'+esc(step.prompt||'')+'"><span>'+duration+'</span><b>'+title+'</b><small>'+mode+'</small></div>';
         }).join('');
       }
       const first=plan[0]||{};
