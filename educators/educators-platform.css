@@ -436,3 +436,16 @@
   .edu-value-cta{grid-template-columns:1fr;padding:22px}
   .edu-value-actions{justify-content:stretch;display:grid}
 }
+
+
+.class-code-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.class-code-actions button{margin-top:0!important;min-height:40px;padding:0 11px!important;border:1px solid var(--line)!important;border-radius:10px;background:#fff!important}
+.class-code-actions button:first-child{background:var(--navy)!important;color:#fff!important;border-color:var(--navy)!important}
+.resource-preview-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.resource-preview-actions button{
+  min-height:44px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--navy);
+  padding:0 13px;font-size:12px;font-weight:950;cursor:pointer;
+}
+.resource-preview-actions button:first-child{background:var(--navy);border-color:var(--navy);color:#fff}
+.curriculum-verification a{color:var(--blue);font-weight:900;text-decoration:none}
+.curriculum-verification a:hover{text-decoration:underline}
