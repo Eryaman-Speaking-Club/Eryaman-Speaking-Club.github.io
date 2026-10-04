@@ -644,3 +644,69 @@
 .settings-benefit-card b{display:block;font-size:11px;color:#173a58}
 .settings-benefit-card span{display:block;margin-top:3px;font-size:10.5px;line-height:1.45;color:#71869a}
 @media(max-width:880px){.settings-layout{grid-template-columns:1fr}}
+
+
+/* School Workspace beta */
+.school-empty-layout{display:grid;gap:14px}
+.school-intro-card,.school-entry-card,.school-hero-card,.school-members-card,.school-share-card,.school-library-shell{border:1px solid #dce6ef;border-radius:18px;background:#fff}
+.school-intro-card{padding:22px}
+.school-intro-card>span{display:grid;place-items:center;width:48px;height:48px;border-radius:15px;background:#eef6ff;color:#2b68a0;font-size:22px}
+.school-intro-card small,.school-entry-card small,.school-card-head small,.school-hero-card small,.school-library-head small{display:block;font-size:9px;font-weight:900;letter-spacing:.12em;color:#5b7892}
+.school-intro-card h4{margin:8px 0 7px;font-size:22px;color:#102d4e}
+.school-intro-card p{max-width:760px;margin:0;font-size:12px;line-height:1.58;color:#657b8e}
+.school-intro-card>div{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.school-intro-card>div b{padding:6px 8px;border-radius:999px;background:#f1f6fa;color:#385d79;font-size:10px}
+.school-entry-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.school-entry-card{display:grid;gap:10px;padding:17px}
+.school-entry-card strong{font-size:17px;color:#102d4e}
+.school-entry-card p{margin:0;font-size:11px;line-height:1.5;color:#71869a}
+.school-entry-card label,.school-share-card label,.school-library-head label{display:grid;gap:6px;font-size:10px;font-weight:800;color:#37546c}
+.school-entry-card input,.school-share-card select,.school-library-head select{width:100%;border:1px solid #cfdae5;border-radius:10px;background:#fbfdff;padding:10px;color:#102d4e;font:inherit}
+.school-entry-card button,.school-share-card>button,.school-code-box button,.school-lesson-card button{border:0;border-radius:10px;padding:10px 12px;background:#123f69;color:#fff;font-size:10px;font-weight:850;cursor:pointer}
+.school-hero-card{display:flex;justify-content:space-between;gap:16px;align-items:center;padding:18px}
+.school-hero-card h4{margin:5px 0 2px;font-size:22px;color:#102d4e}
+.school-hero-card p{margin:0;font-size:11px;color:#71869a}
+.school-code-box{min-width:190px;padding:12px;border-radius:14px;background:#f5f9fc;text-align:center}
+.school-code-box strong{display:block;margin:5px 0;font-size:24px;letter-spacing:.16em;color:#173f65}
+.school-code-box button{background:#e8f1f8;color:#214f75}
+.school-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:12px;margin-top:12px}
+.school-members-card,.school-share-card{padding:16px}
+.school-card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.school-card-head strong{display:block;margin-top:3px;font-size:15px;color:#173a58}
+.school-card-head>span{display:grid;place-items:center;min-width:30px;height:30px;padding:0 8px;border-radius:999px;background:#eef5fb;font-size:10px;font-weight:850;color:#365d7b}
+.school-member-list{display:grid;gap:7px}
+.school-member-row{display:grid;grid-template-columns:34px 1fr;gap:9px;align-items:center;padding:8px;border-radius:10px;background:#f8fbfd}
+.school-member-row>span{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:#eaf2f9;color:#2f628e;font-size:12px;font-weight:900}
+.school-member-row p{margin:0}
+.school-member-row b{display:block;font-size:11px;color:#173a58}
+.school-member-row small{display:block;margin-top:2px;font-size:9px;color:#7a8ea0}
+.school-leave{margin-top:12px}
+.school-share-card{display:grid;gap:10px}
+.school-share-card p{margin:0;font-size:10.5px;line-height:1.5;color:#71869a}
+.school-library-shell{margin-top:12px;padding:16px}
+.school-library-head{display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:12px}
+.school-library-head strong{display:block;margin-top:3px;font-size:17px;color:#173a58}
+.school-library-head p{margin:4px 0 0;font-size:10.5px;color:#71869a}
+.school-library-head label{min-width:210px}
+.school-shared-lessons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.school-lesson-card{border:1px solid #e0e8ef;border-radius:14px;background:#fbfdff;padding:13px;min-width:0}
+.school-lesson-top{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.school-lesson-top span,.school-lesson-top small{font-size:9px;font-weight:850;color:#5c768d}
+.school-lesson-card h4{margin:8px 0 5px;font-size:14px;line-height:1.25;color:#163b5d}
+.school-lesson-card p{margin:0;font-size:10px;line-height:1.45;color:#71869a}
+.school-lesson-card>div:last-child{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
+.school-lesson-card .danger-lite{background:#f8e9eb;color:#984d58}
+.school-library-empty{grid-column:1/-1;padding:24px;text-align:center;border:1px dashed #d7e2eb;border-radius:12px;color:#71869a}
+.school-library-empty strong{display:block;color:#274b68}
+.school-library-empty span{display:block;margin-top:5px;font-size:10.5px}
+.school-empty-copy{margin:0;font-size:11px;color:#71869a}
+@media(max-width:900px){
+  .school-entry-grid,.school-grid{grid-template-columns:1fr}
+  .school-shared-lessons{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:640px){
+  .school-hero-card,.school-library-head{display:block}
+  .school-code-box{margin-top:12px;min-width:0}
+  .school-library-head label{margin-top:10px;min-width:0}
+  .school-shared-lessons{grid-template-columns:1fr}
+}
