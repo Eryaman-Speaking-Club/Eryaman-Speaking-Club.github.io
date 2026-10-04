@@ -22,6 +22,9 @@
     if(raw.includes("SCHOOL_FULL"))return tx("Bu workspace'in öğretmen kontenjanı dolu.","This workspace has reached its teacher seat limit.");
     if(raw.includes("INVALID_SCHOOL_NAME"))return tx("Okul / ekip adını kontrol et.","Check the school or team name.");
     if(raw.includes("OWNER_CANNOT_LEAVE"))return tx("Workspace sahibi doğrudan ayrılamaz. Önce sahiplik devri gerekir.","The workspace owner cannot leave until ownership is transferred.");
+    if(raw.includes("OWNER_REQUIRED"))return tx("Bu işlem yalnızca workspace sahibi tarafından yapılabilir.","Only the workspace owner can perform this action.");
+    if(raw.includes("MEMBER_NOT_FOUND"))return tx("Öğretmen artık bu workspace içinde bulunmuyor.","This teacher is no longer in the workspace.");
+    if(raw.includes("OWNER_SELF_ACTION_DENIED"))return tx("Workspace sahibi kendi rolünü bu işlemle değiştiremez.","The workspace owner cannot change their own role with this action.");
     if(raw.includes("SCHOOL_ACCESS_DENIED"))return tx("Bu workspace için erişim iznin yok.","You do not have access to this workspace.");
     if(raw.includes("CLASS_ACCESS_DENIED"))return tx("Hedef sınıf bulunamadı veya sana ait değil.","The target class was not found or does not belong to you.");
     return raw||tx("İşlem tamamlanamadı.","The action could not be completed.");
