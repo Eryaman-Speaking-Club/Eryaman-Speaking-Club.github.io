@@ -664,6 +664,20 @@
   "İşlem tamamlanamadı.": "The action could not be completed."
 });
 
+  Object.assign(TEXT,{
+  "Teacher yap": "Make teacher",
+  "Admin yap": "Make admin",
+  "Sahipliği devret": "Transfer ownership",
+  "Çıkar": "Remove",
+  "Bu öğretmen ekipten çıkarılsın mı?": "Remove this teacher from the team?",
+  "Bu öğretmen admin yapılsın mı?": "Make this teacher an admin?",
+  "Bu admin tekrar teacher rolüne alınsın mı?": "Change this admin back to teacher?",
+  "School Workspace sahipliğini bu öğretmene devretmek istediğine emin misin? Sen admin rolüne geçeceksin.": "Transfer School Workspace ownership to this teacher? You will become an admin.",
+  "Bu işlem uygulansın mı?": "Apply this action?",
+  "Ekip güncelleniyor…": "Updating team…",
+  "Ekip güncellendi ✓": "Team updated ✓"
+});
+
   const PLACEHOLDERS={
     "Örn. 6-B / Junior Speaking":"e.g. 6-B / Junior Speaking",
     "En az 8 karakter":"At least 8 characters",
