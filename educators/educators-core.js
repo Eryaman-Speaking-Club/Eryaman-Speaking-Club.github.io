@@ -214,24 +214,37 @@
       $('h3', next).textContent = state.activeClass.name + ' · ' + (state.activeClass.focus || 'speaking');
       $('p', next).textContent = state.activeClass.age_group.replace('-', '–') + ' · ' + state.activeClass.level + ' · ' + (state.activeClass.students?.length || 0) + ' ' + tx('öğrenci','students');
       const head = $('.card-head b', next);
-      if (head) head.textContent = state.activeLive ? tx('● CANLI','● LIVE NOW') : tx('Hazır','Ready');
+      if (head) head.textContent = state.activeLive
+        ? tx('● CANLI','● LIVE NOW')
+        : state.activeClass.is_active
+          ? tx('Hazır','Ready')
+          : tx('Kapalı','Closed');
       const action=$('button',next);
       if(action){
         if(state.activeLive){
           action.removeAttribute('data-panel-target');
           action.setAttribute('data-resume-live','');
           action.innerHTML=tx('Canlı derse dön <span>→</span>','Resume live lesson <span>→</span>');
-        }else{
+        }else if(state.activeClass.is_active){
           action.removeAttribute('data-resume-live');
           action.setAttribute('data-panel-target','builder');
           action.innerHTML=tx('Dersi aç <span>→</span>','Open lesson <span>→</span>');
+        }else{
+          action.removeAttribute('data-resume-live');
+          action.setAttribute('data-panel-target','classes');
+          action.innerHTML=tx('Aktif sınıf seç <span>→</span>','Choose active class <span>→</span>');
         }
       }
     } else if (next) {
-      const h=$('h3',next), p=$('p',next), head=$('.card-head b',next);
+      const h=$('h3',next), p=$('p',next), head=$('.card-head b',next), action=$('button',next);
       if(h) h.textContent=tx('Henüz sınıf yok','No class yet');
       if(p) p.textContent=tx('İlk sınıfını oluştur; ders ve öğrenci akışı burada görünsün.','Create your first class to start planning lessons and students.');
       if(head) head.textContent=tx('Plan yok','No plan');
+      if(action){
+        action.removeAttribute('data-resume-live');
+        action.setAttribute('data-panel-target','classes');
+        action.innerHTML=tx('Sınıf oluştur <span>→</span>','Create class <span>→</span>');
+      }
     }
 
     const table = $('.recent-table');
