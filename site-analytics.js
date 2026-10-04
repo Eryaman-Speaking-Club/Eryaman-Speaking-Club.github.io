@@ -46,6 +46,12 @@
     return null;
   }
 
+  window.ESCAnalytics = {
+    track(target, mode='other') {
+      return send('cta_click', {target, mode});
+    }
+  };
+
   send('page_view');
   document.addEventListener('click', event => {
     const link = event.target.closest('a');
