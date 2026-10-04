@@ -266,6 +266,7 @@
             <button class="side-item" data-panel="games"><span>◫</span> Oyun Kütüphanesi</button>
             <button class="side-item" data-panel="tools"><span>⚙</span> Sınıf Araçları</button>
             <button class="side-item" data-panel="reports"><span>↗</span> Raporlar</button>
+            <button class="side-item" data-panel="settings"><span>⚙</span> Ayarlar</button>
           </nav>
           <div class="sidebar-plan">
             <small>TEACHER ACCOUNT</small>
@@ -301,6 +302,7 @@
             <button data-panel="games">Oyunlar</button>
             <button data-panel="tools">Araçlar</button>
             <button data-panel="reports">Raporlar</button>
+            <button data-panel="settings">Ayarlar</button>
           </div>
 
           <section class="workspace-panel active" data-panel-view="overview">
@@ -957,6 +959,82 @@
               </article>
             </div>
           </section>
+
+          <section class="workspace-panel" data-panel-view="settings" id="teacher-settings">
+            <div class="panel-header">
+              <div><small>TEACHING PREFERENCES</small><h3>Bir kez ayarla. Her derste hazır gelsin.</h3></div>
+              <span class="adaptive-badge">ACCOUNT SYNCED</span>
+            </div>
+            <div class="settings-layout">
+              <form class="teacher-settings-form" id="teacherSettingsForm">
+                <div class="settings-form-head">
+                  <small>ÖĞRETMEN PROFİLİ</small>
+                  <strong>Varsayılan çalışma düzenin</strong>
+                  <p>Bu tercihler hesabına kaydedilir ve farklı cihazlarda da kullanılabilir.</p>
+                </div>
+                <label>Görünen ad
+                  <input id="settingsDisplayName" type="text" maxlength="80" required placeholder="Teacher">
+                </label>
+                <div class="form-two">
+                  <label>Panel dili
+                    <select id="settingsLanguage"><option value="tr">Türkçe</option><option value="en">English</option></select>
+                  </label>
+                  <label>Öğretim tipi
+                    <select id="settingsContext">
+                      <option value="mixed">Sınıf + özel ders</option>
+                      <option value="school">Okul / sınıf öğretmeni</option>
+                      <option value="private">Özel ders öğretmeni</option>
+                      <option value="general">General English / speaking</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="form-two">
+                  <label>Varsayılan yaş grubu
+                    <select id="settingsAge">
+                      <option value="6-8">6–8</option><option value="9-11">9–11</option>
+                      <option value="12-14">12–14</option><option value="15-17">15–17</option><option value="18+">18+</option>
+                    </select>
+                  </label>
+                  <label>Varsayılan seviye
+                    <select id="settingsLevel">
+                      <option>Pre-A1</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option>
+                    </select>
+                  </label>
+                </div>
+                <label>Varsayılan ders süresi
+                  <select id="settingsDuration">
+                    <option value="20">20 dk</option><option value="30">30 dk</option><option value="40">40 dk</option>
+                    <option value="50">50 dk</option><option value="60">60 dk</option><option value="90">90 dk</option><option value="120">120 dk</option>
+                  </select>
+                </label>
+                <div class="form-two">
+                  <label>Ülke kodu <span>opsiyonel</span>
+                    <input id="settingsCountry" type="text" maxlength="2" placeholder="TR">
+                  </label>
+                  <label>Kurum / okul <span>opsiyonel</span>
+                    <input id="settingsInstitution" type="text" maxlength="120" placeholder="School / institution">
+                  </label>
+                </div>
+                <button class="generate-button" id="settingsSave" type="submit">Tercihleri kaydet →</button>
+                <div class="lesson-generate-status" id="settingsStatus" hidden aria-live="polite"></div>
+              </form>
+
+              <div class="settings-side">
+                <article class="settings-summary-card">
+                  <small>HESAP AYARLARI</small>
+                  <strong id="settingsSummaryName">Teacher</strong>
+                  <p id="settingsSummaryMeta">A2 · 12–14 · 40 dk</p>
+                  <div class="settings-summary-tags" id="settingsSummaryTags"></div>
+                </article>
+                <article class="settings-benefit-card">
+                  <small>BU AYARLAR NEREDE KULLANILIR?</small>
+                  <div><b>Teacher Assistant</b><span>Brief alanlarını varsayılanlarınla başlatır.</span></div>
+                  <div><b>Lesson Builder</b><span>Yeni derslerde seviye, yaş ve süreyi hazır getirir.</span></div>
+                  <div><b>Yeni sınıf</b><span>Sınıf oluştururken sık kullandığın profili önerir.</span></div>
+                </article>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </section>
@@ -1003,14 +1081,14 @@
     <section class="roadmap-section" id="roadmap">
       <div class="section-heading">
         <div><span class="section-kicker">ÜRÜN DURUMU</span><h2>Platform yol haritası</h2></div>
-        <p>Hesap, sınıf, canlı ders, özel öğrenci, ders kütüphanesi, ödev, planlayıcı ve gerçek rapor akışı çalışıyor. Sıradaki büyük katman AI Teacher Assistant ve okul çalışma alanı.</p>
+        <p>Hesap, sınıf, canlı ders, özel öğrenci, ders kütüphanesi, ödev, planlayıcı, raporlar ve Teacher Assistant beta çalışıyor. Sıradaki büyük katman okul çalışma alanı ve ekip lisanslama.</p>
       </div>
       <div class="roadmap-grid">
         <article class="done"><span>V1</span><b>Teacher accounts & classes</b><p>Gerçek hesaplar, sınıf oluşturma, yaş + seviye profili ve öğrenci kodu.</p><em>LIVE</em></article>
         <article class="done"><span>V2</span><b>Student join & live classroom</b><p>Kodla öğrenci katılımı, canlı ders durumu ve opsiyonel takım puanları.</p><em>LIVE</em></article>
         <article class="done"><span>V3</span><b>Library & private students</b><p>Kaydedilmiş dersler, tekrar kullanım ve hesaba bağlı özel öğrenci profilleri.</p><em>LIVE</em></article>
         <article class="done"><span>V4</span><b>Assignments, planner & reports</b><p>Ödev teslimi, yaklaşan ders planı ve gerçek öğrenci sonuçlarından rapor.</p><em>LIVE</em></article>
-        <article><span>V5</span><b>AI Teacher Assistant</b><p>Tek brief'ten ders, worksheet, speaking, quiz, homework ve oyun üretimi.</p><em>NEXT</em></article>
+        <article class="done"><span>V5</span><b>Teacher Assistant · Beta</b><p>Tek brief'ten ders, worksheet, speaking, homework ve oyun paketi; Lesson Builder'a tek tık aktarım.</p><em>LIVE</em></article>
         <article><span>V6</span><b>Schools & subscriptions</b><p>School workspace, ekip kütüphanesi, lisanslama ve ödeme.</p><em>LATER</em></article>
       </div>
     </section>
@@ -1112,6 +1190,7 @@
   <script src="./educators-guide.js?v=20261004-fullqa3"></script>
   <script src="./educators-i18n.js?v=20261004-fullqa3"></script>
   <script src="./educators-assistant.js?v=20261004-assistant1"></script>
+  <script src="./educators-settings.js?v=20261004-settings1"></script>
   <script src="./educators-product.js?v=20261004-fullqa3"></script>
 </body>
 </html>
