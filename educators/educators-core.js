@@ -577,15 +577,19 @@
     $$('[data-launch-game]').forEach(b=>b.addEventListener('click',()=>setTimeout(()=>syncGameToLive().catch(()=>{}),120)));
     ['nextGameRound','gameBluePlus','gameBlueMinus','gameOrangePlus','gameOrangeMinus'].forEach(id=>$('#'+id)?.addEventListener('click',()=>setTimeout(()=>syncGameToLive().catch(()=>{}),80)));
 
-    document.addEventListener('click',e=>{
+    document.addEventListener('click',async e=>{
       const b=e.target.closest('[data-resume-live]');
       if(!b||!state.activeLive)return;
       const snapshot=state.activeLive;
-      if(snapshot.lesson_id) window.ESCEduProduct?.loadLessonById?.(snapshot.lesson_id);
-      setTimeout(()=>{
+      b.disabled=true;
+      try{
+        if(snapshot.lesson_id) await window.ESCEduProduct?.loadLessonById?.(snapshot.lesson_id);
+        await new Promise(resolve=>setTimeout(resolve,snapshot.lesson_id?220:0));
         if(window.ESCEduLive?.resume) window.ESCEduLive.resume(snapshot);
         else alert(tx('Canlı ders arayüzü yüklenemedi. Sayfayı yenileyin.','The live lesson interface did not load. Refresh the page.'));
-      },snapshot.lesson_id?220:0);
+      }finally{
+        b.disabled=false;
+      }
     });
 
     // The embedded student demo stays on-page; the real student view opens from [data-open-student].
