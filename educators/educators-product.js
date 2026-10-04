@@ -613,5 +613,14 @@
     setTimeout(refreshData,1800);
   }
 
+  window.ESCEduProduct={
+    loadLessonById(id){
+      const lesson=state.lessons.find(x=>x.id===id);
+      if(!lesson)return false;
+      loadLessonIntoBuilder(lesson);
+      return true;
+    }
+  };
+
   document.addEventListener('DOMContentLoaded',bind);
 })();
