@@ -197,7 +197,7 @@
     const title = $("#resourcePreviewTitle")?.textContent || "Classroom Resource";
     const lead = $("#resourcePreviewLead")?.textContent || "";
     const source = $("#resourceSource")?.value || "Current lesson";
-    const items = $("#resourcePreviewItems b").map(x => x.textContent);
+    const items = $$("#resourcePreviewItems b").map(x => x.textContent);
     const win = window.open("", "_blank", "width=900,height=700");
     if (!win) return window.alert("Yazdırma penceresi engellendi. Tarayıcıdan açılır pencerelere izin verin.");
     const safe = v => String(v || "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
