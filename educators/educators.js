@@ -190,12 +190,12 @@
   }
 
   $$(".side-item").forEach(b=>b.addEventListener("click",()=>showPanel(b.dataset.panel)));
-  $$("[data-panel-target]").forEach(b=>b.addEventListener("click",()=>showPanel(b.dataset.panelTarget)));
-  $("[data-scroll-teacher]")?.addEventListener("click",()=>$("#teacher-demo").scrollIntoView({behavior:"smooth"}));
-  $("[data-open-student]")?.addEventListener("click",()=>$("#student-demo").scrollIntoView({behavior:"smooth"}));
-  $("[data-copy-code]")?.addEventListener("click", async e => {
-    try{ await navigator.clipboard.writeText("6B27"); e.currentTarget.textContent="Copied ✓"; setTimeout(()=>e.currentTarget.textContent="Copy code",1200);}catch{}
+  document.addEventListener("click",e=>{
+    const b=e.target.closest("[data-panel-target]");
+    if(b) showPanel(b.dataset.panelTarget);
   });
+  $("[data-scroll-teacher]")?.addEventListener("click",()=>$("#teacher-demo").scrollIntoView({behavior:"smooth"}));
+  // Student view and live class code are handled by educators-core.js using real backend data.
 
   $("#lessonForm")?.addEventListener("submit", e=>{
     e.preventDefault();
