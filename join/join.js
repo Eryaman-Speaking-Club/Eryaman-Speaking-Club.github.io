@@ -88,7 +88,7 @@
     button.disabled=true;
     const old=button.textContent;button.textContent=tx('Teslim ediliyor…','Submitting…');
     try{
-      const ok=await window.ESCSupabase.submitStudentResult(token,null,'assignment',100,{assignment_id:id,response});
+      const ok=await window.ESCSupabase.submitStudentResult(token,null,'assignment',null,{assignment_id:id,response});
       if(!ok)throw new Error('SUBMIT_FAILED');
       button.textContent=tx('Teslim edildi ✓','Submitted ✓');
       await refresh();
