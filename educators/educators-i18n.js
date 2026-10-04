@@ -678,6 +678,41 @@
   "Ekip güncellendi ✓": "Team updated ✓"
 });
 
+  Object.assign(TEXT,{
+  "Yönet": "Manage",
+  "Sınıfı yönet": "Manage class",
+  "Sınıf bilgileri ve öğrenci listesi": "Class details and student roster",
+  "AKTİF": "ACTIVE",
+  "KAPALI": "CLOSED",
+  "Değişiklikleri kaydet →": "Save changes →",
+  "Sınıfı kapat": "Close class",
+  "Sınıfı yeniden aç": "Reopen class",
+  "STUDENT ROSTER": "STUDENT ROSTER",
+  "Öğrenciler": "Students",
+  "0 aktif": "0 active",
+  "↻ Yenile": "↻ Refresh",
+  "Öğrenciyi çıkarmak geçmiş sonuçlarını silmez. İstersen daha sonra yeniden aktif edebilirsin.": "Removing a student does not delete historical results. You can restore the student later.",
+  "Aktif": "Active",
+  "Pasif": "Inactive",
+  "Çıkar": "Remove",
+  "Geri al": "Restore",
+  "Henüz öğrenci katılmadı.": "No students have joined yet.",
+  "Henüz görülmedi": "Not seen yet",
+  "aktif öğrenci": "active students",
+  "aktif": "active",
+  "toplam": "total",
+  "Son görülme: ": "Last seen: ",
+  "Maksimum öğrenci sayısı aktif öğrenci sayısından küçük olamaz.": "Maximum students cannot be lower than the active student count.",
+  "Sınıf güncelleniyor…": "Updating class…",
+  "Sınıf güncellendi ✓": "Class updated ✓",
+  "Canlı ders devam ederken sınıf kapatılamaz. Önce dersi tamamlayın.": "You cannot close a class during a live lesson. Finish the lesson first.",
+  "Bu sınıf yeniden açılsın mı?": "Reopen this class?",
+  "Bu sınıf kapatılsın mı? Öğrenci katılımı duracak, geçmiş veriler korunacak.": "Close this class? Student access will stop and historical data will be kept.",
+  "Sınıf yeniden açıldı ✓": "Class reopened ✓",
+  "Sınıf kapatıldı ✓": "Class closed ✓",
+  "Sınıf kontenjanı dolu. Önce maksimum öğrenci sayısını artırın.": "Class capacity is full. Increase the maximum student count first."
+});
+
   const PLACEHOLDERS={
     "Örn. 6-B / Junior Speaking":"e.g. 6-B / Junior Speaking",
     "En az 8 karakter":"At least 8 characters",
