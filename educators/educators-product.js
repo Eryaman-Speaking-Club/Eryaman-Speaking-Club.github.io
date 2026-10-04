@@ -235,7 +235,7 @@
       if($('#lessonGenerateStatus')){
         $('#lessonGenerateStatus').hidden=false;
         $('#lessonGenerateStatus').className='lesson-generate-status is-ready';
-        $('#lessonGenerateStatus').textContent='Kaydedilmiş ders yüklendi ✓ Değiştirip yeniden kaydedebilir veya doğrudan başlatabilirsin.';
+        $('#lessonGenerateStatus').textContent=tx('Kaydedilmiş ders yüklendi ✓ Değiştirip yeniden kaydedebilir veya doğrudan başlatabilirsin.','Saved lesson loaded ✓ Edit and save it again, or start it directly.');
       }
       document.querySelector('#lessonForm')?.scrollIntoView({behavior:'smooth',block:'start'});
     },180);
@@ -526,7 +526,7 @@
       const reportSelect=$('#reportClassFilter');
       if(reportSelect){
         const previous=reportSelect.value||'all';
-        reportSelect.innerHTML='<option value="all">Tüm sınıflar</option>'+state.classes.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>').join('');
+        reportSelect.innerHTML='<option value="all">'+tx('Tüm sınıflar','All classes')+'</option>'+state.classes.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>').join('');
         if([...reportSelect.options].some(o=>o.value===previous)) reportSelect.value=previous;
       }
       renderSetup();renderRecent();renderLibrary();renderAssignments();renderPlanner();renderTodayPlanner();renderReports();
