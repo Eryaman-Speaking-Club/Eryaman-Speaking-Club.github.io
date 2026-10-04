@@ -710,3 +710,12 @@
   .school-library-head label{margin-top:10px;min-width:0}
   .school-shared-lessons{grid-template-columns:1fr}
 }
+
+.school-member-row{grid-template-columns:34px minmax(0,1fr) auto}
+.school-member-actions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.school-member-actions button{border:0;border-radius:8px;padding:6px 7px;background:#eaf2f8;color:#315d80;font-size:8.5px;font-weight:800;cursor:pointer}
+.school-member-actions .danger-lite{background:#f8e9eb;color:#984d58}
+@media(max-width:640px){
+  .school-member-row{grid-template-columns:34px 1fr}
+  .school-member-actions{grid-column:1/-1;justify-content:flex-start;padding-top:3px}
+}
