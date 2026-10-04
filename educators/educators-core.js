@@ -46,6 +46,7 @@
     const forgot=$('#eduForgotPassword');
     if(nameWrap) nameWrap.hidden = !signup;
     if(emailWrap) emailWrap.hidden = reset;
+    if($('#teacherEmail')) $('#teacherEmail').required = !reset;
     if(tabs) tabs.hidden = reset;
     if(forgot) forgot.hidden = reset;
 
