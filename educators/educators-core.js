@@ -231,14 +231,14 @@
         if(data.session){
           state.session=data.session;
           state.profile=await window.ESCSupabase.ensureEducatorProfile($('#teacherName').value.trim()||email.split('@')[0]);
-          closeAuth(); await enterTeacher();
+          closeAuth(); await enterTeacher(); document.querySelector('#teacher-demo')?.scrollIntoView({behavior:'smooth',block:'start'});
         }else{
           msg($('#eduAuthMessage'),'Hesap oluşturuldu. E-postanıza gelen doğrulama bağlantısını açın; ardından öğretmen paneline giriş yapın.',true);
         }
       }else{
         const data=await window.ESCSupabase.signIn(email,password);
         state.session=data.session;
-        closeAuth();await enterTeacher();
+        closeAuth();await enterTeacher();document.querySelector('#teacher-demo')?.scrollIntoView({behavior:'smooth',block:'start'});
       }
     }catch(err){msg($('#eduAuthMessage'),humanError(err));}
     finally{submit.disabled=false;}
