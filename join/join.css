@@ -29,3 +29,8 @@
 .student-assignment.overdue{background:#fbf7f7;border-color:#ead8da}
 .student-assignment.overdue .student-assignment-top span{background:#f5e7e9;color:#954853}
 .student-assignment.overdue>b{display:block;margin-top:10px;color:#954853;font-size:11px}
+
+.student-assignment-feedback{margin-top:12px;padding:11px 12px;border-radius:11px;background:#eef6ff;border:1px solid #d6e7f7}
+.student-assignment-feedback small{display:block;font-size:9px;font-weight:900;letter-spacing:.1em;color:#54728e}
+.student-assignment-feedback strong{display:inline-block;margin-top:6px;padding:4px 7px;border-radius:999px;background:#dcecff;color:#245d91;font-size:11px}
+.student-assignment-feedback p{margin:7px 0 0;font-size:11px;line-height:1.5;color:#38566f}
