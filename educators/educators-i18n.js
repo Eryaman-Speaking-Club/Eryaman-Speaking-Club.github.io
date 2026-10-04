@@ -518,6 +518,16 @@
   "Plan yok": "No plan"
 });
 
+  Object.assign(TEXT,{
+  "ÜRÜN DURUMU": "PRODUCT STATUS",
+  "Hesap, sınıf, canlı ders, özel öğrenci, ders kütüphanesi, ödev, planlayıcı ve gerçek rapor akışı çalışıyor. Sıradaki büyük katman AI Teacher Assistant ve okul çalışma alanı.": "Accounts, classes, live lessons, private students, lesson library, assignments, planner and real reports are live. The next major layer is the AI Teacher Assistant and school workspace.",
+  "Kodla öğrenci katılımı, canlı ders durumu ve opsiyonel takım puanları.": "Student join by code, live lesson state and optional team scoring.",
+  "Kaydedilmiş dersler, tekrar kullanım ve hesaba bağlı özel öğrenci profilleri.": "Saved lessons, reuse and account-synced private student profiles.",
+  "Ödev teslimi, yaklaşan ders planı ve gerçek öğrenci sonuçlarından rapor.": "Assignment submissions, upcoming lesson planning and reports from real student results.",
+  "Tek brief'ten ders, worksheet, speaking, quiz, homework ve oyun üretimi.": "Generate a lesson, worksheet, speaking tasks, quiz, homework and a game from one brief.",
+  "School workspace, ekip kütüphanesi, lisanslama ve ödeme.": "School workspace, shared team library, licensing and payments."
+});
+
   const PLACEHOLDERS={
     "Örn. 6-B / Junior Speaking":"e.g. 6-B / Junior Speaking",
     "En az 8 karakter":"At least 8 characters",
