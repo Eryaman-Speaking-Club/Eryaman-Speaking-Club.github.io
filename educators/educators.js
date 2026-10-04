@@ -568,6 +568,7 @@
     $('[data-student-screen="join"]').classList.add("active");
   });
 
+  window.addEventListener("esc:languagechange",()=>syncPreview());
   syncPreview();
 })();
 
