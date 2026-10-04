@@ -34,10 +34,28 @@
     try{localStorage.setItem(LANG_KEY,lang);}catch{}
     document.querySelectorAll('[data-join-lang]').forEach(b=>b.classList.toggle('active',b.dataset.joinLang===lang));
     const set=(sel,tr,en)=>{const el=$(sel);if(el)el.textContent=tx(tr,en);};
+    const setLabel=(sel,tr,en)=>{const el=$(sel);if(el?.firstChild)el.firstChild.nodeValue=tx(tr,en)+' ';};
     set('.join-kicker','ÖĞRENCİ GİRİŞİ','STUDENT JOIN');
     set('.join-card h1','Sınıfına katıl.','Join your class.');
     set('.join-card>p','Öğretmeninin verdiği sınıf kodunu ve adını gir. Öğrenci hesabı veya e-posta gerekmez.','Enter the class code from your teacher and your name. No student account or email is required.');
+    setLabel('#joinForm label:nth-of-type(1)','Sınıf kodu','Class code');
+    setLabel('#joinForm label:nth-of-type(2)','Adın','Your name');
     set('#joinButton','Sınıfa katıl →','Join class →');
+    set('.join-safe b','Basit öğrenci girişi','Simple student access');
+    set('.join-safe small','Bu ekran için e-posta, telefon numarası veya şifre istemiyoruz.','No email, phone number or password is required on this screen.');
+    set('.join-help p:nth-of-type(1) b','Kodu gir','Enter the code');
+    set('.join-help p:nth-of-type(1) small','Öğretmenin verdiği sınıf kodunu kullan.','Use the class code from your teacher.');
+    set('.join-help p:nth-of-type(2) b','Adını yaz','Enter your name');
+    set('.join-help p:nth-of-type(2) small','Sınıfta görünecek kısa adını kullan.','Use the short name you want shown in class.');
+    set('.join-help p:nth-of-type(3) b','Ekranı açık tut','Keep the screen open');
+    set('.join-help p:nth-of-type(3) small','Öğretmen soru değiştirdikçe ekranın otomatik yenilenir.','Your screen updates automatically when the teacher changes the activity.');
+    set('#completedState small','DERS TAMAMLANDI','CLASS COMPLETED');
+    set('#completedState h2','Harika iş!','Good work!');
+    set('#completedState p','Ders sona erdi. Öğretmenin yeni bir oturum başlatırsa bu ekran yeniden güncellenebilir.','The lesson has ended. This screen will update again if your teacher starts a new session.');
+    const actions=document.querySelectorAll('#studentAction button');
+    if(actions[0])actions[0].textContent=tx('Cevap verdim ✓','I answered ✓');
+    if(actions[1])actions[1].textContent=tx('Yardıma ihtiyacım var','I need help');
+    set('.sync-note','Ders akışını öğretmen yönetir. Ekranın otomatik güncellenir.','Your teacher controls the lesson flow. Your screen updates automatically.');
     set('#waitingState>small',"BAĞLANDIN","YOU'RE IN");
     set('#waitingState h2','Öğretmenin dersi başlatmasını bekliyoruz.','Waiting for your teacher to start the lesson.');
     set('#waitingState p','Bu ekran açık kalsın. Ders veya oyun başladığında otomatik olarak güncellenecek.','Keep this screen open. It updates automatically when a lesson or game starts.');
