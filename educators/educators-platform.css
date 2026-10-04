@@ -777,3 +777,15 @@
   .class-roster-row em{display:none}
   .class-roster-row button{grid-column:2/-1;justify-self:start}
 }
+
+.roster-note-dot{display:inline-block;width:6px;height:6px;margin-left:6px;border-radius:50%;background:#4f8cc4;vertical-align:middle}
+.roster-student-notes{grid-column:1/-1;margin-top:2px;border-top:1px solid #edf1f4;padding-top:5px}
+.roster-student-notes summary{cursor:pointer;font-size:8.5px;font-weight:800;color:#52718b;list-style:none}
+.roster-student-notes summary::-webkit-details-marker{display:none}
+.roster-student-notes summary:before{content:"＋";display:inline-block;margin-right:5px}
+.roster-student-notes[open] summary:before{content:"−"}
+.roster-note-editor{display:grid;grid-template-columns:minmax(120px,.42fr) minmax(220px,1fr) auto;gap:7px;align-items:end;margin-top:8px}
+.roster-note-editor label{display:grid;gap:4px;font-size:8px;font-weight:800;color:#61798d}
+.roster-note-editor input,.roster-note-editor textarea{width:100%;border:1px solid #d5e0e8;border-radius:8px;background:#fff;padding:7px 8px;color:#173a58;font:inherit;font-weight:500;resize:vertical}
+.roster-note-editor button{min-height:35px;border:0;border-radius:8px;background:#173f65;color:#fff;padding:7px 9px;font-size:8.5px;font-weight:850;cursor:pointer}
+@media(max-width:640px){.roster-note-editor{grid-template-columns:1fr}.roster-note-editor button{width:100%}}
