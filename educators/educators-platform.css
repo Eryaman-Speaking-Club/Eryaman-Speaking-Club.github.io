@@ -553,3 +553,68 @@
 
 #classCardGrid article.inactive-class{opacity:.72;background:#f7f9fb}
 #classCardGrid article.inactive-class .class-actions button:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(.3)}
+
+
+/* Teacher Assistant beta */
+.side-beta{margin-left:auto;font-style:normal;font-size:9px;letter-spacing:.08em;padding:3px 6px;border-radius:999px;background:#eaf3ff;color:#225f9e}
+.assistant-workflow-card{position:relative;overflow:hidden}
+.assistant-workflow-card:after{content:"BETA";position:absolute;top:10px;right:-24px;transform:rotate(38deg);font-size:8px;font-weight:900;letter-spacing:.12em;padding:4px 28px;background:#eaf3ff;color:#225f9e}
+.assistant-value-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:16px}
+.assistant-value-strip>div{padding:13px 14px;border:1px solid #dce6ef;border-radius:14px;background:#f8fbfd}
+.assistant-value-strip b{display:block;font-size:13px;color:#102d4e}
+.assistant-value-strip span{display:block;margin-top:3px;font-size:11px;color:#657b8e;line-height:1.45}
+.assistant-layout{display:grid;grid-template-columns:minmax(310px,.76fr) minmax(0,1.24fr);gap:18px;align-items:start}
+.assistant-form,.assistant-output{border:1px solid #dce6ef;border-radius:18px;background:#fff;padding:18px}
+.assistant-form{display:grid;gap:12px}
+.assistant-form-head{padding:2px 2px 8px}
+.assistant-form-head small,.assistant-result-head small,.assistant-result-grid article>small,.assistant-game-card small{display:block;font-size:9px;font-weight:900;letter-spacing:.12em;color:#5b7892}
+.assistant-form-head strong{display:block;margin-top:5px;font-size:19px;color:#102d4e}
+.assistant-form-head p{margin:6px 0 0;font-size:12px;line-height:1.55;color:#657b8e}
+.assistant-form label{display:grid;gap:6px;font-size:11px;font-weight:800;color:#274661}
+.assistant-form label>span{font-weight:500;color:#8192a2}
+.assistant-form input,.assistant-form select,.assistant-form textarea{width:100%;border:1px solid #cfdce7;border-radius:11px;background:#fbfdff;padding:10px 11px;color:#102d4e;font:inherit;font-weight:500;outline:none}
+.assistant-form textarea{resize:vertical;min-height:105px}
+.assistant-form input:focus,.assistant-form select:focus,.assistant-form textarea:focus{border-color:#87acd2;box-shadow:0 0 0 3px rgba(61,122,180,.08)}
+.assistant-generate{margin-top:2px}
+.assistant-output{min-height:520px}
+.assistant-empty{min-height:480px;display:grid;place-content:center;text-align:center;padding:30px;color:#657b8e}
+.assistant-empty>span{display:grid;place-items:center;width:56px;height:56px;margin:0 auto 14px;border-radius:18px;background:#eef6ff;color:#2767a5;font-size:24px}
+.assistant-empty strong{font-size:18px;color:#102d4e}
+.assistant-empty p{max-width:470px;margin:8px auto 0;font-size:12px;line-height:1.6}
+.assistant-result-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;padding-bottom:14px;border-bottom:1px solid #e4ebf1}
+.assistant-result-head h4{margin:5px 0 0;font-size:22px;line-height:1.18;color:#102d4e}
+.assistant-result-head>span{flex:none;padding:7px 9px;border-radius:999px;background:#eef5fb;color:#365d7b;font-size:10px;font-weight:800}
+.assistant-objective{margin:14px 0 11px;font-size:12px;line-height:1.6;color:#4f687d}
+.assistant-chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:15px}
+.assistant-chip-row span{padding:5px 8px;border-radius:999px;background:#f1f5f8;color:#37546c;font-size:10px;font-weight:750}
+.assistant-result-grid{display:grid;grid-template-columns:1.18fr .82fr;gap:10px}
+.assistant-result-grid article{border:1px solid #e0e8ef;border-radius:14px;padding:13px;background:#fbfdff;min-width:0}
+.assistant-result-grid ol{margin:9px 0 0;padding-left:18px}
+.assistant-result-grid li{padding:4px 0;font-size:11px;line-height:1.48;color:#38546c}
+.assistant-plan-card{grid-row:span 2}
+.assistant-plan-row{display:grid;grid-template-columns:30px 1fr;gap:8px;padding:10px 0;border-bottom:1px solid #e5ecf2}
+.assistant-plan-row:last-child{border-bottom:0}
+.assistant-plan-row>span{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:#eef5fb;font-size:9px;font-weight:900;color:#3d6b92}
+.assistant-plan-row p{margin:0}
+.assistant-plan-row b{display:block;font-size:11px;color:#173a58}
+.assistant-plan-row small,.assistant-plan-row em{display:block;margin-top:2px;font-size:9.5px;line-height:1.4;color:#71869a;font-style:normal}
+.assistant-game-card{margin-top:10px;padding:13px 14px;border:1px solid #dbe8f4;border-radius:14px;background:#f4f9fe}
+.assistant-game-card>div{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.assistant-game-card strong{font-size:12px;color:#173f65}
+.assistant-game-card p{margin:7px 0 0;font-size:11px;line-height:1.5;color:#516d84}
+.assistant-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.assistant-actions button{min-height:40px}
+.assistant-engine-note{margin-top:12px}
+@media(max-width:980px){
+  .assistant-layout{grid-template-columns:1fr}
+  .assistant-output{min-height:0}
+  .assistant-empty{min-height:300px}
+}
+@media(max-width:640px){
+  .assistant-value-strip,.assistant-result-grid{grid-template-columns:1fr}
+  .assistant-plan-card{grid-row:auto}
+  .assistant-form,.assistant-output{padding:14px;border-radius:14px}
+  .assistant-result-head{display:block}
+  .assistant-result-head>span{display:inline-block;margin-top:8px}
+  .assistant-actions{display:grid;grid-template-columns:1fr}
+}
