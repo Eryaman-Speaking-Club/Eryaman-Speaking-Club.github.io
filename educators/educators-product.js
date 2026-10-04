@@ -26,7 +26,7 @@
   }
 
   function classNameFor(id) {
-    return state.classes.find(c => c.id === id)?.name || 'Sınıf';
+    return state.classes.find(c => c.id === id)?.name || tx('Sınıf','Class');
   }
 
   function lessonGoalLabel(goal) {
@@ -76,7 +76,7 @@
 
   function recentLessonCard(lesson) {
     return `<button class="recent-lesson-item" type="button" data-open-lesson="${esc(lesson.id)}">
-      <span><b>${esc(lesson.title || lesson.topic || 'English lesson')}</b><small>${esc(classNameFor(lesson.class_id))} · ${esc(lessonGoalLabel(lesson.primary_goal))} · ${Number(lesson.duration_minutes || 0)} dk</small></span>
+      <span><b>${esc(lesson.title || lesson.topic || 'English lesson')}</b><small>${esc(classNameFor(lesson.class_id))} · ${esc(lessonGoalLabel(lesson.primary_goal))} · ${Number(lesson.duration_minutes || 0)} ${tx('dk','min')}</small></span>
       <em>→</em>
     </button>`;
   }
@@ -85,7 +85,7 @@
     const wrap = $('#recentLessonList');
     if (!wrap) return;
     if (!state.lessons.length) {
-      wrap.innerHTML = '<div class="recent-empty"><strong>Henüz kaydedilmiş ders yok.</strong><span>İlk dersini oluşturup kaydettiğinde burada görünecek.</span><button type="button" data-open-builder>İlk dersi oluştur →</button></div>';
+      wrap.innerHTML = '<div class="recent-empty"><strong>'+tx('Henüz kaydedilmiş ders yok.','No saved lessons yet.')+'</strong><span>'+tx('İlk dersini oluşturup kaydettiğinde burada görünecek.','Your first saved lesson will appear here.')+'</span><button type="button" data-open-builder>'+tx('İlk dersi oluştur →','Create your first lesson →')+'</button></div>';
       $('[data-open-builder]', wrap)?.addEventListener('click',()=>openPanel('builder'));
       return;
     }
@@ -104,13 +104,13 @@
         <small>${esc(fmtDate(lesson.updated_at || lesson.created_at))}</small>
       </div>
       <h4>${esc(lesson.title || lesson.topic || 'English lesson')}</h4>
-      <p>${esc(classNameFor(lesson.class_id))} · ${esc(lesson.topic || 'English')} · ${Number(lesson.duration_minutes || 0)} dk</p>
-      <div class="library-card-meta"><span>${planCount} aşama</span><span>${esc(lesson.status || 'saved')}</span></div>
+      <p>${esc(classNameFor(lesson.class_id))} · ${esc(lesson.topic || 'English')} · ${Number(lesson.duration_minutes || 0)} ${tx('dk','min')}</p>
+      <div class="library-card-meta"><span>${planCount} ${tx('aşama','stages')}</span><span>${esc(lesson.status || 'saved')}</span></div>
       <div class="library-card-actions">
-        <button type="button" data-lesson-use="${esc(lesson.id)}">Düzenle / kullan</button>
-        <button type="button" data-lesson-duplicate="${esc(lesson.id)}">Kopyala</button>
-        <button type="button" data-lesson-print="${esc(lesson.id)}">Yazdır</button>
-        <button type="button" class="danger-lite" data-lesson-delete="${esc(lesson.id)}">Sil</button>
+        <button type="button" data-lesson-use="${esc(lesson.id)}">${tx('Düzenle / kullan','Edit / use')}</button>
+        <button type="button" data-lesson-duplicate="${esc(lesson.id)}">${tx('Kopyala','Duplicate')}</button>
+        <button type="button" data-lesson-print="${esc(lesson.id)}">${tx('Yazdır','Print')}</button>
+        <button type="button" class="danger-lite" data-lesson-delete="${esc(lesson.id)}">${tx('Sil','Delete')}</button>
       </div>
     </article>`;
   }
@@ -119,7 +119,7 @@
     const grid = $('#lessonLibraryGrid');
     if (!grid) return;
     if (!state.lessons.length) {
-      grid.innerHTML = '<div class="library-empty"><strong>Henüz kayıtlı dersin yok.</strong><span>Lesson Builder ile ilk dersini oluştur, kaydet ve bundan sonra tekrar tekrar kullan.</span><button type="button" data-empty-create>+ İlk dersi oluştur</button></div>';
+      grid.innerHTML = '<div class="library-empty"><strong>'+tx('Henüz kayıtlı dersin yok.','Your lesson library is empty.')+'</strong><span>'+tx('Lesson Builder ile ilk dersini oluştur, kaydet ve bundan sonra tekrar tekrar kullan.','Create and save your first lesson, then reuse it whenever you need.')+'</span><button type="button" data-empty-create>'+tx('+ İlk dersi oluştur','+ Create your first lesson')+'</button></div>';
       $('[data-empty-create]',grid)?.addEventListener('click',()=>openPanel('builder'));
       return;
     }
@@ -136,7 +136,7 @@
       try{
         await window.ESCSupabase.saveEducatorLesson({
           class_id:lesson.class_id,
-          title:((lesson.title||lesson.topic||'English lesson')+' · Kopya').slice(0,120),
+          title:((lesson.title||lesson.topic||'English lesson')+' · '+tx('Kopya','Copy')).slice(0,120),
           topic:lesson.topic||'English',
           duration_minutes:Number(lesson.duration_minutes||40),
           primary_goal:lesson.primary_goal||'speaking',
@@ -145,7 +145,7 @@
         });
         window.ESCAnalytics?.track?.('educator_lesson_duplicated','other');
         await refreshData();
-      }catch(err){alert(err?.message||'Ders kopyalanamadı.');}
+      }catch(err){alert(err?.message||tx('Ders kopyalanamadı.','Could not duplicate lesson.'));}
       finally{b.disabled=false;}
     }));
     $$('[data-lesson-print]',grid).forEach(b=>b.addEventListener('click',()=>{
@@ -155,13 +155,13 @@
     $$('[data-lesson-delete]',grid).forEach(b=>b.addEventListener('click',async()=>{
       const lesson=state.lessons.find(x=>x.id===b.dataset.lessonDelete);
       if(!lesson) return;
-      if(!confirm('“'+(lesson.title||lesson.topic||'Bu ders')+'” silinsin mi?')) return;
+      if(!confirm('“'+(lesson.title||lesson.topic||tx('Bu ders','This lesson'))+'” '+tx('silinsin mi?','— delete it?'))) return;
       b.disabled=true;
       try {
         await window.ESCSupabase.deleteEducatorLesson(lesson.id);
         await refreshData();
       } catch (err) {
-        alert(err?.message || 'Ders silinemedi.');
+        alert(err?.message || tx('Ders silinemedi.','Could not delete lesson.'));
       } finally { b.disabled=false; }
     }));
     applyLibraryFilters();
@@ -246,12 +246,12 @@
     const plan = Array.isArray(lesson.plan) ? lesson.plan : [];
     const rows = plan.map((step,i)=>`<tr><td>${i+1}</td><td>${esc(step.stage||step.title||'Stage')}</td><td>${esc(step.duration||'')}</td><td>${esc(step.prompt||step.mode||'')}</td></tr>`).join('');
     const popup = window.open('','_blank','width=900,height=700');
-    if(!popup) return alert('Yazdırma penceresi engellendi. Tarayıcıdan açılır pencerelere izin verin.');
-    popup.document.write(`<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>${esc(lesson.title||'Ders Planı')}</title><style>
+    if(!popup) return alert(tx('Yazdırma penceresi engellendi. Tarayıcıdan açılır pencerelere izin verin.','The print window was blocked. Allow pop-ups in your browser.'));
+    popup.document.write(`<!doctype html><html lang="${en()?'en':'tr'}"><head><meta charset="utf-8"><title>${esc(lesson.title||tx('Ders Planı','Lesson Plan'))}</title><style>
       body{font-family:Arial,sans-serif;color:#102d4e;margin:40px;line-height:1.5}h1{font-size:28px;margin:0 0 6px}.meta{color:#667b8e;margin-bottom:24px}
       table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #dce5ed;padding:10px;text-align:left;vertical-align:top}th{background:#f4f7fa}
       .brand{font-weight:800;margin-bottom:28px;color:#0b2f5b}@media print{body{margin:20mm}}
-    </style></head><body><div class="brand">Eryaman Speaking Club Educators</div><h1>${esc(lesson.title||lesson.topic||'Ders Planı')}</h1><div class="meta">${esc(classNameFor(lesson.class_id))} · ${esc(lesson.topic||'')} · ${esc(lessonGoalLabel(lesson.primary_goal))} · ${Number(lesson.duration_minutes||0)} dk</div><table><thead><tr><th>#</th><th>Aşama</th><th>Süre</th><th>Not / Prompt</th></tr></thead><tbody>${rows||'<tr><td colspan="4">Ders planı içeriği bulunamadı.</td></tr>'}</tbody></table><script>window.onload=()=>window.print()<\/script></body></html>`);
+    </style></head><body><div class="brand">English Teacher Platform</div><h1>${esc(lesson.title||lesson.topic||tx('Ders Planı','Lesson Plan'))}</h1><div class="meta">${esc(classNameFor(lesson.class_id))} · ${esc(lesson.topic||'')} · ${esc(lessonGoalLabel(lesson.primary_goal))} · ${Number(lesson.duration_minutes||0)} ${tx('dk','min')}</div><table><thead><tr><th>#</th><th>${tx('Aşama','Stage')}</th><th>${tx('Süre','Duration')}</th><th>${tx('Not / Prompt','Note / Prompt')}</th></tr></thead><tbody>${rows||'<tr><td colspan="4">${tx('Ders planı içeriği bulunamadı.','No lesson-plan content found.')}</td></tr>'}</tbody></table><script>window.onload=()=>window.print()<\/script></body></html>`);
     popup.document.close();
   }
 
@@ -281,31 +281,31 @@
 
     const bars=$('#reportActivityBars');
     if(bars){
-      if(!sorted.length) bars.innerHTML='<div class="report-empty-line">Henüz öğrenci sonucu yok.</div>';
+      if(!sorted.length) bars.innerHTML='<div class="report-empty-line">'+tx('Henüz öğrenci sonucu yok.','No student results yet.')+'</div>';
       else bars.innerHTML=sorted.slice(0,5).map(([name,g])=>{
         const gavg=g.scores.length?g.scores.reduce((a,b)=>a+b,0)/g.scores.length:null;
         const pct=gavg===null?Math.min(100,Math.round((g.count/Math.max(1,attempts))*100)):Math.max(0,Math.min(100,Math.round(gavg)));
-        const label=gavg===null?g.count+' kayıt':Math.round(gavg)+'%';
+        const label=gavg===null?g.count+' '+tx('kayıt','records'):Math.round(gavg)+'%';
         return '<div><b>'+esc(name.replace(/[-_]/g,' '))+'</b><i><span style="--v:'+pct+'%"></span></i><em>'+esc(label)+'</em></div>';
       }).join('');
     }
 
     const scope=$('#reportScopeLabel');
-    if(scope) scope.textContent=selectedClass==='all'?'TÜM SINIFLAR':(classNameFor(selectedClass)+' · SINIF VERİSİ');
+    if(scope) scope.textContent=selectedClass==='all'?tx('TÜM SINIFLAR','ALL CLASSES'):(classNameFor(selectedClass)+' · '+tx('SINIF VERİSİ','CLASS DATA'));
     const headline=$('#reportHeadline'), sub=$('#reportSubline');
-    if(headline) headline.textContent=attempts ? (avg===null ? attempts+' öğrenci sonucu' : Math.round(avg)+'% genel ortalama') : 'Henüz yeterli veri yok';
-    if(sub) sub.textContent=attempts ? 'Bu özet gerçek öğrenci sonuçlarından hesaplanır.' : 'Öğrenciler etkinlik tamamladıkça sonuçlar burada gerçek zamanlı özetlenir.';
+    if(headline) headline.textContent=attempts ? (avg===null ? attempts+' '+tx('öğrenci sonucu','student results') : Math.round(avg)+'% '+tx('genel ortalama','overall average')) : tx('Henüz yeterli veri yok','Not enough data yet');
+    if(sub) sub.textContent=attempts ? tx('Bu özet gerçek öğrenci sonuçlarından hesaplanır.','This summary is calculated from real student results.') : tx('Öğrenciler etkinlik tamamladıkça sonuçlar burada gerçek zamanlı özetlenir.','Results are summarised here as students complete activities.');
 
     const scoredGroups=sorted.map(([name,g])=>({name,avg:g.scores.length?g.scores.reduce((a,b)=>a+b,0)/g.scores.length:null,count:g.count})).filter(x=>x.avg!==null).sort((a,b)=>a.avg-b.avg);
     const weakest=scoredGroups[0];
     const title=$('#reportInsightTitle'), text=$('#reportInsightText'), tags=$('#reportInsightTags');
     if(weakest){
-      if(title) title.textContent=weakest.name.replace(/[-_]/g,' ')+' tekrarını planla.';
-      if(text) text.textContent='Bu etkinlik türünde ortalama '+Math.round(weakest.avg)+'%. Sonraki derste kısa bir tekrar veya farklılaştırılmış etkinlik eklemek mantıklı.';
+      if(title) title.textContent=weakest.name.replace(/[-_]/g,' ')+' '+tx('tekrarını planla.','needs review.');
+      if(text) text.textContent=tx('Bu etkinlik türünde ortalama ','Average for this activity: ')+Math.round(weakest.avg)+'%. '+tx('Sonraki derste kısa bir tekrar veya farklılaştırılmış etkinlik eklemek mantıklı.','A short review or differentiated activity in the next lesson may help.');
       if(tags) tags.innerHTML='<span>'+esc(weakest.name.replace(/[-_]/g,' '))+'</span><span>'+Math.round(weakest.avg)+'%</span>';
     } else {
-      if(title) title.textContent=attempts?'Daha fazla puanlı etkinlik çalıştır.':'Önce bir canlı etkinlik çalıştır.';
-      if(text) text.textContent=attempts?'Sonuç kaydı var; puanlı etkinlikler arttıkça zayıf beceriyi otomatik belirleyebiliriz.':'Platform, sonuçlar geldikçe hangi beceriyi tekrar etmenin daha mantıklı olduğunu gösterecek.';
+      if(title) title.textContent=attempts?tx('Daha fazla puanlı etkinlik çalıştır.','Run more scored activities.'):tx('Önce bir canlı etkinlik çalıştır.','Run a live activity first.');
+      if(text) text.textContent=attempts?tx('Sonuç kaydı var; puanlı etkinlikler arttıkça zayıf beceriyi otomatik belirleyebiliriz.','Results exist; more scored activities will make skill recommendations more reliable.'):tx('Platform, sonuçlar geldikçe hangi beceriyi tekrar etmenin daha mantıklı olduğunu gösterecek.','As results arrive, the platform will suggest what may need review.');
       if(tags) tags.innerHTML='';
     }
   }
