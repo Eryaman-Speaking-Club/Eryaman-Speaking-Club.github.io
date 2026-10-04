@@ -343,6 +343,41 @@
     "Hesabınız açıldığında sınıflarınız ve dersleriniz cihazdan bağımsız olarak kaydedilir.": "Once your account is created, classes and lessons are saved across devices."
 });
 
+  Object.assign(TEXT,{
+  "Ödevler": "Assignments",
+  "Ders bittikten sonra öğrenme devam etsin.": "Keep learning going after class.",
+  "ÖDEVLER": "ASSIGNMENTS",
+  "YENİ ÖDEV": "NEW ASSIGNMENT",
+  "Sınıfa görev gönder": "Send a task to the class",
+  "Kaydettiğin bir dersi ödeve dönüştür veya sıfırdan kısa bir görev oluştur.": "Turn a saved lesson into homework or create a short task from scratch.",
+  "Sınıf": "Class",
+  "Önce sınıf seç": "Choose a class",
+  "Kaydedilmiş ders": "Saved lesson",
+  "opsiyonel": "optional",
+  "Ders seçmeden devam et": "Continue without a saved lesson",
+  "Başlık": "Title",
+  "Öğrenci yönergesi": "Student instructions",
+  "Ne yapmasını istediğini kısa ve net yaz.": "Write clearly and briefly what you want students to do.",
+  "Son teslim": "Due date",
+  "Durum": "Status",
+  "Hemen yayınla": "Publish now",
+  "Taslak kaydet": "Save draft",
+  "Ödevi oluştur →": "Create assignment →",
+  "Yayınlanan ödev, sınıf koduyla giriş yapan öğrencilerin ekranında otomatik görünür.": "Published assignments appear automatically for students who join with the class code.",
+  "SINIF ÖDEVLERİ": "CLASS ASSIGNMENTS",
+  "Yayınlanan ve taslak ödevler": "Published and draft assignments",
+  "Ödevler yükleniyor…": "Loading assignments…",
+  "Materyaller": "Resources",
+  "Oyunlar": "Games",
+  "Araçlar": "Tools",
+  "Sınıflar, kaydedilmiş dersler ve özel öğrenci profilleri öğretmen hesabına bağlıdır. Aynı hesapla farklı cihazlardan kaldığın yerden devam edebilirsin.": "Classes, saved lessons and private student profiles are linked to your teacher account. Continue from where you left off on any device.",
+  "Ders Oluşturucu": "Lesson Builder",
+  "Özel Öğrenciler": "Private Students",
+  "Sınıflarım": "My Classes",
+  "Müfredat": "Curriculum",
+  "Bugün": "Today"
+});
+
   const PLACEHOLDERS={
     "Örn. 6-B / Junior Speaking":"e.g. 6-B / Junior Speaking",
     "En az 8 karakter":"At least 8 characters",
