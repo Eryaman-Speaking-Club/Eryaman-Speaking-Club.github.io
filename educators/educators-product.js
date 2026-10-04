@@ -245,13 +245,14 @@
     window.ESCAnalytics?.track?.('educator_lesson_printed','other');
     const plan = Array.isArray(lesson.plan) ? lesson.plan : [];
     const rows = plan.map((step,i)=>`<tr><td>${i+1}</td><td>${esc(step.stage||step.title||'Stage')}</td><td>${esc(step.duration||'')}</td><td>${esc(step.prompt||step.mode||'')}</td></tr>`).join('');
+    const emptyRow = '<tr><td colspan="4">'+esc(tx('Ders planı içeriği bulunamadı.','No lesson-plan content found.'))+'</td></tr>';
     const popup = window.open('','_blank','width=900,height=700');
     if(!popup) return alert(tx('Yazdırma penceresi engellendi. Tarayıcıdan açılır pencerelere izin verin.','The print window was blocked. Allow pop-ups in your browser.'));
     popup.document.write(`<!doctype html><html lang="${en()?'en':'tr'}"><head><meta charset="utf-8"><title>${esc(lesson.title||tx('Ders Planı','Lesson Plan'))}</title><style>
       body{font-family:Arial,sans-serif;color:#102d4e;margin:40px;line-height:1.5}h1{font-size:28px;margin:0 0 6px}.meta{color:#667b8e;margin-bottom:24px}
       table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #dce5ed;padding:10px;text-align:left;vertical-align:top}th{background:#f4f7fa}
       .brand{font-weight:800;margin-bottom:28px;color:#0b2f5b}@media print{body{margin:20mm}}
-    </style></head><body><div class="brand">English Teacher Platform</div><h1>${esc(lesson.title||lesson.topic||tx('Ders Planı','Lesson Plan'))}</h1><div class="meta">${esc(classNameFor(lesson.class_id))} · ${esc(lesson.topic||'')} · ${esc(lessonGoalLabel(lesson.primary_goal))} · ${Number(lesson.duration_minutes||0)} ${tx('dk','min')}</div><table><thead><tr><th>#</th><th>${tx('Aşama','Stage')}</th><th>${tx('Süre','Duration')}</th><th>${tx('Not / Prompt','Note / Prompt')}</th></tr></thead><tbody>${rows||'<tr><td colspan="4">${tx('Ders planı içeriği bulunamadı.','No lesson-plan content found.')}</td></tr>'}</tbody></table><script>window.onload=()=>window.print()<\/script></body></html>`);
+    </style></head><body><div class="brand">English Teacher Platform</div><h1>${esc(lesson.title||lesson.topic||tx('Ders Planı','Lesson Plan'))}</h1><div class="meta">${esc(classNameFor(lesson.class_id))} · ${esc(lesson.topic||'')} · ${esc(lessonGoalLabel(lesson.primary_goal))} · ${Number(lesson.duration_minutes||0)} ${tx('dk','min')}</div><table><thead><tr><th>#</th><th>${tx('Aşama','Stage')}</th><th>${tx('Süre','Duration')}</th><th>${tx('Not / Prompt','Note / Prompt')}</th></tr></thead><tbody>${rows||emptyRow}</tbody></table><script>window.onload=()=>window.print()<\/script></body></html>`);
     popup.document.close();
   }
 
