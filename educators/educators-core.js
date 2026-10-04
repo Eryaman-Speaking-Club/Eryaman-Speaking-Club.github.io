@@ -642,6 +642,10 @@
       if($('#eduLogout')) $('#eduLogout').textContent=t('Çıkış');
       renderClasses();renderOverview();
     });
+    window.addEventListener('esc:profile-updated',e=>{
+      if(e.detail?.profile) state.profile=e.detail.profile;
+      if(state.session && $('#workspaceTitle')) $('#workspaceTitle').textContent=(window.ESCEduI18n?.getLang?.()==='en'?'Hello, ':'Merhaba, ')+teacherName()+' 👋';
+    });
     bootAuth();
   });
 })();
