@@ -3,7 +3,7 @@
 
   const $ = (q, root=document) => root.querySelector(q);
   const $$ = (q, root=document) => [...root.querySelectorAll(q)];
-  const state = { lessons:[], classes:[], results:[], sessions:[], assignments:[], ready:false };
+  const state = { lessons:[], classes:[], results:[], sessions:[], assignments:[], privateStudents:[], schedule:[], ready:false };
   const en = () => document.documentElement.lang === 'en';
   const tx = (tr,enText) => en() ? enText : tr;
 
@@ -403,23 +403,119 @@
     finally{if(button)button.disabled=false;}
   }
 
+
+  function fmtTime(value){
+    try{return new Intl.DateTimeFormat(en()?'en-GB':'tr-TR',{weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}).format(new Date(value));}
+    catch{return '';}
+  }
+
+  function plannerTargetLabel(event){
+    if(event.class_id)return classNameFor(event.class_id);
+    if(event.private_student_id)return state.privateStudents.find(s=>s.id===event.private_student_id)?.display_name||tx('Özel öğrenci','Private student');
+    return tx('Serbest ders','Independent lesson');
+  }
+
+  function populatePlannerTargets(){
+    const select=$('#plannerTarget');if(!select)return;
+    const prev=select.value;
+    select.innerHTML='<option value="">'+tx('Serbest ders / bağlantısız','Independent lesson / no link')+'</option>'
+      +state.classes.map(x=>'<option value="class:'+esc(x.id)+'">'+tx('Sınıf: ','Class: ')+esc(x.name)+'</option>').join('')
+      +state.privateStudents.map(x=>'<option value="private:'+esc(x.id)+'">'+tx('Özel: ','Private: ')+esc(x.display_name)+'</option>').join('');
+    if([...select.options].some(o=>o.value===prev))select.value=prev;
+  }
+
+  function renderPlanner(){
+    populatePlannerTargets();
+    const list=$('#plannerList');if(!list)return;
+    const active=state.schedule.filter(x=>x.status!=='cancelled');
+    if(!active.length){
+      list.innerHTML='<div class="planner-empty"><strong>'+tx('Takvimde ders yok.','No lessons scheduled.')+'</strong><span>'+tx('İlk dersini eklediğinde burada kronolojik olarak görünecek.','Your upcoming lessons will appear here in chronological order.')+'</span></div>';
+      return;
+    }
+    list.innerHTML=active.map(ev=>{
+      const status=ev.status==='completed'?tx('Tamamlandı','Completed'):tx('Planlandı','Scheduled');
+      return '<article class="planner-event '+esc(ev.status)+'"><div class="planner-event-time"><b>'+esc(fmtTime(ev.starts_at))+'</b><span>'+Number(ev.duration_minutes||40)+' '+tx('dk','min')+'</span></div><div class="planner-event-copy"><small>'+esc(plannerTargetLabel(ev))+'</small><strong>'+esc(ev.title)+'</strong><p>'+esc(ev.notes||'')+'</p></div><div class="planner-event-actions">'+(ev.status==='completed'?'':'<button type="button" data-planner-complete="'+esc(ev.id)+'">'+tx('Tamamla','Complete')+'</button>')+'<button type="button" class="danger-lite" data-planner-delete="'+esc(ev.id)+'">'+tx('Sil','Delete')+'</button></div></article>';
+    }).join('');
+    $('[data-planner-complete]',list).forEach(b=>b.addEventListener('click',async()=>{
+      b.disabled=true;try{await window.ESCSupabase.updateScheduleEvent(b.dataset.plannerComplete,{status:'completed'});await refreshData();}catch(err){alert(err?.message||tx('Plan güncellenemedi.','Could not update event.'));}finally{b.disabled=false;}
+    }));
+    $('[data-planner-delete]',list).forEach(b=>b.addEventListener('click',async()=>{
+      if(!confirm(tx('Bu plan silinsin mi?','Delete this event?')))return;
+      b.disabled=true;try{await window.ESCSupabase.deleteScheduleEvent(b.dataset.plannerDelete);await refreshData();}catch(err){alert(err?.message||tx('Plan silinemedi.','Could not delete event.'));}finally{b.disabled=false;}
+    }));
+  }
+
+  function renderTodayPlanner(){
+    const wrap=$('#todayPlannerList');if(!wrap)return;
+    const now=new Date();
+    const upcoming=state.schedule.filter(x=>x.status==='scheduled'&&new Date(x.starts_at)>=new Date(now.getTime()-60*60*1000)).slice(0,3);
+    if(!upcoming.length){
+      wrap.innerHTML='<div class="today-planner-empty"><span>○</span><p><b>'+tx('Yaklaşan ders yok.','No upcoming lessons.')+'</b><small>'+tx('Planlayıcıdan bugünün veya haftanın derslerini ekle.','Add today’s or this week’s lessons from Planner.')+'</small></p></div>';
+      return;
+    }
+    wrap.innerHTML=upcoming.map(ev=>'<button type="button" class="today-plan-item" data-panel-target="planner"><span>'+esc(new Intl.DateTimeFormat(en()?'en-GB':'tr-TR',{hour:'2-digit',minute:'2-digit'}).format(new Date(ev.starts_at)))+'</span><p><b>'+esc(ev.title)+'</b><small>'+esc(plannerTargetLabel(ev))+' · '+Number(ev.duration_minutes||40)+' '+tx('dk','min')+'</small></p><em>→</em></button>').join('');
+
+    const first=upcoming[0],card=$('.next-lesson-card');
+    if(card&&first){
+      const head=$('.card-head b',card);if(head)head.textContent=fmtTime(first.starts_at);
+      const h=$('h3',card);if(h)h.textContent=first.title;
+      const p=$('p',card);if(p)p.textContent=plannerTargetLabel(first)+' · '+Number(first.duration_minutes||40)+' '+tx('dk','min');
+    }
+  }
+
+  async function submitPlannerForm(e){
+    e.preventDefault();
+    const rawTarget=$('#plannerTarget')?.value||'';
+    const title=$('#plannerTitle')?.value.trim()||'';
+    const start=$('#plannerStart')?.value||'';
+    if(!title||!start)return;
+    const payload={
+      title,starts_at:new Date(start).toISOString(),duration_minutes:Number($('#plannerDuration')?.value||40),
+      notes:$('#plannerNotes')?.value.trim()||null,status:'scheduled'
+    };
+    if(rawTarget.startsWith('class:'))payload.class_id=rawTarget.slice(6);
+    if(rawTarget.startsWith('private:'))payload.private_student_id=rawTarget.slice(8);
+    const b=$('#plannerSubmit');if(b)b.disabled=true;
+    try{
+      await window.ESCSupabase.createScheduleEvent(payload);
+      window.ESCAnalytics?.track?.('educator_schedule_created','other');
+      e.currentTarget.reset();
+      setPlannerDefaultStart();
+      await refreshData();
+    }catch(err){alert(err?.message||tx('Plan eklenemedi.','Could not add event.'));}
+    finally{if(b)b.disabled=false;}
+  }
+
+  function setPlannerDefaultStart(){
+    const input=$('#plannerStart');if(!input||input.value)return;
+    const d=new Date();d.setMinutes(Math.ceil(d.getMinutes()/15)*15+60);
+    const local=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+    input.value=local;
+  }
+
   async function refreshData() {
     if(!window.ESCSupabase?.isConfigured?.()) return;
     const session=await window.ESCSupabase.getSession().catch(()=>null);
     if(!session) return;
     try {
-      const [classes,lessons,results,sessions,assignments]=await Promise.all([
+      const from=new Date(Date.now()-24*60*60*1000).toISOString();
+      const to=new Date(Date.now()+90*24*60*60*1000).toISOString();
+      const [classes,lessons,results,sessions,assignments,privateStudents,schedule]=await Promise.all([
         window.ESCSupabase.listEducatorClasses(),
         window.ESCSupabase.listEducatorLessons(150),
         window.ESCSupabase.listEducatorResults(1000),
         window.ESCSupabase.listEducatorSessions(150),
-        window.ESCSupabase.listAssignments(150)
+        window.ESCSupabase.listAssignments(150),
+        window.ESCSupabase.listPrivateStudents(),
+        window.ESCSupabase.listScheduleEvents(from,to,300)
       ]);
       state.classes=classes||[];
       state.lessons=lessons||[];
       state.results=results||[];
       state.sessions=sessions||[];
       state.assignments=assignments||[];
+      state.privateStudents=privateStudents||[];
+      state.schedule=schedule||[];
       state.ready=true;
       const reportSelect=$('#reportClassFilter');
       if(reportSelect){
@@ -427,7 +523,7 @@
         reportSelect.innerHTML='<option value="all">Tüm sınıflar</option>'+state.classes.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>').join('');
         if([...reportSelect.options].some(o=>o.value===previous)) reportSelect.value=previous;
       }
-      renderSetup();renderRecent();renderLibrary();renderAssignments();renderReports();
+      renderSetup();renderRecent();renderLibrary();renderAssignments();renderPlanner();renderTodayPlanner();renderReports();
     } catch(err) {
       console.warn('Educators product refresh failed',err);
     }
@@ -442,6 +538,7 @@
       dateLabel.textContent = label.toLocaleUpperCase(locale) + ' · '+tx('ÖĞRETMEN ALANI','TEACHER SPACE');
     }
     setupActions();
+    setPlannerDefaultStart();
     $('#lessonLibrarySearch')?.addEventListener('input',applyLibraryFilters);
     $('#lessonLibraryGoal')?.addEventListener('change',applyLibraryFilters);
     $('#refreshLessonLibrary')?.addEventListener('click',refreshData);
@@ -449,6 +546,14 @@
     $('#refreshReports')?.addEventListener('click',refreshData);
     $('#refreshAssignments')?.addEventListener('click',refreshData);
     $('#assignmentForm')?.addEventListener('submit',submitAssignmentForm);
+    $('#plannerForm')?.addEventListener('submit',submitPlannerForm);
+    $('#refreshPlanner')?.addEventListener('click',refreshData);
+    $('#plannerTarget')?.addEventListener('change',()=>{
+      const raw=$('#plannerTarget')?.value||'';
+      if($('#plannerTitle')?.value.trim())return;
+      if(raw.startsWith('class:'))$('#plannerTitle').value=state.classes.find(x=>x.id===raw.slice(6))?.name||'';
+      if(raw.startsWith('private:'))$('#plannerTitle').value=(state.privateStudents.find(x=>x.id===raw.slice(8))?.display_name||'')+' · Private';
+    });
     $('#assignmentLesson')?.addEventListener('change',()=>{
       const lesson=state.lessons.find(x=>x.id===$('#assignmentLesson')?.value);
       if(lesson && $('#assignmentTitle') && !$('#assignmentTitle').value.trim()) $('#assignmentTitle').value=lesson.title||lesson.topic||'';
@@ -463,7 +568,7 @@
     window.addEventListener('esc:languagechange',()=>{
       const date=$('#workspaceDateLabel');
       if(date){const now=new Date(),locale=en()?'en-GB':'tr-TR';date.textContent=new Intl.DateTimeFormat(locale,{weekday:'long',day:'numeric',month:'long'}).format(now).toLocaleUpperCase(locale)+' · '+tx('ÖĞRETMEN ALANI','TEACHER SPACE');}
-      renderRecent();renderLibrary();renderAssignments();renderReports();
+      renderRecent();renderLibrary();renderAssignments();renderPlanner();renderTodayPlanner();renderReports();
     });
     document.addEventListener('visibilitychange',()=>{if(!document.hidden) refreshData();});
     setTimeout(refreshData,500);
