@@ -168,7 +168,7 @@
     if (metrics[0]) metrics[0].textContent = String(state.classes.filter(c=>c.is_active).length);
     if (metrics[1]) metrics[1].textContent = String(studentTotal);
     if (metrics[2]) metrics[2].textContent = String(state.activeLive ? 1 : 0);
-    if (metrics[3]) metrics[3].textContent = state.activeLive ? 'LIVE' : '—';
+    if (metrics[3]) metrics[3].textContent = state.activeClass?.name || '—';
 
     const code = $('.class-code-card strong');
     const codeText = state.activeClass?.join_code || '------';
@@ -181,9 +181,14 @@
     const next = $('.next-lesson-card');
     if (next && state.activeClass) {
       $('h3', next).textContent = state.activeClass.name + ' · ' + (state.activeClass.focus || 'speaking');
-      $('p', next).textContent = `${state.activeClass.age_group.replace('-', '–')} · ${state.activeClass.level} · ${state.activeClass.students?.length || 0} ${tx('öğrenci','students')}`;
+      $('p', next).textContent = state.activeClass.age_group.replace('-', '–') + ' · ' + state.activeClass.level + ' · ' + (state.activeClass.students?.length || 0) + ' ' + tx('öğrenci','students');
       const head = $('.card-head b', next);
       if (head) head.textContent = state.activeLive ? tx('● CANLI','● LIVE NOW') : tx('Hazır','Ready');
+    } else if (next) {
+      const h=$('h3',next), p=$('p',next), head=$('.card-head b',next);
+      if(h) h.textContent=tx('Henüz sınıf yok','No class yet');
+      if(p) p.textContent=tx('İlk sınıfını oluştur; ders ve öğrenci akışı burada görünsün.','Create your first class to start planning lessons and students.');
+      if(head) head.textContent=tx('Plan yok','No plan');
     }
 
     const table = $('.recent-table');
