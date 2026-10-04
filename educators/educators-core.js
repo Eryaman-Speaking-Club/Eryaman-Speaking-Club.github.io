@@ -28,7 +28,7 @@
     layer.hidden = false;
     document.body.classList.add('edu-modal-open');
     syncAuthMode();
-    setTimeout(() => $('#teacherEmail')?.focus(), 60);
+    setTimeout(() => (state.authMode==='reset' ? $('#teacherPassword') : $('#teacherEmail'))?.focus(), 60);
   }
 
   function closeAuth() {
@@ -39,13 +39,31 @@
 
   function syncAuthMode() {
     const signup = state.authMode === 'signup';
-    $('#teacherNameWrap').hidden = !signup;
-    $('#eduAuthTitle').textContent = t(signup ? 'Ücretsiz öğretmen hesabı oluştur' : 'Öğretmen hesabına giriş yap');
-    $('#eduAuthIntro').textContent = t(signup
-      ? 'Hesabınız açıldığında sınıflarınız ve dersleriniz cihazdan bağımsız olarak kaydedilir.'
-      : 'Sınıflarınız, öğrenci kodlarınız ve dersleriniz hesabınıza kaydedilir.');
-    $('#eduAuthSubmit').textContent = t(signup ? 'Hesap oluştur →' : 'Giriş yap →');
-    $('#teacherPassword').autocomplete = signup ? 'new-password' : 'current-password';
+    const reset = state.authMode === 'reset';
+    const nameWrap=$('#teacherNameWrap');
+    const emailWrap=$('#teacherEmail')?.closest('label');
+    const tabs=$('.edu-auth-tabs');
+    const forgot=$('#eduForgotPassword');
+    if(nameWrap) nameWrap.hidden = !signup;
+    if(emailWrap) emailWrap.hidden = reset;
+    if(tabs) tabs.hidden = reset;
+    if(forgot) forgot.hidden = reset;
+
+    $('#eduAuthTitle').textContent = reset
+      ? tx('Yeni şifrenizi belirleyin','Set a new password')
+      : t(signup ? 'Ücretsiz öğretmen hesabı oluştur' : 'Öğretmen hesabına giriş yap');
+
+    $('#eduAuthIntro').textContent = reset
+      ? tx('En az 8 karakterden oluşan yeni şifrenizi yazın.','Enter a new password with at least 8 characters.')
+      : t(signup
+        ? 'Hesabınız açıldığında sınıflarınız ve dersleriniz cihazdan bağımsız olarak kaydedilir.'
+        : 'Sınıflarınız, öğrenci kodlarınız ve dersleriniz hesabınıza kaydedilir.');
+
+    $('#eduAuthSubmit').textContent = reset
+      ? tx('Şifreyi güncelle →','Update password →')
+      : t(signup ? 'Hesap oluştur →' : 'Giriş yap →');
+
+    $('#teacherPassword').autocomplete = signup || reset ? 'new-password' : 'current-password';
     $$('[data-auth-mode]').forEach(b => b.classList.toggle('active', b.dataset.authMode === state.authMode));
     msg($('#eduAuthMessage'),'');
   }
@@ -84,6 +102,12 @@
       if (!state.authUnsubscribe && window.ESCSupabase.onAuthStateChange) {
         state.authUnsubscribe = await window.ESCSupabase.onAuthStateChange((event, session) => {
           setTimeout(() => {
+            if (event === 'PASSWORD_RECOVERY' && session) {
+              state.session=session;
+              state.authMode='reset';
+              openAuth('reset');
+              return;
+            }
             if (session) restoreTeacherSession(session);
             else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
               state.session=null;state.profile=null;state.classes=[];state.activeClass=null;state.activeLive=null;
@@ -283,7 +307,18 @@
     msg($('#eduAuthMessage'), state.authMode==='signup'?tx('Hesap oluşturuluyor…','Creating account…'):tx('Giriş yapılıyor…','Signing in…'));
     try {
       const email=$('#teacherEmail').value.trim(), password=$('#teacherPassword').value;
-      if(state.authMode==='signup'){
+      if(state.authMode==='reset'){
+        if(password.length<8) throw new Error(tx('Şifre en az 8 karakter olmalı.','Password must be at least 8 characters.'));
+        await window.ESCSupabase.updatePassword(password);
+        msg($('#eduAuthMessage'),tx('Şifreniz güncellendi ✓','Password updated ✓'),true);
+        state.session=await window.ESCSupabase.getSession();
+        window.ESCAnalytics?.track?.('educator_password_recovered','other');
+        setTimeout(async()=>{
+          state.authMode='login';
+          closeAuth();
+          if(state.session) await restoreTeacherSession(state.session);
+        },700);
+      }else if(state.authMode==='signup'){
         const data=await window.ESCSupabase.signUp(email,password,'/educators/');
         if(data.session){
           state.session=data.session;
