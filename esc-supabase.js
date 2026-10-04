@@ -337,6 +337,68 @@
     return true;
   }
 
+
+  async function listAssignments(limit = 150) {
+    const client = await getClient();
+    const session = await getSession();
+    if (!client || !session) throw new Error('Teacher login required.');
+    const safeLimit=Math.max(1,Math.min(Number(limit)||150,300));
+    const { data, error } = await client.from('edu_assignments')
+      .select('id,class_id,lesson_id,title,instructions,due_at,status,payload,created_at,updated_at')
+      .eq('teacher_id',session.user.id)
+      .order('updated_at',{ascending:false})
+      .limit(safeLimit);
+    if (error) throw error;
+    return data || [];
+  }
+
+  async function createAssignment(payload) {
+    const client = await getClient();
+    const session = await getSession();
+    if (!client || !session) throw new Error('Teacher login required.');
+    const row={
+      teacher_id:session.user.id,
+      class_id:payload.class_id,
+      lesson_id:payload.lesson_id||null,
+      title:String(payload.title||'').trim().slice(0,120),
+      instructions:payload.instructions?String(payload.instructions).trim().slice(0,3000):null,
+      due_at:payload.due_at||null,
+      status:['draft','published','closed'].includes(payload.status)?payload.status:'draft',
+      payload:payload.payload && typeof payload.payload==='object'?payload.payload:{}
+    };
+    const { data, error } = await client.from('edu_assignments').insert(row).select('*').single();
+    if (error) throw error;
+    return data;
+  }
+
+  async function updateAssignment(id, patch) {
+    const client = await getClient();
+    const session = await getSession();
+    if (!client || !session) throw new Error('Teacher login required.');
+    const clean={updated_at:new Date().toISOString()};
+    if('title' in patch) clean.title=String(patch.title||'').trim().slice(0,120);
+    if('instructions' in patch) clean.instructions=patch.instructions?String(patch.instructions).trim().slice(0,3000):null;
+    if('due_at' in patch) clean.due_at=patch.due_at||null;
+    if('status' in patch) clean.status=['draft','published','closed'].includes(patch.status)?patch.status:'draft';
+    if('payload' in patch) clean.payload=patch.payload && typeof patch.payload==='object'?patch.payload:{};
+    if('lesson_id' in patch) clean.lesson_id=patch.lesson_id||null;
+    if('class_id' in patch) clean.class_id=patch.class_id;
+    const { data, error } = await client.from('edu_assignments')
+      .update(clean).eq('id',id).eq('teacher_id',session.user.id).select('*').single();
+    if (error) throw error;
+    return data;
+  }
+
+  async function deleteAssignment(id) {
+    const client = await getClient();
+    const session = await getSession();
+    if (!client || !session) throw new Error('Teacher login required.');
+    const { error } = await client.from('edu_assignments')
+      .delete().eq('id',id).eq('teacher_id',session.user.id);
+    if (error) throw error;
+    return true;
+  }
+
   async function startEducatorSession(payload) {
     const client = await getClient();
     const session = await getSession();
@@ -404,6 +466,7 @@
     getGameSettings,saveGameSettings,ensureEducatorProfile,getEducatorProfile,listEducatorClasses,
     createEducatorClass,saveEducatorLesson,listEducatorLessons,deleteEducatorLesson,listEducatorResults,listEducatorSessions,
     listPrivateStudents,createPrivateStudent,updatePrivateStudent,deletePrivateStudent,
+    listAssignments,createAssignment,updateAssignment,deleteAssignment,
     startEducatorSession,updateEducatorSession,getActiveEducatorSession,joinEducatorClass,getStudentState,submitStudentResult
   };
 })();
