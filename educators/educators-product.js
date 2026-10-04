@@ -162,6 +162,7 @@
   }
 
   function loadLessonIntoBuilder(lesson) {
+    window.ESCAnalytics?.track?.('educator_lesson_reused','other');
     const klass = state.classes.find(c=>c.id===lesson.class_id);
     const className = $('#className');
     const age = $('#ageGroup');
@@ -194,6 +195,7 @@
   }
 
   function printLesson(lesson) {
+    window.ESCAnalytics?.track?.('educator_lesson_printed','other');
     const plan = Array.isArray(lesson.plan) ? lesson.plan : [];
     const rows = plan.map((step,i)=>`<tr><td>${i+1}</td><td>${esc(step.stage||step.title||'Stage')}</td><td>${esc(step.duration||'')}</td><td>${esc(step.prompt||step.mode||'')}</td></tr>`).join('');
     const popup = window.open('','_blank','width=900,height=700');
