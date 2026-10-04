@@ -184,9 +184,9 @@
   }
 
   function showPanel(name){
-    $(".side-item").forEach(b=>b.classList.toggle("active",b.dataset.panel===name));
-    $(".mobile-workspace-tabs [data-panel]").forEach(b=>b.classList.toggle("active",b.dataset.panel===name));
-    $("[data-panel-view]").forEach(p=>p.classList.toggle("active",p.dataset.panelView===name));
+    $$(".side-item").forEach(b=>b.classList.toggle("active",b.dataset.panel===name));
+    $$(".mobile-workspace-tabs [data-panel]").forEach(b=>b.classList.toggle("active",b.dataset.panel===name));
+    $$("[data-panel-view]").forEach(p=>p.classList.toggle("active",p.dataset.panelView===name));
     if(name==="builder") syncPreview();
   }
 
