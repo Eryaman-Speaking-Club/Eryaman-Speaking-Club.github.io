@@ -177,20 +177,32 @@
     if (!state.session) return;
     state.classes = await window.ESCSupabase.listEducatorClasses();
 
-    if (state.activeClass) {
-      const fresh = state.classes.find(c => c.id === state.activeClass.id);
-      state.activeClass = fresh || state.classes.find(x=>x.is_active) || state.classes[0] || null;
-    } else {
-      state.activeClass = state.classes.find(x=>x.is_active) || state.classes[0] || null;
+    const live=await window.ESCSupabase.getActiveEducatorSession().catch(()=>null);
+    if(live){
+      state.activeLive=live;
+      state.activeClass=state.classes.find(x=>x.id===live.class_id)
+        || state.classes.find(x=>x.is_active)
+        || state.classes[0]
+        || null;
+    }else{
+      state.activeLive=null;
+      if (state.activeClass) {
+        const fresh = state.classes.find(c => c.id === state.activeClass.id);
+        state.activeClass = fresh || state.classes.find(x=>x.is_active) || state.classes[0] || null;
+      } else {
+        state.activeClass = state.classes.find(x=>x.is_active) || state.classes[0] || null;
+      }
     }
-
-    state.activeLive = state.activeClass
-      ? await window.ESCSupabase.getActiveEducatorSession(state.activeClass.id).catch(()=>null)
-      : null;
 
     renderClasses();
     renderOverview();
-    if (initial && state.activeClass) applyClassToBuilder(state.activeClass);
+    if (initial && state.activeClass) {
+      if(state.activeLive?.lesson_id){
+        if($('#lessonForm')) $('#lessonForm').dataset.classId=state.activeClass.id;
+      }else{
+        applyClassToBuilder(state.activeClass);
+      }
+    }
   }
 
   function renderOverview() {
@@ -280,6 +292,10 @@
     </article>`).join('');
     $$('[data-live-class]',grid).forEach(b=>b.addEventListener('click',()=>{
       const c=state.classes.find(x=>x.id===b.dataset.liveClass); if(!c)return;
+      if(state.activeLive && state.activeLive.class_id!==c.id){
+        alert(tx('Başka bir sınıfta canlı ders devam ediyor. Önce canlı derse dönüp dersi tamamlayın.','A live lesson is running in another class. Resume and finish it before switching classes.'));
+        return;
+      }
       state.activeClass=c; applyClassToBuilder(c); renderClasses();renderOverview();
       document.querySelector('[data-panel="builder"]')?.click();
     }));
