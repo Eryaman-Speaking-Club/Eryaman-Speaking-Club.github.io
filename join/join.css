@@ -34,3 +34,54 @@
 .student-assignment-feedback small{display:block;font-size:9px;font-weight:900;letter-spacing:.1em;color:#54728e}
 .student-assignment-feedback strong{display:inline-block;margin-top:6px;padding:4px 7px;border-radius:999px;background:#dcecff;color:#245d91;font-size:11px}
 .student-assignment-feedback p{margin:7px 0 0;font-size:11px;line-height:1.5;color:#38566f}
+
+
+/* Student platform clarity */
+.student-how-card,.student-lesson-overview{margin-top:16px;border:1px solid var(--line);border-radius:18px;background:#fff;padding:15px}
+.student-how-head,.student-overview-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.student-how-head small,.student-overview-head small{display:block;color:var(--teal);font-size:8px;font-weight:1000;letter-spacing:.11em}
+.student-how-head strong,.student-overview-head strong{display:block;margin-top:3px;font-size:14px;line-height:1.25}
+.student-how-head button{flex:none;width:32px;height:32px;border:0;border-radius:50%;background:#edf4f9;color:#2e5e84;font-size:14px;font-weight:1000;cursor:pointer}
+.student-how-body{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.student-how-body>div{display:grid;grid-template-columns:28px 1fr;gap:8px;padding:10px;border-radius:12px;background:#f7fafc}
+.student-how-body>div>b{width:28px;height:28px;display:grid;place-items:center;border-radius:9px;background:var(--navy);color:#fff;font-size:9px}
+.student-how-body strong,.student-how-body small{display:block}
+.student-how-body strong{font-size:10px}
+.student-how-body small{margin-top:3px;color:#75899a;font-size:9px;line-height:1.4}
+.student-overview-head>span{padding:6px 8px;border-radius:999px;background:#eef5fb;color:#315d80;font-size:9px;font-weight:950}
+.student-overview-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.student-overview-meta span{padding:6px 8px;border-radius:999px;background:#f2f6f9;color:#4d687e;font-size:8px;font-weight:900}
+.student-progress-track{height:8px;margin-top:13px;border-radius:999px;background:#e9eff4;overflow:hidden}
+.student-progress-track i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,var(--teal),var(--blue));transition:width .25s ease}
+.student-stage-list{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:11px}
+.student-stage{min-width:0;padding:8px;border:1px solid #e1e8ee;border-radius:11px;background:#fafcfd}
+.student-stage>span{display:grid;place-items:center;width:24px;height:24px;border-radius:8px;background:#edf2f6;color:#698094;font-size:8px;font-weight:1000}
+.student-stage p{margin:7px 0 0}
+.student-stage strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#3b566d}
+.student-stage small{display:block;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:7.5px;color:#8a9baa}
+.student-stage.done{border-color:#cce9e3;background:#f5fbf9}
+.student-stage.done>span{background:#daf2ec;color:#0a7b74}
+.student-stage.active{border-color:#98bde0;background:#eef6fd;box-shadow:0 0 0 2px rgba(23,92,168,.06)}
+.student-stage.active>span{background:var(--blue);color:#fff}
+.student-next-card{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;margin-top:10px;padding:10px 11px;border-radius:12px;background:#fff8eb;border:1px solid #f0ddb5}
+.student-next-card small{color:#9b6d1e;font-size:8px;font-weight:1000}
+.student-next-card strong{font-size:10px;color:#5b461e}
+.student-next-card span{font-size:8px;color:#8a754d}
+.student-action button{display:grid;gap:2px;text-align:left}
+.student-action button span{font-size:10px;font-weight:950}
+.student-action button small{font-size:7.5px;font-weight:750;line-height:1.3;opacity:.72}
+.student-activity-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.student-activity-summary>div{padding:10px 12px;border:1px solid var(--line);border-radius:13px;background:#f9fbfc}
+.student-activity-summary small,.student-activity-summary span{display:block}
+.student-activity-summary small{font-size:7.5px;font-weight:1000;color:#6d8294}
+.student-activity-summary strong{display:block;margin:3px 0;font-size:20px;color:#173f65}
+.student-activity-summary span{font-size:8px;color:#8b9aa7}
+.assignment-zone-head p{margin:4px 0 0;color:#7e90a0;font-size:9px;line-height:1.4}
+@media(max-width:720px){
+  .student-stage-list{grid-template-columns:1fr}
+  .student-stage{display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:center}
+  .student-stage p{margin:0}
+  .student-stage strong,.student-stage small{white-space:normal}
+  .student-how-body{grid-template-columns:1fr}
+  .student-next-card{grid-template-columns:1fr}
+}
