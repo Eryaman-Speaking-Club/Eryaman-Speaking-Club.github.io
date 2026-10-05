@@ -209,7 +209,11 @@ function ensureExpandedContent(){
      ['Speed','Quality','Price','Simplicity','Reliability'],
      ['Freedom','Stability','Growth','Income','Work-life balance'],
      ['Honesty','Kindness','Humour','Reliability','Communication'],
-     ['Location','Price','Comfort','Atmosphere','Service']
+     ['Location','Price','Comfort','Atmosphere','Service'],
+     ['Skill','Experience','Confidence','Preparation','Luck'],
+     ['Privacy','Convenience','Speed','Cost','Security'],
+     ['Health','Time','Money','Relationships','Personal growth'],
+     ['Creativity','Practicality','Effort','Impact','Enjoyment']
     ];
     return {cat:cat(i),title:'Rank what matters most when thinking about '+t,items:priorities[Math.floor(i/topics.length)%priorities.length]};
    }
@@ -219,13 +223,30 @@ function ensureExpandedContent(){
    case 'mission': return textPatterns.mission[p12](t);
    case 'minuteStory': return [target(i),target(i+137),target(i+419)];
    case 'wouldILie': return [cat(i),textPatterns.lie[p12](t)];
-   case 'desert': return {cat:cat(i),title:'Survival challenge: '+t+' near '+place(i),items:Array.from({length:8},(_,j)=>survival[(i+j*3)%survival.length])};
+   case 'desert': {
+    const scenarioPlace=places[Math.floor(i/topics.length)%places.length];
+    return {cat:cat(i),title:'Survival challenge: '+t+' near '+scenarioPlace,items:Array.from({length:8},(_,j)=>survival[(i+j*3)%survival.length])};
+   }
    case 'bingo': return textPatterns.bingo[p12](t);
    case 'emoji': {
     const g=Math.floor(i/emojis.length);
     return [cat(i),[emojis[i%emojis.length],emojis[(i+5+g)%emojis.length],emojis[(i+11+g*2)%emojis.length],emojis[(i+19+g*3)%emojis.length]]];
    }
-   case 'worstAdvice': return [cat(i),'I keep having problems with '+t+' and I do not know what to change.'];
+   case 'worstAdvice': {
+    const problems=[
+     t=>'I keep having problems with '+t+' and I do not know what to change.',
+     t=>'I tried to improve '+t+', but my plan keeps failing.',
+     t=>'I am spending too much time thinking about '+t+'.',
+     t=>'I need to make a decision about '+t+' but I keep delaying it.',
+     t=>'Someone gave me confusing advice about '+t+'.',
+     t=>'I keep making the same mistake when it comes to '+t+'.',
+     t=>'I want better results with '+t+' without making my routine too complicated.',
+     t=>'I am not sure how to talk to someone about '+t+'.',
+     t=>'I started working on '+t+' but lost motivation.',
+     t=>'I need a simple first step to deal with '+t+'.'
+    ];
+    return [cat(i),problems[Math.floor(i/topics.length)%problems.length](t)];
+   }
    case 'sell': return {item:cap(target(i)),twist:'Sell it to '+customers[Math.floor(i/targets.length)%customers.length]+'. Focus on a benefit that would genuinely matter to this customer.'};
    case 'hotTake': return [cat(i),textPatterns.hot[p12](t)];
    case 'photoTalk': {
