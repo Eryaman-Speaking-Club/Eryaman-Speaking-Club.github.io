@@ -3,6 +3,7 @@
 
   const path=(location.pathname.replace(/\/+$/,'')||'/');
   const $id=id=>document.getElementById(id);
+  const escapeName=value=>String(value).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const toast=msg=>{try{ESCGameKit.toast(msg)}catch(e){}};
   const soft=()=>{try{ESCGameKit.audio.soft()}catch(e){}};
   const select=()=>{try{ESCGameKit.audio.select()}catch(e){}};
@@ -93,7 +94,7 @@
     const panel=document.querySelector('.game-panel');if(!panel)return;
     let names=[],scores={},turn=0;
     const strip=document.createElement('div');strip.className='esc-turn-strip';strip.innerHTML='<div><strong class="esc-current-player"></strong><span>Current player</span></div><div class="esc-scoreboard"></div>';const card=document.querySelector('.game-card');panel.insertBefore(strip,card);
-    const render=()=>{if(!names.length){strip.classList.remove('show');return}strip.classList.add('show');strip.querySelector('.esc-current-player').textContent=names[turn%names.length];strip.querySelector('.esc-scoreboard').innerHTML=names.map(n=>'<span class="esc-score-pill">'+n+': '+(scores[n]||0)+'</span>').join('')};
+    const render=()=>{if(!names.length){strip.classList.remove('show');return}strip.classList.add('show');strip.querySelector('.esc-current-player').textContent=names[turn%names.length];strip.querySelector('.esc-scoreboard').innerHTML=names.map(n=>'<span class="esc-score-pill">'+escapeName(n)+': '+(scores[n]||0)+'</span>').join('')};
     const roster=createRoster({storageKey:'esc-five-sec-players-v1',title:'5 Second Challenge Players',help:'Optional. Add names to rotate turns automatically and keep a simple score.',onSave:n=>{names=n;scores={};turn=0;render()},onReset:()=>{scores={};turn=0;render()}});names=roster?roster.getNames():[];names.forEach(n=>scores[n]=0);render();
     const advance=()=>{if(names.length){turn=(turn+1)%names.length;render()}};
     $id('made').onclick=()=>{made++;if(names.length){const n=names[turn%names.length];scores[n]=(scores[n]||0)+1}stats();success();advance();next()};
@@ -101,14 +102,14 @@
   }
 
   function setupDebate(){
-    const startBtn=$id('start');if(!startBtn)return;startBtn.textContent='Prep 10s + Speak 45s';$id('phase').textContent='10s prep · 45s speaking';
+    const startBtn=$id('start');if(!startBtn)return;startBtn.textContent='Prep 10s + Speak 45s';startBtn.disabled=!['FOR','AGAINST'].includes($id('side').textContent);$id('phase').textContent='10s prep · 45s speaking';
     startBtn.onclick=()=>{
       if(running)return;
-      if(!['FOR','AGAINST'].includes($id('side').textContent))pick();
+      if(!['FOR','AGAINST'].includes($id('side').textContent))return;
       stop();running=true;let prep=10;$id('timer').textContent=prep;$id('phase').textContent='Prepare your argument';startBtn.disabled=true;startBtn.textContent='Preparing…';select();
       t=setInterval(()=>{prep--;$id('timer').textContent=prep;if(prep<=3&&prep>0)ESCGameKit.audio.count(prep);if(prep<=0){clearInterval(t);time=45;$id('timer').textContent=time;$id('phase').textContent='Speak now';startBtn.textContent='Speaking…';success();t=setInterval(()=>{time--;$id('timer').textContent=time;if(time<=5&&time>0)ESCGameKit.audio.count(time);if(time<=0){clearInterval(t);t=null;running=false;$id('phase').textContent='Time!';startBtn.disabled=false;startBtn.textContent='Prep 10s + Speak 45s';ESCGameKit.audio.timeup()}},1000)}},1000);
     };
-    const restore=()=>{startBtn.disabled=false;startBtn.textContent='Prep 10s + Speak 45s';$id('phase').textContent='10s prep · 45s speaking'};attachReset(['next'],restore);document.querySelectorAll('.game-chip').forEach(el=>el.addEventListener('click',()=>setTimeout(restore,0)));
+    const restore=()=>{startBtn.disabled=!['FOR','AGAINST'].includes($id('side').textContent);startBtn.textContent='Prep 10s + Speak 45s';startBtn.disabled=!['FOR','AGAINST'].includes($id('side').textContent);$id('phase').textContent='10s prep · 45s speaking'};attachReset(['next'],restore);document.querySelectorAll('.game-chip').forEach(el=>el.addEventListener('click',()=>setTimeout(restore,0)));
   }
 
   if(path.endsWith('/would-you-rather'))setupWouldYouRather();
