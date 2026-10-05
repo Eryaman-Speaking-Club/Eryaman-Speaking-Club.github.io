@@ -141,51 +141,51 @@ function ensureExpandedContent(){
    t=>'What is one thing you would change about '+t+'?',
    t=>'What have you learned recently about '+t+'?',
    t=>'What makes '+t+' easier or more difficult?',
-   t=>'What advice would you give someone about '+t+'?',
+   t=>'What advice would you give someone about '+t+' — and what is the terrible advice version?',
    t=>'What is a common mistake people make when it comes to '+t+'?',
    t=>'What is one good memory you have connected to '+t+'?',
    t=>'How has your opinion about '+t+' changed over time?',
    t=>'What matters most when making decisions about '+t+'?',
-   t=>'What would make '+t+' better in everyday life?',
+   t=>'If '+t+' had a customer-service department, what would you complain about first?',
    t=>'Who has influenced the way you think about '+t+'?',
    t=>'What is one thing you wish you had known earlier about '+t+'?',
-   t=>'What is one realistic goal you could set related to '+t+'?'
+   t=>'If you became suspiciously good at '+t+' overnight, what would you do first?'
   ],
   opinion:[
    t=>'People underestimate the importance of '+t+'.',
-   t=>'People should spend less time worrying about '+t+'.',
+   t=>'People should need a licence before giving strong opinions about '+t+'.',
    t=>'Schools should teach more practical lessons about '+t+'.',
-   t=>'Technology has improved the way we deal with '+t+'.',
+   t=>'A group chat about '+t+' would create more problems than it solves.',
    t=>'People should talk more openly about '+t+'.',
    t=>'Good habits matter more than talent when it comes to '+t+'.',
    t=>'Society puts too much pressure on people about '+t+'.',
    t=>'Young people and older people see '+t+' too differently.',
    t=>'Money affects '+t+' more than people admit.',
    t=>'Social media has changed '+t+' for the worse.',
-   t=>'Simple solutions are usually better when dealing with '+t+'.',
+   t=>'People make '+t+' sound much more complicated than it really is.',
    t=>'Personal experience matters more than expert advice about '+t+'.'
   ],
   finish:[
    t=>'When I think about '+t+', the first thing that comes to mind is...',
-   t=>'The best thing about '+t+' is...',
+   t=>'If '+t+' could complain about humans, it would say...',
    t=>'I wish people understood that '+t+'...',
    t=>'One thing I would change about '+t+' is...',
    t=>'A lesson I learned about '+t+' is...',
    t=>'The hardest part of '+t+' is...',
    t=>'If I had more time for '+t+', I would...',
-   t=>'People often forget that '+t+'...',
+   t=>'The most ridiculous thing about '+t+' is...',
    t=>'My most memorable experience with '+t+' was...',
    t=>'A small improvement to '+t+' would be...',
-   t=>'I feel most confident about '+t+' when...',
+   t=>'If I had to give a dramatic TED Talk about '+t+', my opening line would be...',
    t=>'The advice I would give about '+t+' is...'
   ],
   mission:[
    t=>'During the conversation, ask someone about '+t+' and ask one natural follow-up question.',
-   t=>'Naturally bring up '+t+' and invite two people to share different opinions.',
-   t=>'Ask a question about '+t+' without using the words “yes” or “no”.',
+   t=>'Naturally bring up '+t+' and convince someone it is secretly much more dramatic than people think.',
+   t=>'Ask someone about '+t+' as if you are a very serious detective investigating a completely normal situation.',
    t=>'Find someone with a different view about '+t+' and ask what shaped their opinion.',
    t=>'Ask someone for a real example related to '+t+'.',
-   t=>'Connect '+t+' to something another person said earlier.',
+   t=>'Connect '+t+' to something another person said earlier, even if the connection is slightly ridiculous but still logical.',
    t=>'Ask someone to compare two different sides of '+t+'.',
    t=>'Use “What do you mean?” naturally after someone mentions '+t+'.',
    t=>'Ask a follow-up question beginning with “Why” about '+t+'.',
@@ -198,36 +198,36 @@ function ensureExpandedContent(){
    t=>'Something unusual that happened because of '+t+'.',
    t=>'A mistake you once made involving '+t+'.',
    t=>'A story about '+t+' that sounds difficult to believe.',
-   t=>'A lucky moment connected to '+t+'.',
+   t=>'A moment involving '+t+' where you looked confident but had no idea what you were doing.',
    t=>'An embarrassing moment involving '+t+'.',
    t=>'A decision about '+t+' that had an unexpected result.',
    t=>'A time someone gave you bad advice about '+t+'.',
    t=>'A time you changed your mind about '+t+'.',
-   t=>'A small problem involving '+t+' that became a big story.',
+   t=>'A tiny problem involving '+t+' that somehow became an unnecessarily dramatic story.',
    t=>'A moment when '+t+' saved you time or caused trouble.',
    t=>'A story about meeting someone because of '+t+'.'
   ],
   bingo:[
    t=>'Has recently talked about '+t,
    t=>'Would like to improve something about '+t,
-   t=>'Has a strong opinion about '+t,
+   t=>'Has a strangely strong opinion about '+t,
    t=>'Can tell a funny story about '+t,
    t=>'Has changed a habit related to '+t,
    t=>'Knows someone who is very interested in '+t,
    t=>'Has learned something useful about '+t,
    t=>'Would like to try something new involving '+t,
    t=>'Has given someone advice about '+t,
-   t=>'Has made a mistake involving '+t,
+   t=>'Has made a mistake involving '+t+' that is funny now',
    t=>'Can recommend something related to '+t,
    t=>'Has a goal connected to '+t
   ],
   hot:[
    t=>cap(t)+' should be treated as a basic life skill.',
-   t=>'People take '+t+' too seriously.',
-   t=>'Modern life has made '+t+' unnecessarily complicated.',
+   t=>'People take '+t+' so seriously that it sometimes becomes comedy.',
+   t=>'Modern life has somehow turned '+t+' into a full-time administrative task.',
    t=>'We would be happier if we changed the way we think about '+t+'.',
    t=>'People should be more honest about '+t+'.',
-   t=>'Social media has made '+t+' worse.',
+   t=>'A two-minute voice message about '+t+' should require permission.',
    t=>'People spend too much time worrying about '+t+'.',
    t=>'Schools should prepare people better for '+t+'.',
    t=>'There are too many unnecessary rules around '+t+'.',
@@ -280,24 +280,24 @@ function ensureExpandedContent(){
     const problems=[
      t=>'I keep having problems with '+t+' and I do not know what to change.',
      t=>'I tried to improve '+t+', but my plan keeps failing.',
-     t=>'I am spending too much time thinking about '+t+'.',
+     t=>'I am spending so much time thinking about '+t+' that it is basically an unpaid part-time job.',
      t=>'I need to make a decision about '+t+' but I keep delaying it.',
      t=>'Someone gave me confusing advice about '+t+'.',
-     t=>'I keep making the same mistake when it comes to '+t+'.',
+     t=>'I keep making the same mistake with '+t+' and at this point the mistake probably recognises me.',
      t=>'I want better results with '+t+' without making my routine too complicated.',
      t=>'I am not sure how to talk to someone about '+t+'.',
-     t=>'I started working on '+t+' but lost motivation.',
+     t=>'I started working on '+t+', lost motivation, found snacks instead, and now need a new plan.',
      t=>'I need a simple first step to deal with '+t+'.'
     ];
     return [cat(i),problems[Math.floor(i/topics.length)%problems.length](t)];
    }
    case 'sell': {
     const product=sellProducts[i%sellProducts.length],customer=customers[Math.floor(i/sellProducts.length)%customers.length];
-    return {item:cap(product),twist:'Sell it to '+customer+'. Focus on a benefit that would genuinely matter to this customer.'};
+    return {item:cap(product),twist:'Sell it to '+customer+'. Make it sound far more luxurious than it has any right to be, but keep the benefits believable.'};
    }
    case 'hotTake': return [cat(i),textPatterns.hot[p12](t)];
    case 'photoTalk': {
-    const situations=['waiting for important news','realising something has gone missing','celebrating unexpected good news','trying to solve a small problem','meeting someone for the first time','running late','making an important decision','waiting for transport','taking a break','helping another person'];
+    const situations=['waiting for important news','realising something has gone missing','celebrating unexpected good news','trying to solve a small problem','meeting someone for the first time','running late','making an important decision','waiting for transport','pretending everything is under control','realising they entered the wrong place'];
     const situation=situations[Math.floor(i/places.length)%situations.length];
     return {cat:cat(i),title:cap(place(i))+' · '+cap(situation),desc:'A person is in or near '+place(i)+' and is '+situation+'. Use the icons as extra clues.',icons:[emojis[i%emojis.length],emojis[(i+3)%emojis.length],emojis[(i+9)%emojis.length]],questions:['What probably happened just before this moment?','How does the person feel and why?','What is the most likely thing to happen next?']};
    }
