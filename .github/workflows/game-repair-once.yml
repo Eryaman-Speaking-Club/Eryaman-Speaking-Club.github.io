@@ -1,0 +1,65 @@
+name: Verify public game repairs
+on:
+  push:
+    branches: [fix/public-games-audit-20261005]
+    paths: [scripts/game-repair-once.py]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  verify:
+    if: github.ref == 'refs/heads/fix/public-games-audit-20261005'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply checksum-verified repair bundle
+        run: python scripts/game-repair-once.py
+      - name: Install browser test tools
+        run: |
+          python -m pip install playwright==1.57.0
+          python -m playwright install --with-deps chromium
+      - name: Play all 32 public games
+        run: |
+          python _game_audit/test_games.py 0 9
+          python _game_audit/test_games.py 9 17
+          python _game_audit/test_games.py 17 25
+          python _game_audit/test_games.py 25 32
+          python _game_audit/test_mobile.py
+      - name: Verify every result before committing
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('_game_audit')
+          rows={}
+          for p in root.glob('functional-[0-9]*.json'):
+              for row in json.loads(p.read_text()): rows[row['slug']]=row
+          assert len(rows)==32, f'Only {len(rows)} games tested'
+          failed=[r for r in rows.values() if r['status']!='PASS']
+          assert not failed, json.dumps(failed,indent=2)
+          mobile=json.loads((root/'mobile-results.json').read_text())
+          assert len(mobile)==32 and all(r['status']=='PASS' for r in mobile), json.dumps(mobile,indent=2)
+          print('32/32 functional and 32/32 mobile checks passed.')
+          PY
+      - name: Commit only verified source changes
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          paths=json.loads(Path('_game_audit/changed_paths.json').read_text())
+          subprocess.run(['git','config','user.name','github-actions[bot]'],check=True)
+          subprocess.run(['git','config','user.email','41898282+github-actions[bot]@users.noreply.github.com'],check=True)
+          subprocess.run(['git','add','--',*paths],check=True)
+          subprocess.run(['git','commit','-m','Repair all public games and verify 32 browser flows'],check=True)
+          subprocess.run(['git','push','origin','HEAD:fix/public-games-audit-20261005'],check=True)
+          PY
+      - name: Save browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-game-qa
+          path: |
+            _game_audit/*.json
+            _game_audit/*.png
+          retention-days: 7
