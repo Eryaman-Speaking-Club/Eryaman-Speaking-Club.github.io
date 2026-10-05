@@ -6,6 +6,7 @@
   const esc=(v="")=>String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]));
   const tx=(tr,en)=>document.documentElement.lang==="en"?en:tr;
   let pack=null;
+  let history=[];
 
   function status(text,ok=false){
     const el=$("#assistantStatus");
@@ -84,6 +85,70 @@
     status(tx("Ders paketi hazır ✓","Lesson pack ready ✓"),true);
   }
 
+  function historyDate(value){
+    try{
+      return new Intl.DateTimeFormat(document.documentElement.lang==="en"?"en-GB":"tr-TR",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}).format(new Date(value));
+    }catch{return "";}
+  }
+
+  function renderHistory(){
+    const wrap=$("#assistantHistoryList");
+    if(!wrap)return;
+    if(!history.length){
+      wrap.innerHTML='<div class="assistant-history-empty">'+tx("Henüz kayıtlı Teacher Assistant paketin yok.","No saved Teacher Assistant packs yet.")+'</div>';
+      return;
+    }
+    wrap.innerHTML=history.map(item=>
+      '<article class="assistant-history-card" data-history-id="'+esc(item.id)+'">'+
+        '<div class="assistant-history-main"><small>'+esc(String(item.goal||"speaking").toUpperCase())+'</small><strong>'+esc(item.pack?.title||item.topic||"Lesson pack")+'</strong><span>'+esc(item.level||"")+' · '+esc(item.age_group||"")+' · '+Number(item.duration_minutes||40)+' min · '+esc(historyDate(item.created_at))+'</span></div>'+
+        '<div class="assistant-history-actions"><button type="button" data-history-open="'+esc(item.id)+'">'+tx("Aç","Open")+'</button><button type="button" data-history-delete="'+esc(item.id)+'" class="danger-lite">'+tx("Sil","Delete")+'</button></div>'+
+      '</article>'
+    ).join("");
+
+    $("[data-history-open]",wrap).forEach(btn=>btn.addEventListener("click",()=>{
+      const item=history.find(x=>x.id===btn.dataset.historyOpen);
+      if(!item?.pack)return;
+      pack=item.pack;
+      render();
+      $("#assistantOutput")?.scrollIntoView({behavior:"smooth",block:"start"});
+      window.ESCAnalytics?.track?.("educator_assistant_history_opened","other");
+    }));
+    $("[data-history-delete]",wrap).forEach(btn=>btn.addEventListener("click",()=>removeHistory(btn.dataset.historyDelete,btn)));
+  }
+
+  async function loadHistory(){
+    const wrap=$("#assistantHistoryList");
+    if(wrap)wrap.innerHTML='<div class="assistant-history-empty">'+tx("Geçmiş yükleniyor…","Loading history…")+'</div>';
+    try{
+      const session=await window.ESCSupabase?.getSession?.();
+      if(!session){
+        history=[];
+        renderHistory();
+        return;
+      }
+      history=await window.ESCSupabase.listEducatorAssistantHistory(10);
+      renderHistory();
+    }catch(err){
+      console.warn("Assistant history load failed",err);
+      if(wrap)wrap.innerHTML='<div class="assistant-history-empty">'+tx("Geçmiş yüklenemedi.","Could not load history.")+'</div>';
+    }
+  }
+
+  async function removeHistory(id,button){
+    if(!id)return;
+    if(!confirm(tx("Bu Teacher Assistant paketi geçmişten silinsin mi?","Delete this Teacher Assistant pack from history?")))return;
+    button.disabled=true;
+    try{
+      await window.ESCSupabase.deleteEducatorAssistantHistory(id);
+      history=history.filter(x=>x.id!==id);
+      renderHistory();
+    }catch(err){
+      console.warn("Assistant history delete failed",err);
+      status(err?.message||tx("Paket silinemedi.","Could not delete the pack."));
+      button.disabled=false;
+    }
+  }
+
   function toPlainText(){
     if(!pack)return "";
     const lines=[
@@ -126,6 +191,7 @@
       };
       pack=await window.ESCSupabase.generateEducatorAssistantPack(payload);
       render();
+      await loadHistory();
       window.ESCAnalytics?.track?.("educator_assistant_generated","other");
     }catch(err){
       console.warn("Teacher Assistant failed",err);
@@ -200,17 +266,20 @@
     $("#assistantForm")?.addEventListener("submit",generate);
     $("#assistantApplyBuilder")?.addEventListener("click",applyToBuilder);
     $("#assistantCopyPack")?.addEventListener("click",copyPack);
+    $("#assistantHistoryRefresh")?.addEventListener("click",loadHistory);
 
     document.addEventListener("click",e=>{
       const trigger=e.target.closest('[data-panel="assistant"],[data-workflow="assistant"]');
-      if(trigger)setTimeout(()=>syncFromBuilder(false),40);
+      if(trigger)setTimeout(()=>{syncFromBuilder(false);loadHistory();},40);
     });
 
     window.addEventListener("esc:languagechange",()=>{
       if(pack)render();
+      renderHistory();
     });
 
     syncFromBuilder(false);
+    loadHistory();
   }
 
   document.addEventListener("DOMContentLoaded",bind);
