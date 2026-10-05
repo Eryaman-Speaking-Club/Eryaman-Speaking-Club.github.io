@@ -2,96 +2,242 @@
 'use strict';
 const cfg=window.ESC_NEW_GAME||{};
 
-(function ensureExpandedContent(){
- const MIN=200;
+function ensureExpandedContent(){
+ const MIN=1000;
  const cats=['Everyday','Social','Travel','Work','Food','Fun','Personal','Deep','Technology','Spicy'];
- const topics=['daily routines','free time','sleep','exercise','money','shopping','cooking','travel','public transport','friendship','family','work','career plans','education','English learning','technology','social media','music','movies','sports','health','stress','confidence','patience','honesty','trust','teamwork','communication','motivation','habits','decision making','time management','creativity','goals','memories','the future','weekends','holidays','restaurants','cafés','city life','remote work','meetings','job interviews','relationships','first impressions','personal space','good manners','online communication','phone use','news','weather','fashion','books','gaming','photography','learning new skills','saving money','healthy food','home life','neighbours','commuting','customer service','leadership','feedback','problem solving','risk taking','success','failure','change','comfort zones'];
- const words=['phone','wallet','umbrella','elevator','mirror','password','traffic','alarm','battery','neighbour','toothbrush','fridge','microwave','balcony','receipt','queue','headphones','keys','doorbell','vacuum cleaner','laundry','supermarket','pharmacy','suitcase','passport','airport','boarding pass','hotel','hostel','beach','map','tourist','ticket','platform','taxi','train','bus','bicycle','backpack','guidebook','delay','coffee','pizza','chocolate','burger','salad','breakfast','spicy food','recipe','dessert','restaurant','takeaway','leftovers','ingredient','reservation','waiter','menu','soup','popcorn','lemon','avocado','meeting','deadline','boss','email','salary','interview','promotion','colleague','presentation','remote work','feedback','teamwork','overtime','training','office','printer','spreadsheet','calendar','microphone','podcast','concert','karaoke','meme','gaming console','cinema','playlist','selfie','trailer','subtitle','audience','episode','board game','camera','book','newspaper','guitar','piano','football','basketball','tennis','gym','doctor','nurse','teacher','engineer','designer','chef','driver','pilot','lawyer','manager','student','cashier','photographer','musician','actor','writer','dentist','mechanic','farmer','programmer','firefighter','police officer','architect','scientist','receptionist','accountant','translator','barber','baker','coach','journalist','electrician','plumber','artist','shopkeeper','delivery driver','language teacher','tour guide','barista','pharmacist','librarian','entrepreneur','best friend','roommate','cousin','partner','teammate','stranger','customer','client','visitor','passenger','city centre','bus stop','train station','shopping mall','coffee shop','park','library','hospital','school','university','airport gate','hotel lobby','restaurant table','kitchen','bedroom','living room','bathroom','garden','mountain','village','museum','stadium','market','bank','post office','classroom','meeting room','parking lot','traffic light','bridge','tunnel','city square','metro station','rain','snow','sunshine','wind','storm','birthday','wedding','exam','trip','vacation','commute','morning routine','evening routine','lunch break','video call','group chat','online class','delivery order','shopping list','coffee break','weekend plan','flight delay','train journey','road trip','job offer','team project','workshop','language course','fitness class','doctor appointment','family dinner','house party','first date','museum visit','concert ticket','movie night','football match','book club','picnic','camping trip','hotel booking','restaurant booking','online order','lost luggage','phone charger','power bank','water bottle','notebook','office chair','coffee machine','washing machine','dishwasher','remote control','shopping cart','credit card','cash machine','street market','city map','travel insurance','seat belt','traffic jam','weather forecast','alarm clock','birthday cake','wedding invitation','job application','school project','presentation slide','voice message','email attachment','video game','fitness tracker','smart watch'];
- const places=['a café','an airport','a train station','a hotel','an office','a classroom','a supermarket','a restaurant','a park','a museum','a hospital','a library','a shopping mall','a bus stop','a beach','a mountain village','a city centre','a gym','a cinema','a meeting room'];
+ const topics=[
+  'daily routines','free time','sleep','exercise','money','shopping','cooking','travel','public transport','friendship',
+  'family','work','career plans','education','English learning','technology','social media','music','movies','sports',
+  'health','stress','confidence','patience','honesty','trust','teamwork','communication','motivation','habits',
+  'decision making','time management','creativity','goals','memories','the future','weekends','holidays','restaurants','cafés',
+  'city life','remote work','meetings','job interviews','relationships','first impressions','personal space','good manners','online communication','phone use',
+  'news','weather','fashion','books','gaming','photography','learning new skills','saving money','healthy food','home life',
+  'neighbours','commuting','customer service','leadership','feedback','problem solving','risk taking','success','failure','change',
+  'comfort zones','planning','productivity','public speaking','listening','language mistakes','culture','food habits','work-life balance','travel planning',
+  'online meetings','group projects','housework','morning energy','evening habits','weekend plans','local places','environment','public spaces','personal goals',
+  'learning from mistakes','trying new things','asking for help','giving advice','making friends','staying organised','healthy boundaries','digital habits','small talk','making choices'
+ ];
+ const baseTargets=[
+  'phone','wallet','umbrella','elevator','mirror','password','traffic','alarm','battery','neighbour','toothbrush','fridge','microwave','balcony','receipt','queue','headphones','keys','doorbell','vacuum cleaner',
+  'laundry','supermarket','pharmacy','suitcase','passport','airport','boarding pass','hotel','hostel','beach','map','tourist','ticket','platform','taxi','train','bus','bicycle','backpack','guidebook',
+  'delay','coffee','pizza','chocolate','burger','salad','breakfast','spicy food','recipe','dessert','restaurant','takeaway','leftovers','ingredient','reservation','waiter','menu','soup','popcorn','lemon','avocado',
+  'meeting','deadline','boss','email','salary','interview','promotion','colleague','presentation','remote work','feedback','teamwork','overtime','training','office','printer','spreadsheet','calendar','microphone','podcast',
+  'concert','karaoke','meme','gaming console','cinema','playlist','selfie','trailer','subtitle','audience','episode','board game','camera','book','newspaper','guitar','piano','football','basketball','tennis','gym',
+  'doctor','nurse','teacher','engineer','designer','chef','driver','pilot','lawyer','manager','student','cashier','photographer','musician','actor','writer','dentist','mechanic','farmer','programmer','firefighter',
+  'police officer','architect','scientist','receptionist','accountant','translator','barber','baker','coach','journalist','electrician','plumber','artist','shopkeeper','delivery driver','language teacher','tour guide','barista','pharmacist',
+  'librarian','entrepreneur','best friend','roommate','cousin','partner','teammate','stranger','customer','client','visitor','passenger','city centre','bus stop','train station','shopping mall','coffee shop','park','library',
+  'hospital','school','university','airport gate','hotel lobby','restaurant table','kitchen','bedroom','living room','bathroom','garden','mountain','village','museum','stadium','market','bank','post office','classroom','meeting room',
+  'parking lot','traffic light','bridge','tunnel','city square','metro station','rain','snow','sunshine','wind','storm','birthday','wedding','exam','trip','vacation','commute','morning routine','evening routine','lunch break',
+  'video call','group chat','online class','delivery order','shopping list','coffee break','weekend plan','flight delay','train journey','road trip','job offer','team project','workshop','language course','fitness class','doctor appointment','family dinner',
+  'house party','first date','museum visit','concert ticket','movie night','football match','book club','picnic','camping trip','hotel booking','restaurant booking','online order','lost luggage','phone charger','power bank','water bottle','notebook',
+  'office chair','coffee machine','washing machine','dishwasher','remote control','shopping cart','credit card','cash machine','street market','city map','travel insurance','seat belt','traffic jam','weather forecast','alarm clock','birthday cake','wedding invitation',
+  'job application','school project','presentation slide','voice message','email attachment','video game','fitness tracker','smart watch'
+ ];
+ const extraTargets=[
+  'air conditioner','electric fan','space heater','hair dryer','electric toothbrush','coffee grinder','rice cooker','pressure cooker','slow cooker','air fryer','food processor','electric kettle','toaster','blender','vacuum robot','iron','ironing board','clothes hanger','laundry basket',
+  'dish rack','cutting board','frying pan','saucepan','baking tray','oven glove','measuring cup','kitchen scale','water filter','ice tray','lunch box','thermos','travel mug','reusable bottle','paper towel','shopping bag','storage box','toolbox','flashlight','extension cable',
+  'USB cable','wireless charger','computer mouse','keyboard','webcam','monitor','laptop stand','desk lamp','office desk','filing cabinet','name badge','business card','sticky note','paper clip','stapler','scanner','photocopier','projector','whiteboard','flip chart',
+  'conference badge','meeting agenda','meeting notes','action list','sales report','monthly report','budget plan','marketing plan','training session','performance review','job description','work schedule','annual leave','sick leave','expense report','customer complaint','support ticket','sales call','client meeting','team lunch',
+  'airport lounge','airport shuttle','baggage claim','security check','passport control','departure board','arrival hall','window seat','aisle seat','seat belt','life jacket','travel adapter','luggage tag','carry-on bag','check-in desk','hotel reception','room key','hotel breakfast','city tour','guided tour',
+  'walking tour','travel brochure','tourist information','currency exchange','train ticket','bus ticket','metro card','taxi rank','rental car','fuel station','road sign','motorway','pedestrian crossing','bike lane','ferry terminal','cruise ship','campsite','hiking trail','viewpoint','souvenir shop',
+  'sandwich','cheeseburger','vegetable soup','tomato soup','chicken soup','fruit salad','green salad','pasta salad','grilled chicken','fried chicken','roast chicken','baked potato','mashed potato','french fries','scrambled eggs','fried eggs','boiled eggs','pancakes','waffles','toast',
+  'cheesecake','apple pie','chocolate cake','ice cream','yogurt','cereal','oatmeal','rice','noodles','pasta','spaghetti','steak','fish and chips','sushi','kebab','wrap','taco','burrito','curry','sandwich shop',
+  'coffee beans','espresso','cappuccino','latte','tea bag','green tea','black tea','orange juice','lemonade','mineral water','soft drink','milkshake','smoothie','hot chocolate','restaurant bill','service charge','tip jar','table reservation','food delivery','grocery store',
+  'flight attendant','airport security officer','gate agent','baggage handler','train conductor','bus driver','taxi driver','tour guide','hotel receptionist','hotel manager','housekeeper','restaurant manager','head chef','kitchen assistant','waiter','waitress','bartender','delivery rider','shop assistant','store manager',
+  'primary school teacher','high school teacher','university lecturer','private tutor','English teacher','math teacher','football coach','fitness trainer','personal trainer','yoga instructor','swimming instructor','driving instructor','career coach','team leader','project manager','sales manager','marketing manager','HR specialist','customer support agent','recruiter',
+  'software developer','web designer','graphic designer','product designer','civil engineer','electrical engineer','mechanical engineer','data analyst','data scientist','lab technician','research assistant','medical doctor','family doctor','surgeon','dentist','pharmacist','physiotherapist','veterinarian','paramedic','caregiver',
+  'wedding photographer','sports photographer','news reporter','radio host','TV presenter','content creator','video editor','film director','camera operator','sound engineer','DJ','singer','guitarist','pianist','drummer','actor','comedian','novelist','poet','illustrator',
+  'bakery','butcher shop','bookstore','clothing store','shoe store','electronics store','furniture store','toy store','sports shop','department store','shopping centre','street café','rooftop café','fast-food restaurant','family restaurant','hotel restaurant','school cafeteria','food court','farmers market','night market',
+  'public library','university library','art museum','history museum','science museum','city park','playground','sports centre','football stadium','basketball court','tennis court','swimming pool','fitness centre','community centre','concert hall','theatre','cinema hall','art gallery','exhibition centre','conference centre',
+  'police station','fire station','health centre','dental clinic','pharmacy counter','bank branch','cash machine','post office','courier office','car park','car wash','repair shop','petrol station','bus terminal','train platform','metro entrance','airport terminal','hotel room','hostel room','holiday apartment',
+  'smartphone','tablet','laptop','desktop computer','smart speaker','Bluetooth speaker','wireless headphones','earbuds','smart television','remote control','games console','game controller','digital camera','action camera','drone','smart watch','fitness watch','e-book reader','portable charger','memory card',
+  'video conference','online meeting','online course','language app','messaging app','social media account','email inbox','calendar reminder','online shopping cart','delivery tracking','QR code','Wi-Fi password','mobile data','screen time','voice assistant','cloud storage','online banking','digital payment','password manager','two-factor authentication',
+  'morning commute','rush hour','lunch break','coffee break','weekend trip','business trip','family holiday','city break','beach holiday','camping holiday','road trip','train journey','long flight','short flight','delayed flight','missed bus','lost wallet','lost phone','lost key','flat tyre',
+  'birthday party','graduation party','wedding party','office party','housewarming party','surprise party','family dinner','team dinner','picnic','barbecue','movie night','game night','karaoke night','concert night','book club meeting','study group','team meeting','staff meeting','parent meeting','job interview',
+  'first day at work','first day at school','first date','blind date','doctor visit','dentist appointment','haircut appointment','bank appointment','visa appointment','passport application','job application','university application','course registration','hotel check-in','hotel check-out','airport check-in','restaurant reservation','online order','product return','customer refund',
+  'sunrise','sunset','rainbow','thunderstorm','snowstorm','fog','heatwave','cold wave','forest','river','lake','waterfall','island','desert','beach','cliff','cave','valley','hill','mountain peak',
+  'cat','dog','rabbit','hamster','parrot','goldfish','horse','cow','sheep','goat','chicken','duck','eagle','owl','pigeon','seagull','dolphin','whale','shark','octopus',
+  'lion','tiger','elephant','giraffe','zebra','monkey','bear','wolf','fox','deer','snake','turtle','frog','bee','butterfly','ant','spider','penguin','camel','kangaroo',
+  'honesty','confidence','patience','curiosity','creativity','motivation','discipline','teamwork','leadership','friendship','trust','respect','kindness','empathy','independence','responsibility','success','failure','risk','change',
+  'time management','work-life balance','customer service','public speaking','active listening','problem solving','decision making','critical thinking','healthy habits','sleep quality','personal space','first impression','body language','small talk','online privacy','digital safety','climate change','recycling','public transport','city traffic',
+  'morning person','night owl','early bird','coffee lover','book lover','movie fan','football fan','music fan','dog owner','cat owner','frequent traveller','remote worker','university student','new employee','team captain','party host','wedding guest','tourist','commuter','volunteer',
+  'birthday gift','wedding gift','gift card','shopping voucher','concert poster','movie poster','restaurant menu','coffee menu','train timetable','bus timetable','flight schedule','weather app','city guide','travel blog','recipe book','cookbook','school textbook','workbook','dictionary','notepad',
+  'door key','car key','house key','hotel key card','bank card','identity card','student card','membership card','boarding pass','parking ticket','speed ticket','shopping receipt','restaurant receipt','invoice','contract','certificate','diploma','passport photo','profile picture','selfie stick',
+  'raincoat','winter coat','leather jacket','hoodie','sweater','T-shirt','jeans','shorts','dress','suit','tie','scarf','gloves','hat','baseball cap','sunglasses','running shoes','boots','slippers','backpack',
+  'football boots','tennis racket','basketball hoop','football goal','gym bag','yoga mat','dumbbell','treadmill','exercise bike','swimming goggles','swimming cap','helmet','bicycle lock','skateboard','roller skates','camping tent','sleeping bag','hiking boots','walking stick','sports bottle',
+  'birthday card','wedding invitation','thank-you note','apology message','voice note','text message','group message','email subject','email signature','video message','phone call','missed call','conference call','online chat','customer review','product rating','social media post','photo caption','news headline','weather alert'
+ ];
+ const targets=[...new Set([...baseTargets,...extraTargets])];
+ const places=['a café','an airport','a train station','a hotel','an office','a classroom','a supermarket','a restaurant','a park','a museum','a hospital','a library','a shopping mall','a bus stop','a beach','a mountain village','a city centre','a gym','a cinema','a meeting room','a hotel lobby','a university campus','a busy street','a quiet neighbourhood','a sports centre','a bank','a pharmacy','a bookstore','a market','a concert hall'];
  const emojis=['☕','📱','🌧️','🚕','✈️','🧳','😱','😂','🎉','🍕','🏠','🚪','🔑','💼','📧','⏰','💸','❤️','🤔','🎵','🎬','⚽','🚲','🌙','☀️','🔥','🎁','🚌','🚆','📚','💻','🗺️'];
  const survival=['Fresh water filter','Knife','Tent','Fishing line','Solar charger','First-aid kit','Mirror','Blanket','Rope','Flashlight','Compass','Cooking pot','Rain jacket','Water bottle','Radio','Map','Multi-tool','Insect repellent','Notebook','Emergency whistle'];
+ const customers=['a university student','a busy parent','a frequent traveller','a remote worker','a small business owner','a teacher','a tourist','a fitness beginner','a budget-conscious customer','a luxury customer','a first-time buyer','a café owner','a hotel manager','a commuter','a new employee','a retiree','a content creator','an office worker','a family with children','someone who hates wasting time'];
  const arr=Array.isArray(cfg.items)?cfg.items:(cfg.items=[]);
  const seen=new Set(arr.map(x=>JSON.stringify(x)));
  const add=x=>{const k=JSON.stringify(x);if(!seen.has(k)){arr.push(x);seen.add(k)}};
  const cap=s=>String(s).replace(/\b\w/g,m=>m.toUpperCase());
- const cat=i=>cats[i%cats.length],topic=i=>topics[i%topics.length],word=i=>words[i%words.length],place=i=>places[i%places.length];
- const patterns={
+ const cat=i=>cats[i%cats.length],topic=i=>topics[i%topics.length],target=i=>targets[i%targets.length],place=i=>places[i%places.length];
+ const textPatterns={
+  twoTruths:[
+   t=>'Your real experience with '+t,
+   t=>'A recent moment involving '+t,
+   t=>'Your habits around '+t,
+   t=>'Something you learned about '+t,
+   t=>'A surprising opinion about '+t,
+   t=>'A memory connected to '+t,
+   t=>'A decision you made about '+t,
+   t=>'A change you would make to '+t,
+   t=>'A success or failure involving '+t,
+   t=>'Something people misunderstand about '+t,
+   t=>'A funny situation involving '+t,
+   t=>'A goal connected to '+t
+  ],
   roulette:[
    t=>'What is one thing you would change about '+t+'?',
    t=>'What have you learned recently about '+t+'?',
    t=>'What makes '+t+' easier or more difficult?',
-   t=>'What advice would you give someone about '+t+'?'
+   t=>'What advice would you give someone about '+t+'?',
+   t=>'What is a common mistake people make with '+t+'?',
+   t=>'What is one good memory you have connected to '+t+'?',
+   t=>'How has your opinion about '+t+' changed over time?',
+   t=>'What matters most when making decisions about '+t+'?',
+   t=>'What would make '+t+' better in everyday life?',
+   t=>'Who has influenced the way you think about '+t+'?',
+   t=>'What is one thing you wish you had known earlier about '+t+'?',
+   t=>'What is one realistic goal you could set related to '+t+'?'
   ],
   opinion:[
    t=>cap(t)+' is more important than people think.',
    t=>'People should spend less time worrying about '+t+'.',
    t=>'Schools should teach more practical lessons about '+t+'.',
-   t=>'Technology has improved the way we deal with '+t+'.'
+   t=>'Technology has improved the way we deal with '+t+'.',
+   t=>'People should talk more openly about '+t+'.',
+   t=>'Good habits matter more than talent when it comes to '+t+'.',
+   t=>'Society puts too much pressure on people about '+t+'.',
+   t=>'Young people and older people see '+t+' too differently.',
+   t=>'Money affects '+t+' more than people admit.',
+   t=>'Social media has changed '+t+' for the worse.',
+   t=>'Simple solutions are usually better when dealing with '+t+'.',
+   t=>'Personal experience matters more than expert advice about '+t+'.'
   ],
   finish:[
    t=>'When I think about '+t+', the first thing that comes to mind is...',
    t=>'The best thing about '+t+' is...',
    t=>'I wish people understood that '+t+'...',
-   t=>'One thing I would change about '+t+' is...'
+   t=>'One thing I would change about '+t+' is...',
+   t=>'A lesson I learned about '+t+' is...',
+   t=>'The hardest part of '+t+' is...',
+   t=>'If I had more time for '+t+', I would...',
+   t=>'People often forget that '+t+'...',
+   t=>'My most memorable experience with '+t+' was...',
+   t=>'A small improvement to '+t+' would be...',
+   t=>'I feel most confident about '+t+' when...',
+   t=>'The advice I would give about '+t+' is...'
   ],
-  hot:[
-   t=>cap(t)+' should be treated as a basic life skill.',
-   t=>'People take '+t+' too seriously.',
-   t=>'Modern life has made '+t+' unnecessarily complicated.',
-   t=>'We would be happier if we changed the way we think about '+t+'.'
+  mission:[
+   t=>'During the conversation, ask someone about '+t+' and ask one natural follow-up question.',
+   t=>'Naturally bring up '+t+' and invite two people to share different opinions.',
+   t=>'Ask a question about '+t+' without using the words “yes” or “no”.',
+   t=>'Find someone with a different view about '+t+' and ask what shaped their opinion.',
+   t=>'Ask someone for a real example related to '+t+'.',
+   t=>'Connect '+t+' to something another person said earlier.',
+   t=>'Ask someone to compare two different sides of '+t+'.',
+   t=>'Use “What do you mean?” naturally after someone mentions '+t+'.',
+   t=>'Ask a follow-up question beginning with “Why” about '+t+'.',
+   t=>'Ask a follow-up question beginning with “How” about '+t+'.',
+   t=>'Invite a quieter person to share an opinion about '+t+'.',
+   t=>'Summarise someone’s idea about '+t+' before adding your own view.'
   ],
   lie:[
    t=>'A time when '+t+' surprised you.',
    t=>'Something unusual that happened because of '+t+'.',
    t=>'A mistake you once made involving '+t+'.',
-   t=>'A story about '+t+' that sounds difficult to believe.'
+   t=>'A story about '+t+' that sounds difficult to believe.',
+   t=>'A lucky moment connected to '+t+'.',
+   t=>'An embarrassing moment involving '+t+'.',
+   t=>'A decision about '+t+' that had an unexpected result.',
+   t=>'A time someone gave you bad advice about '+t+'.',
+   t=>'A time you changed your mind about '+t+'.',
+   t=>'A small problem involving '+t+' that became a big story.',
+   t=>'A moment when '+t+' saved you time or caused trouble.',
+   t=>'A story about meeting someone because of '+t+'.'
   ],
   bingo:[
    t=>'Has recently talked about '+t,
    t=>'Would like to improve something about '+t,
    t=>'Has a strong opinion about '+t,
-   t=>'Can tell a funny story about '+t
+   t=>'Can tell a funny story about '+t,
+   t=>'Has changed a habit related to '+t,
+   t=>'Knows someone who is very interested in '+t,
+   t=>'Has learned something useful about '+t,
+   t=>'Would like to try something new involving '+t,
+   t=>'Has given someone advice about '+t,
+   t=>'Has made a mistake involving '+t,
+   t=>'Can recommend something related to '+t,
+   t=>'Has a goal connected to '+t
+  ],
+  hot:[
+   t=>cap(t)+' should be treated as a basic life skill.',
+   t=>'People take '+t+' too seriously.',
+   t=>'Modern life has made '+t+' unnecessarily complicated.',
+   t=>'We would be happier if we changed the way we think about '+t+'.',
+   t=>'People should be more honest about '+t+'.',
+   t=>'Social media has made '+t+' worse.',
+   t=>'People spend too much money on '+t+'.',
+   t=>'Schools should prepare people better for '+t+'.',
+   t=>'There are too many unnecessary rules around '+t+'.',
+   t=>'Experience is more useful than advice when it comes to '+t+'.',
+   t=>'Most people underestimate how difficult '+t+' really is.',
+   t=>'Technology will completely change '+t+' within ten years.'
   ]
  };
  function generate(i){
-  const cycle=Math.floor(i/topics.length)%4;
+  const p12=Math.floor(i/topics.length)%12;
+  const t=topic(i);
   switch(cfg.type){
-   case 'twoTruths': return [cat(i),cap(topic(i)), 'Say three statements about '+topic(i)+'. Two must be true and one must be false.'];
-   case 'whoAmI': return [cat(i),cap(word(i))];
-   case 'storyChain': return [cat(i),'When I arrived at '+place(i)+', I found '+word(i)+' waiting for me.','By the third player, connect the story to '+topic(i)+'.'];
-   case 'explainBadly': return [cat(i),cap(word(i)),'Describe it without saying its name or the most obvious category word.'];
-   case 'roulette': return [cat(i),patterns.roulette[cycle](topic(i)),'Give one specific example and let someone ask one follow-up question.'];
-   case 'opinion': return [cat(i),patterns.opinion[cycle](topic(i))];
-   case 'ranking': return {cat:cat(i),title:'Rank these for '+topic(i),items:[word(i),word(i+7),word(i+19),word(i+31),word(i+43)].map(cap)};
-   case 'detective': return {cat:cat(i),title:'The Missing '+cap(word(i)),setup:'A '+word(i)+' disappeared at '+place(i)+' between '+(10+i%10)+':10 and '+(10+i%10)+':20. Your group says you were together the whole time.',facts:['Agree where everyone was standing or sitting.','Agree what each person was doing five minutes earlier.','Agree on one detail the detective can verify.']};
-   case 'finish': return [cat(i),patterns.finish[cycle](topic(i))];
-   case 'threeClues': return [cat(i),cap(word(i))];
-   case 'mission': {
-    const missionPatterns=[
-     t=>'During the conversation, ask someone about '+t+' and ask one natural follow-up question.',
-     t=>'Naturally bring up '+t+' and invite two people to share different opinions.',
-     t=>'Ask a question about '+t+' without using the words “yes” or “no”.',
-     t=>'Find someone with a different view about '+t+' and ask what shaped their opinion.'
+   case 'twoTruths': return [cat(i),cap(textPatterns.twoTruths[p12](t)),'Say three believable statements about this prompt. Two must be true and one must be false.'];
+   case 'whoAmI': return [cat(i),cap(target(i))];
+   case 'storyChain': return [cat(i),'When I arrived at '+place(i)+', I found '+target(i+37)+' waiting for me.','Keep the story connected. By the third player, introduce a problem involving '+topic(i)+'.'];
+   case 'explainBadly': return [cat(i),cap(target(i)),'Describe it indirectly without saying the target, spelling it or translating it.'];
+   case 'roulette': return [cat(i),textPatterns.roulette[p12](t),'Give one specific example, then let someone ask one follow-up question.'];
+   case 'opinion': return [cat(i),textPatterns.opinion[p12](t)];
+   case 'ranking': {
+    const priorities=[
+     ['Cost','Time','Comfort','Quality','Flexibility'],
+     ['Fun','Safety','Convenience','Learning','Value'],
+     ['Speed','Quality','Price','Simplicity','Reliability'],
+     ['Freedom','Stability','Growth','Income','Work-life balance'],
+     ['Honesty','Kindness','Humour','Reliability','Communication'],
+     ['Location','Price','Comfort','Atmosphere','Service']
     ];
-    return missionPatterns[cycle](topic(i));
+    return {cat:cat(i),title:'Rank what matters most when thinking about '+t,items:priorities[Math.floor(i/topics.length)%priorities.length]};
    }
-   case 'minuteStory': return [word(i),word(i+17),word(i+41)];
-   case 'wouldILie': return [cat(i),patterns.lie[cycle](topic(i))];
-   case 'desert': return {cat:cat(i),title:'Survival challenge: '+topic(i)+' near '+place(i),items:Array.from({length:8},(_,j)=>survival[(i+j*3)%survival.length])};
-   case 'bingo': return patterns.bingo[cycle](topic(i));
+   case 'detective': return {cat:cat(i),title:'The Missing '+cap(target(i)),setup:'A '+target(i)+' disappeared at '+place(i)+' between '+(9+i%10)+':10 and '+(9+i%10)+':20. Your group says you were together the whole time.',facts:['Agree where everyone was standing or sitting.','Agree what each person was doing five minutes earlier.','Agree on one detail the detective can verify.']};
+   case 'finish': return [cat(i),textPatterns.finish[p12](t)];
+   case 'threeClues': return [cat(i),cap(target(i))];
+   case 'mission': return textPatterns.mission[p12](t);
+   case 'minuteStory': return [target(i),target(i+137),target(i+419)];
+   case 'wouldILie': return [cat(i),textPatterns.lie[p12](t)];
+   case 'desert': return {cat:cat(i),title:'Survival challenge: '+t+' near '+place(i),items:Array.from({length:8},(_,j)=>survival[(i+j*3)%survival.length])};
+   case 'bingo': return textPatterns.bingo[p12](t);
    case 'emoji': {
     const g=Math.floor(i/emojis.length);
     return [cat(i),[emojis[i%emojis.length],emojis[(i+5+g)%emojis.length],emojis[(i+11+g*2)%emojis.length],emojis[(i+19+g*3)%emojis.length]]];
    }
-   case 'worstAdvice': return [cat(i),'I keep having problems with '+topic(i)+' and I do not know what to change.'];
-   case 'sell': return {item:cap(word(i)),twist:'Sell it to someone who cares most about '+topic(i)+'.'};
-   case 'hotTake': return [cat(i),patterns.hot[cycle](topic(i))];
-   case 'photoTalk': return {cat:cat(i),title:cap(word(i))+' at '+cap(place(i)),desc:'Someone is at '+place(i)+' with '+word(i)+' when an unexpected situation begins.',icons:[emojis[i%emojis.length],emojis[(i+3)%emojis.length],emojis[(i+9)%emojis.length]],questions:['What probably happened just before this moment?','How does the person feel and why?','What is the most likely thing to happen next?']};
+   case 'worstAdvice': return [cat(i),'I keep having problems with '+t+' and I do not know what to change.'];
+   case 'sell': return {item:cap(target(i)),twist:'Sell it to '+customers[Math.floor(i/targets.length)%customers.length]+'. Focus on a benefit that would genuinely matter to this customer.'};
+   case 'hotTake': return [cat(i),textPatterns.hot[p12](t)];
+   case 'photoTalk': {
+    const situations=['waiting for important news','realising something has gone missing','celebrating unexpected good news','trying to solve a small problem','meeting someone for the first time','running late','making an important decision','waiting for transport','taking a break','helping another person'];
+    const situation=situations[Math.floor(i/places.length)%situations.length];
+    return {cat:cat(i),title:cap(place(i))+' · '+cap(situation),desc:'A person is at '+place(i)+' and is '+situation+'. Use the icons as extra clues.',icons:[emojis[i%emojis.length],emojis[(i+3)%emojis.length],emojis[(i+9)%emojis.length]],questions:['What probably happened just before this moment?','How does the person feel and why?','What is the most likely thing to happen next?']};
+   }
    default:return null;
   }
  }
- for(let i=0;arr.length<MIN&&i<3000;i++){const x=generate(i);if(x!==null)add(x)}
-})();
+ for(let i=0;arr.length<MIN&&i<12000;i++){const x=generate(i);if(x!==null)add(x)}
+}
+ensureExpandedContent();
 const builtInItems=Array.isArray(cfg.items)?JSON.parse(JSON.stringify(cfg.items)):[];
 const $=s=>document.querySelector(s);
 const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
@@ -314,6 +460,7 @@ async function syncRemote(){
       const remote=JSON.parse(JSON.stringify(settings.content)).filter(validItem);
       if(remote.length){
         cfg.items=remote;
+        ensureExpandedContent();
         if(!userInteracted){deck=[];pos=-1;history=[];historyCursor=-1;nextItem()}
       }else{
         console.warn('Remote game content was empty or invalid; keeping built-in cards.');
