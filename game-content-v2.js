@@ -265,4 +265,156 @@
     if (typeof build === 'function') build();
     setText('.game-note', 'Choose A or B first. Then give one reason. Someone who chose the other side may respond once.');
   }
+  // Normalize the public game library to a minimum of 200 usable content items per game.
+  const LEGACY_MIN = 200;
+  const legacyTopics = ['daily routines','free time','sleep','exercise','money','shopping','cooking','travel','public transport','friendship','family','work','career plans','education','English learning','technology','social media','music','movies','sports','health','stress','confidence','patience','honesty','trust','teamwork','communication','motivation','habits','decision making','time management','creativity','goals','memories','the future','weekends','holidays','restaurants','cafés','city life','remote work','meetings','job interviews','relationships','first impressions','personal space','good manners','online communication','phone use','news','weather','fashion','books','gaming','photography','learning new skills','saving money','healthy food','home life','neighbours','commuting','customer service','leadership','feedback','problem solving','risk taking','success','failure','change','comfort zones'];
+  const legacyCats = ['Everyday','Funny','Social','Deep','Spicy'];
+  const legacyCat = i => legacyCats[i % legacyCats.length];
+  const legacyTopic = i => legacyTopics[i % legacyTopics.length];
+  const legacyCap = s => String(s).replace(/\b\w/g, m => m.toUpperCase());
+
+  function fillLegacy(target, make, keyFn = x => JSON.stringify(x)) {
+    if (!Array.isArray(target)) return;
+    const seen = new Set(target.map(keyFn));
+    for (let i = 0; target.length < LEGACY_MIN && i < 4000; i++) {
+      const item = make(i);
+      const key = keyFn(item);
+      if (!seen.has(key)) {
+        target.push(item);
+        seen.add(key);
+      }
+    }
+  }
+
+  if (path.includes('/last-thing-you-did/') && typeof prompts !== 'undefined') {
+    const patterns = [
+      t => 'What was the last thing you changed about '+t+'?',
+      t => 'What was the last useful lesson you learned about '+t+'?',
+      t => 'What was the last decision you made because of '+t+'?',
+      t => 'What was the last conversation you had about '+t+'?'
+    ];
+    fillLegacy(prompts, i => ({c:legacyCat(i),q:patterns[Math.floor(i/legacyTopics.length)%patterns.length](legacyTopic(i))}), x => x.q);
+    if (typeof buildDeck === 'function') buildDeck();
+  }
+
+  if (path.includes('/what-would-you-do-if/') && typeof situations !== 'undefined') {
+    const patterns = [
+      t => 'you had to change one thing about '+t+' tomorrow?',
+      t => 'someone asked you for honest advice about '+t+'?',
+      t => 'you suddenly had twice as much time for '+t+'?',
+      t => 'you discovered your usual approach to '+t+' no longer worked?'
+    ];
+    fillLegacy(situations, i => ({c:legacyCat(i),q:patterns[Math.floor(i/legacyTopics.length)%patterns.length](legacyTopic(i))}), x => x.q);
+    if (typeof buildDeck === 'function') buildDeck();
+  }
+
+  if (path.includes('/would-you-rather/') && typeof items !== 'undefined') {
+    const patterns = [
+      (a,b) => [legacyCat(a.length+b.length),'have more '+a+' but less '+b,'have more '+b+' but less '+a],
+      (a,b) => [legacyCat(a.length+b.length),'be naturally good at '+a,'be naturally good at '+b],
+      (a,b) => [legacyCat(a.length+b.length),'spend a free year focused on '+a,'spend a free year focused on '+b]
+    ];
+    fillLegacy(items, i => {
+      const a=legacyTopic(i), b=legacyTopic(i+17), p=patterns[Math.floor(i/legacyTopics.length)%patterns.length];
+      return p(a,b);
+    });
+    if (typeof build === 'function') build();
+  }
+
+  if (path.includes('/most-likely-to/') && typeof items !== 'undefined') {
+    const patterns = [
+      t => 'be the first person to suggest something about '+t+'?',
+      t => 'turn a small problem with '+t+' into a funny story?',
+      t => 'become unexpectedly good at '+t+'?',
+      t => 'change their plans completely because of '+t+'?'
+    ];
+    fillLegacy(items, i => [legacyCat(i),patterns[Math.floor(i/legacyTopics.length)%patterns.length](legacyTopic(i))]);
+    if (typeof build === 'function') build();
+  }
+
+  if (path.includes('/hot-seat/') && typeof prompts !== 'undefined') {
+    const patterns = [
+      t => 'What is your strongest opinion about '+t+'?',
+      t => 'What would you change first about '+t+'?',
+      t => 'What is one good memory connected to '+t+'?',
+      t => 'What advice would you give about '+t+'?'
+    ];
+    fillLegacy(prompts, i => [legacyCat(i),patterns[Math.floor(i/legacyTopics.length)%patterns.length](legacyTopic(i))]);
+    if (typeof build === 'function') build();
+  }
+
+  if (path.includes('/five-second-challenge/') && typeof items !== 'undefined') {
+    const patterns = [
+      t => 'Name 3 things connected with '+t+'.',
+      t => 'Name 3 problems people can have with '+t+'.',
+      t => 'Name 3 ways to improve '+t+'.',
+      t => 'Name 3 words you associate with '+t+'.'
+    ];
+    fillLegacy(items, i => [legacyCat(i),patterns[Math.floor(i/legacyTopics.length)%patterns.length](legacyTopic(i))]);
+    if (typeof build === 'function') build();
+  }
+
+  if (path.includes('/red-flag-green-flag/') && typeof items !== 'undefined') {
+    const patterns = [
+      t => 'They ask thoughtful questions when you talk about '+t+'.',
+      t => 'They refuse to listen to any opinion about '+t+' except their own.',
+      t => 'They can disagree respectfully when '+t+' comes up.',
+      t => 'They constantly make promises about '+t+' but never follow through.'
+    ];
+    fillLegacy(items, i => [legacyCat(i),patterns[Math.floor(i/legacyTopics.length)%patterns.length](legacyTopic(i))]);
+    if (typeof build === 'function') build();
+  }
+
+  if (path.includes('/debate-roulette/') && typeof motions !== 'undefined') {
+    const patterns = [
+      t => legacyCap(t)+' should be taught as a practical life skill.',
+      t => 'People spend too much time worrying about '+t+'.',
+      t => 'Technology has improved the way people deal with '+t+'.',
+      t => 'Society would benefit from talking more openly about '+t+'.'
+    ];
+    fillLegacy(motions, i => [legacyCat(i),patterns[Math.floor(i/legacyTopics.length)%patterns.length](legacyTopic(i))]);
+    if (typeof build === 'function') build();
+  }
+
+  if (path.includes('/never-have-i-ever/') && typeof items !== 'undefined') {
+    const patterns = [
+      t => 'changed my plans because of '+t+'.',
+      t => 'pretended to understand something about '+t+' when I did not.',
+      t => 'learned an important lesson because of '+t+'.',
+      t => 'had an unexpectedly funny experience involving '+t+'.'
+    ];
+    fillLegacy(items, i => [legacyCat(i),patterns[Math.floor(i/legacyTopics.length)%patterns.length](legacyTopic(i))]);
+    if (typeof build === 'function') build();
+  }
+
+  if (path.includes('/taboo/') && typeof cards !== 'undefined') {
+    const tabooGroups = {
+      Everyday:['TOOTHBRUSH','SHOWER','WASHING MACHINE','DISHWASHER','VACUUM CLEANER','REMOTE CONTROL','LIGHT SWITCH','DOORBELL','SHOPPING LIST','GROCERY BAG','CREDIT CARD','CASH MACHINE','SUPERMARKET','PHARMACY','BUS STOP','TRAFFIC LIGHT','PARKING LOT','APARTMENT','BALCONY','KITCHEN','BEDROOM','BATHROOM','GARDEN','NEWSPAPER','NOTEBOOK','PEN','COAT','SHOES','GLASSES','WATCH','WATER BOTTLE','PHONE CHARGER'],
+      Travel:['TRAIN STATION','METRO STATION','BOARDING GATE','FLIGHT DELAY','TRAVEL INSURANCE','HOTEL LOBBY','ROOM KEY','RENTAL CAR','ROAD TRIP','CITY MAP','TOUR GUIDE','MUSEUM TICKET','FERRY','CRUISE SHIP','SEAT BELT','LUGGAGE TAG','PASSPORT CONTROL','SECURITY CHECK','DEPARTURE BOARD','ARRIVAL HALL','TAXI DRIVER','BUS TICKET','TRAIN TICKET','WINDOW SEAT','AISLE SEAT','CAMPSITE','MOUNTAIN TRAIL','CITY TOUR','SOUVENIR','CURRENCY EXCHANGE','TRAVEL ADAPTER','BEACH TOWEL'],
+      Food:['SANDWICH','PASTA','SUSHI','ICE CREAM','CAKE','COOKIE','BREAD','CHEESE','YOGURT','MILK','TEA','JUICE','FRYING PAN','OVEN','FORK','SPOON','KNIFE','PLATE','CUP','KETTLE','TOASTER','BLENDER','BARBECUE','PICNIC','CHEF','BILL','TIP','FOOD DELIVERY','GROCERY STORE','DINNER','LUNCH','SNACK'],
+      Work:['LAPTOP','KEYBOARD','MOUSE','SCANNER','SPREADSHEET','CALENDAR','VIDEO CALL','CONFERENCE ROOM','OFFICE CHAIR','DESK','BUSINESS CARD','CUSTOMER','CLIENT','INVOICE','CONTRACT','MANAGER','PROJECT','REPORT','JOB APPLICATION','CV','TASK LIST','COFFEE BREAK','WORKSHOP','TRAINING COURSE','TEAM LEADER','WORK SCHEDULE','OFFICE KITCHEN','COMPANY WEBSITE','SALES CALL','ONLINE MEETING','JOB OFFER','BUSINESS TRIP'],
+      Entertainment:['MOVIE','THEATRE','VIDEO GAME','CAMERA','PHOTOGRAPH','BOOK','NOVEL','COMIC BOOK','GUITAR','PIANO','FOOTBALL','BASKETBALL','TENNIS','DANCE','FESTIVAL','PARTY','BIRTHDAY','WEDDING','SOCIAL MEDIA','STREAMING','MICROPHONE','MUSIC VIDEO','TV SERIES','DOCUMENTARY','ACTOR','SINGER','DIRECTOR','STAGE','TICKET OFFICE','SPORTS FAN','GAME SHOW','PHOTO ALBUM']
+    };
+    const generic = {
+      Everyday:['USE','HOME','DAILY','THING'],
+      Travel:['TRAVEL','TRIP','PLACE','GO'],
+      Food:['EAT','FOOD','TASTE','MEAL'],
+      Work:['WORK','OFFICE','JOB','TEAM'],
+      Entertainment:['FUN','WATCH','PLAY','SHOW']
+    };
+    const extras=[];
+    Object.entries(tabooGroups).forEach(([cat,terms]) => terms.forEach(term => extras.push([cat,term,generic[cat]])));
+    let combo=0;
+    const mods=['WEEKEND','MORNING','CITY','HOME','ONLINE','OFFICE','FAMILY','SUMMER'];
+    const nouns=['MARKET','PLAN','TRIP','MEETING','DINNER','PARTY','CLASS','PROJECT','BREAK','SHOPPING','JOURNEY','EVENT','GAME','CALL','ROUTINE','TICKET','BOOKING','MESSAGE','ORDER','COURSE'];
+    while(extras.length<220){
+      const term=mods[combo%mods.length]+' '+nouns[Math.floor(combo/mods.length)%nouns.length];
+      const cat=['Everyday','Travel','Food','Work','Entertainment'][combo%5];
+      extras.push([cat,term,generic[cat]]);
+      combo++;
+    }
+    fillLegacy(cards, i => extras[i%extras.length], x => x[1]);
+    if (typeof build === 'function') build();
+  }
+
 })();
