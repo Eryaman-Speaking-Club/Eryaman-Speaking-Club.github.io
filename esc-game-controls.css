@@ -29,3 +29,8 @@ button:disabled{cursor:not-allowed!important;opacity:.5}
  .taboo-actions>*{flex:1 1 130px}
 }
 @media(prefers-reduced-motion:reduce){.esc-display-status,.game-toast{transition:none}}
+
+.esc-how-to-play{width:min(1180px,calc(100% - 36px));margin:10px auto 16px;padding:11px 14px;border:1px solid #dce6ee;border-radius:14px;background:#f8fbfd;display:flex;align-items:flex-start;gap:10px;color:#4d667d;font:600 12px/1.5 system-ui,sans-serif}
+.esc-how-to-play strong{flex:none;color:#123a6b;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+.esc-how-to-play span{min-width:0}
+@media(max-width:680px){.esc-how-to-play{width:calc(100% - 24px);display:block}.esc-how-to-play strong{display:block;margin-bottom:4px}}
