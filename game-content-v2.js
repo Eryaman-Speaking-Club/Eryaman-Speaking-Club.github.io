@@ -323,7 +323,7 @@
     const p=[
       t=>'What was the last thing you changed about '+t+'?',t=>'What was the last useful lesson you learned about '+t+'?',
       t=>'What was the last decision you made because of '+t+'?',t=>'What was the last conversation you had about '+t+'?',
-      t=>'What was the last problem you solved involving '+t+'?',t=>'What was the last thing you bought or used for '+t+'?',
+      t=>'What was the last problem you solved involving '+t+'?',t=>'What was the last real example of '+t+' you noticed in everyday life?',
       t=>'What was the last advice you heard about '+t+'?',t=>'What was the last plan you made related to '+t+'?',
       t=>'What was the last mistake you made involving '+t+'?',t=>'What was the last good experience you had with '+t+'?'
     ];
@@ -336,7 +336,7 @@
       t=>'you had to change one thing about '+t+' tomorrow?',t=>'someone asked you for honest advice about '+t+'?',
       t=>'you suddenly had twice as much time for '+t+'?',t=>'your usual approach to '+t+' stopped working?',
       t=>'a close friend strongly disagreed with you about '+t+'?',t=>'you had to explain '+t+' to a complete beginner?',
-      t=>'you had to spend half as much money on '+t+'?',t=>'you could instantly become excellent at '+t+'?',
+      t=>'you had to simplify the way you deal with '+t+'?',t=>'you could instantly become excellent at '+t+'?',
       t=>'you had to make an important decision about '+t+' today?',t=>'you could remove one common problem connected to '+t+'?'
     ];
     fillLegacy(situations,i=>({c:legacyCat(i),q:p[Math.floor(i/legacyTopics.length)%p.length](legacyTopic(i))}),x=>x.q);
@@ -405,7 +405,7 @@
     const p=[
       t=>legacyCap(t)+' should be taught as a practical life skill.',t=>'People spend too much time worrying about '+t+'.',
       t=>'Technology has improved the way people deal with '+t+'.',t=>'Society would benefit from talking more openly about '+t+'.',
-      t=>'People should spend more money on '+t+'.',t=>'Schools should prepare students better for '+t+'.',
+      t=>'People should give more attention to '+t+'.',t=>'Schools should prepare students better for '+t+'.',
       t=>'Social media has made '+t+' worse.',t=>'Personal experience matters more than expert advice about '+t+'.',
       t=>'There should be fewer rules around '+t+'.',t=>'People should take '+t+' more seriously.'
     ];
@@ -417,7 +417,7 @@
     const p=[
       t=>'changed my plans because of '+t+'.',t=>'pretended to understand something about '+t+' when I did not.',
       t=>'learned an important lesson because of '+t+'.',t=>'had an unexpectedly funny experience involving '+t+'.',
-      t=>'asked someone for help with '+t+'.',t=>'spent more money than planned because of '+t+'.',
+      t=>'asked someone for help with '+t+'.',t=>'ignored a small problem because of '+t+' and regretted it later.',
       t=>'changed my opinion after learning more about '+t+'.',t=>'made a mistake because I rushed something involving '+t+'.',
       t=>'given someone advice about '+t+'.',t=>'avoided a conversation because of '+t+'.'
     ];
