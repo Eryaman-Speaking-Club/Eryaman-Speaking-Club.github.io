@@ -28,7 +28,7 @@
     const pill=$('.connection-pill');pill?.classList.toggle('offline',!ok);
     $('#connectionText').textContent=ok?tx('Bağlı','Connected'):tx('Yeniden bağlanıyor…','Reconnecting…');
   }
-  function signature(d){return JSON.stringify([d?.class?.id,d?.session?.id,d?.session?.status,d?.session?.current_index,d?.session?.current_stage,d?.session?.current_payload,d?.session?.scores,d?.assignments]);}
+  function signature(d){return JSON.stringify([d?.class?.id,d?.session?.id,d?.session?.status,d?.session?.current_index,d?.session?.current_stage,d?.session?.current_payload,d?.session?.scores,d?.lesson,d?.student_progress,d?.assignments]);}
 
   function applyLanguage(next){
     lang=next==='en'?'en':'tr';
@@ -68,10 +68,79 @@
     set('[data-jt="leave"]','Ayrıl','Leave');
     set('[data-jt="assignmentsKicker"]','ÖDEVLER','ASSIGNMENTS');
     set('[data-jt="assignmentsTitle"]','Sınıf ödevlerin','Your class assignments');
+    set('#studentHowCard .student-how-head small','BU EKRAN NASIL KULLANILIR?','HOW DO I USE THIS SCREEN?');
+    set('#studentHowCard .student-how-head strong','Öğrenci tarafında yapman gerekenler basit.','The student side is intentionally simple.');
+    const howTexts=[
+      [tx('Ekranı açık tut','Keep the screen open'),tx('Öğretmen aşamayı değiştirdiğinde ekran otomatik yenilenir.','Your screen updates automatically when the teacher changes the stage.')],
+      [tx('Ortadaki görevi yap','Do the task in the middle'),tx('O anda yalnızca ekrandaki soru veya etkinliğe odaklan.','Focus only on the current question or activity.')],
+      [tx('Cevap verdiysen işaretle','Mark it when you answer'),tx('“Cevap verdim” öğretmene katılım sinyali gönderir.','“I answered” sends a participation signal to your teacher.')],
+      [tx('Takıldıysan yardım iste','Ask for help if you are stuck'),tx('“Yardıma ihtiyacım var” öğretmenin sonraki yönlendirmesine yardımcı olur.','“I need help” tells your teacher you need support on this stage.')]
+    ];
+    document.querySelectorAll('#studentHowBody>div').forEach((row,i)=>{const strong=row.querySelector('strong'),small=row.querySelector('small');if(strong)strong.textContent=howTexts[i]?.[0]||'';if(small)small.textContent=howTexts[i]?.[1]||'';});
+    set('#studentLessonKicker','BUGÜNKÜ DERS','TODAY\'S LESSON');
+    const actionButtons=document.querySelectorAll('#studentAction button');
+    if(actionButtons[0]){actionButtons[0].querySelector('span').textContent=tx('Cevap verdim ✓','I answered ✓');actionButtons[0].querySelector('small').textContent=tx('Katıldığını öğretmene bildir','Tell your teacher you participated');}
+    if(actionButtons[1]){actionButtons[1].querySelector('span').textContent=tx('Yardıma ihtiyacım var','I need help');actionButtons[1].querySelector('small').textContent=tx('Bu aşamada desteğe ihtiyacın olduğunu bildir','Tell your teacher you need support on this stage');}
+    const summary=document.querySelectorAll('.student-activity-summary>div');
+    if(summary[0]){summary[0].querySelector('small').textContent=tx('KATILIM','PARTICIPATION');summary[0].querySelector('span').textContent=tx('işaretlenen aşama','marked stages');}
+    if(summary[1]){summary[1].querySelector('small').textContent=tx('YARDIM İSTEĞİ','HELP REQUESTS');summary[1].querySelector('span').textContent=tx('işaretlenen aşama','marked stages');}
+    const assignmentNote=$('.assignment-zone-head p');if(assignmentNote)assignmentNote.textContent=tx('Canlı dersten ayrı çalışır. Yayınlanmış ödevlerin burada kalır.','Assignments are separate from the live lesson and stay here while published.');
     const link=$('[data-jt="teacherLink"]');if(link)link.innerHTML=tx('Öğretmen misiniz? <b>Öğretmen paneli →</b>','Are you a teacher? <b>Teacher platform →</b>');
-    if(state) renderAssignments(state.assignments||[]);
+    if(state){ renderAssignments(state.assignments||[]); renderLessonOverview(state); }
   }
 
+  function stageLabel(step,index){
+    return String(step?.title||step?.stage||tx('Aşama '+(index+1),'Stage '+(index+1))).trim();
+  }
+
+  function renderLessonOverview(d){
+    const lesson=d?.lesson;
+    const session=d?.session;
+    const wrap=$('#studentLessonOverview');
+    if(!wrap)return;
+    const plan=Array.isArray(lesson?.plan)?lesson.plan:[];
+    const hasLesson=Boolean(lesson && (plan.length || lesson.title || lesson.topic));
+    wrap.hidden=!hasLesson;
+    if(!hasLesson)return;
+
+    const current=Math.max(0,Math.min(Number(session?.current_index)||0,Math.max(0,plan.length-1)));
+    const completed=session?.status==='completed';
+    const progressCount=completed?plan.length:Math.min(plan.length,current+1);
+    const percent=plan.length?Math.round((progressCount/plan.length)*100):0;
+
+    $('#studentLessonTitle').textContent=lesson.title||lesson.topic||tx('English dersi','English lesson');
+    $('#studentLessonTopic').textContent=(lesson.topic||tx('Genel İngilizce','General English'));
+    $('#studentLessonDuration').textContent=Number(lesson.duration_minutes||40)+' '+tx('dk','min');
+    $('#studentLessonGoal').textContent=String(lesson.primary_goal||'speaking').toUpperCase();
+    $('#studentLessonProgressLabel').textContent=plan.length?(Math.min(progressCount,plan.length)+' / '+plan.length):'—';
+    $('#studentProgressFill').style.width=percent+'%';
+
+    const list=$('#studentStageList');
+    if(list){
+      list.innerHTML=plan.map((step,i)=>{
+        const isDone=completed || i<current;
+        const isActive=!completed && i===current;
+        return '<div class="student-stage '+(isDone?'done ':'')+(isActive?'active':'')+'>'+
+          '<span>'+(isDone?'✓':String(i+1))+'</span>'+
+          '<p><strong>'+esc(stageLabel(step,i))+'</strong><small>'+esc(step.duration||'')+(step.mode?' · '+esc(step.mode):'')+'</small></p>'+
+        '</div>';
+      }).join('');
+    }
+
+    const next=plan[current+1];
+    const nextCard=$('#studentNextCard');
+    if(nextCard){
+      nextCard.hidden=completed || !next;
+      if(next){
+        $('#studentNextTitle').textContent=stageLabel(next,current+1);
+        $('#studentNextMeta').textContent=[next.duration,next.mode].filter(Boolean).join(' · ');
+      }
+    }
+
+    const progress=d?.student_progress||{};
+    $('#studentParticipatedCount').textContent=String(Number(progress.participated_count||0));
+    $('#studentHelpCount').textContent=String(Number(progress.need_help_count||0));
+  }
   function renderAssignments(items=[]){
     const zone=$('#assignmentZone'),list=$('#studentAssignmentList'),count=$('#assignmentCount');
     if(!zone||!list)return;
@@ -115,6 +184,7 @@
     $('#classroomName').textContent=d.class?.name||'English Class';
     $('#classroomMeta').textContent=`${d.class?.age_group||''} · ${d.class?.level||''} · CODE ${d.class?.join_code||''}`;
     renderAssignments(d.assignments||[]);
+    renderLessonOverview(d);
     if(location.hash==='#assignmentZone'&&!assignmentHashHandled){
       assignmentHashHandled=true;
       setTimeout(()=>$('#assignmentZone')?.scrollIntoView({behavior:'smooth',block:'start'}),80);
@@ -129,8 +199,11 @@
       $('#liveTitle').textContent=payload.title||session.current_stage||'CLASS ACTIVITY';
       $('#livePrompt').textContent=payload.prompt||'Teacher is preparing the next activity…';
       $('#liveInstruction').textContent=payload.instruction||'Keep this screen open.';
-      $('#studentBlueScore').textContent=Number(session.scores?.blue||0);
-      $('#studentOrangeScore').textContent=Number(session.scores?.orange||0);
+      const blue=Number(session.scores?.blue||0),orange=Number(session.scores?.orange||0);
+      $('#studentBlueScore').textContent=blue;
+      $('#studentOrangeScore').textContent=orange;
+      const scoreboard=$('#studentScoreboard');
+      if(scoreboard)scoreboard.hidden=(blue===0&&orange===0);
     }
   }
   async function refresh(){
@@ -205,6 +278,12 @@
     $('#joinView').hidden=false;$('#classroomView').hidden=true;
   }
   document.querySelectorAll('[data-join-lang]').forEach(b=>b.addEventListener('click',()=>applyLanguage(b.dataset.joinLang)));
+  $('#studentHowToggle')?.addEventListener('click',()=>{
+    const body=$('#studentHowBody'),btn=$('#studentHowToggle');
+    const opening=body?.hidden!==false;
+    if(body)body.hidden=!opening;
+    if(btn)btn.setAttribute('aria-expanded',opening?'true':'false');
+  });
   $('#joinForm')?.addEventListener('submit',join);
   $('#leaveClass')?.addEventListener('click',()=>leave(true));
   document.querySelectorAll('[data-result]').forEach(b=>b.addEventListener('click',()=>result(b.dataset.result)));
