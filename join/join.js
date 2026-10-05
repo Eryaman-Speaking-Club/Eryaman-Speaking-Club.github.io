@@ -28,7 +28,7 @@
     const pill=$('.connection-pill');pill?.classList.toggle('offline',!ok);
     $('#connectionText').textContent=ok?tx('Bağlı','Connected'):tx('Yeniden bağlanıyor…','Reconnecting…');
   }
-  function signature(d){return JSON.stringify([d?.class?.id,d?.session?.id,d?.session?.status,d?.session?.current_index,d?.session?.current_stage,d?.session?.current_payload,d?.session?.scores,d?.lesson,d?.student_progress,d?.assignments]);}
+  function signature(d){return JSON.stringify([d?.class?.id,d?.teacher,d?.session?.id,d?.session?.status,d?.session?.current_index,d?.session?.current_stage,d?.session?.current_payload,d?.session?.scores,d?.lesson,d?.student_progress,d?.assignment_summary,d?.upcoming_class,d?.recent_lessons,d?.assignments]);}
 
   function applyLanguage(next){
     lang=next==='en'?'en':'tr';
@@ -75,6 +75,18 @@
     ];
     document.querySelectorAll('#studentHowBody>div').forEach((row,i)=>{const strong=row.querySelector('strong'),small=row.querySelector('small');if(strong)strong.textContent=howTexts[i]?.[0]||'';if(small)small.textContent=howTexts[i]?.[1]||'';});
     set('#studentLessonKicker','BUGÜNKÜ DERS','TODAY\'S LESSON');
+    set('#studentDashboardKicker','SINIFIM','MY CLASS');
+    set('#studentDashboardContext','Sınıf bilgilerin ve bugün yapman gerekenler burada.','Your class information and what to do today are here.');
+    set('.student-teacher-card small','ÖĞRETMEN','TEACHER');
+    const statLabels=document.querySelectorAll('.student-dashboard-stats article');
+    if(statLabels[0]){statLabels[0].querySelector('small').textContent=tx('YAPILACAK ÖDEV','ASSIGNMENTS TO DO');statLabels[0].querySelector('span').textContent=tx('bekleyen görev','pending tasks');}
+    if(statLabels[1]){statLabels[1].querySelector('small').textContent=tx('TAMAMLANDI','COMPLETED');statLabels[1].querySelector('span').textContent=tx('ödev','assignments');}
+    if(statLabels[2]){statLabels[2].querySelector('small').textContent=tx('GERİ BİLDİRİM','FEEDBACK');statLabels[2].querySelector('span').textContent=tx('öğretmenden','from teacher');}
+    set('.student-now-card>small','ŞİMDİ NE YAPMALIYIM?','WHAT SHOULD I DO NOW?');
+    set('.student-upcoming-card>small','SIRADAKİ PLANLI DERS','NEXT SCHEDULED CLASS');
+    set('.student-history-head small','GEÇMİŞ DERSLER','LESSON HISTORY');
+    set('.student-history-head strong','Son derslerin','Your recent lessons');
+    set('.student-history-head p','Katıldığın dersleri ve kendi katılım işaretlerini burada görebilirsin.','See recent lessons and your own participation signals here.');
     const actionButtons=document.querySelectorAll('#studentAction button');
     if(actionButtons[0]){actionButtons[0].querySelector('span').textContent=tx('Cevap verdim ✓','I answered ✓');actionButtons[0].querySelector('small').textContent=tx('Katıldığını öğretmene bildir','Tell your teacher you participated');}
     if(actionButtons[1]){actionButtons[1].querySelector('span').textContent=tx('Yardıma ihtiyacım var','I need help');actionButtons[1].querySelector('small').textContent=tx('Bu aşamada desteğe ihtiyacın olduğunu bildir','Tell your teacher you need support on this stage');}
@@ -83,9 +95,78 @@
     if(summary[1]){summary[1].querySelector('small').textContent=tx('YARDIM İSTEĞİ','HELP REQUESTS');summary[1].querySelector('span').textContent=tx('işaretlenen aşama','marked stages');}
     const assignmentNote=$('.assignment-zone-head p');if(assignmentNote)assignmentNote.textContent=tx('Canlı dersten ayrı çalışır. Yayınlanmış ödevlerin burada kalır.','Assignments are separate from the live lesson and stay here while published.');
     const link=$('[data-jt="teacherLink"]');if(link)link.innerHTML=tx('Öğretmen misiniz? <b>Öğretmen paneli →</b>','Are you a teacher? <b>Teacher platform →</b>');
-    if(state){ renderAssignments(state.assignments||[]); renderLessonOverview(state); }
+    if(state){ renderStudentDashboard(state); renderAssignments(state.assignments||[]); renderLessonOverview(state); renderRecentLessons(state.recent_lessons||[]); }
   }
 
+  function fmtDateTime(value){
+    if(!value)return '';
+    try{return new Intl.DateTimeFormat(lang==='en'?'en-GB':'tr-TR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}).format(new Date(value));}catch{return '';}
+  }
+
+  function renderStudentDashboard(d){
+    const student=d?.student||{};
+    const klass=d?.class||{};
+    const teacher=d?.teacher||{};
+    const summary=d?.assignment_summary||{};
+    const session=d?.session;
+    const upcoming=d?.upcoming_class;
+    const assignments=Array.isArray(d?.assignments)?d.assignments:[];
+    const pending=assignments.find(a=>!a.completed&&!a.overdue);
+
+    $('#studentDashboardGreeting').textContent=tx('Merhaba ','Hi ')+(student.display_name||'')+' 👋';
+    $('#studentTeacherName').textContent=teacher.display_name||'Teacher';
+    $('#studentClassSummary').textContent=[klass.level,String(klass.focus||'').toUpperCase()].filter(Boolean).join(' · ');
+    $('#studentTodoCount').textContent=String(Number(summary.todo||0));
+    $('#studentCompletedCount').textContent=String(Number(summary.completed||0));
+    $('#studentFeedbackCount').textContent=String(Number(summary.feedback_count||0));
+
+    const nowTitle=$('#studentNowTitle'),nowText=$('#studentNowText'),action=$('#studentNowAction');
+    let target='';
+    if(session && session.status!=='completed'){
+      nowTitle.textContent=tx('Canlı dersin devam ediyor.','Your live lesson is in progress.');
+      nowText.textContent=tx('Aşağıdaki mevcut etkinliği yap ve öğretmen aşamayı değiştirdikçe ekranı takip et.','Complete the current activity below and follow the screen as your teacher changes stages.');
+      action.textContent=tx('Canlı derse git →','Go to live lesson →');
+      target='liveState';
+    }else if(pending){
+      nowTitle.textContent=tx('Bekleyen bir ödevin var.','You have an assignment to do.');
+      nowText.textContent=pending.title||tx('Ödevler bölümünü aç ve görevini tamamla.','Open assignments and complete your task.');
+      action.textContent=tx('Ödevlere git →','Go to assignments →');
+      target='assignmentZone';
+    }else if(upcoming){
+      nowTitle.textContent=tx('Şimdilik tamam. Sıradaki dersini bekleyebilirsin.','You are caught up. Wait for your next class.');
+      nowText.textContent=tx('Sıradaki planlı ders: ','Next scheduled class: ')+fmtDateTime(upcoming.starts_at);
+      action.textContent=tx('Geçmiş derslere bak →','View lesson history →');
+      target='studentHistoryZone';
+    }else{
+      nowTitle.textContent=tx('Şu anda yapman gereken zorunlu bir görev yok.','There is nothing urgent to do right now.');
+      nowText.textContent=tx('Yeni ders veya ödev geldiğinde bu alan otomatik güncellenecek.','This area will update automatically when a new lesson or assignment appears.');
+      action.textContent=tx('Geçmiş derslere bak →','View lesson history →');
+      target='studentHistoryZone';
+    }
+    action.hidden=false;
+    action.dataset.target=target;
+
+    const upcomingTitle=$('#studentUpcomingTitle'),upcomingTime=$('#studentUpcomingTime');
+    if(upcoming){
+      upcomingTitle.textContent=upcoming.title||tx('English dersi','English class');
+      upcomingTime.textContent=fmtDateTime(upcoming.starts_at)+' · '+Number(upcoming.duration_minutes||40)+' '+tx('dk','min')+(upcoming.notes?' · '+upcoming.notes:'');
+    }else{
+      upcomingTitle.textContent=tx('Henüz plan yok','No class scheduled yet');
+      upcomingTime.textContent=tx('Öğretmenin yeni bir ders planladığında burada görünecek.','It will appear here when your teacher schedules a new class.');
+    }
+  }
+
+  function renderRecentLessons(items=[]){
+    const zone=$('#studentHistoryZone'),list=$('#studentHistoryList'),count=$('#studentHistoryCount');
+    if(!zone||!list)return;
+    const rows=Array.isArray(items)?items:[];
+    zone.hidden=!rows.length;
+    if(count)count.textContent=String(rows.length);
+    if(!rows.length){list.innerHTML='';return;}
+    list.innerHTML=rows.map(x=>
+      '<article class="student-history-card"><div class="student-history-date"><small>'+esc(fmtDateTime(x.ended_at))+'</small><span>'+Number(x.duration_minutes||40)+' '+tx('dk','min')+'</span></div><div class="student-history-copy"><strong>'+esc(x.title||x.topic||'English lesson')+'</strong><p>'+esc(x.topic||'')+' · '+esc(String(x.primary_goal||'speaking').toUpperCase())+'</p></div><div class="student-history-metrics"><span>✓ '+Number(x.participated_count||0)+' '+tx('katılım','participation')+'</span><span>?</span>'+Number(x.need_help_count||0)+' '+tx('yardım','help')+'</div></article>'
+    ).join('');
+  }
   function stageLabel(step,index){
     return String(step?.title||step?.stage||tx('Aşama '+(index+1),'Stage '+(index+1))).trim();
   }
@@ -180,8 +261,10 @@
     $('#studentDisplayName').textContent=n;$('#studentAvatar').textContent=n.trim().charAt(0).toUpperCase()||'?';
     $('#classroomName').textContent=d.class?.name||'English Class';
     $('#classroomMeta').textContent=`${d.class?.age_group||''} · ${d.class?.level||''} · CODE ${d.class?.join_code||''}`;
+    renderStudentDashboard(d);
     renderAssignments(d.assignments||[]);
     renderLessonOverview(d);
+    renderRecentLessons(d.recent_lessons||[]);
     if(location.hash==='#assignmentZone'&&!assignmentHashHandled){
       assignmentHashHandled=true;
       setTimeout(()=>$('#assignmentZone')?.scrollIntoView({behavior:'smooth',block:'start'}),80);
@@ -275,6 +358,10 @@
     $('#joinView').hidden=false;$('#classroomView').hidden=true;
   }
   document.querySelectorAll('[data-join-lang]').forEach(b=>b.addEventListener('click',()=>applyLanguage(b.dataset.joinLang)));
+  $('#studentNowAction')?.addEventListener('click',e=>{
+    const id=e.currentTarget.dataset.target;
+    if(id)document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
+  });
   $('#studentHowToggle')?.addEventListener('click',()=>{
     const body=$('#studentHowBody'),btn=$('#studentHowToggle');
     const opening=body?.hidden!==false;
