@@ -77,7 +77,7 @@ const cfg=window.ESC_NEW_GAME||{};
    }
    case 'minuteStory': return [word(i),word(i+17),word(i+41)];
    case 'wouldILie': return [cat(i),patterns.lie[cycle](topic(i))];
-   case 'desert': return {cat:cat(i),title:'Stranded near '+place(i),items:Array.from({length:8},(_,j)=>survival[(i+j*3)%survival.length])};
+   case 'desert': return {cat:cat(i),title:'Survival challenge: '+topic(i)+' near '+place(i),items:Array.from({length:8},(_,j)=>survival[(i+j*3)%survival.length])};
    case 'bingo': return patterns.bingo[cycle](topic(i));
    case 'emoji': {
     const g=Math.floor(i/emojis.length);
