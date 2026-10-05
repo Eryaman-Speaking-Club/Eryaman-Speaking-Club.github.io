@@ -73,6 +73,7 @@ function ensureExpandedContent(){
  const emojis=['☕','📱','🌧️','🚕','✈️','🧳','😱','😂','🎉','🍕','🏠','🚪','🔑','💼','📧','⏰','💸','❤️','🤔','🎵','🎬','⚽','🚲','🌙','☀️','🔥','🎁','🚌','🚆','📚','💻','🗺️'];
  const survival=['Fresh water filter','Knife','Tent','Fishing line','Solar charger','First-aid kit','Mirror','Blanket','Rope','Flashlight','Compass','Cooking pot','Rain jacket','Water bottle','Radio','Map','Multi-tool','Insect repellent','Notebook','Emergency whistle'];
  const customers=['a university student','a busy parent','a frequent traveller','a remote worker','a small business owner','a teacher','a tourist','a fitness beginner','a budget-conscious customer','a luxury customer','a first-time buyer','a café owner','a hotel manager','a commuter','a new employee','a retiree','a content creator','an office worker','a family with children','someone who hates wasting time'];
+ const sellProducts=['phone','wallet','umbrella','headphones','backpack','suitcase','water bottle','notebook','camera','book','guitar','laptop','tablet','phone charger','power bank','coffee cup','shopping bag','jacket','hat','glasses','watch','bicycle','skateboard','gift box','travel guide','city map','travel adapter','travel pillow','thermos','lunch box','desk lamp','alarm clock','smart watch','fitness tracker','wireless headphones','Bluetooth speaker','keyboard','computer mouse','webcam','monitor','laptop stand','office chair','printer','projector','whiteboard','coffee machine','electric kettle','toaster','blender','air fryer','rice cooker','vacuum cleaner','vacuum robot','hair dryer','electric toothbrush','reusable bottle','food container','storage box','toolbox','flashlight','blanket','tent','first-aid box','yoga mat','dumbbell','sports bag','running shoes','swimming goggles','helmet','raincoat','sunglasses','portable charger','memory card','action camera','drone','e-book reader','games console','game controller','microphone','portable speaker','photo album','cookbook','dictionary','workbook','planner','calendar','business card holder','travel wallet','passport holder','luggage tag','carry-on bag','beach bag','beach umbrella','camping chair','sleeping bag','hiking boots','walking stick','fitness watch','meal planner','language course','online course','fitness class','guided city tour','museum pass','concert ticket','gift card','coffee subscription'];
  const storyThings=['phone','wallet','umbrella','keys','headphones','backpack','suitcase','passport','ticket','water bottle','notebook','camera','book','newspaper','guitar','football','basketball','laptop','tablet','charger','power bank','coffee cup','shopping bag','jacket','hat','glasses','watch','bicycle','skateboard','gift box','birthday cake','letter','photo album','map','travel guide','train ticket','bus ticket','hotel key card','boarding pass','credit card','library card','name badge','business card','calendar','microphone','speaker','flashlight','blanket','tent','first-aid box','coffee machine','printer','projector','remote control','smart watch','fitness tracker','toy','balloon','flower bouquet','sandwich','pizza box','takeaway bag','shopping list','recipe book','toolbox','helmet','sports bag','yoga mat','swimming goggles','raincoat','travel pillow','eye mask','luggage tag','passport holder','travel adapter','souvenir','postcard','concert ticket','movie ticket','restaurant bill','receipt','menu','dictionary','workbook','presentation slide','voice recorder','USB cable','memory card','office phone','desk lamp','alarm clock','thermos','lunch box','grocery bag','shopping cart','parcel','delivery box','invitation','certificate','diploma','profile picture','selfie stick'];
  const detectiveObjects=['phone','wallet','keys','headphones','backpack','suitcase','passport','ticket','water bottle','notebook','camera','book','laptop','tablet','charger','power bank','credit card','library card','name badge','business card','microphone','flashlight','gift box','letter','map','train ticket','bus ticket','hotel key card','boarding pass','travel adapter','souvenir','postcard','concert ticket','movie ticket','restaurant bill','receipt','dictionary','workbook','voice recorder','USB cable','memory card','office phone','desk lamp','alarm clock','thermos','lunch box','parcel','delivery box','invitation','certificate','diploma','glasses','watch','jacket','hat','umbrella','shopping bag','recipe book','toolbox','helmet','sports bag','yoga mat','swimming goggles','travel pillow','eye mask','luggage tag','passport holder','coffee cup','restaurant menu','presentation remote','wireless mouse','keyboard','staff badge','visitor badge','parking ticket','shopping receipt','invoice','contract','photo album','newspaper','guitar','football','basketball','smart watch','fitness tracker','camera lens','projector remote','tablet pen','earbuds','portable speaker','travel wallet','city map','booking confirmation','flight confirmation','seat reservation','appointment card','gift card','loyalty card','student card','identity card','phone charger'];
  const socialTopics=new Set(['friendship','family','relationships','first impressions','personal space','good manners','communication','honesty','trust','teamwork','confidence','patience','leadership','feedback','healthy boundaries','small talk','making friends','giving advice','asking for help','empathy','respect']);
@@ -87,6 +88,19 @@ function ensureExpandedContent(){
   ['Respect','Fairness','Responsibility','Patience','Team spirit'],
   ['Shared goals','Trust','Communication','Compromise','Independence'],
   ['Kindness','Honesty','Consistency','Self-awareness','Humour']
+ ];
+ const decisionTopics=new Set(['decision making','making choices','problem solving','goals','personal goals','planning','time management','productivity','habits','learning from mistakes','trying new things','asking for help','giving advice','risk taking','change','comfort zones']);
+ const decisionRanks=[
+  ['Clarity','Time','Information','Confidence','Advice'],
+  ['Short-term benefit','Long-term benefit','Risk','Cost','Effort'],
+  ['Facts','Experience','Advice','Instinct','Timing'],
+  ['Urgency','Importance','Reversibility','Cost','Impact on others'],
+  ['Simplicity','Flexibility','Risk','Learning value','Long-term value'],
+  ['Preparation','Confidence','Information','Support','Time'],
+  ['Personal goals','Responsibilities','Money','Time','Well-being'],
+  ['Possible benefits','Possible problems','Effort','Timing','Alternatives'],
+  ['Experience','Evidence','Advice','Values','Practical limits'],
+  ['Immediate result','Long-term effect','Cost','Stress','Opportunity']
  ];
  const practicalRanks=[
   ['Cost','Time','Quality','Convenience','Flexibility'],
@@ -106,6 +120,7 @@ function ensureExpandedContent(){
  const seen=new Set(arr.map(x=>JSON.stringify(x)));
  const add=x=>{const k=JSON.stringify(x);if(!seen.has(k)){arr.push(x);seen.add(k)}};
  const cap=s=>String(s).replace(/\b\w/g,m=>m.toUpperCase());
+ const withArticle=s=>(/^[aeiou]/i.test(String(s).trim())?'an ':'a ')+s;
  const cat=i=>cats[i%cats.length],topic=i=>topics[i%topics.length],target=i=>targets[i%targets.length],place=i=>places[i%places.length];
  const textPatterns={
   twoTruths:[
@@ -137,7 +152,7 @@ function ensureExpandedContent(){
    t=>'What is one realistic goal you could set related to '+t+'?'
   ],
   opinion:[
-   t=>cap(t)+' is more important than people think.',
+   t=>'People underestimate the importance of '+t+'.',
    t=>'People should spend less time worrying about '+t+'.',
    t=>'Schools should teach more practical lessons about '+t+'.',
    t=>'Technology has improved the way we deal with '+t+'.',
@@ -229,19 +244,19 @@ function ensureExpandedContent(){
    case 'whoAmI': return [cat(i),cap(target(i))];
    case 'storyChain': {
     const thing=storyThings[i%storyThings.length],storyPlace=places[Math.floor(i/storyThings.length)%places.length];
-    return [cat(i),'When I arrived at '+storyPlace+', I found '+thing+' waiting for me.','Keep the story connected. By the third player, introduce a problem involving '+topic(i)+'.'];
+    return [cat(i),'When I arrived at '+storyPlace+', I found '+withArticle(thing)+' waiting for me.','Keep the story connected. By the third player, introduce a problem involving '+topic(i)+'.'];
    }
    case 'explainBadly': return [cat(i),cap(target(i)),'Describe it indirectly without saying the target, spelling it or translating it.'];
    case 'roulette': return [cat(i),textPatterns.roulette[p12](t),'Give one specific example, then let someone ask one follow-up question.'];
    case 'opinion': return [cat(i),textPatterns.opinion[p12](t)];
    case 'ranking': {
-    const sets=socialTopics.has(t)?socialRanks:practicalRanks;
+    const sets=decisionTopics.has(t)?decisionRanks:(socialTopics.has(t)?socialRanks:practicalRanks);
     const angle=Math.floor(i/topics.length)%sets.length;
     return {cat:cat(i),title:'Rank what matters most when thinking about '+t,items:sets[angle]};
    }
    case 'detective': {
     const obj=detectiveObjects[i%detectiveObjects.length],detectivePlace=places[Math.floor(i/detectiveObjects.length)%places.length];
-    return {cat:cat(i),title:'The Missing '+cap(obj),setup:'A '+obj+' disappeared at '+detectivePlace+' between '+(9+i%10)+':10 and '+(9+i%10)+':20. Your group says you were together the whole time.',facts:['Agree where everyone was standing or sitting.','Agree what each person was doing five minutes earlier.','Agree on one detail the detective can verify.']};
+    return {cat:cat(i),title:'The Missing '+cap(obj),setup:withArticle(cap(obj))+' disappeared at '+detectivePlace+' between '+(9+i%10)+':10 and '+(9+i%10)+':20. Your group says you were together the whole time.',facts:['Agree where everyone was standing or sitting.','Agree what each person was doing five minutes earlier.','Agree on one detail the detective can verify.']};
    }
    case 'finish': return [cat(i),textPatterns.finish[p12](t)];
    case 'threeClues': return [cat(i),cap(target(i))];
@@ -254,8 +269,11 @@ function ensureExpandedContent(){
    }
    case 'bingo': return textPatterns.bingo[p12](t);
    case 'emoji': {
-    const g=Math.floor(i/emojis.length);
-    return [cat(i),[emojis[i%emojis.length],emojis[(i+5+g)%emojis.length],emojis[(i+11+g*2)%emojis.length],emojis[(i+19+g*3)%emojis.length]]];
+    const picked=[],g=Math.floor(i/emojis.length);
+    const seeds=[i,i+5+g,i+11+g*2,i+19+g*3,i+23+g*5,i+29+g*7];
+    for(const seed of seeds){const e=emojis[((seed%emojis.length)+emojis.length)%emojis.length];if(!picked.includes(e))picked.push(e);if(picked.length===4)break}
+    for(const e of emojis){if(picked.length===4)break;if(!picked.includes(e))picked.push(e)}
+    return [cat(i),picked];
    }
    case 'worstAdvice': {
     const problems=[
@@ -272,7 +290,10 @@ function ensureExpandedContent(){
     ];
     return [cat(i),problems[Math.floor(i/topics.length)%problems.length](t)];
    }
-   case 'sell': return {item:cap(target(i)),twist:'Sell it to '+customers[Math.floor(i/targets.length)%customers.length]+'. Focus on a benefit that would genuinely matter to this customer.'};
+   case 'sell': {
+    const product=sellProducts[i%sellProducts.length],customer=customers[Math.floor(i/sellProducts.length)%customers.length];
+    return {item:cap(product),twist:'Sell it to '+customer+'. Focus on a benefit that would genuinely matter to this customer.'};
+   }
    case 'hotTake': return [cat(i),textPatterns.hot[p12](t)];
    case 'photoTalk': {
     const situations=['waiting for important news','realising something has gone missing','celebrating unexpected good news','trying to solve a small problem','meeting someone for the first time','running late','making an important decision','waiting for transport','taking a break','helping another person'];
