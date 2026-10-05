@@ -164,7 +164,7 @@
     if(count)count.textContent=String(rows.length);
     if(!rows.length){list.innerHTML='';return;}
     list.innerHTML=rows.map(x=>
-      '<article class="student-history-card"><div class="student-history-date"><small>'+esc(fmtDateTime(x.ended_at))+'</small><span>'+Number(x.duration_minutes||40)+' '+tx('dk','min')+'</span></div><div class="student-history-copy"><strong>'+esc(x.title||x.topic||'English lesson')+'</strong><p>'+esc(x.topic||'')+' · '+esc(String(x.primary_goal||'speaking').toUpperCase())+'</p></div><div class="student-history-metrics"><span>✓ '+Number(x.participated_count||0)+' '+tx('katılım','participation')+'</span><span>?</span>'+Number(x.need_help_count||0)+' '+tx('yardım','help')+'</div></article>'
+      '<article class="student-history-card"><div class="student-history-date"><small>'+esc(fmtDateTime(x.ended_at))+'</small><span>'+Number(x.duration_minutes||40)+' '+tx('dk','min')+'</span></div><div class="student-history-copy"><strong>'+esc(x.title||x.topic||'English lesson')+'</strong><p>'+esc(x.topic||'')+' · '+esc(String(x.primary_goal||'speaking').toUpperCase())+'</p></div><div class="student-history-metrics"><span>✓ '+Number(x.participated_count||0)+' '+tx('katılım','participation')+'</span><span>? '+Number(x.need_help_count||0)+' '+tx('yardım','help')+'</span></div></article>'
     ).join('');
   }
   function stageLabel(step,index){
