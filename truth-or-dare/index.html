@@ -24,7 +24,7 @@
     .names-dialog .quick-actions .primary-button{flex:1 1 180px}
     .names-dialog .quick-actions .secondary-button,.names-dialog .quick-actions .danger-button{flex:0 1 auto}
     .names-note{margin:7px 0 14px!important;font-size:12px}
-    .fullscreen-game-button{min-width:116px}
+    .fullscreen-game-button{min-width:48px;width:48px;padding:0;display:grid;place-items:center;font-size:20px}
     .fullscreen-game-button.active{background:var(--navy)!important;color:#fff!important}
     @media(max-width:680px){
       .header-actions{flex-wrap:wrap;justify-content:flex-end}
@@ -43,7 +43,7 @@
         <span class="esc-brand-title">Eryaman Speaking Club</span>
       </button>
       <div class="header-actions">
-        <button id="fullscreenGame" class="admin-button fullscreen-game-button" type="button" aria-label="Fullscreen" title="Fullscreen"><span>Fullscreen</span> ⛶</button>
+        <button id="fullscreenGame" class="admin-button fullscreen-game-button" type="button" aria-label="Fullscreen" title="Fullscreen">⛶</button>
         <button id="sound" class="icon-button" aria-label="Toggle sound" title="Sound">🔊</button>
         <button id="players" class="admin-button players-button" aria-label="Edit player names" title="Players"><span>Players</span> 👥</button>
       </div>
@@ -301,8 +301,6 @@
       const syncFullscreenButton = () => {
         if (!fullscreenButton) return;
         const active = Boolean(fullscreenElement());
-        const label = fullscreenButton.querySelector('span');
-        if (label) label.textContent = active ? 'Exit fullscreen' : 'Fullscreen';
         fullscreenButton.classList.toggle('active', active);
         fullscreenButton.setAttribute('aria-label', active ? 'Exit fullscreen' : 'Fullscreen');
         fullscreenButton.title = active ? 'Exit fullscreen' : 'Fullscreen';
