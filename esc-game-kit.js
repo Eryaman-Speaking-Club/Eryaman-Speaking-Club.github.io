@@ -38,6 +38,44 @@
     slider.addEventListener('input',()=>{localStorage.setItem(KEY,slider.value);sync();audio.soft()});
   }
   function toast(msg){let el=document.querySelector('.game-toast');if(!el){el=document.createElement('div');el.className='game-toast';document.body.appendChild(el)}el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),900)}
-  window.ESCGameKit={audio,getVolume,toast,mountSound,ensurePlatform};
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{mountSound();void ensurePlatform()});else{mountSound();void ensurePlatform()}
+  function fullscreenElement(){return document.fullscreenElement||document.webkitFullscreenElement||null}
+  function syncFullscreenButton(btn){
+    const active=Boolean(fullscreenElement());
+    btn.textContent=active?'⛶ Exit fullscreen':'⛶ Fullscreen';
+    btn.setAttribute('aria-label',active?'Exit fullscreen':'Fullscreen');
+    btn.title=active?'Exit fullscreen':'Fullscreen';
+    btn.classList.toggle('active',active);
+  }
+  function mountFullscreen(){
+    const actions=document.querySelector('.game-actions,.new-game-actions,.header-actions');
+    if(!actions||actions.querySelector('[data-esc-fullscreen]'))return;
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.setAttribute('data-esc-fullscreen','1');
+    btn.className=actions.classList.contains('new-game-actions')?'new-game-icon esc-fullscreen-btn':'game-action-btn esc-fullscreen-btn';
+    btn.textContent='⛶ Fullscreen';
+    btn.setAttribute('aria-label','Fullscreen');
+    btn.title='Fullscreen';
+    btn.addEventListener('click',async()=>{
+      try{
+        if(fullscreenElement()){
+          const exit=document.exitFullscreen||document.webkitExitFullscreen;
+          if(exit)await exit.call(document);
+        }else{
+          const target=document.documentElement;
+          const request=target.requestFullscreen||target.webkitRequestFullscreen;
+          if(request)await request.call(target);
+          else throw new Error('FULLSCREEN_NOT_SUPPORTED');
+        }
+      }catch(e){console.warn('Fullscreen unavailable',e);toast('Fullscreen is not supported by this browser')}
+      syncFullscreenButton(btn);
+    });
+    const sound=actions.querySelector('[data-esc-sound]');
+    if(sound)actions.insertBefore(btn,sound);else actions.prepend(btn);
+    document.addEventListener('fullscreenchange',()=>syncFullscreenButton(btn));
+    document.addEventListener('webkitfullscreenchange',()=>syncFullscreenButton(btn));
+    syncFullscreenButton(btn);
+  }
+  window.ESCGameKit={audio,getVolume,toast,mountSound,mountFullscreen,ensurePlatform};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{mountSound();mountFullscreen();void ensurePlatform()});else{mountSound();mountFullscreen();void ensurePlatform()}
 })();
