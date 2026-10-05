@@ -69,8 +69,7 @@ function currentSpeaker(i){
 function renderTeams(){
   $('teamStrip').hidden=!teamMode;
   if(!teamMode){
-    $('newRound').textContent='New round';
-    $('gameNote').textContent='Correct +1 / Taboo -1 / Pass 0. Start the timer and keep the word visible to the speaker.';
+    $('gameNote').textContent='Correct +1 / Taboo -1 / Pass 0. Each round has a maximum of 3 passes.';
     return;
   }
   $('teamAName').textContent=teams[0].name;
@@ -83,8 +82,7 @@ function renderTeams(){
   $('turnSpeaker').textContent='Speaker: '+currentSpeaker(activeTeam);
   $('teamABox').classList.toggle('active',activeTeam===0);
   $('teamBBox').classList.toggle('active',activeTeam===1);
-  $('newRound').textContent='End turn / Next player';
-  $('gameNote').textContent='Correct +1 / Taboo -1 / Pass 0. When a round ends, the next player handoff screen appears before the new word is revealed.';
+  $('gameNote').textContent='Correct +1 / Taboo -1 / Pass 0. Maximum 3 passes per round. When time ends, the next-player handoff screen appears before the new word is revealed.';
 }
 
 function renderHandoff(){
@@ -101,10 +99,12 @@ function sync(){
   $('score').textContent='Score: '+score+' / Correct: '+correct+' / Taboo: '+fouls+' / Passes: '+passes;
   $('start').textContent=running?'Pause':phase==='paused'?'Resume':phase==='ended'?'Start new round':'Start 60s';
   $('start').disabled=!activeCard||handoffActive;
-  ['got','tabooFoul','pass'].forEach(id=>{$(id).disabled=!running});
-  $('newRound').disabled=handoffActive;
+  $('got').disabled=!running;
+  $('tabooFoul').disabled=!running;
+  $('pass').disabled=!running||passes>=3;
+  $('pass').textContent='Pass ('+Math.max(0,3-passes)+' left)';
   $('tabooRoundStatus').textContent=
-    phase==='running'?'Round in progress.':
+    phase==='running'?(passes>=3?'Round in progress · 3/3 passes used.':'Round in progress · '+passes+'/3 passes used.'):
     phase==='paused'?'Paused. Scores are locked until you resume.':
     phase==='handoff'?'Round finished. Pass the device to the next player.':
     phase==='ended'?'Time is up. Start a new round.':
@@ -218,6 +218,11 @@ function record(kind){
     score--;
     ESCGameKit.audio.fail();
   }else{
+    if(passes>=3){
+      ESCGameKit.toast('Pass limit reached · 3/3');
+      sync();
+      return;
+    }
     passes++;
     ESCGameKit.audio.soft();
   }
@@ -277,10 +282,6 @@ $('got').onclick=()=>record('got');
 $('tabooFoul').onclick=()=>record('taboo');
 $('pass').onclick=()=>record('pass');
 
-$('newRound').onclick=()=>{
-  if(teamMode)finishTurn();
-  else prepareRound();
-};
 
 $('handoffReady').onclick=()=>{
   if(!teamMode||!handoffActive)return;
