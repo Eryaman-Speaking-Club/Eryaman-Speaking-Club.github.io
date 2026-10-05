@@ -142,7 +142,7 @@ function ensureExpandedContent(){
    t=>'What have you learned recently about '+t+'?',
    t=>'What makes '+t+' easier or more difficult?',
    t=>'What advice would you give someone about '+t+'?',
-   t=>'What is a common mistake people make with '+t+'?',
+   t=>'What is a common mistake people make when it comes to '+t+'?',
    t=>'What is one good memory you have connected to '+t+'?',
    t=>'How has your opinion about '+t+' changed over time?',
    t=>'What matters most when making decisions about '+t+'?',
@@ -256,7 +256,8 @@ function ensureExpandedContent(){
    }
    case 'detective': {
     const obj=detectiveObjects[i%detectiveObjects.length],detectivePlace=places[Math.floor(i/detectiveObjects.length)%places.length];
-    return {cat:cat(i),title:'The Missing '+cap(obj),setup:withArticle(cap(obj))+' disappeared at '+detectivePlace+' between '+(9+i%10)+':10 and '+(9+i%10)+':20. Your group says you were together the whole time.',facts:['Agree where everyone was standing or sitting.','Agree what each person was doing five minutes earlier.','Agree on one detail the detective can verify.']};
+    const subject=withArticle(obj);
+    return {cat:cat(i),title:'The Missing '+cap(obj),setup:subject.charAt(0).toUpperCase()+subject.slice(1)+' disappeared at '+detectivePlace+' between '+(9+i%10)+':10 and '+(9+i%10)+':20. Your group says you were together the whole time.',facts:['Agree where everyone was standing or sitting.','Agree what each person was doing five minutes earlier.','Agree on one detail the detective can verify.']};
    }
    case 'finish': return [cat(i),textPatterns.finish[p12](t)];
    case 'threeClues': return [cat(i),cap(target(i))];
@@ -298,7 +299,7 @@ function ensureExpandedContent(){
    case 'photoTalk': {
     const situations=['waiting for important news','realising something has gone missing','celebrating unexpected good news','trying to solve a small problem','meeting someone for the first time','running late','making an important decision','waiting for transport','taking a break','helping another person'];
     const situation=situations[Math.floor(i/places.length)%situations.length];
-    return {cat:cat(i),title:cap(place(i))+' · '+cap(situation),desc:'A person is at '+place(i)+' and is '+situation+'. Use the icons as extra clues.',icons:[emojis[i%emojis.length],emojis[(i+3)%emojis.length],emojis[(i+9)%emojis.length]],questions:['What probably happened just before this moment?','How does the person feel and why?','What is the most likely thing to happen next?']};
+    return {cat:cat(i),title:cap(place(i))+' · '+cap(situation),desc:'A person is in or near '+place(i)+' and is '+situation+'. Use the icons as extra clues.',icons:[emojis[i%emojis.length],emojis[(i+3)%emojis.length],emojis[(i+9)%emojis.length]],questions:['What probably happened just before this moment?','How does the person feel and why?','What is the most likely thing to happen next?']};
    }
    default:return null;
   }
