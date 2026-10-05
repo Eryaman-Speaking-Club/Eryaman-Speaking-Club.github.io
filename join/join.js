@@ -57,9 +57,6 @@
     set('#completedState small','DERS TAMAMLANDI','CLASS COMPLETED');
     set('#completedState h2','Harika iş!','Good work!');
     set('#completedState p','Ders sona erdi. Öğretmenin yeni bir oturum başlatırsa bu ekran yeniden güncellenebilir.','The lesson has ended. This screen will update again if your teacher starts a new session.');
-    const actions=document.querySelectorAll('#studentAction button');
-    if(actions[0])actions[0].textContent=tx('Cevap verdim ✓','I answered ✓');
-    if(actions[1])actions[1].textContent=tx('Yardıma ihtiyacım var','I need help');
     set('.sync-note','Ders akışını öğretmen yönetir. Ekranın otomatik güncellenir.','Your teacher controls the lesson flow. Your screen updates automatically.');
     set('#waitingState>small',"BAĞLANDIN","YOU'RE IN");
     set('#waitingState h2','Öğretmenin dersi başlatmasını bekliyoruz.','Waiting for your teacher to start the lesson.');
