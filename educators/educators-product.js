@@ -166,7 +166,6 @@
     $$('[data-lesson-delete]',grid).forEach(b=>b.addEventListener('click',async()=>{
       const lesson=state.lessons.find(x=>x.id===b.dataset.lessonDelete);
       if(!lesson) return;
-      if(!confirm('“'+(lesson.title||lesson.topic||tx('Bu ders','This lesson'))+'” '+tx('silinsin mi?','— delete it?'))) return;
       b.disabled=true;
       try {
         await window.ESCSupabase.deleteEducatorLesson(lesson.id);
