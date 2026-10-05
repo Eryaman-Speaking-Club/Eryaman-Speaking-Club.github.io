@@ -66,12 +66,23 @@ const cfg=window.ESC_NEW_GAME||{};
    case 'detective': return {cat:cat(i),title:'The Missing '+cap(word(i)),setup:'A '+word(i)+' disappeared at '+place(i)+' between '+(10+i%10)+':10 and '+(10+i%10)+':20. Your group says you were together the whole time.',facts:['Agree where everyone was standing or sitting.','Agree what each person was doing five minutes earlier.','Agree on one detail the detective can verify.']};
    case 'finish': return [cat(i),patterns.finish[cycle](topic(i))];
    case 'threeClues': return [cat(i),cap(word(i))];
-   case 'mission': return 'During the conversation, ask someone about '+topic(i)+' and ask one natural follow-up question.';
+   case 'mission': {
+    const missionPatterns=[
+     t=>'During the conversation, ask someone about '+t+' and ask one natural follow-up question.',
+     t=>'Naturally bring up '+t+' and invite two people to share different opinions.',
+     t=>'Ask a question about '+t+' without using the words “yes” or “no”.',
+     t=>'Find someone with a different view about '+t+' and ask what shaped their opinion.'
+    ];
+    return missionPatterns[cycle](topic(i));
+   }
    case 'minuteStory': return [word(i),word(i+17),word(i+41)];
    case 'wouldILie': return [cat(i),patterns.lie[cycle](topic(i))];
    case 'desert': return {cat:cat(i),title:'Stranded near '+place(i),items:Array.from({length:8},(_,j)=>survival[(i+j*3)%survival.length])};
    case 'bingo': return patterns.bingo[cycle](topic(i));
-   case 'emoji': return [cat(i),[emojis[i%emojis.length],emojis[(i+5)%emojis.length],emojis[(i+11)%emojis.length],emojis[(i+19)%emojis.length]]];
+   case 'emoji': {
+    const g=Math.floor(i/emojis.length);
+    return [cat(i),[emojis[i%emojis.length],emojis[(i+5+g)%emojis.length],emojis[(i+11+g*2)%emojis.length],emojis[(i+19+g*3)%emojis.length]]];
+   }
    case 'worstAdvice': return [cat(i),'I keep having problems with '+topic(i)+' and I do not know what to change.'];
    case 'sell': return {item:cap(word(i)),twist:'Sell it to someone who cares most about '+topic(i)+'.'};
    case 'hotTake': return [cat(i),patterns.hot[cycle](topic(i))];
