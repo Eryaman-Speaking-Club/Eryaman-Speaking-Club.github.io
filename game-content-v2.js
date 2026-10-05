@@ -265,156 +265,186 @@
     if (typeof build === 'function') build();
     setText('.game-note', 'Choose A or B first. Then give one reason. Someone who chose the other side may respond once.');
   }
-  // Normalize the public game library to a minimum of 200 usable content items per game.
-  const LEGACY_MIN = 200;
-  const legacyTopics = ['daily routines','free time','sleep','exercise','money','shopping','cooking','travel','public transport','friendship','family','work','career plans','education','English learning','technology','social media','music','movies','sports','health','stress','confidence','patience','honesty','trust','teamwork','communication','motivation','habits','decision making','time management','creativity','goals','memories','the future','weekends','holidays','restaurants','cafés','city life','remote work','meetings','job interviews','relationships','first impressions','personal space','good manners','online communication','phone use','news','weather','fashion','books','gaming','photography','learning new skills','saving money','healthy food','home life','neighbours','commuting','customer service','leadership','feedback','problem solving','risk taking','success','failure','change','comfort zones'];
-  const legacyCats = ['Everyday','Funny','Social','Deep','Spicy'];
-  const legacyCat = i => legacyCats[i % legacyCats.length];
-  const legacyTopic = i => legacyTopics[i % legacyTopics.length];
-  const legacyCap = s => String(s).replace(/\b\w/g, m => m.toUpperCase());
+  // Keep every public game at 1,000 sensible, unique playable items.
+  const LEGACY_MIN=1000;
+  const legacyTopics=["daily routines","free time","sleep","exercise","money","shopping","cooking","travel","public transport","friendship","family","work","career plans","education","English learning","technology","social media","music","movies","sports","health","stress","confidence","patience","honesty","trust","teamwork","communication","motivation","habits","decision making","time management","creativity","goals","memories","the future","weekends","holidays","restaurants","cafés","city life","remote work","meetings","job interviews","relationships","first impressions","personal space","good manners","online communication","phone use","news","weather","fashion","books","gaming","photography","learning new skills","saving money","healthy food","home life","neighbours","commuting","customer service","leadership","feedback","problem solving","risk taking","success","failure","change","comfort zones","planning","productivity","public speaking","listening","language mistakes","culture","food habits","work-life balance","travel planning","online meetings","group projects","housework","morning energy","evening habits","weekend plans","local places","environment","public spaces","personal goals","learning from mistakes","trying new things","asking for help","giving advice","making friends","staying organised","healthy boundaries","digital habits","small talk","making choices"];
+  const legacyCats=['Everyday','Funny','Social','Deep','Spicy'];
+  const legacyCat=i=>legacyCats[i%legacyCats.length];
+  const legacyTopic=i=>legacyTopics[i%legacyTopics.length];
+  const legacyCap=s=>String(s).replace(/\b\w/g,m=>m.toUpperCase());
+  const legacyTargets=[...new Set([...["phone","wallet","umbrella","elevator","mirror","password","traffic","alarm","battery","neighbour","toothbrush","fridge","microwave","balcony","receipt","queue","headphones","keys","doorbell","vacuum cleaner","laundry","supermarket","pharmacy","suitcase","passport","airport","boarding pass","hotel","hostel","beach","map","tourist","ticket","platform","taxi","train","bus","bicycle","backpack","guidebook","delay","coffee","pizza","chocolate","burger","salad","breakfast","spicy food","recipe","dessert","restaurant","takeaway","leftovers","ingredient","reservation","waiter","menu","soup","popcorn","lemon","avocado","meeting","deadline","boss","email","salary","interview","promotion","colleague","presentation","remote work","feedback","teamwork","overtime","training","office","printer","spreadsheet","calendar","microphone","podcast","concert","karaoke","meme","gaming console","cinema","playlist","selfie","trailer","subtitle","audience","episode","board game","camera","book","newspaper","guitar","piano","football","basketball","tennis","gym","doctor","nurse","teacher","engineer","designer","chef","driver","pilot","lawyer","manager","student","cashier","photographer","musician","actor","writer","dentist","mechanic","farmer","programmer","firefighter","police officer","architect","scientist","receptionist","accountant","translator","barber","baker","coach","journalist","electrician","plumber","artist","shopkeeper","delivery driver","language teacher","tour guide","barista","pharmacist","librarian","entrepreneur","best friend","roommate","cousin","partner","teammate","stranger","customer","client","visitor","passenger","city centre","bus stop","train station","shopping mall","coffee shop","park","library","hospital","school","university","airport gate","hotel lobby","restaurant table","kitchen","bedroom","living room","bathroom","garden","mountain","village","museum","stadium","market","bank","post office","classroom","meeting room","parking lot","traffic light","bridge","tunnel","city square","metro station","rain","snow","sunshine","wind","storm","birthday","wedding","exam","trip","vacation","commute","morning routine","evening routine","lunch break","video call","group chat","online class","delivery order","shopping list","coffee break","weekend plan","flight delay","train journey","road trip","job offer","team project","workshop","language course","fitness class","doctor appointment","family dinner","house party","first date","museum visit","concert ticket","movie night","football match","book club","picnic","camping trip","hotel booking","restaurant booking","online order","lost luggage","phone charger","power bank","water bottle","notebook","office chair","coffee machine","washing machine","dishwasher","remote control","shopping cart","credit card","cash machine","street market","city map","travel insurance","seat belt","traffic jam","weather forecast","alarm clock","birthday cake","wedding invitation","job application","school project","presentation slide","voice message","email attachment","video game","fitness tracker","smart watch"],...["air conditioner","electric fan","space heater","hair dryer","electric toothbrush","coffee grinder","rice cooker","pressure cooker","slow cooker","air fryer","food processor","electric kettle","toaster","blender","vacuum robot","iron","ironing board","clothes hanger","laundry basket","dish rack","cutting board","frying pan","saucepan","baking tray","oven glove","measuring cup","kitchen scale","water filter","ice tray","lunch box","thermos","travel mug","reusable bottle","paper towel","shopping bag","storage box","toolbox","flashlight","extension cable","USB cable","wireless charger","computer mouse","keyboard","webcam","monitor","laptop stand","desk lamp","office desk","filing cabinet","name badge","business card","sticky note","paper clip","stapler","scanner","photocopier","projector","whiteboard","flip chart","conference badge","meeting agenda","meeting notes","action list","sales report","monthly report","budget plan","marketing plan","training session","performance review","job description","work schedule","annual leave","sick leave","expense report","customer complaint","support ticket","sales call","client meeting","team lunch","airport lounge","airport shuttle","baggage claim","security check","passport control","departure board","arrival hall","window seat","aisle seat","seat belt","life jacket","travel adapter","luggage tag","carry-on bag","check-in desk","hotel reception","room key","hotel breakfast","city tour","guided tour","walking tour","travel brochure","tourist information","currency exchange","train ticket","bus ticket","metro card","taxi rank","rental car","fuel station","road sign","motorway","pedestrian crossing","bike lane","ferry terminal","cruise ship","campsite","hiking trail","viewpoint","souvenir shop","sandwich","cheeseburger","vegetable soup","tomato soup","chicken soup","fruit salad","green salad","pasta salad","grilled chicken","fried chicken","roast chicken","baked potato","mashed potato","french fries","scrambled eggs","fried eggs","boiled eggs","pancakes","waffles","toast","cheesecake","apple pie","chocolate cake","ice cream","yogurt","cereal","oatmeal","rice","noodles","pasta","spaghetti","steak","fish and chips","sushi","kebab","wrap","taco","burrito","curry","sandwich shop","coffee beans","espresso","cappuccino","latte","tea bag","green tea","black tea","orange juice","lemonade","mineral water","soft drink","milkshake","smoothie","hot chocolate","restaurant bill","service charge","tip jar","table reservation","food delivery","grocery store","flight attendant","airport security officer","gate agent","baggage handler","train conductor","bus driver","taxi driver","tour guide","hotel receptionist","hotel manager","housekeeper","restaurant manager","head chef","kitchen assistant","waiter","waitress","bartender","delivery rider","shop assistant","store manager","primary school teacher","high school teacher","university lecturer","private tutor","English teacher","math teacher","football coach","fitness trainer","personal trainer","yoga instructor","swimming instructor","driving instructor","career coach","team leader","project manager","sales manager","marketing manager","HR specialist","customer support agent","recruiter","software developer","web designer","graphic designer","product designer","civil engineer","electrical engineer","mechanical engineer","data analyst","data scientist","lab technician","research assistant","medical doctor","family doctor","surgeon","dentist","pharmacist","physiotherapist","veterinarian","paramedic","caregiver","wedding photographer","sports photographer","news reporter","radio host","TV presenter","content creator","video editor","film director","camera operator","sound engineer","DJ","singer","guitarist","pianist","drummer","actor","comedian","novelist","poet","illustrator","bakery","butcher shop","bookstore","clothing store","shoe store","electronics store","furniture store","toy store","sports shop","department store","shopping centre","street café","rooftop café","fast-food restaurant","family restaurant","hotel restaurant","school cafeteria","food court","farmers market","night market","public library","university library","art museum","history museum","science museum","city park","playground","sports centre","football stadium","basketball court","tennis court","swimming pool","fitness centre","community centre","concert hall","theatre","cinema hall","art gallery","exhibition centre","conference centre","police station","fire station","health centre","dental clinic","pharmacy counter","bank branch","cash machine","post office","courier office","car park","car wash","repair shop","petrol station","bus terminal","train platform","metro entrance","airport terminal","hotel room","hostel room","holiday apartment","smartphone","tablet","laptop","desktop computer","smart speaker","Bluetooth speaker","wireless headphones","earbuds","smart television","remote control","games console","game controller","digital camera","action camera","drone","smart watch","fitness watch","e-book reader","portable charger","memory card","video conference","online meeting","online course","language app","messaging app","social media account","email inbox","calendar reminder","online shopping cart","delivery tracking","QR code","Wi-Fi password","mobile data","screen time","voice assistant","cloud storage","online banking","digital payment","password manager","two-factor authentication","morning commute","rush hour","lunch break","coffee break","weekend trip","business trip","family holiday","city break","beach holiday","camping holiday","road trip","train journey","long flight","short flight","delayed flight","missed bus","lost wallet","lost phone","lost key","flat tyre","birthday party","graduation party","wedding party","office party","housewarming party","surprise party","family dinner","team dinner","picnic","barbecue","movie night","game night","karaoke night","concert night","book club meeting","study group","team meeting","staff meeting","parent meeting","job interview","first day at work","first day at school","first date","blind date","doctor visit","dentist appointment","haircut appointment","bank appointment","visa appointment","passport application","job application","university application","course registration","hotel check-in","hotel check-out","airport check-in","restaurant reservation","online order","product return","customer refund","sunrise","sunset","rainbow","thunderstorm","snowstorm","fog","heatwave","cold wave","forest","river","lake","waterfall","island","desert","beach","cliff","cave","valley","hill","mountain peak","cat","dog","rabbit","hamster","parrot","goldfish","horse","cow","sheep","goat","chicken","duck","eagle","owl","pigeon","seagull","dolphin","whale","shark","octopus","lion","tiger","elephant","giraffe","zebra","monkey","bear","wolf","fox","deer","snake","turtle","frog","bee","butterfly","ant","spider","penguin","camel","kangaroo","honesty","confidence","patience","curiosity","creativity","motivation","discipline","teamwork","leadership","friendship","trust","respect","kindness","empathy","independence","responsibility","success","failure","risk","change","time management","work-life balance","customer service","public speaking","active listening","problem solving","decision making","critical thinking","healthy habits","sleep quality","personal space","first impression","body language","small talk","online privacy","digital safety","climate change","recycling","public transport","city traffic","morning person","night owl","early bird","coffee lover","book lover","movie fan","football fan","music fan","dog owner","cat owner","frequent traveller","remote worker","university student","new employee","team captain","party host","wedding guest","tourist","commuter","volunteer","birthday gift","wedding gift","gift card","shopping voucher","concert poster","movie poster","restaurant menu","coffee menu","train timetable","bus timetable","flight schedule","weather app","city guide","travel blog","recipe book","cookbook","school textbook","workbook","dictionary","notepad","door key","car key","house key","hotel key card","bank card","identity card","student card","membership card","boarding pass","parking ticket","speed ticket","shopping receipt","restaurant receipt","invoice","contract","certificate","diploma","passport photo","profile picture","selfie stick","raincoat","winter coat","leather jacket","hoodie","sweater","T-shirt","jeans","shorts","dress","suit","tie","scarf","gloves","hat","baseball cap","sunglasses","running shoes","boots","slippers","backpack","football boots","tennis racket","basketball hoop","football goal","gym bag","yoga mat","dumbbell","treadmill","exercise bike","swimming goggles","swimming cap","helmet","bicycle lock","skateboard","roller skates","camping tent","sleeping bag","hiking boots","walking stick","sports bottle","birthday card","wedding invitation","thank-you note","apology message","voice note","text message","group message","email subject","email signature","video message","phone call","missed call","conference call","online chat","customer review","product rating","social media post","photo caption","news headline","weather alert"]])];
 
-  function fillLegacy(target, make, keyFn = x => JSON.stringify(x)) {
-    if (!Array.isArray(target)) return;
-    const seen = new Set(target.map(keyFn));
-    for (let i = 0; target.length < LEGACY_MIN && i < 4000; i++) {
-      const item = make(i);
-      const key = keyFn(item);
-      if (!seen.has(key)) {
-        target.push(item);
-        seen.add(key);
-      }
+  function fillLegacy(target,make,keyFn=x=>JSON.stringify(x),limit=LEGACY_MIN){
+    if(!Array.isArray(target))return;
+    const seen=new Set(target.map(keyFn));
+    for(let i=0;target.length<limit&&i<30000;i++){
+      const item=make(i),key=keyFn(item);
+      if(!seen.has(key)){target.push(item);seen.add(key)}
     }
   }
 
-  if (path.includes('/last-thing-you-did/') && typeof prompts !== 'undefined') {
-    const patterns = [
-      t => 'What was the last thing you changed about '+t+'?',
-      t => 'What was the last useful lesson you learned about '+t+'?',
-      t => 'What was the last decision you made because of '+t+'?',
-      t => 'What was the last conversation you had about '+t+'?'
-    ];
-    fillLegacy(prompts, i => ({c:legacyCat(i),q:patterns[Math.floor(i/legacyTopics.length)%patterns.length](legacyTopic(i))}), x => x.q);
-    if (typeof buildDeck === 'function') buildDeck();
-  }
+  const qPatterns=[
+    t=>'What is one thing you would change about '+t+'?',
+    t=>'What have you learned recently about '+t+'?',
+    t=>'What makes '+t+' easier or more difficult?',
+    t=>'What advice would you give someone about '+t+'?',
+    t=>'What is a common mistake people make with '+t+'?',
+    t=>'What is one good memory connected to '+t+'?',
+    t=>'How has your opinion about '+t+' changed over time?',
+    t=>'What matters most when making decisions about '+t+'?',
+    t=>'What would make '+t+' better in everyday life?',
+    t=>'What is one realistic goal connected to '+t+'?'
+  ];
 
-  if (path.includes('/what-would-you-do-if/') && typeof situations !== 'undefined') {
-    const patterns = [
-      t => 'you had to change one thing about '+t+' tomorrow?',
-      t => 'someone asked you for honest advice about '+t+'?',
-      t => 'you suddenly had twice as much time for '+t+'?',
-      t => 'you discovered your usual approach to '+t+' no longer worked?'
-    ];
-    fillLegacy(situations, i => ({c:legacyCat(i),q:patterns[Math.floor(i/legacyTopics.length)%patterns.length](legacyTopic(i))}), x => x.q);
-    if (typeof buildDeck === 'function') buildDeck();
-  }
-
-  if (path.includes('/would-you-rather/') && typeof items !== 'undefined') {
-    const patterns = [
-      (a,b) => [legacyCat(a.length+b.length),'have more '+a+' but less '+b,'have more '+b+' but less '+a],
-      (a,b) => [legacyCat(a.length+b.length),'be naturally good at '+a,'be naturally good at '+b],
-      (a,b) => [legacyCat(a.length+b.length),'spend a free year focused on '+a,'spend a free year focused on '+b]
-    ];
-    fillLegacy(items, i => {
-      const a=legacyTopic(i), b=legacyTopic(i+17), p=patterns[Math.floor(i/legacyTopics.length)%patterns.length];
-      return p(a,b);
-    });
-    if (typeof build === 'function') build();
-  }
-
-  if (path.includes('/most-likely-to/') && typeof items !== 'undefined') {
-    const patterns = [
-      t => 'be the first person to suggest something about '+t+'?',
-      t => 'turn a small problem with '+t+' into a funny story?',
-      t => 'become unexpectedly good at '+t+'?',
-      t => 'change their plans completely because of '+t+'?'
-    ];
-    fillLegacy(items, i => [legacyCat(i),patterns[Math.floor(i/legacyTopics.length)%patterns.length](legacyTopic(i))]);
-    if (typeof build === 'function') build();
-  }
-
-  if (path.includes('/hot-seat/') && typeof prompts !== 'undefined') {
-    const patterns = [
-      t => 'What is your strongest opinion about '+t+'?',
-      t => 'What would you change first about '+t+'?',
-      t => 'What is one good memory connected to '+t+'?',
-      t => 'What advice would you give about '+t+'?'
-    ];
-    fillLegacy(prompts, i => [legacyCat(i),patterns[Math.floor(i/legacyTopics.length)%patterns.length](legacyTopic(i))]);
-    if (typeof build === 'function') build();
-  }
-
-  if (path.includes('/five-second-challenge/') && typeof items !== 'undefined') {
-    const patterns = [
-      t => 'Name 3 things connected with '+t+'.',
-      t => 'Name 3 problems people can have with '+t+'.',
-      t => 'Name 3 ways to improve '+t+'.',
-      t => 'Name 3 words you associate with '+t+'.'
-    ];
-    fillLegacy(items, i => [legacyCat(i),patterns[Math.floor(i/legacyTopics.length)%patterns.length](legacyTopic(i))]);
-    if (typeof build === 'function') build();
-  }
-
-  if (path.includes('/red-flag-green-flag/') && typeof items !== 'undefined') {
-    const patterns = [
-      t => 'They ask thoughtful questions when you talk about '+t+'.',
-      t => 'They refuse to listen to any opinion about '+t+' except their own.',
-      t => 'They can disagree respectfully when '+t+' comes up.',
-      t => 'They constantly make promises about '+t+' but never follow through.'
-    ];
-    fillLegacy(items, i => [legacyCat(i),patterns[Math.floor(i/legacyTopics.length)%patterns.length](legacyTopic(i))]);
-    if (typeof build === 'function') build();
-  }
-
-  if (path.includes('/debate-roulette/') && typeof motions !== 'undefined') {
-    const patterns = [
-      t => legacyCap(t)+' should be taught as a practical life skill.',
-      t => 'People spend too much time worrying about '+t+'.',
-      t => 'Technology has improved the way people deal with '+t+'.',
-      t => 'Society would benefit from talking more openly about '+t+'.'
-    ];
-    fillLegacy(motions, i => [legacyCat(i),patterns[Math.floor(i/legacyTopics.length)%patterns.length](legacyTopic(i))]);
-    if (typeof build === 'function') build();
-  }
-
-  if (path.includes('/never-have-i-ever/') && typeof items !== 'undefined') {
-    const patterns = [
-      t => 'changed my plans because of '+t+'.',
-      t => 'pretended to understand something about '+t+' when I did not.',
-      t => 'learned an important lesson because of '+t+'.',
-      t => 'had an unexpectedly funny experience involving '+t+'.'
-    ];
-    fillLegacy(items, i => [legacyCat(i),patterns[Math.floor(i/legacyTopics.length)%patterns.length](legacyTopic(i))]);
-    if (typeof build === 'function') build();
-  }
-
-  if (path.includes('/taboo/') && typeof cards !== 'undefined') {
-    const tabooGroups = {
-      Everyday:['TOOTHBRUSH','SHOWER','WASHING MACHINE','DISHWASHER','VACUUM CLEANER','REMOTE CONTROL','LIGHT SWITCH','DOORBELL','SHOPPING LIST','GROCERY BAG','CREDIT CARD','CASH MACHINE','SUPERMARKET','PHARMACY','BUS STOP','TRAFFIC LIGHT','PARKING LOT','APARTMENT','BALCONY','KITCHEN','BEDROOM','BATHROOM','GARDEN','NEWSPAPER','NOTEBOOK','PEN','COAT','SHOES','GLASSES','WATCH','WATER BOTTLE','PHONE CHARGER'],
-      Travel:['TRAIN STATION','METRO STATION','BOARDING GATE','FLIGHT DELAY','TRAVEL INSURANCE','HOTEL LOBBY','ROOM KEY','RENTAL CAR','ROAD TRIP','CITY MAP','TOUR GUIDE','MUSEUM TICKET','FERRY','CRUISE SHIP','SEAT BELT','LUGGAGE TAG','PASSPORT CONTROL','SECURITY CHECK','DEPARTURE BOARD','ARRIVAL HALL','TAXI DRIVER','BUS TICKET','TRAIN TICKET','WINDOW SEAT','AISLE SEAT','CAMPSITE','MOUNTAIN TRAIL','CITY TOUR','SOUVENIR','CURRENCY EXCHANGE','TRAVEL ADAPTER','BEACH TOWEL'],
-      Food:['SANDWICH','PASTA','SUSHI','ICE CREAM','CAKE','COOKIE','BREAD','CHEESE','YOGURT','MILK','TEA','JUICE','FRYING PAN','OVEN','FORK','SPOON','KNIFE','PLATE','CUP','KETTLE','TOASTER','BLENDER','BARBECUE','PICNIC','CHEF','BILL','TIP','FOOD DELIVERY','GROCERY STORE','DINNER','LUNCH','SNACK'],
-      Work:['LAPTOP','KEYBOARD','MOUSE','SCANNER','SPREADSHEET','CALENDAR','VIDEO CALL','CONFERENCE ROOM','OFFICE CHAIR','DESK','BUSINESS CARD','CUSTOMER','CLIENT','INVOICE','CONTRACT','MANAGER','PROJECT','REPORT','JOB APPLICATION','CV','TASK LIST','COFFEE BREAK','WORKSHOP','TRAINING COURSE','TEAM LEADER','WORK SCHEDULE','OFFICE KITCHEN','COMPANY WEBSITE','SALES CALL','ONLINE MEETING','JOB OFFER','BUSINESS TRIP'],
-      Entertainment:['MOVIE','THEATRE','VIDEO GAME','CAMERA','PHOTOGRAPH','BOOK','NOVEL','COMIC BOOK','GUITAR','PIANO','FOOTBALL','BASKETBALL','TENNIS','DANCE','FESTIVAL','PARTY','BIRTHDAY','WEDDING','SOCIAL MEDIA','STREAMING','MICROPHONE','MUSIC VIDEO','TV SERIES','DOCUMENTARY','ACTOR','SINGER','DIRECTOR','STAGE','TICKET OFFICE','SPORTS FAN','GAME SHOW','PHOTO ALBUM']
-    };
-    const generic = {
-      Everyday:['USE','HOME','DAILY','THING'],
-      Travel:['TRAVEL','TRIP','PLACE','GO'],
-      Food:['EAT','FOOD','TASTE','MEAL'],
-      Work:['WORK','OFFICE','JOB','TEAM'],
-      Entertainment:['FUN','WATCH','PLAY','SHOW']
-    };
-    const extras=[];
-    Object.entries(tabooGroups).forEach(([cat,terms]) => terms.forEach(term => extras.push([cat,term,generic[cat]])));
-    let combo=0;
-    const mods=['WEEKEND','MORNING','CITY','HOME','ONLINE','OFFICE','FAMILY','SUMMER'];
-    const nouns=['MARKET','PLAN','TRIP','MEETING','DINNER','PARTY','CLASS','PROJECT','BREAK','SHOPPING','JOURNEY','EVENT','GAME','CALL','ROUTINE','TICKET','BOOKING','MESSAGE','ORDER','COURSE'];
-    while(extras.length<220){
-      const term=mods[combo%mods.length]+' '+nouns[Math.floor(combo/mods.length)%nouns.length];
-      const cat=['Everyday','Travel','Food','Work','Entertainment'][combo%5];
-      extras.push([cat,term,generic[cat]]);
-      combo++;
+  if(path.includes('/truth-or-dare/')){
+    const d=window.ESC_TRUTH_DARE_DEFAULTS;
+    if(d&&Array.isArray(d.truths)&&Array.isArray(d.dares)){
+      const truthPatterns=[
+        t=>'What is one honest opinion you have about '+t+'?',
+        t=>'What is one mistake you have made related to '+t+'?',
+        t=>'What is something you would like to improve about '+t+'?',
+        t=>'What is one memory you have connected to '+t+'?',
+        t=>'What is something people often misunderstand about '+t+'?'
+      ];
+      const darePatterns=[
+        t=>'Speak for 30 seconds about '+t+' without using the word “and”.',
+        t=>'Give a 20-second mini presentation about '+t+' as if you are an expert.',
+        t=>'Explain '+t+' to a five-year-old using simple English.',
+        t=>'Give one useful and one terrible piece of advice about '+t+'.',
+        t=>'Create a short slogan about '+t+' and explain why it works.'
+      ];
+      fillLegacy(d.truths,i=>({id:'t-1000-'+(i+1),text:truthPatterns[Math.floor(i/legacyTopics.length)%truthPatterns.length](legacyTopic(i))}),x=>x.text,500);
+      fillLegacy(d.dares,i=>({id:'d-1000-'+(i+1),text:darePatterns[Math.floor(i/legacyTopics.length)%darePatterns.length](legacyTopic(i))}),x=>x.text,500);
     }
-    fillLegacy(cards, i => extras[i%extras.length], x => x[1]);
-    if (typeof build === 'function') build();
+  }
+
+  if(path.includes('/last-thing-you-did/')&&typeof prompts!=='undefined'){
+    const p=[
+      t=>'What was the last thing you changed about '+t+'?',t=>'What was the last useful lesson you learned about '+t+'?',
+      t=>'What was the last decision you made because of '+t+'?',t=>'What was the last conversation you had about '+t+'?',
+      t=>'What was the last problem you solved involving '+t+'?',t=>'What was the last thing you bought or used for '+t+'?',
+      t=>'What was the last advice you heard about '+t+'?',t=>'What was the last plan you made related to '+t+'?',
+      t=>'What was the last mistake you made involving '+t+'?',t=>'What was the last good experience you had with '+t+'?'
+    ];
+    fillLegacy(prompts,i=>({c:legacyCat(i),q:p[Math.floor(i/legacyTopics.length)%p.length](legacyTopic(i))}),x=>x.q);
+    if(typeof buildDeck==='function')buildDeck();
+  }
+
+  if(path.includes('/what-would-you-do-if/')&&typeof situations!=='undefined'){
+    const p=[
+      t=>'you had to change one thing about '+t+' tomorrow?',t=>'someone asked you for honest advice about '+t+'?',
+      t=>'you suddenly had twice as much time for '+t+'?',t=>'your usual approach to '+t+' stopped working?',
+      t=>'a close friend strongly disagreed with you about '+t+'?',t=>'you had to explain '+t+' to a complete beginner?',
+      t=>'you had to spend half as much money on '+t+'?',t=>'you could instantly become excellent at '+t+'?',
+      t=>'you had to make an important decision about '+t+' today?',t=>'you could remove one common problem connected to '+t+'?'
+    ];
+    fillLegacy(situations,i=>({c:legacyCat(i),q:p[Math.floor(i/legacyTopics.length)%p.length](legacyTopic(i))}),x=>x.q);
+    if(typeof buildDeck==='function')buildDeck();
+  }
+
+  if(path.includes('/would-you-rather/')&&typeof items!=='undefined'){
+    const p=[
+      (a,b)=>['have more '+a+' but less '+b,'have more '+b+' but less '+a],
+      (a,b)=>['be naturally good at '+a,'be naturally good at '+b],
+      (a,b)=>['spend a free year focused on '+a,'spend a free year focused on '+b],
+      (a,b)=>['get free expert help with '+a,'get free expert help with '+b],
+      (a,b)=>['know everything about '+a,'know everything about '+b],
+      (a,b)=>['never worry about '+a+' again','never worry about '+b+' again'],
+      (a,b)=>['teach a class about '+a,'teach a class about '+b],
+      (a,b)=>['improve '+a+' immediately','improve '+b+' immediately'],
+      (a,b)=>['have unlimited time for '+a,'have unlimited time for '+b],
+      (a,b)=>['be remembered for '+a,'be remembered for '+b]
+    ];
+    fillLegacy(items,i=>{const a=legacyTopic(i),b=legacyTopic(i+31),o=p[Math.floor(i/legacyTopics.length)%p.length](a,b);return[legacyCat(i),o[0],o[1]]});
+    if(typeof build==='function')build();
+  }
+
+  if(path.includes('/most-likely-to/')&&typeof items!=='undefined'){
+    const p=[
+      t=>'be the first person to suggest something about '+t+'?',t=>'turn a small problem with '+t+' into a funny story?',
+      t=>'become unexpectedly good at '+t+'?',t=>'change their plans completely because of '+t+'?',
+      t=>'give the best advice about '+t+'?',t=>'spend the most time learning about '+t+'?',
+      t=>'start a new project connected to '+t+'?',t=>'have the strongest opinion about '+t+'?',
+      t=>'make a last-minute decision about '+t+'?',t=>'convince the group to try something related to '+t+'?'
+    ];
+    fillLegacy(items,i=>[legacyCat(i),p[Math.floor(i/legacyTopics.length)%p.length](legacyTopic(i))]);
+    if(typeof build==='function')build();
+  }
+
+  if(path.includes('/hot-seat/')&&typeof prompts!=='undefined'){
+    fillLegacy(prompts,i=>[legacyCat(i),qPatterns[Math.floor(i/legacyTopics.length)%qPatterns.length](legacyTopic(i))]);
+    if(typeof build==='function')build();
+  }
+
+  if(path.includes('/five-second-challenge/')&&typeof items!=='undefined'){
+    const p=[
+      t=>'Name 3 things connected with '+t+'.',t=>'Name 3 problems people can have with '+t+'.',
+      t=>'Name 3 ways to improve '+t+'.',t=>'Name 3 words you associate with '+t+'.',
+      t=>'Name 3 reasons people care about '+t+'.',t=>'Name 3 things that can make '+t+' easier.',
+      t=>'Name 3 things people often forget about '+t+'.',t=>'Name 3 good examples of '+t+'.',
+      t=>'Name 3 bad habits connected to '+t+'.',t=>'Name 3 questions you could ask about '+t+'.'
+    ];
+    fillLegacy(items,i=>[legacyCat(i),p[Math.floor(i/legacyTopics.length)%p.length](legacyTopic(i))]);
+    if(typeof build==='function')build();
+  }
+
+  if(path.includes('/red-flag-green-flag/')&&typeof items!=='undefined'){
+    const p=[
+      t=>'They ask thoughtful questions when you talk about '+t+'.',t=>'They refuse to listen to any opinion about '+t+' except their own.',
+      t=>'They can disagree respectfully when '+t+' comes up.',t=>'They constantly make promises about '+t+' but never follow through.',
+      t=>'They remember important details you shared about '+t+'.',t=>'They make fun of you whenever you talk seriously about '+t+'.',
+      t=>'They admit when they do not know much about '+t+'.',t=>'They try to control every decision involving '+t+'.',
+      t=>'They ask before giving strong advice about '+t+'.',t=>'They change the subject every time you mention '+t+'.'
+    ];
+    fillLegacy(items,i=>[legacyCat(i),p[Math.floor(i/legacyTopics.length)%p.length](legacyTopic(i))]);
+    if(typeof build==='function')build();
+  }
+
+  if(path.includes('/debate-roulette/')&&typeof motions!=='undefined'){
+    const p=[
+      t=>legacyCap(t)+' should be taught as a practical life skill.',t=>'People spend too much time worrying about '+t+'.',
+      t=>'Technology has improved the way people deal with '+t+'.',t=>'Society would benefit from talking more openly about '+t+'.',
+      t=>'People should spend more money on '+t+'.',t=>'Schools should prepare students better for '+t+'.',
+      t=>'Social media has made '+t+' worse.',t=>'Personal experience matters more than expert advice about '+t+'.',
+      t=>'There should be fewer rules around '+t+'.',t=>'People should take '+t+' more seriously.'
+    ];
+    fillLegacy(motions,i=>[legacyCat(i),p[Math.floor(i/legacyTopics.length)%p.length](legacyTopic(i))]);
+    if(typeof build==='function')build();
+  }
+
+  if(path.includes('/never-have-i-ever/')&&typeof items!=='undefined'){
+    const p=[
+      t=>'changed my plans because of '+t+'.',t=>'pretended to understand something about '+t+' when I did not.',
+      t=>'learned an important lesson because of '+t+'.',t=>'had an unexpectedly funny experience involving '+t+'.',
+      t=>'asked someone for help with '+t+'.',t=>'spent more money than planned because of '+t+'.',
+      t=>'changed my opinion after learning more about '+t+'.',t=>'made a mistake because I rushed something involving '+t+'.',
+      t=>'given someone advice about '+t+'.',t=>'avoided a conversation because of '+t+'.'
+    ];
+    fillLegacy(items,i=>[legacyCat(i),p[Math.floor(i/legacyTopics.length)%p.length](legacyTopic(i))]);
+    if(typeof build==='function')build();
+  }
+
+  if(path.includes('/taboo/')&&typeof cards!=='undefined'){
+    const classify=term=>{
+      const s=term.toLowerCase();
+      if(/airport|flight|travel|hotel|train|bus|taxi|passport|ticket|tour|luggage|road|metro|beach|camp|ferry|cruise/.test(s))return'Travel';
+      if(/coffee|pizza|food|restaurant|kitchen|soup|salad|cake|tea|juice|chicken|egg|pasta|sandwich|burger|cook|recipe|meal|breakfast|lunch|dinner/.test(s))return'Food';
+      if(/work|office|manager|teacher|engineer|doctor|nurse|job|meeting|report|client|customer|project|training|salary|interview|email|business/.test(s))return'Work';
+      if(/movie|music|game|concert|cinema|football|basketball|tennis|karaoke|podcast|guitar|piano|actor|singer|photo|camera|party|book/.test(s))return'Entertainment';
+      return'Everyday';
+    };
+    const related={
+      Everyday:['USE','HOME','DAILY','THING'],Travel:['TRIP','JOURNEY','PLACE','GO'],
+      Food:['EAT','TASTE','MEAL','KITCHEN'],Work:['JOB','OFFICE','TEAM','WORK'],Entertainment:['FUN','WATCH','PLAY','SHOW']
+    };
+    const makeCard=term=>{
+      const cat=classify(term),tokens=String(term).toUpperCase().split(/\s+/).filter(x=>x.length>2);
+      const forbidden=[...new Set([...tokens,...related[cat]])].filter(x=>x!==String(term).toUpperCase()).slice(0,4);
+      while(forbidden.length<4)forbidden.push(related[cat][forbidden.length%related[cat].length]);
+      return[cat,String(term).toUpperCase(),forbidden];
+    };
+    fillLegacy(cards,i=>makeCard(legacyTargets[i%legacyTargets.length]),x=>x[1]);
+    if(typeof build==='function')build();
   }
 
 })();
