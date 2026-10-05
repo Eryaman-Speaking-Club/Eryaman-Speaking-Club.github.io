@@ -306,3 +306,7 @@
   .game-fullscreen-toggle{width:42px;padding:0;justify-content:center}
   .game-fullscreen-toggle b{display:none}
 }
+
+/* Icon-only fullscreen in the teacher game overlay. */
+#gameFullscreenToggle{width:44px;min-width:44px;padding:0;justify-content:center}
+#gameFullscreenLabel{display:none!important}

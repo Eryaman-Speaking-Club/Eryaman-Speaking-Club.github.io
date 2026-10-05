@@ -1,0 +1,31 @@
+/* Small, consistent controls. Loaded by all public game pages. */
+[hidden]{display:none!important}
+.esc-display-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+button.esc-fullscreen-btn,button[data-esc-fullscreen]{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;max-width:44px!important;padding:0!important;border:1px solid #d8e4ee!important;border-radius:13px!important;display:inline-flex!important;align-items:center;justify-content:center;flex:0 0 44px;background:#fff!important;color:#123a6b!important;cursor:pointer;font:26px/1 system-ui,sans-serif!important;box-sizing:border-box}
+button[data-esc-fullscreen] span{display:inline!important;font:inherit!important}
+button[data-esc-fullscreen]:hover,button[data-esc-fullscreen].active{background:#edf4fb!important}
+button[data-esc-fullscreen]:focus-visible{outline:3px solid #efac48!important;outline-offset:3px}
+button:disabled{cursor:not-allowed!important;opacity:.5}
+.game-volume-pop{position:fixed;z-index:180;right:18px;top:76px;width:min(270px,calc(100vw - 36px));padding:16px;background:#fff;border:1px solid #dbe5ed;border-radius:17px;box-shadow:0 18px 50px rgba(11,47,91,.18);display:none}
+.game-volume-pop.open{display:block}.game-volume-pop b{display:flex;justify-content:space-between;color:#123a6b;font-size:13px}.game-volume-pop input{width:100%;margin-top:12px;accent-color:#123a6b}
+.game-toast,.esc-display-status{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);max-width:calc(100vw - 30px);padding:12px 16px;border-radius:13px;background:#123a6b;color:#fff;font:600 13px/1.5 system-ui,sans-serif;z-index:190;text-align:center;pointer-events:none}
+.game-toast{opacity:0}.game-toast.show{opacity:1}
+.esc-game-presenting .game-shell,.esc-game-presenting .new-game-shell{width:min(1440px,calc(100% - 40px))}
+.esc-game-presenting .game-hero,.esc-game-presenting .new-game-hero{padding-top:16px;padding-bottom:16px}
+.esc-game-presenting .game-hero h1,.esc-game-presenting .new-game-hero h1{font-size:clamp(30px,4vw,56px)}
+.esc-game-presenting .new-game-card{min-height:40vh}
+.game-round-status{margin:12px 0;color:#526b80;font-size:14px;line-height:1.5;text-align:center}
+.taboo-actions{flex-wrap:wrap;gap:9px}
+.taboo-foul{min-height:48px;border:1px solid #e5bbc2;border-radius:14px;padding:0 18px;background:#fff0f2;color:#9c3346;font:800 13px system-ui,sans-serif;cursor:pointer}
+.taboo-rule-note{font-size:13px;line-height:1.6;color:#587087;margin:12px auto;text-align:center;max-width:850px}
+#bingoStatus,.selection-status{margin:14px 0 0;padding:9px 13px;border-radius:12px;background:#edf7f4;color:#16695f;font-size:14px;line-height:1.4;font-weight:700}
+#bingoStatus.complete{background:#d8efe3;color:#125131}
+.timer-state{font-size:13px;font-weight:600;letter-spacing:0;display:block;color:#587087;margin-top:6px}
+.new-game-controls #timerPause,.new-game-controls #timerReset{min-height:44px}
+@media(max-width:680px){
+ .new-game-topbar,.game-topbar,.site-header,.topbar{flex-wrap:wrap}
+ .new-game-actions,.game-actions,.header-actions{flex-wrap:wrap;gap:7px}
+ .esc-game-presenting .game-shell,.esc-game-presenting .new-game-shell{width:calc(100% - 24px)}
+ .taboo-actions>*{flex:1 1 130px}
+}
+@media(prefers-reduced-motion:reduce){.esc-display-status,.game-toast{transition:none}}

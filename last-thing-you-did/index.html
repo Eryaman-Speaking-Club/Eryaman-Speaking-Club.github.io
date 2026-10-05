@@ -61,6 +61,7 @@
     }
   </style>
   <link rel="stylesheet" href="../esc-brand.css?v=20260916-1240">
+<link rel="stylesheet" href="/esc-game-controls.css?v=20261005-games-audit3">
 </head>
 <body>
   <div class="shell">
@@ -124,11 +125,11 @@
     function buildDeck(){deck=shuffle(prompts.filter(p=>selected==='All'||p.c===selected));index=-1;$('deckInfo').textContent=`${deck.length} prompts`; $('categoryInfo').textContent=selected==='All'?'All categories':selected;}
     function show(p,save=true){if(!p)return;promptText.textContent=p.q;badge.textContent=p.c;icon.textContent=icons[p.c]||'⏳';if(save){history.unshift(p);history=history.slice(0,6);renderHistory()}tone(p.c==='Spicy'?520:440,.075,.10)}
     function next(){if(!deck.length||index>=deck.length-1)buildDeck();index++;const p=deck[index];previous.push(p);show(p);$('deckInfo').textContent=`${Math.max(0,deck.length-index-1)} left in this deck`;}
-    function back(){if(previous.length<2)return;previous.pop();const p=previous[previous.length-1];show(p,false)}
+    function back(){if(previous.length<2)return;const forward=previous.pop();deck.splice(index+1,0,forward);const p=previous[previous.length-1];show(p,false)}
     function renderHistory(){$('historyCount').textContent=history.length;$('historyList').innerHTML=history.map(x=>`<span class="history-item">${x.q.replace(/</g,'&lt;')}</span>`).join('')}
     categories.forEach(c=>{const b=document.createElement('button');b.className='chip'+(c==='All'?' active':'');b.dataset.cat=c;b.textContent=c;b.onclick=()=>{selected=c;document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('active',x.dataset.cat===c));buildDeck();next()};filters.appendChild(b)});
     $('nextBtn').onclick=next;$('promptCard').onclick=next;$('backBtn').onclick=back;$('shuffleBtn').onclick=()=>{buildDeck();next();const t=$('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),900)};
-    document.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();next()}else if(e.code==='ArrowLeft')back();else if(e.code==='ArrowRight')next()});
+    document.addEventListener('keydown',e=>{if(e.key!=='Escape'&&e.target.closest?.('input,textarea,select,button,a,[contenteditable]'))return;if(e.code==='Space'){e.preventDefault();next()}else if(e.code==='ArrowLeft')back();else if(e.code==='ArrowRight')next()});
 
     const soundBtn=$('soundBtn'),pop=$('volumePop'),slider=$('volumeSlider'),value=$('volumeValue');
     let vol=Math.max(0,Math.min(100,Number(localStorage.getItem('esc-global-volume-v1')??100)));slider.value=vol;value.textContent=vol+'%';soundBtn.textContent=vol===0?'🔇':vol<45?'🔉':'🔊';
@@ -140,5 +141,6 @@
   <script src="../esc-content-editor.js?v=20260923-audit5"></script>  <script src="/esc-supabase-config.js"></script>
   <script src="/esc-supabase.js"></script>
   <script src="/site-analytics.js?v=20260922"></script>
+<script src="/esc-game-controls.js?v=20261005-games-audit3"></script>
 </body>
 </html>
