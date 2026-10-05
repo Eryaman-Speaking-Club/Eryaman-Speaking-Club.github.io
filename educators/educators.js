@@ -1193,6 +1193,44 @@
   function gameLang(tr,en){
     return window.ESCEduI18n?.getLang?.()==="en" ? en : tr;
   }
+  function gameFullscreenElement(){
+    return document.fullscreenElement || document.webkitFullscreenElement || null;
+  }
+
+  function updateGameFullscreenButton(){
+    const btn=$("#gameFullscreenToggle");
+    const label=$("#gameFullscreenLabel");
+    if(!btn||!label)return;
+    const active=Boolean(gameFullscreenElement());
+    label.textContent=active ? gameLang("Tam ekrandan çık","Exit fullscreen") : gameLang("Tam ekran","Fullscreen");
+    btn.setAttribute("aria-label",label.textContent);
+    btn.title=label.textContent;
+    btn.classList.toggle("active",active);
+  }
+
+  async function toggleGameFullscreen(){
+    const target=$("#gameModalCard") || gameModal;
+    if(!target)return;
+    try{
+      if(gameFullscreenElement()){
+        const exit=document.exitFullscreen || document.webkitExitFullscreen;
+        if(exit) await exit.call(document);
+      }else{
+        const request=target.requestFullscreen || target.webkitRequestFullscreen;
+        if(request) await request.call(target);
+        else throw new Error("FULLSCREEN_NOT_SUPPORTED");
+      }
+    }catch(err){
+      console.warn("Game fullscreen unavailable",err);
+      const btn=$("#gameFullscreenToggle");
+      if(btn){
+        const old=btn.title;
+        btn.title=gameLang("Tarayıcı tam ekranı desteklemiyor","Fullscreen is not supported by this browser");
+        setTimeout(()=>{btn.title=old;},1800);
+      }
+    }
+    updateGameFullscreenButton();
+  }
 
   function stopGameTimer(){
     if(gameTimerId){
@@ -1284,9 +1322,15 @@
     extra.innerHTML=html;
   }
 
-  function closeAdaptiveGame(){
+  async function closeAdaptiveGame(){
     const wasOpen=gameModal?.classList.contains("open");
     stopGameTimer();
+    if(gameFullscreenElement()){
+      const exit=document.exitFullscreen || document.webkitExitFullscreen;
+      if(exit){
+        try{await exit.call(document);}catch{}
+      }
+    }
     gameModal?.classList.remove("open");
     gameModal?.setAttribute("aria-hidden","true");
     if(wasOpen) document.dispatchEvent(new CustomEvent("esc:game-closed"));
@@ -1326,7 +1370,13 @@
     paintGame();
     gameModal?.classList.add("open");
     gameModal?.setAttribute("aria-hidden","false");
+    updateGameFullscreenButton();
   }));
+
+  $("#gameFullscreenToggle")?.addEventListener("click",toggleGameFullscreen);
+  document.addEventListener("fullscreenchange",updateGameFullscreenButton);
+  document.addEventListener("webkitfullscreenchange",updateGameFullscreenButton);
+  window.addEventListener("esc:languagechange",updateGameFullscreenButton);
 
   $("#closeGameModal")?.addEventListener("click",closeAdaptiveGame);
   $("#gameModal")?.addEventListener("click",e=>{if(e.target===gameModal)closeAdaptiveGame();});
@@ -1353,6 +1403,7 @@
 
   document.addEventListener("keydown",e=>{
     if(e.key==="Escape"){
+      if(gameFullscreenElement()) return;
       const gameWasOpen=gameModal?.classList.contains("open");
       if(gameWasOpen){
         closeAdaptiveGame();
