@@ -345,18 +345,17 @@
 
   if(path.includes('/would-you-rather/')&&typeof items!=='undefined'){
     const p=[
-      (a,b)=>['have more '+a+' but less '+b,'have more '+b+' but less '+a],
-      (a,b)=>['be naturally good at '+a,'be naturally good at '+b],
-      (a,b)=>['spend a free year focused on '+a,'spend a free year focused on '+b],
-      (a,b)=>['get free expert help with '+a,'get free expert help with '+b],
-      (a,b)=>['know everything about '+a,'know everything about '+b],
-      (a,b)=>['never worry about '+a+' again','never worry about '+b+' again'],
-      (a,b)=>['teach a class about '+a,'teach a class about '+b],
-      (a,b)=>['improve '+a+' immediately','improve '+b+' immediately'],
-      (a,b)=>['have unlimited time for '+a,'have unlimited time for '+b],
-      (a,b)=>['be remembered for '+a,'be remembered for '+b]
-    ];
-    fillLegacy(items,i=>{const a=legacyTopic(i),b=legacyTopic(i+31),o=p[Math.floor(i/legacyTopics.length)%p.length](a,b);return[legacyCat(i),o[0],o[1]]});
+      (a,b)=>['understand '+a+' much better','understand '+b+' much better'],
+      (a,b)=>['feel more confident discussing '+a,'feel more confident discussing '+b],
+      (a,b)=>['improve one important thing about '+a,'improve one important thing about '+b],
+      (a,b)=>['get reliable expert advice about '+a,'get reliable expert advice about '+b],
+      (a,b)=>['spend one month learning about '+a,'spend one month learning about '+b],
+      (a,b)=>['teach a beginner the basics of '+a,'teach a beginner the basics of '+b],
+      (a,b)=>['solve one major problem related to '+a,'solve one major problem related to '+b],
+      (a,b)=>['have one great experience connected to '+a,'have one great experience connected to '+b],
+      (a,b)=>['know how '+a+' will change in ten years','know how '+b+' will change in ten years'],
+      (a,b)=>['be able to give excellent advice about '+a,'be able to give excellent advice about '+b]
+    ];    fillLegacy(items,i=>{const a=legacyTopic(i),b=legacyTopic(i+31),o=p[Math.floor(i/legacyTopics.length)%p.length](a,b);return[legacyCat(i),o[0],o[1]]});
     if(typeof build==='function')build();
   }
 
@@ -428,10 +427,10 @@
   if(path.includes('/taboo/')&&typeof cards!=='undefined'){
     const classify=term=>{
       const s=term.toLowerCase();
-      if(/airport|flight|travel|hotel|train|bus|taxi|passport|ticket|tour|luggage|road|metro|beach|camp|ferry|cruise/.test(s))return'Travel';
+      if(/\bairport\b|\bflight\b|\btravel\b|\bhotel\b|\btrain\b|\bbus\b|\btaxi\b|\bpassport\b|\bticket\b|\btour\b|\bluggage\b|\broad\b|\bmetro\b|\bbeach\b|\bcamp\b|\bferry\b|\bcruise\b/.test(s))return'Travel';
       if(/coffee|pizza|food|restaurant|kitchen|soup|salad|cake|tea|juice|chicken|egg|pasta|sandwich|burger|cook|recipe|meal|breakfast|lunch|dinner/.test(s))return'Food';
-      if(/work|office|manager|teacher|engineer|doctor|nurse|job|meeting|report|client|customer|project|training|salary|interview|email|business/.test(s))return'Work';
-      if(/movie|music|game|concert|cinema|football|basketball|tennis|karaoke|podcast|guitar|piano|actor|singer|photo|camera|party|book/.test(s))return'Entertainment';
+      if(/work|office|manager|teacher|engineer|doctor|nurse|job|meeting|report|client|customer|project|training|salary|interview|email|business|receptionist|accountant|developer|designer|coach|instructor|assistant|agent/.test(s))return'Work';
+      if(/movie|music|game|concert|cinema|football|basketball|tennis|karaoke|podcast|guitar|piano|actor|singer|photo|camera|party|book|creator|stream|theatre|festival/.test(s))return'Entertainment';
       return'Everyday';
     };
     const related={
@@ -439,10 +438,14 @@
       Food:['EAT','TASTE','MEAL','KITCHEN'],Work:['JOB','OFFICE','TEAM','WORK'],Entertainment:['FUN','WATCH','PLAY','SHOW']
     };
     const makeCard=term=>{
-      const cat=classify(term),tokens=String(term).toUpperCase().split(/\s+/).filter(x=>x.length>2);
-      const forbidden=[...new Set([...tokens,...related[cat]])].filter(x=>x!==String(term).toUpperCase()).slice(0,4);
-      while(forbidden.length<4)forbidden.push(related[cat][forbidden.length%related[cat].length]);
-      return[cat,String(term).toUpperCase(),forbidden];
+      const cat=classify(term),raw=String(term),upper=raw.toUpperCase();
+      const tokens=upper.split(/\s+/).filter(x=>x.length>2);
+      const isRole=/teacher|doctor|nurse|manager|driver|pilot|lawyer|chef|coach|agent|assistant|designer|engineer|developer|receptionist|creator|student|worker|instructor|photographer|musician|actor|writer|dentist|mechanic|farmer|scientist|cashier|barista|pharmacist/i.test(raw);
+      const isPlace=/room|station|airport|hotel|restaurant|school|university|library|museum|park|centre|center|shop|store|office|hospital|clinic|market|hall|café|cafe|terminal|platform/i.test(raw);
+      const semantic=isRole?['PERSON','JOB','WORK','CAREER']:(isPlace?['PLACE','BUILDING','VISIT','LOCATION']:related[cat]);
+      const forbidden=[...new Set([...tokens,...semantic])].filter(x=>x!==upper).slice(0,4);
+      while(forbidden.length<4)forbidden.push(semantic[forbidden.length%semantic.length]);
+      return[cat,upper,forbidden];
     };
     fillLegacy(cards,i=>makeCard(legacyTargets[i%legacyTargets.length]),x=>x[1]);
     if(typeof build==='function')build();
