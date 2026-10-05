@@ -813,3 +813,17 @@
   .assistant-history-card{grid-template-columns:1fr}
   .assistant-history-actions{justify-content:flex-start}
 }
+
+
+/* Contextual teacher help */
+.panel-header{position:relative}
+.edu-help-dot{position:relative;flex:none;width:30px;height:30px;border:1px solid #d7e2eb;border-radius:50%;background:#f5f9fc;color:#315d80;font-size:12px;font-weight:1000;cursor:help;z-index:6}
+.edu-help-dot::after{content:attr(data-help-text);position:absolute;right:0;top:38px;width:min(330px,70vw);padding:11px 12px;border-radius:12px;background:#102d4e;color:#fff;font-size:10px;font-weight:600;line-height:1.5;text-align:left;box-shadow:0 16px 38px rgba(8,31,59,.2);opacity:0;pointer-events:none;transform:translateY(-4px);transition:.16s ease;white-space:normal;z-index:99}
+.edu-help-dot::before{content:"";position:absolute;right:9px;top:31px;border:6px solid transparent;border-bottom-color:#102d4e;opacity:0;transition:.16s ease;z-index:100}
+.edu-help-dot:hover::after,.edu-help-dot:hover::before,.edu-help-dot:focus-visible::after,.edu-help-dot:focus-visible::before,.edu-help-dot.help-open::after,.edu-help-dot.help-open::before{opacity:1;transform:translateY(0)}
+.edu-help-dot:hover,.edu-help-dot:focus-visible,.edu-help-dot.help-open{background:#173f65;color:#fff;border-color:#173f65}
+@media(max-width:720px){
+  .edu-help-dot{cursor:pointer}
+  .edu-help-dot::after{position:fixed;left:14px;right:14px;top:auto;bottom:18px;width:auto;font-size:11px;line-height:1.55}
+  .edu-help-dot::before{display:none}
+}
