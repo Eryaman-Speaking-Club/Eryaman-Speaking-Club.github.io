@@ -29,7 +29,7 @@
       ['How does {x} usually fit into your day or week?', 'Describe what normally happens and how it affects you.'],
       ['What would make your {x} better?', 'Give one realistic change and explain why it would help.'],
       ['Do you prefer to plan {x} or decide naturally?', 'Explain your choice with a recent example.'],
-      ['What is one small problem connected with {x}?', 'How do you normally solve it?'],
+      ['What is one small problem with {x} that becomes weirdly dramatic for no good reason?', 'What usually happens, and how do you fix it?'],
       ['If you could change one habit about {x}, what would you change?', 'Why would that change improve your daily life?']
     ],
     'preferences': [
@@ -37,38 +37,38 @@
       ['How has your taste in {x} changed over time?', 'Compare what you liked before with what you like now.'],
       ['What makes something related to {x} really good in your opinion?', 'Give an example and explain your standards.'],
       ['Would you recommend your favourite kind of {x} to a friend?', 'What would you choose and why?'],
-      ['What is one popular thing about {x} that you do not really enjoy?', 'Why do you think other people like it?']
+      ['What popular thing about {x} would you ban for one day just to see what happens?', 'Who would complain first, and why?']
     ],
     'food': [
       ['What makes {x} enjoyable for you?', 'Talk about taste, place, people, or memories.'],
       ['What is your best memory connected with {x}?', 'Where were you and what made the moment memorable?'],
-      ['How would you introduce {x} to someone who has never tried it?', 'Describe what you would choose and why.'],
+      ['If {x} had a personality, what kind of person would it be?', 'Describe it, then say whether you would actually want to meet this person.'],
       ['Do you think people should spend more or less time on {x}?', 'Explain your opinion with an example.'],
       ['If you could improve one thing about {x}, what would it be?', 'How would your ideal version be different?']
     ],
     'travel': [
       ['What do you enjoy or dislike about {x}?', 'Explain your answer with a travel experience or example.'],
       ['How would you plan {x} for a three-day trip?', 'What would be your first priority and why?'],
-      ['What can go wrong with {x}, and how can people prepare?', 'Give practical advice.'],
+      ['What is the funniest realistic disaster that could happen with {x}?', 'Explain how you would recover without making it worse.'],
       ['Would {x} make a trip more relaxing or more exciting for you?', 'Explain why.'],
       ['What have you learned from experiences with {x}?', 'Describe one lesson you would remember next time.']
     ],
     'friends': [
       ['Why is {x} important in friendship?', 'Give an example from a friendship or situation you know.'],
-      ['What can make {x} difficult between friends?', 'How should people deal with the problem?'],
+      ['What tiny problem involving {x} could start a completely unnecessary argument between friends?', 'How should sensible people solve it?'],
       ['Have your ideas about {x} changed as you got older?', 'Explain what changed and why.'],
       ['What would you do if a close friend had a problem with {x}?', 'Describe how you would react.'],
       ['What is one lesson you have learned about {x}?', 'How did you learn it?']
     ],
     'work': [
       ['How important is {x} at work?', 'Explain how it can affect people or results.'],
-      ['What is one challenge connected with {x}?', 'How would you deal with it in a professional way?'],
+      ['What harmless work habit connected with {x} would secretly annoy you every day?', 'How would you handle it without becoming the office villain?'],
       ['What makes someone good at {x}?', 'Name the skills or attitudes that matter most.'],
       ['Would you like more or less {x} in your working life?', 'Explain what your ideal situation would look like.'],
       ['What advice would you give a new employee about {x}?', 'Why would that advice be useful?']
     ],
     'study': [
-      ['What is your experience with {x}?', 'Describe what worked well or badly for you.'],
+      ['What habit around {x} makes people look productive without actually doing much?', 'What would work better instead?'],
       ['What makes {x} easier for students?', 'Give two practical ideas.'],
       ['Do you think {x} is necessary for effective learning?', 'Explain your opinion with an example.'],
       ['What would you change about {x} in schools or universities?', 'Why would your change help students?'],
@@ -78,7 +78,7 @@
       ['How do you imagine {x} will look in the future?', 'What changes do you expect and why?'],
       ['What would be a realistic goal connected with {x}?', 'What first step could you take?'],
       ['What could make {x} easier to achieve?', 'Think about time, money, skills, or support.'],
-      ['What worries or excites you most about {x}?', 'Explain why that part matters to you.'],
+      ['What part of {x} sounds exciting now but might become a very annoying future problem?', 'Explain your prediction.'],
       ['If everything went well, what would you like {x} to look like?', 'Describe your ideal result in detail.']
     ],
     'past': [
@@ -86,31 +86,31 @@
       ['How did {x} influence the person you are now?', 'Give one example.'],
       ['If you could change one thing about {x}, what would you change?', 'What difference might it have made?'],
       ['What did you learn from {x}?', 'Explain how that lesson helped you later.'],
-      ['Would you like to experience {x} again?', 'Why or why not?']
+      ['Would you experience {x} again if it came with dramatic background music?', 'Why or why not?']
     ],
     'personality': [
       ['How important is {x} in a person?', 'Explain when this quality is especially useful.'],
       ['Do you think you have enough {x}?', 'Give an example that shows your answer.'],
       ['Can people improve their {x}?', 'How could someone practise it?'],
-      ['When can too much {x} become a problem?', 'Give a situation where balance is important.'],
+      ['When does too much {x} stop being a strength and start becoming a sitcom problem?', 'Give one realistic example.'],
       ['Who do you know who shows strong {x}?', 'What can you learn from that person?']
     ],
     'communication': [
       ['What makes {x} effective?', 'Give an example of good communication.'],
-      ['What problems can happen with {x}?', 'How can people avoid misunderstandings?'],
+      ['What bad habit involving {x} should come with a warning label?', 'What should the warning say?'],
       ['How confident are you with {x}?', 'What would help you become better at it?'],
       ['Has technology changed the way people use {x}?', 'Explain one positive and one negative change.'],
       ['What rule or habit would improve {x}?', 'Why would it make communication better?']
     ],
     'technology': [
       ['How has {x} changed everyday life?', 'Give one positive and one negative example.'],
-      ['Do people depend too much on {x}?', 'Explain your opinion.'],
+      ['If {x} disappeared for one week, who would panic first?', 'Explain what would become surprisingly difficult.'],
       ['What is one useful way to use {x}?', 'Describe when it saves time or solves a problem.'],
       ['What problem can {x} create?', 'How should people protect themselves or use it better?'],
       ['How do you think {x} will change in the next five years?', 'What would you like to see happen?']
     ],
     'society': [
-      ['How well does {x} work where you live?', 'What is good and what could improve?'],
+      ['If you became mayor for one day, what slightly dramatic change would you make to {x}?', 'Explain the serious reason behind it.'],
       ['Why does {x} matter to a community?', 'Give a practical example.'],
       ['What responsibility do individuals have regarding {x}?', 'What should people do themselves?'],
       ['What should governments or local authorities do about {x}?', 'Choose one realistic action and explain it.'],
@@ -119,13 +119,13 @@
     'money': [
       ['What is your attitude toward {x}?', 'Explain where that attitude comes from.'],
       ['What is one good habit connected with {x}?', 'Why is it useful?'],
-      ['What mistake do people often make with {x}?', 'How can they avoid it?'],
+      ['What mistake with {x} has the strongest “why did I do that?” energy?', 'How can people avoid repeating it?'],
       ['How does {x} affect happiness or stress?', 'Give an example.'],
       ['What advice would you give a younger person about {x}?', 'Explain why that advice matters.']
     ],
     'health': [
       ['How does {x} affect your energy or mood?', 'Describe what you notice in your own life.'],
-      ['What makes it difficult to maintain {x}?', 'How could people make it easier?'],
+      ['What healthy habit connected with {x} sounds easy until Monday morning arrives?', 'How could people make it realistic?'],
       ['What is one realistic improvement you could make to {x}?', 'When would you start and how?'],
       ['Do people talk enough about {x}?', 'Why or why not?'],
       ['What advice would you give someone struggling with {x}?', 'Keep the advice practical and realistic.']
@@ -134,7 +134,7 @@
       ['What does {x} tell us about a culture?', 'Give an example from Türkiye or another country.'],
       ['How important is it to protect {x}?', 'Explain what could be lost if it disappeared.'],
       ['How has {x} changed between generations?', 'Compare older and younger people.'],
-      ['What would you like a visitor to understand about {x}?', 'What example would you show them?'],
+      ['What part of {x} would you show a visitor first if you wanted to impress and slightly confuse them?', 'Explain your choice.'],
       ['Can {x} bring people together?', 'Explain when it works well and when it may not.']
     ],
     'choices': [
@@ -142,18 +142,18 @@
       ['When might you choose differently about {x}?', 'Describe a situation that could change your answer.'],
       ['What are the biggest advantages of each side of {x}?', 'Which advantage matters most to you?'],
       ['Do you think your choice about {x} will change as you get older?', 'Why or why not?'],
-      ['What does your choice about {x} say about your personality?', 'Explain with a real example.']
+      ['If your choice about {x} could roast you, what would it say about your personality?', 'Give a real example that proves or disproves it.']
     ],
     'problem solving': [
       ['What would you do first if you faced {x}?', 'Explain your first three steps.'],
-      ['What is the worst way to react to {x}?', 'Why would that make the situation worse?'],
+      ['What is the worst possible reaction to {x} that would make a great comedy scene?', 'Then give the sensible reaction.'],
       ['Have you ever dealt with something like {x}?', 'What happened and what did you learn?'],
       ['Who would you ask for help with {x}?', 'Why would that person be useful?'],
       ['How could you prevent {x} from becoming a bigger problem?', 'Give practical advice.']
     ],
     'imagination': [
       ['If you could have {x}, what would it be like?', 'Describe it in enough detail for the group to imagine it.'],
-      ['What would be the best part of {x}?', 'What might be surprisingly difficult about it?'],
+      ['What would be the best part of {x}, and what ridiculous everyday problem would appear by day three?', 'Explain both sides.'],
       ['Who would you include in {x}?', 'Why would you choose those people?'],
       ['How would your daily life change because of {x}?', 'Give two specific examples.'],
       ['Would you still want {x} after one year?', 'Explain what might change your mind.']
@@ -163,7 +163,7 @@
       ['Do people think too much or too little about {x}?', 'Explain your opinion.'],
       ['Can {x} be measured fairly?', 'Why or why not?'],
       ['How has your opinion about {x} changed over time?', 'What experience influenced you?'],
-      ['What is one common belief about {x} that you disagree with?', 'Explain your reason respectfully.']
+      ['What opinion about {x} could start a 100-message group-chat debate?', 'Give your view without starting an actual argument.']
     ]
   };
 
