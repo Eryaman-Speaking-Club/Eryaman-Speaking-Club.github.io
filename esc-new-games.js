@@ -73,6 +73,35 @@ function ensureExpandedContent(){
  const emojis=['☕','📱','🌧️','🚕','✈️','🧳','😱','😂','🎉','🍕','🏠','🚪','🔑','💼','📧','⏰','💸','❤️','🤔','🎵','🎬','⚽','🚲','🌙','☀️','🔥','🎁','🚌','🚆','📚','💻','🗺️'];
  const survival=['Fresh water filter','Knife','Tent','Fishing line','Solar charger','First-aid kit','Mirror','Blanket','Rope','Flashlight','Compass','Cooking pot','Rain jacket','Water bottle','Radio','Map','Multi-tool','Insect repellent','Notebook','Emergency whistle'];
  const customers=['a university student','a busy parent','a frequent traveller','a remote worker','a small business owner','a teacher','a tourist','a fitness beginner','a budget-conscious customer','a luxury customer','a first-time buyer','a café owner','a hotel manager','a commuter','a new employee','a retiree','a content creator','an office worker','a family with children','someone who hates wasting time'];
+ const storyThings=['phone','wallet','umbrella','keys','headphones','backpack','suitcase','passport','ticket','water bottle','notebook','camera','book','newspaper','guitar','football','basketball','laptop','tablet','charger','power bank','coffee cup','shopping bag','jacket','hat','glasses','watch','bicycle','skateboard','gift box','birthday cake','letter','photo album','map','travel guide','train ticket','bus ticket','hotel key card','boarding pass','credit card','library card','name badge','business card','calendar','microphone','speaker','flashlight','blanket','tent','first-aid box','coffee machine','printer','projector','remote control','smart watch','fitness tracker','toy','balloon','flower bouquet','sandwich','pizza box','takeaway bag','shopping list','recipe book','toolbox','helmet','sports bag','yoga mat','swimming goggles','raincoat','travel pillow','eye mask','luggage tag','passport holder','travel adapter','souvenir','postcard','concert ticket','movie ticket','restaurant bill','receipt','menu','dictionary','workbook','presentation slide','voice recorder','USB cable','memory card','office phone','desk lamp','alarm clock','thermos','lunch box','grocery bag','shopping cart','parcel','delivery box','invitation','certificate','diploma','profile picture','selfie stick'];
+ const detectiveObjects=['phone','wallet','keys','headphones','backpack','suitcase','passport','ticket','water bottle','notebook','camera','book','laptop','tablet','charger','power bank','credit card','library card','name badge','business card','microphone','flashlight','gift box','letter','map','train ticket','bus ticket','hotel key card','boarding pass','travel adapter','souvenir','postcard','concert ticket','movie ticket','restaurant bill','receipt','dictionary','workbook','voice recorder','USB cable','memory card','office phone','desk lamp','alarm clock','thermos','lunch box','parcel','delivery box','invitation','certificate','diploma','glasses','watch','jacket','hat','umbrella','shopping bag','recipe book','toolbox','helmet','sports bag','yoga mat','swimming goggles','travel pillow','eye mask','luggage tag','passport holder','coffee cup','restaurant menu','presentation remote','wireless mouse','keyboard','staff badge','visitor badge','parking ticket','shopping receipt','invoice','contract','photo album','newspaper','guitar','football','basketball','smart watch','fitness tracker','camera lens','projector remote','tablet pen','earbuds','portable speaker','travel wallet','city map','booking confirmation','flight confirmation','seat reservation','appointment card','gift card','loyalty card','student card','identity card','phone charger'];
+ const socialTopics=new Set(['friendship','family','relationships','first impressions','personal space','good manners','communication','honesty','trust','teamwork','confidence','patience','leadership','feedback','healthy boundaries','small talk','making friends','giving advice','asking for help','empathy','respect']);
+ const socialRanks=[
+  ['Trust','Communication','Respect','Reliability','Humour'],
+  ['Honesty','Kindness','Patience','Empathy','Independence'],
+  ['Listening','Support','Boundaries','Shared interests','Consistency'],
+  ['Confidence','Warmth','Curiosity','Manners','Sense of humour'],
+  ['Clear communication','Respect for time','Reliability','Flexibility','Encouragement'],
+  ['Openness','Loyalty','Personal space','Fun','Emotional support'],
+  ['Listening','Asking questions','Giving examples','Staying calm','Being direct'],
+  ['Respect','Fairness','Responsibility','Patience','Team spirit'],
+  ['Shared goals','Trust','Communication','Compromise','Independence'],
+  ['Kindness','Honesty','Consistency','Self-awareness','Humour']
+ ];
+ const practicalRanks=[
+  ['Cost','Time','Quality','Convenience','Flexibility'],
+  ['Safety','Comfort','Price','Reliability','Simplicity'],
+  ['Speed','Quality','Effort','Value','Long-term benefit'],
+  ['Location','Cost','Comfort','Availability','Service'],
+  ['Time saved','Money saved','Ease of use','Quality','Durability'],
+  ['Preparation','Skill','Experience','Confidence','Luck'],
+  ['Practicality','Enjoyment','Cost','Time','Learning value'],
+  ['Privacy','Convenience','Speed','Security','Price'],
+  ['Health','Time','Money','Enjoyment','Long-term value'],
+  ['Quality','Simplicity','Flexibility','Reliability','Support']
+ ];
+ const survivalSettings=['a remote beach','a forest campsite','a snowy mountain road','a desert road','a small island','a mountain cabin','a quiet hiking trail','a rural train station','a closed campsite','a lakeside camp','a coastal village','an isolated farm','a broken-down tour bus','a remote picnic area','a national park','a rocky coastline','a mountain valley','a countryside road','a remote hostel','a ferry terminal after closing','an empty beach town','a storm-damaged campsite','a remote viewpoint','a forest road','a small harbour'];
+ const survivalProblems=['after losing phone signal','during a power cut','with very limited drinking water','after heavy rain','during unusually cold weather','during extreme heat','after transport is cancelled','with one injured group member','after losing the main bag','with no shops open nearby','after getting separated from the main route','when night is approaching','with only one working phone','after a sudden storm','with no internet connection','with very little food','after the group gets lost','while waiting for help','with a damaged tent','after the car breaks down','with wet clothes and equipment','with only basic supplies','when the weather changes suddenly','with no safe place to sleep','after missing the last bus','with a dead phone battery','after losing the map','with a long wait before rescue','when one person cannot walk far','with strong wind','with limited cash','after the water supply stops','with no cooking equipment','after the flashlight breaks','with an unexpected medical problem','with poor visibility','with only one warm blanket','after the road closes','with limited daylight remaining','when the group must move to a safer place'];
  const arr=Array.isArray(cfg.items)?cfg.items:(cfg.items=[]);
  const seen=new Set(arr.map(x=>JSON.stringify(x)));
  const add=x=>{const k=JSON.stringify(x);if(!seen.has(k)){arr.push(x);seen.add(k)}};
@@ -184,7 +213,7 @@ function ensureExpandedContent(){
    t=>'We would be happier if we changed the way we think about '+t+'.',
    t=>'People should be more honest about '+t+'.',
    t=>'Social media has made '+t+' worse.',
-   t=>'People spend too much money on '+t+'.',
+   t=>'People spend too much time worrying about '+t+'.',
    t=>'Schools should prepare people better for '+t+'.',
    t=>'There are too many unnecessary rules around '+t+'.',
    t=>'Experience is more useful than advice when it comes to '+t+'.',
@@ -198,34 +227,30 @@ function ensureExpandedContent(){
   switch(cfg.type){
    case 'twoTruths': return [cat(i),cap(textPatterns.twoTruths[p12](t)),'Say three believable statements about this prompt. Two must be true and one must be false.'];
    case 'whoAmI': return [cat(i),cap(target(i))];
-   case 'storyChain': return [cat(i),'When I arrived at '+place(i)+', I found '+target(i+37)+' waiting for me.','Keep the story connected. By the third player, introduce a problem involving '+topic(i)+'.'];
+   case 'storyChain': {
+    const thing=storyThings[i%storyThings.length],storyPlace=places[Math.floor(i/storyThings.length)%places.length];
+    return [cat(i),'When I arrived at '+storyPlace+', I found '+thing+' waiting for me.','Keep the story connected. By the third player, introduce a problem involving '+topic(i)+'.'];
+   }
    case 'explainBadly': return [cat(i),cap(target(i)),'Describe it indirectly without saying the target, spelling it or translating it.'];
    case 'roulette': return [cat(i),textPatterns.roulette[p12](t),'Give one specific example, then let someone ask one follow-up question.'];
    case 'opinion': return [cat(i),textPatterns.opinion[p12](t)];
    case 'ranking': {
-    const priorities=[
-     ['Cost','Time','Comfort','Quality','Flexibility'],
-     ['Fun','Safety','Convenience','Learning','Value'],
-     ['Speed','Quality','Price','Simplicity','Reliability'],
-     ['Freedom','Stability','Growth','Income','Work-life balance'],
-     ['Honesty','Kindness','Humour','Reliability','Communication'],
-     ['Location','Price','Comfort','Atmosphere','Service'],
-     ['Skill','Experience','Confidence','Preparation','Luck'],
-     ['Privacy','Convenience','Speed','Cost','Security'],
-     ['Health','Time','Money','Relationships','Personal growth'],
-     ['Creativity','Practicality','Effort','Impact','Enjoyment']
-    ];
-    return {cat:cat(i),title:'Rank what matters most when thinking about '+t,items:priorities[Math.floor(i/topics.length)%priorities.length]};
+    const sets=socialTopics.has(t)?socialRanks:practicalRanks;
+    const angle=Math.floor(i/topics.length)%sets.length;
+    return {cat:cat(i),title:'Rank what matters most when thinking about '+t,items:sets[angle]};
    }
-   case 'detective': return {cat:cat(i),title:'The Missing '+cap(target(i)),setup:'A '+target(i)+' disappeared at '+place(i)+' between '+(9+i%10)+':10 and '+(9+i%10)+':20. Your group says you were together the whole time.',facts:['Agree where everyone was standing or sitting.','Agree what each person was doing five minutes earlier.','Agree on one detail the detective can verify.']};
+   case 'detective': {
+    const obj=detectiveObjects[i%detectiveObjects.length],detectivePlace=places[Math.floor(i/detectiveObjects.length)%places.length];
+    return {cat:cat(i),title:'The Missing '+cap(obj),setup:'A '+obj+' disappeared at '+detectivePlace+' between '+(9+i%10)+':10 and '+(9+i%10)+':20. Your group says you were together the whole time.',facts:['Agree where everyone was standing or sitting.','Agree what each person was doing five minutes earlier.','Agree on one detail the detective can verify.']};
+   }
    case 'finish': return [cat(i),textPatterns.finish[p12](t)];
    case 'threeClues': return [cat(i),cap(target(i))];
    case 'mission': return textPatterns.mission[p12](t);
    case 'minuteStory': return [target(i),target(i+137),target(i+419)];
    case 'wouldILie': return [cat(i),textPatterns.lie[p12](t)];
    case 'desert': {
-    const scenarioPlace=places[Math.floor(i/topics.length)%places.length];
-    return {cat:cat(i),title:'Survival challenge: '+t+' near '+scenarioPlace,items:Array.from({length:8},(_,j)=>survival[(i+j*3)%survival.length])};
+    const setting=survivalSettings[i%survivalSettings.length],problem=survivalProblems[Math.floor(i/survivalSettings.length)%survivalProblems.length];
+    return {cat:cat(i),title:'Stranded at '+setting+' '+problem,items:Array.from({length:8},(_,j)=>survival[(i+j*3)%survival.length])};
    }
    case 'bingo': return textPatterns.bingo[p12](t);
    case 'emoji': {
