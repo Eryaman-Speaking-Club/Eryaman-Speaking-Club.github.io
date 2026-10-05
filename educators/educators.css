@@ -240,3 +240,69 @@
 .edu-local-note{display:flex;align-items:flex-start;gap:8px;margin-top:12px;padding:10px 11px;border-radius:11px;background:#fff8e9;color:#846126;font-size:8px;line-height:1.45}
 @media(max-width:1000px){.edu-os-intro,.curriculum-layout,.private-top,.resource-layout{grid-template-columns:1fr}.edu-workflow-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:650px){.edu-workflow-grid,.private-student-grid{grid-template-columns:1fr}.resource-type-buttons{grid-template-columns:1fr 1fr}.curriculum-result-card h4{font-size:22px}}
+
+
+/* One-click browser fullscreen for classroom games */
+.game-modal-top-actions{
+  position:absolute;
+  top:20px;
+  right:20px;
+  z-index:12;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.game-modal-top-actions .modal-close{
+  position:static!important;
+  inset:auto!important;
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(255,255,255,.16)!important;
+  border-radius:12px!important;
+  background:rgba(255,255,255,.1)!important;
+  color:#fff!important;
+}
+.game-fullscreen-toggle{
+  min-height:42px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:12px;
+  padding:0 13px;
+  background:rgba(255,255,255,.1);
+  color:#fff;
+  font:inherit;
+  font-size:11px;
+  font-weight:900;
+  cursor:pointer;
+  backdrop-filter:blur(8px);
+}
+.game-fullscreen-toggle:hover,
+.game-fullscreen-toggle:focus-visible,
+.game-fullscreen-toggle.active{
+  background:#fff;
+  color:#0b2f5b;
+  outline:none;
+}
+.game-fullscreen-toggle span{font-size:18px;line-height:1}
+.game-fullscreen-toggle b{font-size:10px;white-space:nowrap}
+#gameModalCard:fullscreen,
+#gameModalCard:-webkit-full-screen{
+  width:100vw!important;
+  height:100vh!important;
+  max-width:none!important;
+  margin:0!important;
+  border-radius:0!important;
+}
+#gameModalCard:fullscreen .game-task-card,
+#gameModalCard:-webkit-full-screen .game-task-card{
+  min-height:58vh!important;
+}
+@media(max-width:650px){
+  .game-modal-top-actions{top:12px;right:12px}
+  .game-fullscreen-toggle{width:42px;padding:0;justify-content:center}
+  .game-fullscreen-toggle b{display:none}
+}
