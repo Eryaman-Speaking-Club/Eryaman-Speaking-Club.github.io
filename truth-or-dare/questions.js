@@ -11,7 +11,7 @@
     topic => `What is the real story behind ${topic}?`,
     topic => `How do you honestly feel about ${topic}?`,
     topic => `What have you learned from ${topic}?`,
-    topic => `Would you tell the group about ${topic}? What happened?`
+    topic => `What part of ${topic} is funny now but definitely was not funny at the time?`
   ];
 
   const truths = [];
@@ -25,10 +25,10 @@
 
   const dareTemplates = [
     subject => `Speak about ${subject} for 30 seconds without using the word “and”.`,
-    subject => `Describe ${subject} like a dramatic movie trailer for 20 seconds.`,
-    subject => `Explain ${subject} as if you were talking to a five-year-old.`,
-    subject => `Give a one-minute sales pitch for ${subject}, even if it is impossible to sell.`,
-    subject => `Talk about ${subject} using exactly five sentences.`,
+    subject => `Describe ${subject} like a dramatic movie trailer where the fate of the world depends on it.`,
+    subject => `Explain ${subject} to a five-year-old who keeps asking “why?” after every sentence.`,
+    subject => `Give a luxury sales pitch for ${subject} as if it costs $10,000.`,
+    subject => `Give a serious TED Talk about ${subject} with one completely unnecessary dramatic pause.`,
     subject => `Describe ${subject} without naming it and let the group guess.`
   ];
 
