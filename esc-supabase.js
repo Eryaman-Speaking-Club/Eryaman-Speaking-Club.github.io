@@ -382,7 +382,46 @@
     const { data, error } = await client.functions.invoke('educator-assistant', { body:payload });
     if (error) throw error;
     if (!data?.ok || !data?.pack) throw new Error(data?.error || 'Assistant could not generate a lesson pack.');
-    return data.pack;
+
+    const pack=data.pack;
+    const row={
+      teacher_id:session.user.id,
+      topic:String(pack.topic || payload.topic || 'English lesson').slice(0,100),
+      level:String(pack.level || payload.level || 'A2').slice(0,20),
+      age_group:String(pack.age_group || payload.age_group || '12-14').slice(0,30),
+      goal:String(pack.goal || payload.goal || 'speaking').slice(0,30),
+      duration_minutes:Math.max(20,Math.min(Number(pack.duration_minutes || payload.duration)||40,120)),
+      class_size:Math.max(1,Math.min(Number(pack.class_size || payload.class_size)||8,80)),
+      brief:payload && typeof payload==='object' ? payload : {},
+      pack
+    };
+    const { error:historyError } = await client.from('edu_assistant_generations').insert(row);
+    if (historyError) console.warn('Assistant history save failed',historyError);
+    return pack;
+  }
+
+  async function listEducatorAssistantHistory(limit = 8) {
+    const client = await getClient();
+    const session = await getSession();
+    if (!client || !session) throw new Error('Teacher login required.');
+    const safeLimit=Math.max(1,Math.min(Number(limit)||8,30));
+    const { data, error } = await client.from('edu_assistant_generations')
+      .select('id,topic,level,age_group,goal,duration_minutes,class_size,brief,pack,created_at')
+      .eq('teacher_id',session.user.id)
+      .order('created_at',{ascending:false})
+      .limit(safeLimit);
+    if (error) throw error;
+    return data || [];
+  }
+
+  async function deleteEducatorAssistantHistory(id) {
+    const client = await getClient();
+    const session = await getSession();
+    if (!client || !session) throw new Error('Teacher login required.');
+    const { error } = await client.from('edu_assistant_generations')
+      .delete().eq('id',id).eq('teacher_id',session.user.id);
+    if (error) throw error;
+    return true;
   }
 
   async function getEducatorLesson(lessonId) {
@@ -754,7 +793,7 @@
     isConfigured,getClient,ping,getSession,onAuthStateChange,signUp,resendSignupConfirmation,sendPasswordReset,
     updatePassword,signIn,signOut,claimFirstAdmin,isAdmin,getGameContent,replaceGameContent,
     getGameSettings,saveGameSettings,ensureEducatorProfile,getEducatorProfile,updateEducatorProfile,createEducatorSchool,joinEducatorSchool,getEducatorSchoolState,shareEducatorSchoolLesson,unshareEducatorSchoolLesson,copyEducatorSchoolLesson,manageEducatorSchoolMember,leaveEducatorSchool,listEducatorClasses,
-    createEducatorClass,updateEducatorClass,updateEducatorStudent,saveEducatorLesson,updateEducatorLesson,generateEducatorAssistantPack,getEducatorLesson,listEducatorLessons,deleteEducatorLesson,gradeEducatorAssignmentResult,listEducatorResults,listEducatorSessions,
+    createEducatorClass,updateEducatorClass,updateEducatorStudent,saveEducatorLesson,updateEducatorLesson,generateEducatorAssistantPack,listEducatorAssistantHistory,deleteEducatorAssistantHistory,getEducatorLesson,listEducatorLessons,deleteEducatorLesson,gradeEducatorAssignmentResult,listEducatorResults,listEducatorSessions,
     listPrivateStudents,createPrivateStudent,updatePrivateStudent,deletePrivateStudent,
     listAssignments,createAssignment,updateAssignment,deleteAssignment,
     listScheduleEvents,createScheduleEvent,updateScheduleEvent,deleteScheduleEvent,
