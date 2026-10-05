@@ -24,10 +24,13 @@
     .names-dialog .quick-actions .primary-button{flex:1 1 180px}
     .names-dialog .quick-actions .secondary-button,.names-dialog .quick-actions .danger-button{flex:0 1 auto}
     .names-note{margin:7px 0 14px!important;font-size:12px}
+    .fullscreen-game-button{min-width:116px}
+    .fullscreen-game-button.active{background:var(--navy)!important;color:#fff!important}
     @media(max-width:680px){
       .header-actions{flex-wrap:wrap;justify-content:flex-end}
       .admin-button{padding:0 11px}
       .admin-button span{display:none}
+      .fullscreen-game-button{min-width:48px}
       .volume-control{margin-top:14px}
     }
   </style>
@@ -40,6 +43,7 @@
         <span class="esc-brand-title">Eryaman Speaking Club</span>
       </button>
       <div class="header-actions">
+        <button id="fullscreenGame" class="admin-button fullscreen-game-button" type="button" aria-label="Fullscreen" title="Fullscreen"><span>Fullscreen</span> ⛶</button>
         <button id="sound" class="icon-button" aria-label="Toggle sound" title="Sound">🔊</button>
         <button id="players" class="admin-button players-button" aria-label="Edit player names" title="Players"><span>Players</span> 👥</button>
       </div>
@@ -291,6 +295,37 @@
       const STATE_KEY = 'esc-truth-dare-v1';
       const VOLUME_KEY = 'esc-truth-dare-volume-percent-v1';
       const $ = (id) => document.getElementById(id);
+
+      const fullscreenButton = $('fullscreenGame');
+      const fullscreenElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
+      const syncFullscreenButton = () => {
+        if (!fullscreenButton) return;
+        const active = Boolean(fullscreenElement());
+        const label = fullscreenButton.querySelector('span');
+        if (label) label.textContent = active ? 'Exit fullscreen' : 'Fullscreen';
+        fullscreenButton.classList.toggle('active', active);
+        fullscreenButton.setAttribute('aria-label', active ? 'Exit fullscreen' : 'Fullscreen');
+        fullscreenButton.title = active ? 'Exit fullscreen' : 'Fullscreen';
+      };
+      if (fullscreenButton) {
+        fullscreenButton.addEventListener('click', async () => {
+          try {
+            if (fullscreenElement()) {
+              const exit = document.exitFullscreen || document.webkitExitFullscreen;
+              if (exit) await exit.call(document);
+            } else {
+              const request = document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen;
+              if (request) await request.call(document.documentElement);
+            }
+          } catch (error) {
+            console.warn('Fullscreen unavailable', error);
+          }
+          syncFullscreenButton();
+        });
+        document.addEventListener('fullscreenchange', syncFullscreenButton);
+        document.addEventListener('webkitfullscreenchange', syncFullscreenButton);
+        syncFullscreenButton();
+      }
 
       const wheel = $('playerWheel');
       const spinButton = $('spinPlayer');
