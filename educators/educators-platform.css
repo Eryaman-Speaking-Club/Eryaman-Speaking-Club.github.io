@@ -789,3 +789,27 @@
 .roster-note-editor input,.roster-note-editor textarea{width:100%;border:1px solid #d5e0e8;border-radius:8px;background:#fff;padding:7px 8px;color:#173a58;font:inherit;font-weight:500;resize:vertical}
 .roster-note-editor button{min-height:35px;border:0;border-radius:8px;background:#173f65;color:#fff;padding:7px 9px;font-size:8.5px;font-weight:850;cursor:pointer}
 @media(max-width:640px){.roster-note-editor{grid-template-columns:1fr}.roster-note-editor button{width:100%}}
+
+
+/* Teacher Assistant history */
+.assistant-history-shell{margin-top:14px;border:1px solid #dce6ef;border-radius:18px;background:#fff;padding:16px}
+.assistant-history-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-end;margin-bottom:11px}
+.assistant-history-head small{display:block;font-size:9px;font-weight:900;letter-spacing:.12em;color:#5b7892}
+.assistant-history-head strong{display:block;margin-top:3px;font-size:16px;color:#173a58}
+.assistant-history-head p{margin:4px 0 0;font-size:10.5px;color:#71869a}
+.assistant-history-head button{border:0;border-radius:9px;background:#edf4f9;color:#315d80;padding:8px 10px;font-size:9px;font-weight:850;cursor:pointer}
+.assistant-history-list{display:grid;gap:7px}
+.assistant-history-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 11px;border:1px solid #e2e9ef;border-radius:12px;background:#fbfdff}
+.assistant-history-main small{display:block;font-size:8px;font-weight:900;letter-spacing:.08em;color:#6a8295}
+.assistant-history-main strong{display:block;margin-top:3px;font-size:11.5px;color:#173a58}
+.assistant-history-main span{display:block;margin-top:3px;font-size:9px;color:#7b8ea0}
+.assistant-history-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.assistant-history-actions button{border:0;border-radius:8px;padding:7px 9px;background:#eaf2f8;color:#315d80;font-size:8.5px;font-weight:850;cursor:pointer}
+.assistant-history-actions .danger-lite{background:#f8e9eb;color:#984d58}
+.assistant-history-empty{padding:17px;text-align:center;border:1px dashed #d8e3eb;border-radius:10px;font-size:10px;color:#71869a}
+@media(max-width:640px){
+  .assistant-history-head{display:block}
+  .assistant-history-head button{margin-top:9px}
+  .assistant-history-card{grid-template-columns:1fr}
+  .assistant-history-actions{justify-content:flex-start}
+}
