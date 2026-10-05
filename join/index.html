@@ -8,7 +8,7 @@
   <title>Sınıfa Katıl · Eryaman Speaking Club</title>
   <link rel="icon" type="image/png" href="../favicon.png?v=20260922">
   <link rel="stylesheet" href="../esc-brand.css?v=20260923">
-  <link rel="stylesheet" href="./join.css?v=20261005-student-platform1">
+  <link rel="stylesheet" href="./join.css?v=20261005-student-dashboard2">
 </head>
 <body>
   <div class="join-bg" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -49,6 +49,37 @@
         <div><small data-jt="joinedAs">KATILAN</small><b id="studentDisplayName">Efe</b></div>
         <button type="button" id="leaveClass" data-jt="leave">Ayrıl</button>
       </div>
+
+      <section class="student-dashboard" id="studentDashboard">
+        <div class="student-dashboard-hero">
+          <div>
+            <small id="studentDashboardKicker">SINIFIM</small>
+            <h2 id="studentDashboardGreeting">Merhaba 👋</h2>
+            <p id="studentDashboardContext">Sınıf bilgilerin ve bugün yapman gerekenler burada.</p>
+          </div>
+          <div class="student-teacher-card"><small>ÖĞRETMEN</small><strong id="studentTeacherName">Teacher</strong><span id="studentClassSummary">A2 · Speaking</span></div>
+        </div>
+
+        <div class="student-dashboard-stats">
+          <article><small>YAPILACAK ÖDEV</small><strong id="studentTodoCount">0</strong><span>bekleyen görev</span></article>
+          <article><small>TAMAMLANDI</small><strong id="studentCompletedCount">0</strong><span>ödev</span></article>
+          <article><small>GERİ BİLDİRİM</small><strong id="studentFeedbackCount">0</strong><span>öğretmenden</span></article>
+        </div>
+
+        <div class="student-dashboard-grid">
+          <article class="student-now-card">
+            <small>ŞİMDİ NE YAPMALIYIM?</small>
+            <strong id="studentNowTitle">Sınıf durumun kontrol ediliyor…</strong>
+            <p id="studentNowText">Canlı ders, ödev veya yaklaşan ders bilgisi burada görünecek.</p>
+            <button type="button" id="studentNowAction" hidden>Devam et →</button>
+          </article>
+          <article class="student-upcoming-card">
+            <small>SIRADAKİ PLANLI DERS</small>
+            <strong id="studentUpcomingTitle">Henüz plan yok</strong>
+            <p id="studentUpcomingTime">Öğretmenin yeni bir ders planladığında burada görünecek.</p>
+          </article>
+        </div>
+      </section>
 
       <section class="student-how-card" id="studentHowCard">
         <div class="student-how-head"><div><small>BU EKRAN NASIL KULLANILIR?</small><strong>Öğrenci tarafında yapman gerekenler basit.</strong></div><button type="button" id="studentHowToggle" aria-expanded="false">?</button></div>
@@ -109,6 +140,14 @@
         <span>✓</span><small>CLASS COMPLETED</small><h2>Good work!</h2><p>Ders sona erdi. Öğretmeniniz yeni bir oturum başlatırsa bu ekran yeniden güncellenebilir.</p>
       </div>
 
+      <section class="student-history-zone" id="studentHistoryZone" hidden>
+        <div class="student-history-head">
+          <div><small>GEÇMİŞ DERSLER</small><strong>Son derslerin</strong><p>Katıldığın dersleri ve kendi katılım işaretlerini burada görebilirsin.</p></div>
+          <span id="studentHistoryCount">0</span>
+        </div>
+        <div class="student-history-list" id="studentHistoryList"></div>
+      </section>
+
       <section class="assignment-zone" id="assignmentZone" hidden>
         <div class="assignment-zone-head"><div><small data-jt="assignmentsKicker">ÖDEVLER</small><strong data-jt="assignmentsTitle">Sınıf ödevlerin</strong><p>Canlı dersten ayrı çalışır. Yayınlanmış ödevlerin burada kalır.</p></div><span id="assignmentCount">0</span></div>
         <div class="student-assignment-list" id="studentAssignmentList"></div>
@@ -123,7 +162,7 @@
   </main>
 
   <script src="../esc-supabase-config.js?v=20260923"></script>
-  <script src="../esc-supabase.js?v=20261005-student-platform1"></script>
-  <script src="./join.js?v=20261005-student-platform1"></script>
+  <script src="../esc-supabase.js?v=20261005-student-dashboard2"></script>
+  <script src="./join.js?v=20261005-student-dashboard2"></script>
 </body>
 </html>
