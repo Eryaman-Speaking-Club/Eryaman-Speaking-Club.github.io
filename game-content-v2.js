@@ -288,13 +288,13 @@
     t=>'What is one thing you would change about '+t+'?',
     t=>'What have you learned recently about '+t+'?',
     t=>'What makes '+t+' easier or more difficult?',
-    t=>'What advice would you give someone about '+t+'?',
+    t=>'What advice would you give someone about '+t+' — and what is the terrible advice version?',
     t=>'What is a common mistake people make when it comes to '+t+'?',
     t=>'What is one good memory connected to '+t+'?',
     t=>'How has your opinion about '+t+' changed over time?',
     t=>'What matters most when making decisions about '+t+'?',
-    t=>'What would make '+t+' better in everyday life?',
-    t=>'What is one realistic goal connected to '+t+'?'
+    t=>'If '+t+' had a customer-service department, what would you complain about first?',
+    t=>'If you became suspiciously good at '+t+' overnight, what would you do first?'
   ];
 
   if(path.includes('/truth-or-dare/')){
@@ -302,15 +302,15 @@
     if(d&&Array.isArray(d.truths)&&Array.isArray(d.dares)){
       const truthPatterns=[
         t=>'What is one honest opinion you have about '+t+'?',
-        t=>'What is one mistake you have made related to '+t+'?',
+        t=>'What is one mistake you made with '+t+' that is funny now?',
         t=>'What is something you would like to improve about '+t+'?',
         t=>'What is one memory you have connected to '+t+'?',
-        t=>'What is something people often misunderstand about '+t+'?'
+        t=>'What completely normal thing about '+t+' are you strangely bad at?'
       ];
       const darePatterns=[
         t=>'Speak for 30 seconds about '+t+' without using the word “and”.',
-        t=>'Give a 20-second mini presentation about '+t+' as if you are an expert.',
-        t=>'Explain '+t+' to a five-year-old using simple English.',
+        t=>'Give a dramatic TED Talk about '+t+' as if humanity depends on your opinion.',
+        t=>'Explain '+t+' to a five-year-old who keeps asking “why?” after every sentence.',
         t=>'Give one useful and one terrible piece of advice about '+t+'.',
         t=>'Create a short slogan about '+t+' and explain why it works.'
       ];
@@ -322,10 +322,10 @@
   if(path.includes('/last-thing-you-did/')&&typeof prompts!=='undefined'){
     const p=[
       t=>'What was the last thing you changed about '+t+'?',t=>'What was the last useful lesson you learned about '+t+'?',
-      t=>'What was the last decision you made because of '+t+'?',t=>'What was the last conversation you had about '+t+'?',
+      t=>'What was the last decision you made because of '+t+'?',t=>'What was the last conversation about '+t+' that became much more dramatic than necessary?',
       t=>'What was the last problem you solved involving '+t+'?',t=>'What was the last real example of '+t+' you noticed in everyday life?',
       t=>'What was the last advice you heard about '+t+'?',t=>'What was the last plan you made related to '+t+'?',
-      t=>'What was the last mistake you made involving '+t+'?',t=>'What was the last good experience you had with '+t+'?'
+      t=>'What was the last mistake you made involving '+t+' that you can laugh about now?',t=>'What was the last good experience you had with '+t+'?'
     ];
     fillLegacy(prompts,i=>({c:legacyCat(i),q:p[Math.floor(i/legacyTopics.length)%p.length](legacyTopic(i))}),x=>x.q);
     if(typeof buildDeck==='function')buildDeck();
@@ -334,10 +334,10 @@
   if(path.includes('/what-would-you-do-if/')&&typeof situations!=='undefined'){
     const p=[
       t=>'you had to change one thing about '+t+' tomorrow?',t=>'someone asked you for honest advice about '+t+'?',
-      t=>'you suddenly had twice as much time for '+t+'?',t=>'your usual approach to '+t+' stopped working?',
-      t=>'a close friend strongly disagreed with you about '+t+'?',t=>'you had to explain '+t+' to a complete beginner?',
-      t=>'you had to simplify the way you deal with '+t+'?',t=>'you could instantly become excellent at '+t+'?',
-      t=>'you had to make an important decision about '+t+' today?',t=>'you could remove one common problem connected to '+t+'?'
+      t=>'you suddenly became suspiciously famous for your opinions about '+t+'?',t=>'your usual approach to '+t+' stopped working?',
+      t=>'a close friend strongly disagreed with you about '+t+'?',t=>'you had to explain '+t+' to your grandmother, a five-year-old, and an alien at the same time?',
+      t=>'you had to simplify the way you deal with '+t+'?',t=>'you woke up tomorrow as the world’s most confident expert on '+t+', but only for one day?',
+      t=>'you had to make an important decision about '+t+' today?',t=>'your phone started announcing your private opinions about '+t+' out loud?'
     ];
     fillLegacy(situations,i=>({c:legacyCat(i),q:p[Math.floor(i/legacyTopics.length)%p.length](legacyTopic(i))}),x=>x.q);
     if(typeof buildDeck==='function')buildDeck();
@@ -346,13 +346,13 @@
   if(path.includes('/would-you-rather/')&&typeof items!=='undefined'){
     const p=[
       (a,b)=>['understand '+a+' much better','understand '+b+' much better'],
-      (a,b)=>['feel more confident discussing '+a,'feel more confident discussing '+b],
+      (a,b)=>['accidentally give a 10-minute speech about '+a,'accidentally give a 10-minute speech about '+b],
       (a,b)=>['improve one important thing about '+a,'improve one important thing about '+b],
-      (a,b)=>['get reliable expert advice about '+a,'get reliable expert advice about '+b],
+      (a,b)=>['have a personal assistant who handles everything about '+a,'have a personal assistant who handles everything about '+b],
       (a,b)=>['spend one month learning about '+a,'spend one month learning about '+b],
-      (a,b)=>['teach a beginner the basics of '+a,'teach a beginner the basics of '+b],
+      (a,b)=>['explain '+a+' on live television with no preparation','explain '+b+' on live television with no preparation'],
       (a,b)=>['solve one major problem related to '+a,'solve one major problem related to '+b],
-      (a,b)=>['have one great experience connected to '+a,'have one great experience connected to '+b],
+      (a,b)=>['never have an awkward moment involving '+a+' again','never have an awkward moment involving '+b+' again'],
       (a,b)=>['know how '+a+' will change in ten years','know how '+b+' will change in ten years'],
       (a,b)=>['be able to give excellent advice about '+a,'be able to give excellent advice about '+b]
     ];    fillLegacy(items,i=>{const a=legacyTopic(i),b=legacyTopic(i+31),o=p[Math.floor(i/legacyTopics.length)%p.length](a,b);return[legacyCat(i),o[0],o[1]]});
@@ -362,10 +362,10 @@
   if(path.includes('/most-likely-to/')&&typeof items!=='undefined'){
     const p=[
       t=>'be the first person to suggest something about '+t+'?',t=>'turn a small problem with '+t+' into a funny story?',
-      t=>'become unexpectedly good at '+t+'?',t=>'change their plans completely because of '+t+'?',
-      t=>'give the best advice about '+t+'?',t=>'spend the most time learning about '+t+'?',
+      t=>'become unexpectedly famous because of '+t+'?',t=>'turn a tiny problem with '+t+' into a three-day adventure?',
+      t=>'give the best advice about '+t+'?',t=>'watch one tutorial about '+t+' and immediately act like an expert?',
       t=>'start a new project connected to '+t+'?',t=>'have the strongest opinion about '+t+'?',
-      t=>'make a last-minute decision about '+t+'?',t=>'convince the group to try something related to '+t+'?'
+      t=>'make a last-minute decision about '+t+' and somehow make it work?',t=>'convince the group that something ridiculous about '+t+' is actually a brilliant idea?'
     ];
     fillLegacy(items,i=>[legacyCat(i),p[Math.floor(i/legacyTopics.length)%p.length](legacyTopic(i))]);
     if(typeof build==='function')build();
@@ -378,11 +378,11 @@
 
   if(path.includes('/five-second-challenge/')&&typeof items!=='undefined'){
     const p=[
-      t=>'Name 3 things connected with '+t+'.',t=>'Name 3 problems people can have with '+t+'.',
-      t=>'Name 3 ways to improve '+t+'.',t=>'Name 3 words you associate with '+t+'.',
+      t=>'Name 3 things connected with '+t+'.',t=>'Name 3 terrible excuses involving '+t+'.',
+      t=>'Name 3 ways to improve '+t+'.',t=>'Name 3 things you should probably never say while talking about '+t+'.',
       t=>'Name 3 reasons people care about '+t+'.',t=>'Name 3 things that can make '+t+' easier.',
-      t=>'Name 3 things people often forget about '+t+'.',t=>'Name 3 good examples of '+t+'.',
-      t=>'Name 3 bad habits connected to '+t+'.',t=>'Name 3 questions you could ask about '+t+'.'
+      t=>'Name 3 things people pretend to understand about '+t+'.',t=>'Name 3 funny situations involving '+t+'.',
+      t=>'Name 3 bad habits connected to '+t+'.',t=>'Name 3 ways '+t+' could ruin a perfectly normal Monday.'
     ];
     fillLegacy(items,i=>[legacyCat(i),p[Math.floor(i/legacyTopics.length)%p.length](legacyTopic(i))]);
     if(typeof build==='function')build();
@@ -390,9 +390,9 @@
 
   if(path.includes('/red-flag-green-flag/')&&typeof items!=='undefined'){
     const p=[
-      t=>'They ask thoughtful questions when you talk about '+t+'.',t=>'They refuse to listen to any opinion about '+t+' except their own.',
+      t=>'They ask thoughtful questions when you talk about '+t+'.',t=>'They turn every conversation about '+t+' into a 12-minute voice message.',
       t=>'They can disagree respectfully when '+t+' comes up.',t=>'They constantly make promises about '+t+' but never follow through.',
-      t=>'They remember important details you shared about '+t+'.',t=>'They make fun of you whenever you talk seriously about '+t+'.',
+      t=>'They remember important details you shared about '+t+'.',t=>'They say “trust me” before giving completely unrequested advice about '+t+'.',
       t=>'They admit when they do not know much about '+t+'.',t=>'They try to control every decision involving '+t+'.',
       t=>'They ask before giving strong advice about '+t+'.',t=>'They change the subject every time you mention '+t+'.'
     ];
@@ -402,11 +402,11 @@
 
   if(path.includes('/debate-roulette/')&&typeof motions!=='undefined'){
     const p=[
-      t=>legacyCap(t)+' should be taught as a practical life skill.',t=>'People spend too much time worrying about '+t+'.',
-      t=>'Technology has improved the way people deal with '+t+'.',t=>'Society would benefit from talking more openly about '+t+'.',
+      t=>legacyCap(t)+' should be taught as a practical life skill.',t=>'People who schedule serious conversations about '+t+' before 8 a.m. cannot be trusted.',
+      t=>'A group chat about '+t+' would create more problems than it solves.',t=>'Society would benefit from talking more openly about '+t+'.',
       t=>'People should give more attention to '+t+'.',t=>'Schools should prepare students better for '+t+'.',
-      t=>'Social media has made '+t+' worse.',t=>'Personal experience matters more than expert advice about '+t+'.',
-      t=>'There should be fewer rules around '+t+'.',t=>'People should take '+t+' more seriously.'
+      t=>'Voice messages longer than two minutes about '+t+' should require permission.',t=>'Personal experience matters more than expert advice about '+t+'.',
+      t=>'People make '+t+' sound much more complicated than it really is.',t=>'People should take '+t+' more seriously.'
     ];
     fillLegacy(motions,i=>[legacyCat(i),p[Math.floor(i/legacyTopics.length)%p.length](legacyTopic(i))]);
     if(typeof build==='function')build();
@@ -414,11 +414,11 @@
 
   if(path.includes('/never-have-i-ever/')&&typeof items!=='undefined'){
     const p=[
-      t=>'changed my plans because of '+t+'.',t=>'pretended to understand something about '+t+' when I did not.',
-      t=>'learned an important lesson because of '+t+'.',t=>'had an unexpectedly funny experience involving '+t+'.',
+      t=>'changed my plans because of '+t+'.',t=>'nodded confidently about '+t+' while understanding almost nothing.',
+      t=>'learned an important lesson because of '+t+'.',t=>'had an experience involving '+t+' that was embarrassing then but funny now.',
       t=>'asked someone for help with '+t+'.',t=>'ignored a small problem because of '+t+' and regretted it later.',
-      t=>'changed my opinion after learning more about '+t+'.',t=>'made a mistake because I rushed something involving '+t+'.',
-      t=>'given someone advice about '+t+'.',t=>'avoided a conversation because of '+t+'.'
+      t=>'changed my opinion after learning more about '+t+'.',t=>'opened my phone to do something about '+t+' and completely forgot why I opened it.',
+      t=>'given someone advice about '+t+'.',t=>'pretended not to notice someone because a conversation about '+t+' felt inevitable.'
     ];
     fillLegacy(items,i=>[legacyCat(i),p[Math.floor(i/legacyTopics.length)%p.length](legacyTopic(i))]);
     if(typeof build==='function')build();
