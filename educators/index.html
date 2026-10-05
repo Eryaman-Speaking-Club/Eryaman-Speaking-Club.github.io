@@ -8,7 +8,7 @@
   <title>English Teacher Platform · Ders Planlama ve Sınıf Araçları</title>
   <link rel="icon" type="image/png" href="../favicon.png?v=20260922">
   <link rel="stylesheet" href="../esc-brand.css?v=20260923">
-  <link rel="stylesheet" href="./educators.css?v=20261004-fullqa4">
+  <link rel="stylesheet" href="./educators.css?v=20261005-game-fullscreen1">
   <link rel="stylesheet" href="./educators-guide.css?v=20261004-fullqa4">
   <link rel="stylesheet" href="./educators-flex.css?v=20261004-fullqa4">
   <link rel="stylesheet" href="./educators-platform.css?v=20261005-context-help1">
@@ -1234,8 +1234,13 @@
 
 
   <div class="game-modal" id="gameModal" aria-hidden="true">
-    <div class="game-modal-card">
-      <button class="modal-close" type="button" id="closeGameModal" aria-label="Kapat">×</button>
+    <div class="game-modal-card" id="gameModalCard">
+      <div class="game-modal-top-actions">
+        <button class="game-fullscreen-toggle" type="button" id="gameFullscreenToggle" aria-label="Tam ekran" title="Tam ekran">
+          <span aria-hidden="true">⛶</span><b id="gameFullscreenLabel">Tam ekran</b>
+        </button>
+        <button class="modal-close" type="button" id="closeGameModal" aria-label="Kapat">×</button>
+      </div>
       <div class="game-modal-head">
         <div><small id="gameModalType">ADAPTIVE GAME</small><h3 id="gameModalTitle">Taboo</h3></div>
         <span id="gameProfileBadge">12–14 · A2 · Travel</span>
@@ -1315,7 +1320,7 @@
   <script src="../esc-supabase-config.js?v=20260923"></script>
   <script src="../esc-supabase.js?v=20261005-assistant-history1"></script>
   <script src="../site-analytics.js?v=20261004-educator-funnel1"></script>
-  <script src="./educators.js?v=20261004-fullqa4"></script>
+  <script src="./educators.js?v=20261005-game-fullscreen1"></script>
   <script src="./educators-core.js?v=20261004-fullqa4"></script>
   <script src="./educators-workspace.js?v=20261004-fullqa4"></script>
   <script src="./educators-guide.js?v=20261004-fullqa4"></script>
