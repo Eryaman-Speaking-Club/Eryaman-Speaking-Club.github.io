@@ -289,7 +289,7 @@
     t=>'What have you learned recently about '+t+'?',
     t=>'What makes '+t+' easier or more difficult?',
     t=>'What advice would you give someone about '+t+'?',
-    t=>'What is a common mistake people make with '+t+'?',
+    t=>'What is a common mistake people make when it comes to '+t+'?',
     t=>'What is one good memory connected to '+t+'?',
     t=>'How has your opinion about '+t+' changed over time?',
     t=>'What matters most when making decisions about '+t+'?',
