@@ -145,11 +145,11 @@ function ensureExpandedContent(){
  const banks={
   twoTruths:{
    normal:[
-    t=>'A real experience you had with '+t,
-    t=>'A habit or preference you have around '+t,
-    t=>'A lesson you learned about '+t,
-    t=>'A memory connected to '+t,
-    t=>'Something you would like to try or improve related to '+t
+    t=>'A real experience you had related to '+t,
+    t=>'A preference or opinion you have about '+t,
+    t=>'Something you learned about '+t,
+    t=>'A recent example from your life related to '+t,
+    t=>'Something you would like to understand or improve about '+t
    ],
    funny:[
     t=>'A tiny disaster you survived involving '+t,
@@ -170,7 +170,7 @@ function ensureExpandedContent(){
     t=>'What have you learned recently about '+t+'?',
     t=>'What do you like or dislike about '+t+'?',
     t=>'What is one thing people often misunderstand about '+t+'?',
-    t=>'What is one good memory you have connected to '+t+'?'
+    t=>'What is one real example from your life related to '+t+'?'
    ],
    funny:[
     t=>'If '+t+' had a customer-service desk, what would you complain about first?',
@@ -187,11 +187,11 @@ function ensureExpandedContent(){
   },
   opinion:{
    normal:[
-    t=>'People underestimate the importance of '+t+'.',
-    t=>'Schools should teach more practical lessons about '+t+'.',
-    t=>'Personal experience matters when making decisions about '+t+'.',
-    t=>'Technology has changed '+t+' more than people realise.',
-    t=>'People should talk more openly about '+t+'.'
+    t=>'People underestimate how much '+t+' affects everyday life.',
+    t=>'Schools should discuss '+t+' more practically.',
+    t=>'Real-life experience changes how people think about '+t+'.',
+    t=>'Technology has changed the way people experience '+t+'.',
+    t=>'People often have stronger opinions about '+t+' than they realise.'
    ],
    funny:[
     t=>'People should need a licence before giving confident advice about '+t+'.',
@@ -209,9 +209,9 @@ function ensureExpandedContent(){
   finish:{
    normal:[
     t=>'One thing I have learned about '+t+' is...',
-    t=>'The best thing about '+t+' is...',
+    t=>'One thing I find interesting about '+t+' is...',
     t=>'One thing I would change about '+t+' is...',
-    t=>'My most memorable experience with '+t+' was...',
+    t=>'A real example of '+t+' from my life is...',
     t=>'The advice I would give about '+t+' is...'
    ],
    funny:[
@@ -251,10 +251,10 @@ function ensureExpandedContent(){
   lie:{
    normal:[
     t=>'A time when '+t+' surprised you.',
-    t=>'A mistake you once made involving '+t+'.',
-    t=>'A decision about '+t+' that had an unexpected result.',
+    t=>'A situation involving '+t+' that did not go as planned.',
+    t=>'A decision related to '+t+' that had an unexpected result.',
     t=>'A time you changed your mind about '+t+'.',
-    t=>'A story about meeting someone because of '+t+'.'
+    t=>'A real experience involving '+t+' that taught you something.'
    ],
    funny:[
     t=>'A moment involving '+t+' where you looked confident but had no idea what you were doing.',
@@ -271,11 +271,11 @@ function ensureExpandedContent(){
   },
   bingo:{
    normal:[
+    t=>'Has recently talked about '+t,
     t=>'Has learned something useful about '+t,
-    t=>'Would like to improve something about '+t,
-    t=>'Can recommend something related to '+t,
-    t=>'Has a goal connected to '+t,
-    t=>'Has changed a habit related to '+t
+    t=>'Has a clear opinion about '+t,
+    t=>'Can give a real example related to '+t,
+    t=>'Would like to know more about '+t
    ],
    funny:[
     t=>'Has a strangely strong opinion about '+t,
@@ -292,11 +292,11 @@ function ensureExpandedContent(){
   },
   hot:{
    normal:[
-    t=>'People underestimate the importance of '+t+'.',
-    t=>'Schools should prepare people better for '+t+'.',
-    t=>'Personal experience matters more than theory when it comes to '+t+'.',
-    t=>'Technology will significantly change '+t+' within ten years.',
-    t=>'People should talk more openly about '+t+'.'
+    t=>'People underestimate how much '+t+' affects everyday life.',
+    t=>'Schools should discuss '+t+' more practically.',
+    t=>'Real-life experience matters when people form opinions about '+t+'.',
+    t=>'Technology will change the way people experience '+t+' within ten years.',
+    t=>'People often have stronger opinions about '+t+' than they admit.'
    ],
    funny:[
     t=>'People take '+t+' so seriously that it sometimes becomes comedy.',
