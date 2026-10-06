@@ -32,6 +32,8 @@
     if (!elements.length) return;
     elements.forEach(el => {
       const kind = patch.kind || 'text';
+      if (el.dataset?.escManaged) return;
+      if (kind === 'attr' && patch.attr === 'href' && el.dataset?.escManagedHref) return;
       if (kind === 'text') el.textContent = patch.value ?? '';
       else if (kind === 'textNode') {
         const nodes=[...el.childNodes].filter(n=>n.nodeType===Node.TEXT_NODE);
