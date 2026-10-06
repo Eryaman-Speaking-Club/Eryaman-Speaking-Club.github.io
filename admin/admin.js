@@ -59,6 +59,7 @@
       '<div class="card"><div class="card-head"><div><h2>Site yönetim merkezi</h2><p class="muted">Panelde Publish dediğinde değişiklik Supabase üzerinden gerçek siteye uygulanır.</p></div></div>'+
       '<div class="grid-3">'+
         '<button class="mini-card quick-card" data-go="siteEditor"><span class="pill live">CANLI</span><h3>Canlı Site Editörü</h3><p>Sayfayı aç, metne veya görsele tıkla ve doğrudan düzenle.</p></button>'+
+        '<button class="mini-card quick-card" data-go="seo"><span class="pill">SEO</span><h3>SEO Merkezi</h3><p>Başlık, açıklama, canonical, paylaşım ve index durumunu tek ekranda denetle.</p></button>'+
         '<button class="mini-card quick-card" data-go="games"><span class="pill">OYUNLAR</span><h3>Game Hub</h3><p>Oyunları aç/kapat, ayarları ve merkezi içerikleri yönet.</p></button>'+
         '<button class="mini-card quick-card" data-go="educators"><span class="pill">EDTECH</span><h3>Educators</h3><p>Öğretmen, sınıf, plan ve eğitimci kullanıcılarını kontrol et.</p></button>'+
       '</div></div>'+
