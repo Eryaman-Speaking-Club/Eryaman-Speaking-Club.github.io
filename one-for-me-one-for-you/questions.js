@@ -167,13 +167,124 @@
     ]
   };
 
+  const funnyPatterns = {
+    default: [
+      ['What small thing about {x} becomes more dramatic than it should?', 'Give a real or believable example.'],
+      ['If {x} came with a warning label, what would it say?', 'Explain why your warning is fair.'],
+      ['What is one thing people pretend to understand about {x}?', 'What do they usually get wrong?'],
+      ['If you had to give a 20-second TED Talk about {x} with no preparation, what would you say first?', 'Give your opening sentence.'],
+      ['What is your most unnecessary strong opinion about {x}?', 'Defend it seriously for one minute.']
+    ],
+    'daily life': [
+      ['What tiny problem with {x} can ruin your mood much more than it should?', 'How do you normally recover?'],
+      ['If {x} had a customer-service desk, what would you complain about?', 'Make the complaint dramatic but believable.'],
+      ['What part of {x} deserves background music?', 'What kind of music would fit?'],
+      ['What is the most “I will do it later” part of {x}?', 'What usually happens next?'],
+      ['If your friends rated your {x}, what would they tease you about?', 'Would they be correct?']
+    ],
+    'food': [
+      ['If {x} were a person at a party, what kind of person would it be?', 'Describe the personality in three words.'],
+      ['What food crime involving {x} would you never forgive?', 'Why does it bother you so much?'],
+      ['If {x} became ridiculously expensive tomorrow, would you still buy it?', 'What is your maximum price?'],
+      ['What is the most dramatic opinion someone could have about {x}?', 'Do you secretly agree?'],
+      ['If you had to sell {x} as a luxury product, what would your slogan be?', 'Make it sound unnecessarily expensive.']
+    ],
+    'travel': [
+      ['What small travel problem involving {x} could become a three-hour story?', 'How would you solve it?'],
+      ['If {x} went wrong on a trip, who in your group would panic first?', 'What would they probably do?'],
+      ['What terrible travel advice about {x} sounds confident but is actually useless?', 'Give the sensible advice too.'],
+      ['If a travel vlog about {x} had a clickbait title, what would it be?', 'Would you watch it?'],
+      ['What part of {x} makes people suddenly forget common sense?', 'Give an example.']
+    ],
+    'friends': [
+      ['What tiny issue involving {x} could start a completely unnecessary argument between friends?', 'How should normal people solve it?'],
+      ['What behaviour around {x} deserves a friendly warning label?', 'What should the label say?'],
+      ['If your friend became an “expert” on {x} after one video, what would happen?', 'Would you listen to their advice?'],
+      ['What is the funniest believable misunderstanding involving {x}?', 'How would you clear it up?'],
+      ['What part of {x} would create the longest group-chat debate?', 'Which side would you take?']
+    ],
+    'work': [
+      ['What harmless habit involving {x} could turn someone into the office villain?', 'How would you deal with it politely?'],
+      ['If {x} had a warning label at work, what would it say?', 'Give one practical reason.'],
+      ['What part of {x} makes people suddenly create unnecessary spreadsheets?', 'Would the spreadsheet actually help?'],
+      ['If your boss gave a motivational speech about {x}, what cliché would definitely appear?', 'Give a better version.'],
+      ['What is the funniest believable excuse involving {x}?', 'Would you accept it from a coworker?']
+    ],
+    'study': [
+      ['What habit around {x} makes people look productive without doing much?', 'What would work better?'],
+      ['If {x} became an Olympic event, what would students train for?', 'Would you win a medal?'],
+      ['What is the classic “I will start tomorrow” excuse about {x}?', 'What should the real first step be?'],
+      ['If a teacher made {x} unnecessarily dramatic, what would they do?', 'How would you simplify it?'],
+      ['What is something students pretend to understand about {x}?', 'What question should they actually ask?']
+    ],
+    'communication': [
+      ['What bad habit involving {x} should come with a warning label?', 'What should the warning say?'],
+      ['What could turn {x} into a 100-message group-chat disaster?', 'How would you stop it early?'],
+      ['What is the worst possible opening sentence for {x}?', 'Give a better opening too.'],
+      ['If someone sounded far too confident during {x}, what would you suspect?', 'How can people communicate more clearly?'],
+      ['What part of {x} becomes awkward for no good reason?', 'How would you make it easier?']
+    ],
+    'technology': [
+      ['If {x} could judge your habits, what would it criticise first?', 'Would the criticism be fair?'],
+      ['What is the most unnecessary “smart” version of {x} you can imagine?', 'Would anyone actually buy it?'],
+      ['What problem with {x} always seems to happen at the worst possible time?', 'What is your backup plan?'],
+      ['If your grandparents asked you to explain {x}, where would the conversation go wrong?', 'How would you simplify it?'],
+      ['What warning label should appear before people use {x}?', 'What mistake would it prevent?']
+    ],
+    'money': [
+      ['What purchase related to {x} has the strongest “why did I buy that?” energy?', 'What should you have done instead?'],
+      ['If your bank app commented on your {x}, what would it say?', 'Would you listen?'],
+      ['What harmless thing about {x} makes people act like financial experts?', 'What is the sensible view?'],
+      ['If {x} had a luxury version costing ten times more, what ridiculous feature would it include?', 'Would anyone buy it?'],
+      ['What money mistake involving {x} is funny only after enough time passes?', 'What lesson comes from it?']
+    ],
+    'health': [
+      ['What healthy habit connected to {x} sounds easy until Monday morning arrives?', 'How could you make it realistic?'],
+      ['If {x} came with an honest advertisement, what would the small print say?', 'What is the realistic benefit?'],
+      ['What part of {x} do people overcomplicate?', 'What simpler approach would you recommend?'],
+      ['What excuse about {x} sounds reasonable but is usually just procrastination?', 'What would be a better first step?'],
+      ['If your body sent you a notification about {x}, what would it say?', 'Would you act on it?']
+    ],
+    'choices': [
+      ['If your choice about {x} could roast you, what would it say about your personality?', 'Give one real example.'],
+      ['Which side of {x} would you defend in a ridiculous TV debate?', 'Give your strongest argument.'],
+      ['What is the worst reason someone could use to choose between {x}?', 'What is a better reason?'],
+      ['If you had five seconds to choose between {x}, what would you pick?', 'Would you change your answer after thinking?'],
+      ['Which side of {x} would create more chaos in your life?', 'Explain the likely result.']
+    ],
+    'problem solving': [
+      ['What is the worst possible reaction to {x} that would make a great comedy scene?', 'Then give the sensible reaction.'],
+      ['If {x} happened while your phone battery was at 1%, what would you do?', 'What is your first step?'],
+      ['What terrible advice about {x} might sound confident?', 'Replace it with useful advice.'],
+      ['If three people tried to solve {x} at the same time, what confusion could happen?', 'How should they organise themselves?'],
+      ['What part of {x} could become unnecessarily dramatic?', 'How would you keep it simple?']
+    ],
+    'imagination': [
+      ['What would be the best part of {x}, and what ridiculous problem would appear by day three?', 'Explain both sides.'],
+      ['If {x} came with one completely useless bonus feature, what would it be?', 'Why would people still love it?'],
+      ['If you had to advertise {x} in one ridiculous sentence, what would you say?', 'Then give the honest version.'],
+      ['What would make {x} look amazing on social media but annoying in real life?', 'Give an example.'],
+      ['If {x} had one rule that made no sense, what would it be?', 'How would people react?']
+    ],
+    'opinions': [
+      ['What opinion about {x} could start a 100-message group-chat debate?', 'Give your view without starting an actual argument.'],
+      ['What completely unnecessary strong opinion do you have about {x}?', 'Defend it with one reason.'],
+      ['If people needed a licence to give opinions about {x}, what should the test include?', 'Name two questions.'],
+      ['What opinion about {x} sounds intelligent but says almost nothing?', 'Give a clearer version.'],
+      ['If you had to argue the opposite of your real opinion about {x}, what would you say?', 'Was it difficult?']
+    ]
+  };
+
   const fill = (template, topic) => template.replace('{x}', topic);
   const cards = [];
   let index = 1;
   Object.entries(topics).forEach(([category, values]) => {
     values.forEach((topic) => {
-      patterns[category].forEach(([q, f]) => {
-        cards.push({ id: `b-${index++}`, q: fill(q, topic), f: fill(f, topic), category, level: 'B' });
+      patterns[category].forEach(([q, f], patternIndex) => {
+        const useFunny = ((index - 1) % 2 === 0);
+        const funSet = funnyPatterns[category] || funnyPatterns.default;
+        const pair = useFunny ? funSet[patternIndex % funSet.length] : [q, f];
+        cards.push({ id: `b-${index++}`, q: fill(pair[0], topic), f: fill(pair[1], topic), category, level: 'B' });
       });
     });
   });
