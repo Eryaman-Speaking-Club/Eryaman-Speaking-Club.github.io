@@ -294,9 +294,15 @@
   const legacyFunTopic=i=>legacyFunTopics[i%legacyFunTopics.length];
   const legacyPick=(normal,funny,i)=>{
     const isFunny=i%2===0;
-    const topic=isFunny?legacyFunTopic(Math.floor(i/2)):legacyTopic(Math.floor(i/2));
-    const bank=isFunny?funny:normal;
-    return bank[Math.floor(i/2)%bank.length](topic);
+    const slot=Math.floor(i/2);
+    if(isFunny){
+      const topic=legacyFunTopics[slot%legacyFunTopics.length];
+      const fn=funny[Math.floor(slot/legacyFunTopics.length)%funny.length];
+      return fn(topic);
+    }
+    const topic=legacyTopics[slot%legacyTopics.length];
+    const fn=normal[Math.floor(slot/legacyTopics.length)%normal.length];
+    return fn(topic);
   };
 
   const hotSeatNormal=[
@@ -435,9 +441,11 @@
     ];
     fillLegacy(items,i=>{
       const isFunny=i%2===0;
-      const t=isFunny?legacyFunTopic(Math.floor(i/2)):legacyTopic(Math.floor(i/2));
+      const slot=Math.floor(i/2);
+      const topicBank=isFunny?legacyFunTopics:legacyTopics;
+      const t=topicBank[slot%topicBank.length];
       const bank=isFunny?funny:normal;
-      const opts=bank[Math.floor(i/2)%bank.length](t);
+      const opts=bank[Math.floor(slot/topicBank.length)%bank.length](t);
       return [legacyCat(i),opts[0],opts[1]];
     });
     if(typeof build==='function')build();
@@ -523,9 +531,11 @@
       t=>'They turn '+t+' into a competition even when there is no winner.'
     ];
     fillLegacy(items,i=>{
-      const topic=socialTopics[Math.floor(i/2)%socialTopics.length];
+      const slot=Math.floor(i/2);
+      const topic=socialTopics[slot%socialTopics.length];
       const bank=i%2===0?funny:normal;
-      return [i%2===0?'Funny':'Social',bank[Math.floor(i/2)%bank.length](topic)];
+      const fn=bank[Math.floor(slot/socialTopics.length)%bank.length];
+      return [i%2===0?'Funny':'Social',fn(topic)];
     });
     if(typeof build==='function')build();
   }
