@@ -17,7 +17,7 @@
       capacity: 'limited'
     },
     pricing: { single: 400, oneMonth: 1400, threeMonth: 3900, currency: 'TL' },
-    online: { firstMeetupFree: true, price: 300, currency: 'TL', unitTr: 'buluşma', unitEn: 'meetup' }
+    online: { firstMeetupFree: true, price: 300, fourPack: 1100, twelvePack: 3000, currency: 'TL', unitTr: 'buluşma', unitEn: 'meetup' }
   };
 
   let CONFIG = JSON.parse(JSON.stringify(DEFAULT));
@@ -66,14 +66,26 @@
     const cards = qa('.meetup-price-card');
     cards.forEach(card => {
       const title=(card.querySelector('h3')?.textContent||'').toLocaleLowerCase('tr-TR');
-      if (card.classList.contains('online-plan')) setPrice(card,CONFIG.online.price,t('buluşma','meetup'));
-      else if (title.includes('tek etkinlik') || title.includes('single')) setPrice(card,CONFIG.pricing.single,t('etkinlik','event'));
-      else if (title.includes('12 buluşma') || title.includes('12-meetup') || title.includes('12 meetup') || title.includes('3 aylık') || title.includes('3 month')) setPrice(card,CONFIG.pricing.threeMonth,t('12 buluşma','12 meetups'));
-      else if (title.includes('4 buluşma') || title.includes('4-meetup') || title.includes('4 meetup') || title.includes('1 aylık') || title.includes('1 month')) setPrice(card,CONFIG.pricing.oneMonth,t('4 buluşma','4 meetups'));
+      const online=card.classList.contains('online-plan');
+      if (online) {
+        if (title.includes('12 buluşma') || title.includes('12-meetup') || title.includes('12 meetup')) {
+          setPrice(card,CONFIG.online.twelvePack,t('12 buluşma','12 meetups'));
+        } else if (title.includes('4 buluşma') || title.includes('4-meetup') || title.includes('4 meetup')) {
+          setPrice(card,CONFIG.online.fourPack,t('4 buluşma','4 meetups'));
+        } else {
+          setPrice(card,CONFIG.online.price,t('buluşma','meetup'));
+        }
+      } else if (title.includes('tek etkinlik') || title.includes('single')) {
+        setPrice(card,CONFIG.pricing.single,t('etkinlik','event'));
+      } else if (title.includes('12 buluşma') || title.includes('12-meetup') || title.includes('12 meetup') || title.includes('3 aylık') || title.includes('3 month')) {
+        setPrice(card,CONFIG.pricing.threeMonth,t('12 buluşma','12 meetups'));
+      } else if (title.includes('4 buluşma') || title.includes('4-meetup') || title.includes('4 meetup') || title.includes('1 aylık') || title.includes('1 month')) {
+        setPrice(card,CONFIG.pricing.oneMonth,t('4 buluşma','4 meetups'));
+      }
     });
   }
 
-  function apply() {
+  function apply(source='local') {
     const e = CONFIG.inPerson;
 
     const heroStrip = q('.hero-join-strip');
@@ -141,6 +153,7 @@
       organizer:{'@type':'Organization',name:'Eryaman Speaking Club',url:'https://eryamanspeakingclub.com/'},url:'https://eryamanspeakingclub.com/#next-event'
     });
     window.ESC_EVENT_CONFIG=CONFIG;
+    window.dispatchEvent(new CustomEvent('esc:event-config:applied',{detail:{source}}));
   }
 
   async function loadRemote() {
@@ -149,10 +162,10 @@
     try{
       const db=await window.ESCSupabase.getClient();if(!db)return;
       const {data,error}=await db.from('esc_cms_public_settings').select('published_data').eq('key','event_config').maybeSingle();
-      if(!error&&data?.published_data){CONFIG=mergeDeep(JSON.parse(JSON.stringify(DEFAULT)),data.published_data);window.ESC_EVENT_CONFIG=CONFIG;apply()}
+      if(!error&&data?.published_data){CONFIG=mergeDeep(JSON.parse(JSON.stringify(DEFAULT)),data.published_data);window.ESC_EVENT_CONFIG=CONFIG;apply('remote')}
     }catch(_){}
   }
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{apply();loadRemote()},{once:true});
-  else{apply();loadRemote()}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{apply('default');loadRemote()},{once:true});
+  else{apply('default');loadRemote()}
 })();
