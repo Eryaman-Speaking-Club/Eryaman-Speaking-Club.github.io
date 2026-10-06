@@ -171,7 +171,12 @@
 
     qa('.online-meetup-cta, .online-plan .meetup-price-cta').forEach(link=>applyJoinMode(link,'online'));
     qa('.meetup-price-card:not(.online-plan) .meetup-price-cta').forEach(link=>{if(link.href.includes('forms.gle'))applyJoinMode(link,'in_person')});
-    qa('.final-actions a').forEach(link=>applyJoinMode(link,/online/i.test(link.textContent)?'online':'in_person'));
+    qa('.final-actions a').forEach(link=>{
+      const text=(link.textContent||'').toLowerCase();
+      const href=link.getAttribute('href')||'';
+      const isJoinLink=href.includes('forms.gle')||/katıl|buluşma|join|meetup|online|eryaman/.test(text);
+      if(isJoinLink)applyJoinMode(link,/online/i.test(text)?'online':'in_person');
+    });
     const dock=qa('.mobile-join-options a');if(dock[0])applyJoinMode(dock[0],'in_person');if(dock[1])applyJoinMode(dock[1],'online');
     qa('a[href*="forms.gle"]').forEach(link=>{if(link.dataset.joinMode)return;const text=(link.textContent||'').toLowerCase();applyJoinMode(link,link.closest('#online-meetups,.online-plan')||text.includes('online')?'online':'in_person')});
     applyPricing();
