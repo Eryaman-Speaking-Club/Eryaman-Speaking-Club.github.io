@@ -135,6 +135,42 @@
       'My answer is ___. I can explain, but I cannot promise it will help.'
     ]
   };
+  const ANSWER_THEMES={
+    navy:{bg:'#123a6b',fg:'#ffffff',border:'#123a6b',hover:'#0b2f5b'},
+    teal:{bg:'#167f83',fg:'#ffffff',border:'#167f83',hover:'#11696d'},
+    purple:{bg:'#6b5fb5',fg:'#ffffff',border:'#6b5fb5',hover:'#564a9b'},
+    green:{bg:'#2f7d67',fg:'#ffffff',border:'#2f7d67',hover:'#276956'},
+    rose:{bg:'#a95f78',fg:'#ffffff',border:'#a95f78',hover:'#8f4e65'},
+    light:{bg:'#f4f7fa',fg:'#123a6b',border:'#d8e4ee',hover:'#e8eff5'}
+  };
+  const ANSWER_ICONS={question:'?',info:'i',spark:'✦'};
+  function applyAnswerTheme(theme={}){
+    const color=ANSWER_THEMES[theme.color]||ANSWER_THEMES.navy;
+    const button=document.querySelector('.esc-answer-help-btn');
+    document.documentElement.style.setProperty('--esc-answer-help-bg',color.bg);
+    document.documentElement.style.setProperty('--esc-answer-help-fg',color.fg);
+    document.documentElement.style.setProperty('--esc-answer-help-border',color.border);
+    document.documentElement.style.setProperty('--esc-answer-help-hover',color.hover);
+    if(button){
+      button.textContent=ANSWER_ICONS[theme.icon]||ANSWER_ICONS.question;
+      button.dataset.shape=['circle','square','rounded'].includes(theme.shape)?theme.shape:'rounded';
+    }
+  }
+  async function loadAnswerTheme(){
+    applyAnswerTheme({color:'navy',icon:'question',shape:'rounded'});
+    try{
+      await window.ESCGameKit?.ensurePlatform?.();
+      let db=null;
+      for(let i=0;i<30&&!db;i++){
+        if(window.ESCSupabase?.getClient) db=await window.ESCSupabase.getClient();
+        if(!db) await new Promise(r=>setTimeout(r,80));
+      }
+      if(!db)return;
+      const {data,error}=await db.from('esc_cms_public_settings').select('published_data').eq('key','site_identity').maybeSingle();
+      if(error)return;
+      applyAnswerTheme(data?.published_data?.answer_helper||{});
+    }catch(_){}
+  }
   function answerSlug(){return (location.pathname.split('/').filter(Boolean).pop()||'').toLowerCase()}
   function answerHash(value){let h=0;for(let i=0;i<value.length;i++)h=((h<<5)-h+value.charCodeAt(i))|0;return Math.abs(h)}
   function visiblePrompt(){
@@ -211,14 +247,15 @@
   function mountAnswerHelp(){
     if(document.querySelector('.esc-answer-help-btn'))return;
     const first=visiblePrompt();
-    const host=(first.node&&first.node.closest('.game-card,.new-game-card,.tod-card,.question-card,.prompt-card,.game-panel,.new-game-panel'))||document.querySelector('.game-panel,.new-game-panel,main');
+    const host=document.querySelector('.game-actions,.new-game-actions,.header-actions,.esc-display-actions')||document.querySelector('header.topbar,header.site-header,header');
     if(!host)return;
-    host.classList.add('esc-answer-help-host');
 
     const button=document.createElement('button');
-    button.type='button';button.className='esc-answer-help-btn';button.textContent='!';
+    button.type='button';button.className='esc-answer-help-btn';button.textContent='?';
     button.title='Need help answering?';button.setAttribute('aria-label','Open answer tips and example starters');
-    host.appendChild(button);
+    const sound=host.querySelector('[data-esc-sound]');
+    const textAction=host.querySelector('a,.game-action-btn,.new-game-back');
+    if(sound)sound.insertAdjacentElement('afterend',button);else if(textAction)host.insertBefore(button,textAction);else host.appendChild(button);
 
     const layer=document.createElement('div');
     layer.className='esc-answer-help-layer';layer.setAttribute('aria-hidden','true');
@@ -328,5 +365,5 @@
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && fallback) { fallback = false; sync(); } });
   window.addEventListener('esc:languagechange', sync);
   window.ESCFullscreen = { mount, toggle };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { mount(); mountHowToPlay(); mountAnswerHelp(); }); else { mount(); mountHowToPlay(); mountAnswerHelp(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { mount(); mountHowToPlay(); mountAnswerHelp(); void loadAnswerTheme(); }); else { mount(); mountHowToPlay(); mountAnswerHelp(); void loadAnswerTheme(); }
 })();
