@@ -5,9 +5,9 @@
     registrationUrl: 'https://forms.gle/qjYk7dYtV8Vhpud29',
     mapUrl: 'https://maps.app.goo.gl/7y8SdsCRGYzuSXnr6',
     inPerson: {
-      start: '2026-10-04T18:00:00+03:00',
-      end: '2026-10-04T20:00:00+03:00',
-      day: '4',
+      start: '2026-10-11T18:00:00+03:00',
+      end: '2026-10-11T20:00:00+03:00',
+      day: '11',
       monthTr: 'EKİM',
       monthEn: 'OCT',
       weekdayTr: 'PAZAR',
@@ -28,6 +28,22 @@
   const q = selector => document.querySelector(selector);
   const qa = selector => [...document.querySelectorAll(selector)];
   const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const markManaged = (el, type='event') => {
+    if (el) el.dataset.escManaged = type;
+    return el;
+  };
+  const markManagedHref = el => {
+    if (el) el.dataset.escManagedHref = 'event';
+    return el;
+  };
+  const titleCaseTr = value => {
+    const x=String(value||'').toLocaleLowerCase('tr-TR');
+    return x ? x.charAt(0).toLocaleUpperCase('tr-TR')+x.slice(1) : '';
+  };
+  const titleCaseEn = value => {
+    const x=String(value||'').toLowerCase();
+    return x ? x.charAt(0).toUpperCase()+x.slice(1) : '';
+  };
 
   function mergeDeep(base, extra) {
     if (!extra || typeof extra !== 'object') return base;
@@ -50,6 +66,7 @@
 
   function applyJoinMode(link, mode) {
     if (!link) return;
+    markManagedHref(link);
     link.href = CONFIG.registrationUrl;
     link.dataset.joinMode = mode;
     link.dataset.analyticsTarget = mode === 'online' ? 'online_registration' : 'in_person_registration';
@@ -58,6 +75,7 @@
   function setPrice(card, amount, unit) {
     if (!card || amount === undefined || amount === null) return;
     const target = card.querySelector('.meetup-price-main');
+    markManaged(target,'pricing');
     const formatted = new Intl.NumberFormat(isEnglish ? 'en-US' : 'tr-TR').format(Number(amount));
     if (target) target.innerHTML = '<strong>'+formatted+' '+(CONFIG.pricing?.currency || CONFIG.online?.currency || 'TL')+'</strong><span>/ '+unit+'</span>';
   }
@@ -88,27 +106,34 @@
   function apply(source='local') {
     const e = CONFIG.inPerson;
 
-    const heroStrip = q('.hero-join-strip');
+    const heroStrip = markManaged(q('.hero-join-strip'));
     if (heroStrip) {
       heroStrip.innerHTML = isEnglish
         ? '<span class="hero-join-free">'+e.monthEn+' '+e.day+' · REGISTRATION OPEN</span><span class="hero-join-info"><strong>'+e.weekdayEn.charAt(0)+e.weekdayEn.slice(1).toLowerCase()+' · '+e.time+'</strong><i></i>'+e.venue+'</span>'
         : '<span class="hero-join-free">'+e.day+' '+e.monthTr+' · KAYITLAR AÇIK</span><span class="hero-join-info"><strong>'+e.weekdayTr.charAt(0)+e.weekdayTr.slice(1).toLocaleLowerCase('tr-TR')+' · '+e.time+'</strong><i></i>'+e.venue+'</span>';
     }
 
-    const heroJoin = q('.hero-actions .join-primary');
+    const heroJoin = markManaged(q('.hero-actions .join-primary'));
     if (heroJoin) {
       heroJoin.innerHTML = isEnglish ? 'Join the '+e.monthEn+' '+e.day+' meetup <span>→</span>' : e.day+' '+e.monthTr.charAt(0)+e.monthTr.slice(1).toLocaleLowerCase('tr-TR')+' buluşmasına katıl <span>→</span>';
       applyJoinMode(heroJoin,'in_person');
     }
 
-    const heroProof = q('.hero-proof p');
+    const heroProof = markManaged(q('.hero-proof p'));
     if (heroProof) {
       heroProof.innerHTML = isEnglish
         ? '<strong>First meetup is free · Open to A2–B2+ levels</strong><br>'+e.monthEn+' '+e.day+' registration is open · '+(e.capacity==='limited'?'limited capacity':'registration open')+' · come on your own'
         : '<strong>İlk buluşma ücretsiz · A2–B2+ seviyelerine açık</strong><br>'+e.day+' '+e.monthTr.charAt(0)+e.monthTr.slice(1).toLocaleLowerCase('tr-TR')+' kayıtları açık · '+(e.capacity==='limited'?'kontenjan sınırlı':'kayıt açık')+' · tek başına gelebilirsin';
     }
 
-    const dateCard = q('.next-event-date');
+    const scrollCue = markManaged(q('.scroll-cue span'));
+    if (scrollCue) {
+      scrollCue.textContent = isEnglish
+        ? 'See the '+titleCaseEn(e.monthEn)+' '+e.day+' meetup'
+        : e.day+' '+titleCaseTr(e.monthTr)+' etkinliğini gör';
+    }
+
+    const dateCard = markManaged(q('.next-event-date'));
     if (dateCard) {
       dateCard.innerHTML='<strong>'+e.day+'</strong><span>'+(isEnglish?e.monthEn:e.monthTr)+'</span><small>'+(isEnglish?e.weekdayEn:e.weekdayTr)+'</small>';
       dateCard.setAttribute('aria-label',dateLabel());
@@ -117,21 +142,29 @@
     const next=q('.next-event-card');
     if(next){
       next.setAttribute('aria-label',dateLabel());
-      const details=next.querySelector('.next-event-details');
+      const heading=markManaged(next.querySelector('.next-event-copy h2'));
+      if(heading) heading.textContent=isEnglish
+        ? 'Save your seat for this '+titleCaseEn(e.weekdayEn)+'.'
+        : 'Bu '+titleCaseTr(e.weekdayTr)+' masadaki yerini ayırt.';
+      const kicker=markManaged(next.querySelector('.next-event-kicker'));
+      if(kicker) kicker.textContent=isEnglish
+        ? (e.capacity==='limited'?'REGISTRATION OPEN · LIMITED CAPACITY':'REGISTRATION OPEN')
+        : (e.capacity==='limited'?'KAYITLAR AÇIK · KONTENJAN SINIRLI':'KAYITLAR AÇIK');
+      const details=markManaged(next.querySelector('.next-event-details'));
       if(details) details.innerHTML=(isEnglish
         ? '<span>🕖 <strong>'+e.time+'</strong></span><span>📍 <strong>'+e.venue+'</strong></span><span>💬 <strong>Speaking · games · new people</strong></span>'
         : '<span>🕖 <strong>'+e.time+'</strong></span><span>📍 <strong>'+e.venue+'</strong></span><span>💬 <strong>Speaking · oyunlar · yeni insanlar</strong></span>');
-      const urgency=next.querySelector('.next-event-urgency');
+      const urgency=markManaged(next.querySelector('.next-event-urgency'));
       if(urgency) urgency.textContent=isEnglish?'Save your seat for '+e.monthEn+' '+e.day:e.day+' '+e.monthTr.charAt(0)+e.monthTr.slice(1).toLocaleLowerCase('tr-TR')+' için yerini ayırt';
       applyJoinMode(next.querySelector('.next-event-join'),'in_person');
-      const map=next.querySelector('.next-event-location');if(map)map.href=CONFIG.mapUrl;
+      const map=markManagedHref(next.querySelector('.next-event-location'));if(map)map.href=CONFIG.mapUrl;
     }
 
-    const galleryDate=q('.gallery-join-cta small');
+    const galleryDate=markManaged(q('.gallery-join-cta small'));
     if(galleryDate)galleryDate.textContent=isEnglish?'NEXT MEETUP · '+e.weekdayEn+', '+e.monthEn+' '+e.day+' · '+e.time:'SIRADAKİ BULUŞMA · '+e.day+' '+e.monthTr+' '+e.weekdayTr+' · '+e.time;
     applyJoinMode(q('.gallery-join-cta a'),'in_person');
 
-    const feedbackDate=q('.feedback-intro-cta span');if(feedbackDate)feedbackDate.textContent=dateLabel(true);
+    const feedbackDate=markManaged(q('.feedback-intro-cta span'));if(feedbackDate)feedbackDate.textContent=dateLabel(true);
     applyJoinMode(q('.feedback-intro-cta a'),'in_person');
 
     qa('.online-meetup-cta, .online-plan .meetup-price-cta').forEach(link=>applyJoinMode(link,'online'));
