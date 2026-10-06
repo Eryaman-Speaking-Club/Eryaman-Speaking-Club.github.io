@@ -44,7 +44,7 @@
           if(r.error)throw r.error;
           if(!r.data?.key)throw new Error('Yayınlama tamamlanamadı.');
         }
-        if(publish)A.notifyIndexNow?.('/').catch?.(()=>{});
+        if(publish)A.notifyIndexNow?.('/');
         toast(publish?'Etkinlik ve fiyatlar canlı siteye yayınlandı · IndexNow bildirimi gönderildi':'Etkinlik taslağı kaydedildi');
       } finally {
         saving=false;
@@ -154,8 +154,8 @@
           game_slug:game.slug,config:nextCfg,updated_at:new Date().toISOString()
         },{onConflict:'game_slug'});
         if(r.error)throw r.error;
-        A.notifyIndexNow?.('/'+game.slug+'/').catch?.(()=>{});
-        A.notifyIndexNow?.('/games/').catch?.(()=>{});
+        A.notifyIndexNow?.('/'+game.slug+'/');
+        A.notifyIndexNow?.('/games/');
         closeModal();toast('Oyun kaydedildi · AI/search güncellemesi bildirildi');gamesView();
       }catch(err){alert(err.message||err)}
     };
@@ -253,9 +253,9 @@
         r=await A.state.db.from('esc_cms_settings').update({draft_data:socialPayload,has_unpublished_changes:true,updated_by:A.state.session.user.id,updated_at:new Date().toISOString()}).eq('key','social_links');
         if(r.error)throw r.error;
         r=await A.state.db.rpc('esc_cms_publish_setting',{p_key:'social_links'});if(r.error)throw r.error;
-        A.notifyIndexNow?.('/').catch?.(()=>{});
-        A.notifyIndexNow?.('/games/').catch?.(()=>{});
-        A.notifyIndexNow?.('/educators/').catch?.(()=>{});
+        A.notifyIndexNow?.('/');
+        A.notifyIndexNow?.('/games/');
+        A.notifyIndexNow?.('/educators/');
         toast('Genel ayarlar yayınlandı · arama/AI güncellemesi bildirildi');
       }catch(err){alert(err.message||err)}
     };
