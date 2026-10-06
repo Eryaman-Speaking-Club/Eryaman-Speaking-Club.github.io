@@ -122,136 +122,241 @@ function ensureExpandedContent(){
  const cap=s=>String(s).replace(/\b\w/g,m=>m.toUpperCase());
  const withArticle=s=>(/^[aeiou]/i.test(String(s).trim())?'an ':'a ')+s;
  const cat=i=>cats[i%cats.length],topic=i=>topics[i%topics.length],target=i=>targets[i%targets.length],place=i=>places[i%places.length];
- const textPatterns={
-  twoTruths:[
-   t=>'Your real experience with '+t,
-   t=>'A recent moment involving '+t,
-   t=>'Your habits around '+t,
-   t=>'Something you learned about '+t,
-   t=>'A surprising opinion about '+t,
-   t=>'A memory connected to '+t,
-   t=>'A decision you made about '+t,
-   t=>'A change you would make to '+t,
-   t=>'A success or failure involving '+t,
-   t=>'Something people misunderstand about '+t,
-   t=>'A funny situation involving '+t,
-   t=>'A goal connected to '+t
-  ],
-  roulette:[
-   t=>'What is one thing you would change about '+t+'?',
-   t=>'What have you learned recently about '+t+'?',
-   t=>'What makes '+t+' easier or more difficult?',
-   t=>'What advice would you give someone about '+t+' — and what is the terrible advice version?',
-   t=>'What is a common mistake people make when it comes to '+t+'?',
-   t=>'What is one good memory you have connected to '+t+'?',
-   t=>'How has your opinion about '+t+' changed over time?',
-   t=>'What matters most when making decisions about '+t+'?',
-   t=>'If '+t+' had a customer-service department, what would you complain about first?',
-   t=>'Who has influenced the way you think about '+t+'?',
-   t=>'What is one thing you wish you had known earlier about '+t+'?',
-   t=>'If you became suspiciously good at '+t+' overnight, what would you do first?'
-  ],
-  opinion:[
-   t=>'People underestimate the importance of '+t+'.',
-   t=>'People should need a licence before giving strong opinions about '+t+'.',
-   t=>'Schools should teach more practical lessons about '+t+'.',
-   t=>'A group chat about '+t+' would create more problems than it solves.',
-   t=>'People should talk more openly about '+t+'.',
-   t=>'Good habits matter more than talent when it comes to '+t+'.',
-   t=>'Society puts too much pressure on people about '+t+'.',
-   t=>'Young people and older people see '+t+' too differently.',
-   t=>'Money affects '+t+' more than people admit.',
-   t=>'Social media has changed '+t+' for the worse.',
-   t=>'People make '+t+' sound much more complicated than it really is.',
-   t=>'Personal experience matters more than expert advice about '+t+'.'
-  ],
-  finish:[
-   t=>'When I think about '+t+', the first thing that comes to mind is...',
-   t=>'If '+t+' could complain about humans, it would say...',
-   t=>'I wish people understood that '+t+'...',
-   t=>'One thing I would change about '+t+' is...',
-   t=>'A lesson I learned about '+t+' is...',
-   t=>'The hardest part of '+t+' is...',
-   t=>'If I had more time for '+t+', I would...',
-   t=>'The most ridiculous thing about '+t+' is...',
-   t=>'My most memorable experience with '+t+' was...',
-   t=>'A small improvement to '+t+' would be...',
-   t=>'If I had to give a dramatic TED Talk about '+t+', my opening line would be...',
-   t=>'The advice I would give about '+t+' is...'
-  ],
-  mission:[
-   t=>'During the conversation, ask someone about '+t+' and ask one natural follow-up question.',
-   t=>'Naturally bring up '+t+' and convince someone it is secretly much more dramatic than people think.',
-   t=>'Ask someone about '+t+' as if you are a very serious detective investigating a completely normal situation.',
-   t=>'Find someone with a different view about '+t+' and ask what shaped their opinion.',
-   t=>'Ask someone for a real example related to '+t+'.',
-   t=>'Connect '+t+' to something another person said earlier, even if the connection is slightly ridiculous but still logical.',
-   t=>'Ask someone to compare two different sides of '+t+'.',
-   t=>'Use “What do you mean?” naturally after someone mentions '+t+'.',
-   t=>'Ask a follow-up question beginning with “Why” about '+t+'.',
-   t=>'Ask a follow-up question beginning with “How” about '+t+'.',
-   t=>'Invite a quieter person to share an opinion about '+t+'.',
-   t=>'Summarise someone’s idea about '+t+' before adding your own view.'
-  ],
-  lie:[
-   t=>'A time when '+t+' surprised you.',
-   t=>'Something unusual that happened because of '+t+'.',
-   t=>'A mistake you once made involving '+t+'.',
-   t=>'A story about '+t+' that sounds difficult to believe.',
-   t=>'A moment involving '+t+' where you looked confident but had no idea what you were doing.',
-   t=>'An embarrassing moment involving '+t+'.',
-   t=>'A decision about '+t+' that had an unexpected result.',
-   t=>'A time someone gave you bad advice about '+t+'.',
-   t=>'A time you changed your mind about '+t+'.',
-   t=>'A tiny problem involving '+t+' that somehow became an unnecessarily dramatic story.',
-   t=>'A moment when '+t+' saved you time or caused trouble.',
-   t=>'A story about meeting someone because of '+t+'.'
-  ],
-  bingo:[
-   t=>'Has recently talked about '+t,
-   t=>'Would like to improve something about '+t,
-   t=>'Has a strangely strong opinion about '+t,
-   t=>'Can tell a funny story about '+t,
-   t=>'Has changed a habit related to '+t,
-   t=>'Knows someone who is very interested in '+t,
-   t=>'Has learned something useful about '+t,
-   t=>'Would like to try something new involving '+t,
-   t=>'Has given someone advice about '+t,
-   t=>'Has made a mistake involving '+t+' that is funny now',
-   t=>'Can recommend something related to '+t,
-   t=>'Has a goal connected to '+t
-  ],
-  hot:[
-   t=>cap(t)+' should be treated as a basic life skill.',
-   t=>'People take '+t+' so seriously that it sometimes becomes comedy.',
-   t=>'Modern life has somehow turned '+t+' into a full-time administrative task.',
-   t=>'We would be happier if we changed the way we think about '+t+'.',
-   t=>'People should be more honest about '+t+'.',
-   t=>'A two-minute voice message about '+t+' should require permission.',
-   t=>'People spend too much time worrying about '+t+'.',
-   t=>'Schools should prepare people better for '+t+'.',
-   t=>'There are too many unnecessary rules around '+t+'.',
-   t=>'Experience is more useful than advice when it comes to '+t+'.',
-   t=>'Most people underestimate how difficult '+t+' really is.',
-   t=>'Technology will completely change '+t+' within ten years.'
-  ]
+ const funTopics=[
+  'daily routines','free time','sleep','exercise','money','shopping','cooking','travel','public transport','friendship',
+  'family','work','education','English learning','technology','social media','music','movies','sports','stress',
+  'confidence','habits','time management','weekends','holidays','restaurants','cafés','city life','remote work','meetings',
+  'job interviews','relationships','first impressions','phone use','weather','fashion','gaming','photography','home life','commuting',
+  'productivity','public speaking','language mistakes','online meetings','housework','weekend plans','small talk','making choices','customer service','group projects'
+ ];
+ const funTopic=i=>funTopics[i%funTopics.length];
+ const bankPick=(normal,funny,i,t)=>{
+  const useFunny=i%2===0;
+  const bank=useFunny?funny:normal;
+  return bank[Math.floor(i/2)%bank.length](t);
+ };
+ const banks={
+  twoTruths:{
+   normal:[
+    t=>'A real experience you had with '+t,
+    t=>'A habit you have around '+t,
+    t=>'A lesson you learned about '+t,
+    t=>'A memory connected to '+t,
+    t=>'A goal you have related to '+t
+   ],
+   funny:[
+    t=>'A tiny disaster you survived involving '+t,
+    t=>'A moment when '+t+' became much more dramatic than it needed to be',
+    t=>'A time you looked confident about '+t+' while improvising completely',
+    t=>'A strangely specific opinion you have about '+t,
+    t=>'A harmless habit involving '+t+' that your friends could tease you about',
+    t=>'A moment when your plan for '+t+' failed in a funny way',
+    t=>'Something about '+t+' you pretended to understand at first',
+    t=>'A situation involving '+t+' that would make a good sitcom scene',
+    t=>'A ridiculous but believable excuse connected to '+t,
+    t=>'A time when '+t+' made you question your life choices for five minutes'
+   ]
+  },
+  roulette:{
+   normal:[
+    t=>'What is one thing you would improve about '+t+'?',
+    t=>'What have you learned recently about '+t+'?',
+    t=>'What makes '+t+' easier or more difficult?',
+    t=>'What advice would you give someone about '+t+'?',
+    t=>'What is one good memory you have connected to '+t+'?'
+   ],
+   funny:[
+    t=>'If '+t+' had a customer-service desk, what would you complain about first?',
+    t=>'What is a terrible piece of advice about '+t+' that sounds confident?',
+    t=>'If you became weirdly famous for '+t+', what would your interview headline be?',
+    t=>'What harmless thing about '+t+' could start an unnecessary argument?',
+    t=>'If '+t+' were a person at a party, what kind of person would it be?',
+    t=>'What part of '+t+' deserves dramatic background music?',
+    t=>'If you had to give a TED Talk about '+t+' with zero preparation, what would your opening line be?',
+    t=>'What is something people pretend to understand about '+t+'?',
+    t=>'If '+t+' came with a warning label, what should it say?',
+    t=>'What completely unnecessary luxury version of '+t+' would people still buy?'
+   ]
+  },
+  opinion:{
+   normal:[
+    t=>'People underestimate the importance of '+t+'.',
+    t=>'Schools should teach more practical lessons about '+t+'.',
+    t=>'Personal experience matters when making decisions about '+t+'.',
+    t=>'Technology has changed '+t+' more than people realise.',
+    t=>'People should talk more openly about '+t+'.'
+   ],
+   funny:[
+    t=>'People should need a licence before giving confident advice about '+t+'.',
+    t=>'A group chat about '+t+' would create more problems than it solves.',
+    t=>'People make '+t+' sound much more complicated than it really is.',
+    t=>'A two-minute voice message about '+t+' should require permission.',
+    t=>'Anyone who starts a serious discussion about '+t+' before 8 a.m. owes everyone coffee.',
+    t=>'There should be an emergency button for awkward situations involving '+t+'.',
+    t=>'People become experts in '+t+' suspiciously fast after watching one video.',
+    t=>'Every family has one person who takes '+t+' far too seriously.',
+    t=>'The internet has made arguments about '+t+' at least 40% more dramatic.',
+    t=>'There should be a socially acceptable way to say “I have no idea” during conversations about '+t+'.'
+   ]
+  },
+  finish:{
+   normal:[
+    t=>'One thing I have learned about '+t+' is...',
+    t=>'The best thing about '+t+' is...',
+    t=>'One thing I would change about '+t+' is...',
+    t=>'My most memorable experience with '+t+' was...',
+    t=>'The advice I would give about '+t+' is...'
+   ],
+   funny:[
+    t=>'If '+t+' could complain about humans, it would say...',
+    t=>'The most ridiculous thing about '+t+' is...',
+    t=>'If I had to give a dramatic TED Talk about '+t+', my opening line would be...',
+    t=>'If '+t+' had a warning label, it would say...',
+    t=>'The fastest way to make '+t+' unnecessarily dramatic is...',
+    t=>'If '+t+' were a reality TV show, the title would be...',
+    t=>'My completely unnecessary strong opinion about '+t+' is...',
+    t=>'If aliens asked me to explain '+t+', I would start by saying...',
+    t=>'The one rule about '+t+' that nobody follows is...',
+    t=>'If my friends described my relationship with '+t+', they would say...'
+   ]
+  },
+  mission:{
+   normal:[
+    t=>'Ask someone about '+t+' and ask one natural follow-up question.',
+    t=>'Find someone with a different opinion about '+t+' and ask why.',
+    t=>'Ask someone for a real example related to '+t+'.',
+    t=>'Invite a quieter person to share an opinion about '+t+'.',
+    t=>'Summarise someone’s idea about '+t+' before adding your own view.'
+   ],
+   funny:[
+    t=>'Bring up '+t+' naturally and make it sound slightly more dramatic than it really is.',
+    t=>'Ask about '+t+' as if you are a serious detective investigating a very normal situation.',
+    t=>'Ask someone about '+t+' and use the phrase “This is more serious than I expected” naturally.',
+    t=>'Convince someone that one harmless thing about '+t+' is secretly a luxury.',
+    t=>'Ask someone for an unpopular opinion about '+t+' without laughing.',
+    t=>'Make a completely normal question about '+t+' sound like breaking news.',
+    t=>'Ask someone to rank two things about '+t+' as if the decision will change history.',
+    t=>'Find a way to connect '+t+' to coffee, traffic or Monday morning.',
+    t=>'Ask someone what warning label they would put on '+t+'.',
+    t=>'Ask someone what would make '+t+' 20% more ridiculous but still believable.'
+   ]
+  },
+  lie:{
+   normal:[
+    t=>'A time when '+t+' surprised you.',
+    t=>'A mistake you once made involving '+t+'.',
+    t=>'A decision about '+t+' that had an unexpected result.',
+    t=>'A time you changed your mind about '+t+'.',
+    t=>'A story about meeting someone because of '+t+'.'
+   ],
+   funny:[
+    t=>'A moment involving '+t+' where you looked confident but had no idea what you were doing.',
+    t=>'A tiny problem involving '+t+' that somehow became a dramatic story.',
+    t=>'An embarrassing moment involving '+t+' that is funny now.',
+    t=>'A time when '+t+' made you give a ridiculous excuse.',
+    t=>'A story about '+t+' that sounds fake even if it is true.',
+    t=>'A moment when you tried to impress someone with '+t+' and it went wrong.',
+    t=>'A strange coincidence involving '+t+'.',
+    t=>'A time you misunderstood something about '+t+' in a funny way.',
+    t=>'A harmless disaster involving '+t+' that you would happily tell again.',
+    t=>'A moment when '+t+' made you think “Nobody needs to know about this.”'
+   ]
+  },
+  bingo:{
+   normal:[
+    t=>'Has learned something useful about '+t,
+    t=>'Would like to improve something about '+t,
+    t=>'Can recommend something related to '+t,
+    t=>'Has a goal connected to '+t,
+    t=>'Has changed a habit related to '+t
+   ],
+   funny:[
+    t=>'Has a strangely strong opinion about '+t,
+    t=>'Can tell an embarrassing-but-funny story about '+t,
+    t=>'Has pretended to understand something about '+t,
+    t=>'Has complained about '+t+' more than once this month',
+    t=>'Could give terrible advice about '+t+' with great confidence',
+    t=>'Has had a tiny disaster involving '+t,
+    t=>'Would defend one unpopular opinion about '+t,
+    t=>'Has a friend who takes '+t+' far too seriously',
+    t=>'Has changed plans because '+t+' became unnecessarily complicated',
+    t=>'Could make a funny warning label for '+t
+   ]
+  },
+  hot:{
+   normal:[
+    t=>'People underestimate the importance of '+t+'.',
+    t=>'Schools should prepare people better for '+t+'.',
+    t=>'Personal experience matters more than theory when it comes to '+t+'.',
+    t=>'Technology will significantly change '+t+' within ten years.',
+    t=>'People should talk more openly about '+t+'.'
+   ],
+   funny:[
+    t=>'People take '+t+' so seriously that it sometimes becomes comedy.',
+    t=>'A two-minute voice message about '+t+' should require permission.',
+    t=>'People become experts on '+t+' far too quickly after one internet search.',
+    t=>'There should be a warning label for people who give unrequested advice about '+t+'.',
+    t=>'A family group chat can make '+t+' at least twice as complicated.',
+    t=>'People should be allowed one dramatic complaint about '+t+' per week.',
+    t=>'Anyone who says “It is easy” about '+t+' should be required to demonstrate it immediately.',
+    t=>'The internet has made '+t+' unnecessarily dramatic.',
+    t=>'There should be a five-minute emergency break during difficult conversations about '+t+'.',
+    t=>'Most problems involving '+t+' could be improved with snacks and better communication.'
+   ]
+  },
+  worstAdvice:{
+   normal:[
+    t=>'I keep having problems with '+t+' and I do not know what to change.',
+    t=>'I need to make a decision about '+t+' but I keep delaying it.',
+    t=>'Someone gave me confusing advice about '+t+'.',
+    t=>'I want better results with '+t+' without making my routine too complicated.',
+    t=>'I need a simple first step to deal with '+t+'.'
+   ],
+   funny:[
+    t=>'I keep making the same mistake with '+t+' and at this point the mistake probably recognises me.',
+    t=>'I started working on '+t+', got distracted by snacks, and now need a new plan.',
+    t=>'I watched one video about '+t+' and now I am dangerously overconfident.',
+    t=>'My plan for '+t+' has reached the “pretend everything is fine” stage.',
+    t=>'I have turned a tiny problem with '+t+' into a full committee meeting.',
+    t=>'I need help with '+t+', but please give me advice as if you are the world’s worst life coach.',
+    t=>'I tried to organise '+t+' and somehow created three new problems.',
+    t=>'I keep saying “I will deal with '+t+' tomorrow” and tomorrow is getting suspicious.',
+    t=>'I need a solution for '+t+' that requires maximum confidence and minimum common sense.',
+    t=>'I made '+t+' more complicated than necessary. Please make it even worse before we fix it.'
+   ]
+  }
  };
  function generate(i){
-  const p12=Math.floor(i/topics.length)%12;
-  const t=topic(i);
+  const funny=i%2===0;
+  const t=funny?funTopic(Math.floor(i/2)):topic(Math.floor(i/2));
   switch(cfg.type){
-   case 'twoTruths': return [cat(i),cap(textPatterns.twoTruths[p12](t)),'Say three believable statements about this prompt. Two must be true and one must be false.'];
+   case 'twoTruths': return [cat(i),cap(bankPick(banks.twoTruths.normal,banks.twoTruths.funny,i,t)),'Say three believable statements about this prompt. Two must be true and one must be false.'];
    case 'whoAmI': return [cat(i),cap(target(i))];
    case 'storyChain': {
-    const thing=storyThings[i%storyThings.length],storyPlace=places[Math.floor(i/storyThings.length)%places.length];
-    return [cat(i),'When I arrived at '+storyPlace+', I found '+withArticle(thing)+' waiting for me.','Keep the story connected. By the third player, introduce a problem involving '+topic(i)+'.'];
+    if(funny){
+      const starts=[
+       t=>'You arrive at a café and realise your bag contains '+t+' instead of your own things.',
+       t=>'Your phone sends a message about '+t+' to the completely wrong group chat.',
+       t=>'You enter a meeting about '+t+' and everyone thinks you are the expert.',
+       t=>'A normal day involving '+t+' suddenly starts feeling like a low-budget action movie.',
+       t=>'You are trying to explain '+t+' when a stranger confidently gives completely wrong information.',
+       t=>'A small misunderstanding about '+t+' causes an unnecessarily serious emergency meeting.',
+       t=>'You wake up and discover your friends have made you responsible for everything related to '+t+'.',
+       t=>'Someone leaves a mysterious note about '+t+' on your table with no explanation.',
+       t=>'You are five minutes late because of '+t+', but your excuse sounds completely unbelievable.',
+       t=>'A perfectly normal plan involving '+t+' becomes a story nobody will believe tomorrow.'
+      ];
+      return [cat(i),starts[Math.floor(i/2)%starts.length](t),'Keep the story connected. Each player adds 1–2 sentences and the group should reach an ending.'];
+    }
+    const thing=storyThings[Math.floor(i/2)%storyThings.length],storyPlace=places[Math.floor(i/2/storyThings.length)%places.length];
+    return [cat(i),'When I arrived at '+storyPlace+', I found '+withArticle(thing)+' waiting for me.','Keep the story connected. Each player adds 1–2 sentences and the group should reach an ending.'];
    }
    case 'explainBadly': return [cat(i),cap(target(i)),'Describe it indirectly without saying the target, spelling it or translating it.'];
-   case 'roulette': return [cat(i),textPatterns.roulette[p12](t),'Give one specific example, then let someone ask one follow-up question.'];
-   case 'opinion': return [cat(i),textPatterns.opinion[p12](t)];
+   case 'roulette': return [cat(i),bankPick(banks.roulette.normal,banks.roulette.funny,i,t),'Give one specific example, then let someone ask one follow-up question.'];
+   case 'opinion': return [cat(i),bankPick(banks.opinion.normal,banks.opinion.funny,i,t)];
    case 'ranking': {
     const sets=decisionTopics.has(t)?decisionRanks:(socialTopics.has(t)?socialRanks:practicalRanks);
-    const angle=Math.floor(i/topics.length)%sets.length;
+    const angle=Math.floor(i/2/topics.length)%sets.length;
     return {cat:cat(i),title:'Rank what matters most when thinking about '+t,items:sets[angle]};
    }
    case 'detective': {
@@ -259,16 +364,16 @@ function ensureExpandedContent(){
     const subject=withArticle(obj);
     return {cat:cat(i),title:'The Missing '+cap(obj),setup:subject.charAt(0).toUpperCase()+subject.slice(1)+' disappeared at '+detectivePlace+' between '+(9+i%10)+':10 and '+(9+i%10)+':20. Your group says you were together the whole time.',facts:['Agree where everyone was standing or sitting.','Agree what each person was doing five minutes earlier.','Agree on one detail the detective can verify.']};
    }
-   case 'finish': return [cat(i),textPatterns.finish[p12](t)];
+   case 'finish': return [cat(i),bankPick(banks.finish.normal,banks.finish.funny,i,t)];
    case 'threeClues': return [cat(i),cap(target(i))];
-   case 'mission': return textPatterns.mission[p12](t);
+   case 'mission': return bankPick(banks.mission.normal,banks.mission.funny,i,t);
    case 'minuteStory': return [target(i),target(i+137),target(i+419)];
-   case 'wouldILie': return [cat(i),textPatterns.lie[p12](t)];
+   case 'wouldILie': return [cat(i),bankPick(banks.lie.normal,banks.lie.funny,i,t)];
    case 'desert': {
     const setting=survivalSettings[i%survivalSettings.length],problem=survivalProblems[Math.floor(i/survivalSettings.length)%survivalProblems.length];
     return {cat:cat(i),title:'Stranded at '+setting+' '+problem,items:Array.from({length:8},(_,j)=>survival[(i+j*3)%survival.length])};
    }
-   case 'bingo': return textPatterns.bingo[p12](t);
+   case 'bingo': return bankPick(banks.bingo.normal,banks.bingo.funny,i,t);
    case 'emoji': {
     const picked=[],g=Math.floor(i/emojis.length);
     const seeds=[i,i+5+g,i+11+g*2,i+19+g*3,i+23+g*5,i+29+g*7];
@@ -276,29 +381,16 @@ function ensureExpandedContent(){
     for(const e of emojis){if(picked.length===4)break;if(!picked.includes(e))picked.push(e)}
     return [cat(i),picked];
    }
-   case 'worstAdvice': {
-    const problems=[
-     t=>'I keep having problems with '+t+' and I do not know what to change.',
-     t=>'I tried to improve '+t+', but my plan keeps failing.',
-     t=>'I am spending so much time thinking about '+t+' that it is basically an unpaid part-time job.',
-     t=>'I need to make a decision about '+t+' but I keep delaying it.',
-     t=>'Someone gave me confusing advice about '+t+'.',
-     t=>'I keep making the same mistake with '+t+' and at this point the mistake probably recognises me.',
-     t=>'I want better results with '+t+' without making my routine too complicated.',
-     t=>'I am not sure how to talk to someone about '+t+'.',
-     t=>'I started working on '+t+', lost motivation, found snacks instead, and now need a new plan.',
-     t=>'I need a simple first step to deal with '+t+'.'
-    ];
-    return [cat(i),problems[Math.floor(i/topics.length)%problems.length](t)];
-   }
+   case 'worstAdvice': return [cat(i),bankPick(banks.worstAdvice.normal,banks.worstAdvice.funny,i,t)];
    case 'sell': {
     const product=sellProducts[i%sellProducts.length],customer=customers[Math.floor(i/sellProducts.length)%customers.length];
-    return {item:cap(product),twist:'Sell it to '+customer+'. Make it sound far more luxurious than it has any right to be, but keep the benefits believable.'};
+    return {item:cap(product),twist:'Sell it to '+customer+'. Make it sound more exciting than it really is, but keep the benefits believable.'};
    }
-   case 'hotTake': return [cat(i),textPatterns.hot[p12](t)];
+   case 'hotTake': return [cat(i),bankPick(banks.hot.normal,banks.hot.funny,i,t)];
    case 'photoTalk': {
-    const situations=['waiting for important news','realising something has gone missing','celebrating unexpected good news','trying to solve a small problem','meeting someone for the first time','running late','making an important decision','waiting for transport','pretending everything is under control','realising they entered the wrong place'];
-    const situation=situations[Math.floor(i/places.length)%situations.length];
+    const normalSituations=['waiting for important news','meeting someone for the first time','making an important decision','waiting for transport','helping another person'];
+    const funnySituations=['pretending everything is under control','realising they entered the wrong place','holding the wrong bag','trying to hide an embarrassing mistake','acting confident after clearly getting lost','receiving a very confusing message','realising the meeting started an hour ago','trying to look normal after dropping something','discovering their phone battery is at one percent','trying to explain something nobody understands'];
+    const situation=funny?funnySituations[Math.floor(i/2)%funnySituations.length]:normalSituations[Math.floor(i/2)%normalSituations.length];
     return {cat:cat(i),title:cap(place(i))+' · '+cap(situation),desc:'A person is in or near '+place(i)+' and is '+situation+'. Use the icons as extra clues.',icons:[emojis[i%emojis.length],emojis[(i+3)%emojis.length],emojis[(i+9)%emojis.length]],questions:['What probably happened just before this moment?','How does the person feel and why?','What is the most likely thing to happen next?']};
    }
    default:return null;
