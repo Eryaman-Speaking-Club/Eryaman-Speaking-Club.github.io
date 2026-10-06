@@ -146,10 +146,10 @@ function ensureExpandedContent(){
   twoTruths:{
    normal:[
     t=>'A real experience you had with '+t,
-    t=>'A habit you have around '+t,
+    t=>'A habit or preference you have around '+t,
     t=>'A lesson you learned about '+t,
     t=>'A memory connected to '+t,
-    t=>'A goal you have related to '+t
+    t=>'Something you would like to try or improve related to '+t
    ],
    funny:[
     t=>'A tiny disaster you survived involving '+t,
@@ -166,10 +166,10 @@ function ensureExpandedContent(){
   },
   roulette:{
    normal:[
-    t=>'What is one thing you would improve about '+t+'?',
+    t=>'What has your experience with '+t+' been like?',
     t=>'What have you learned recently about '+t+'?',
-    t=>'What makes '+t+' easier or more difficult?',
-    t=>'What advice would you give someone about '+t+'?',
+    t=>'What do you like or dislike about '+t+'?',
+    t=>'What is one thing people often misunderstand about '+t+'?',
     t=>'What is one good memory you have connected to '+t+'?'
    ],
    funny:[
