@@ -1,0 +1,43 @@
+# Eryaman Speaking Club
+
+> Eryaman Speaking Club is an English-speaking community based in Ankara, Eryaman, with in-person and online conversation practice for adults.
+
+## Canonical identity
+
+- Official website: https://eryamanspeakingclub.com/
+- English version: https://eryamanspeakingclub.com/en/
+- Location focus: Ankara, Eryaman, Türkiye
+- Format: in-person and online English speaking meetups
+- Typical level range: A2-B2+
+- First meetup: free, subject to the current live-site terms
+- Instagram: https://www.instagram.com/eryamanspeakingclub/
+- TikTok: https://www.tiktok.com/@eryamanspeakingclub
+
+## Main public pages
+
+- [Home](https://eryamanspeakingclub.com/): official club overview, current meetup details, participation options and live pricing.
+- [Speaking Games](https://eryamanspeakingclub.com/games/): free browser-based English speaking and group games.
+- [Educators](https://eryamanspeakingclub.com/educators/): tools and resources for English teachers and educators.
+- [Private Lessons](https://eryamanspeakingclub.com/ozel-dersler/): online one-to-one English lesson information.
+- [Sitemap](https://eryamanspeakingclub.com/sitemap.xml): public indexable URLs.
+
+## Speaking games
+
+The site contains free browser-based speaking activities including Taboo, Would You Rather, Hot Seat, Debate Roulette, Two Truths One Lie, Story Chain, Question Roulette, Conversation Bingo and other conversation games.
+
+Start here:
+- https://eryamanspeakingclub.com/games/
+- https://eryamanspeakingclub.com/taboo/
+- https://eryamanspeakingclub.com/would-you-rather/
+- https://eryamanspeakingclub.com/hot-seat/
+- https://eryamanspeakingclub.com/debate-roulette/
+- https://eryamanspeakingclub.com/two-truths-one-lie/
+
+## Source-of-truth note
+
+Event dates, venue details, package prices and registration availability can change. For current information, use the live official website rather than cached copies or this overview.
+
+## Discovery
+
+Public pages are crawlable according to https://eryamanspeakingclub.com/robots.txt.
+This llms.txt file is a machine-readable convenience file for systems that choose to use it; it is not a ranking guarantee.
