@@ -207,6 +207,9 @@
     }catch(_){}
   }
 
+  window.ESCApplyEventConfig = () => apply('manual');
+  window.addEventListener('esc:event-config:refresh',()=>apply('refresh'));
+
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{apply('default');loadRemote()},{once:true});
   else{apply('default');loadRemote()}
 })();
