@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const A=window.ESCAdmin;const {$,$,esc,toast,openModal,closeModal}=A;
+  const A=window.ESCAdmin;const {$,$$,esc,toast,openModal,closeModal}=A;
 
   const monthsTr=['OCAK','ŞUBAT','MART','NİSAN','MAYIS','HAZİRAN','TEMMUZ','AĞUSTOS','EYLÜL','EKİM','KASIM','ARALIK'];
   const monthsEn=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
