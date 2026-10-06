@@ -37,10 +37,12 @@ button:disabled{cursor:not-allowed!important;opacity:.5}
 
 
 /* Optional answer/tip popover used by every public speaking game. */
-.esc-answer-help-host{position:relative!important}
-.esc-answer-help-btn{position:absolute;z-index:16;top:12px;right:12px;width:38px;height:38px;min-width:38px;padding:0;border:1px solid rgba(18,58,107,.14);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#f4b65d;color:#123a6b;box-shadow:0 8px 22px rgba(18,58,107,.14);font:900 22px/1 system-ui,sans-serif;cursor:pointer;transition:transform .16s ease,box-shadow .16s ease,background .16s ease}
-.esc-answer-help-btn:hover{transform:translateY(-1px) scale(1.03);background:#ffc56e;box-shadow:0 12px 28px rgba(18,58,107,.18)}
-.esc-answer-help-btn:focus-visible{outline:3px solid #123a6b;outline-offset:3px}
+button.esc-answer-help-btn{width:44px;height:44px;min-width:44px;min-height:44px;max-width:44px;padding:0;border:1px solid var(--esc-answer-help-border,#123a6b);border-radius:13px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;background:var(--esc-answer-help-bg,#123a6b);color:var(--esc-answer-help-fg,#fff);box-shadow:none;font:900 20px/1 system-ui,sans-serif;cursor:pointer;transition:transform .16s ease,background .16s ease,border-color .16s ease}
+button.esc-answer-help-btn[data-shape="circle"]{border-radius:50%}
+button.esc-answer-help-btn[data-shape="square"]{border-radius:8px}
+button.esc-answer-help-btn[data-shape="rounded"]{border-radius:13px}
+button.esc-answer-help-btn:hover{transform:translateY(-1px);background:var(--esc-answer-help-hover,#0b2f5b)}
+button.esc-answer-help-btn:focus-visible{outline:3px solid #efac48;outline-offset:3px}
 .esc-answer-help-layer{position:fixed;z-index:320;inset:0;padding:24px;display:none;align-items:center;justify-content:center;background:rgba(4,24,48,.46);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
 .esc-answer-help-layer.open{display:flex}
 .esc-answer-help-dialog{position:relative;width:min(680px,100%);max-height:min(760px,calc(100vh - 48px));overflow:auto;padding:28px;border:1px solid #dce7ef;border-radius:24px;background:#fbfdff;color:#173a60;box-shadow:0 28px 80px rgba(4,24,48,.3);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -57,10 +59,10 @@ button:disabled{cursor:not-allowed!important;opacity:.5}
 .esc-answer-help-rescue{margin-top:14px;padding:12px 14px;border:1px dashed #e2b368;border-radius:14px;background:#fff8ea;color:#5d4a29;font-size:13px;line-height:1.55}
 .esc-answer-help-open{overflow:hidden}
 @media(max-width:680px){
- .esc-answer-help-btn{top:9px;right:9px;width:36px;height:36px;min-width:36px;font-size:20px}
- .esc-answer-help-layer{padding:12px;align-items:flex-end}
+  .esc-answer-help-layer{padding:12px;align-items:flex-end}
  .esc-answer-help-dialog{max-height:82vh;padding:22px 18px 18px;border-radius:22px 22px 16px 16px}
  .esc-answer-help-grid{grid-template-columns:1fr}
  .esc-answer-help-example{padding:11px 12px}
 }
+
 @media(prefers-reduced-motion:reduce){.esc-answer-help-btn{transition:none}}
