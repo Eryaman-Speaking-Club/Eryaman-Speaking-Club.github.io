@@ -505,7 +505,7 @@
       t=>'Name 3 questions you could ask about '+t+'.',
       t=>'Name 3 situations where '+t+' could be important.',
       t=>'Name 3 things people might like or dislike about '+t+'.',
-      t=>'Name 3 things people often talk about when '+t+' comes up.'
+      t=>'Name 3 things people often talk about when discussing '+t+'.'
     ];
     const funny=[
       t=>'Name 3 terrible excuses involving '+t+'.',
