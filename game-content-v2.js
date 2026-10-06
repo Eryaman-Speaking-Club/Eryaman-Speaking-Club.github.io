@@ -336,7 +336,7 @@
     t=>'If aliens asked you to explain '+t+', what would confuse them most?',
     t=>'What do people pretend to understand about '+t+'?',
     t=>'If '+t+' were a reality show, what would the title be?',
-    t=>'What completely unnecessary luxury version of '+t+' would people still buy?'
+    t=>'If you could add one completely unnecessary luxury feature to '+t+', what would it be?'
   ];
 
   if(path.includes('/truth-or-dare/')){
