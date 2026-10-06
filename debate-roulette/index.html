@@ -28,7 +28,7 @@ const cats=['All','Everyday','Fun','Social','Deep','Spicy'];let selected='All',d
 $('spin').onclick=pick;$('start').onclick=start;$('next').onclick=show;cats.forEach(c=>{const b=document.createElement('button');b.className='game-chip'+(c==='All'?' active':'');b.textContent=c;b.onclick=()=>{selected=c;document.querySelectorAll('.game-chip').forEach(x=>x.classList.toggle('active',x===b));build();show()};$('chips').appendChild(b)});build();show();
 </script><script src="../esc-depth-pass.js?v=20261005-games-audit4"></script><script src="/game-content-v2.js?v=20261006-fun50qa4"></script>
   <script src="../esc-content-editor.js?v=20260923-audit5"></script>  <script src="/esc-supabase-config.js"></script>
-  <script src="/esc-supabase.js"></script>
+  <script src="/esc-supabase.js?v=20261006-seo2"></script>
   <script src="/site-analytics.js?v=20260922"></script>
 <script src="/esc-game-controls.js?v=20261006-answerhelp2"></script>
 </body></html>
