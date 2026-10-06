@@ -85,19 +85,21 @@
     cards.forEach(card => {
       const title=(card.querySelector('h3')?.textContent||'').toLocaleLowerCase('tr-TR');
       const online=card.classList.contains('online-plan');
+      const has12=/(^|\D)12(\D|$)/.test(title);
+      const has4=/(^|\D)4(\D|$)/.test(title);
       if (online) {
-        if (title.includes('12 buluşma') || title.includes('12-meetup') || title.includes('12 meetup')) {
+        if (has12) {
           setPrice(card,CONFIG.online.twelvePack,t('12 buluşma','12 meetups'));
-        } else if (title.includes('4 buluşma') || title.includes('4-meetup') || title.includes('4 meetup')) {
+        } else if (has4) {
           setPrice(card,CONFIG.online.fourPack,t('4 buluşma','4 meetups'));
         } else {
           setPrice(card,CONFIG.online.price,t('buluşma','meetup'));
         }
       } else if (title.includes('tek etkinlik') || title.includes('single')) {
         setPrice(card,CONFIG.pricing.single,t('etkinlik','event'));
-      } else if (title.includes('12 buluşma') || title.includes('12-meetup') || title.includes('12 meetup') || title.includes('3 aylık') || title.includes('3 month')) {
+      } else if (has12 || title.includes('3 aylık') || title.includes('3 month')) {
         setPrice(card,CONFIG.pricing.threeMonth,t('12 buluşma','12 meetups'));
-      } else if (title.includes('4 buluşma') || title.includes('4-meetup') || title.includes('4 meetup') || title.includes('1 aylık') || title.includes('1 month')) {
+      } else if (has4 || title.includes('1 aylık') || title.includes('1 month')) {
         setPrice(card,CONFIG.pricing.oneMonth,t('4 buluşma','4 meetups'));
       }
     });
