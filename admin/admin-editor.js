@@ -220,9 +220,18 @@
     items.forEach(([ok,pts,label])=>{if(ok)score+=pts;checks.push({ok,label})});
     return {score,checks};
   }
+  function geoScoreForFrame(seo){
+    const doc=frame?.contentDocument;
+    if(!doc)return {score:0,checks:[]};
+    const canonical=seo.canonical||doc.querySelector('link[rel="canonical"]')?.href||'';
+    const robots=readMeta(doc,'meta[name="robots"]');
+    const indexable=seo.indexable!==false&&!/\\bnoindex\\b/i.test(robots);
+    const geo=geoAuditFromDoc(doc,current,canonical,indexable,seo.title,seo.description);
+    return {score:geo.score,checks:geo.checks};
+  }
   function seoModal(){
     const s=effectiveSeo();
-    openModal('<div class="seo-modal-head"><div><span class="pill published">SEO</span><h2>Google & paylaşım görünümü</h2><p class="muted">Bu alan arama motorlarının sayfayı anlamasına ve Google / WhatsApp / sosyal medya önizlemelerinin daha kontrollü görünmesine yardımcı olur.</p></div><div class="seo-score"><strong id="seoScore">0</strong><span>/100 kontrol skoru</span></div></div>'+
+    openModal('<div class="seo-modal-head"><div><span class="pill published">SEO + GEO</span><h2>Google & AI görünürlüğü</h2><p class="muted">SEO alanları Google görünümünü; GEO kontrolleri ise ChatGPT Search, Copilot ve benzeri üretken arama sistemlerinin sayfayı anlayıp kaynak olarak kullanabilmesine yardımcı olan temel yapıyı kontrol eder.</p></div><div class="seo-dual-score"><div class="seo-score"><strong id="seoScore">0</strong><span>SEO /100</span></div><div class="seo-score geo"><strong id="geoScore">0</strong><span>GEO /100</span></div></div></div>'+
       '<form id="seoForm" class="stack seo-form">'+
         '<div class="seo-grid">'+
           '<div class="seo-fields">'+
@@ -242,7 +251,8 @@
           '<label>Open Graph açıklama<textarea name="og_description" rows="3">'+esc(s.og_description||'')+'</textarea></label>'+
           '<label>Paylaşım görseli URL <small>Öneri: 1200×630 px ve herkese açık HTTPS görsel.</small><input name="og_image" type="url" value="'+esc(s.og_image||'')+'"></label>'+
         '</div>'+
-        '<div class="seo-note"><strong>Not:</strong> Başlık ve açıklama karakter aralıkları pratik rehberdir; Google sabit bir karakter sınırı garanti etmez ve sonucu sorguya göre değiştirebilir.</div>'+
+        '<div class="card geo-page-card"><div class="card-head"><div><h3>GEO / AI cevaplanabilirlik</h3><p class="muted">Görünür H1, açıklayıcı ilk paragraf, entity adı, canonical ve structured data gibi sinyalleri kontrol eder. Bu bir AI sıralama garantisi değildir.</p></div><a class="icon-btn" href="/llms.txt" target="_blank">llms.txt ↗</a></div><div id="geoChecks" class="seo-checks"></div></div>'+
+        '<div class="seo-note"><strong>Not:</strong> Başlık ve açıklama karakter aralıkları pratik rehberdir; Google sabit bir karakter sınırı garanti etmez ve sonucu sorguya göre değiştirebilir. GEO tarafında özel bir “AI meta etiketi” yoktur; görünür, net, kaynaklanabilir içerik esastır.</div>'+
         '<div class="row-actions"><button type="button" id="seoFillBtn" class="btn secondary">Mevcut sayfadan doldur</button><button class="btn primary">Kaydet ve canlıya yayınla</button></div>'+
       '</form>');
     const form=$('#seoForm');
@@ -258,14 +268,16 @@
       og_type:String(fd.get('og_type')||'website')
     }};
     const refresh=()=>{
-      const seo=collect(), result=seoScore(seo);
+      const seo=collect(), result=seoScore(seo), geo=geoScoreForFrame(seo);
       $('#seoTitleCount').textContent=(seo.title.length||0)+' karakter';
       $('#seoDescCount').textContent=(seo.description.length||0)+' karakter';
       $('#seoScore').textContent=result.score;
+      $('#geoScore').textContent=geo.score;
       $('#seoPreviewUrl').textContent=seo.canonical||absolutePageUrl(current?.path);
       $('#seoPreviewTitle').textContent=seo.title||current?.name||'Sayfa başlığı';
       $('#seoPreviewDescription').textContent=seo.description||'Meta açıklama girildiğinde Google önizlemesi burada görünür.';
       $('#seoChecks').innerHTML=result.checks.map(x=>'<div class="'+(x.ok?'ok':'warn')+'"><span>'+(x.ok?'✓':'!')+'</span><b>'+esc(x.label)+'</b></div>').join('');
+      $('#geoChecks').innerHTML=geo.checks.map(x=>'<div class="'+(x[0]?'ok':'warn')+'"><span>'+(x[0]?'✓':'!')+'</span><b>'+esc(x[2])+'</b></div>').join('');
     };
     form.querySelectorAll('input,textarea,select').forEach(el=>el.addEventListener('input',refresh));
     form.querySelectorAll('select').forEach(el=>el.addEventListener('change',refresh));
@@ -317,7 +329,8 @@
     current=fresh;
     workingData=normalizeData(fresh.draft_data);
     workingSeo=clone(fresh.draft_seo||{});
-    if(!quiet)toast('Yayınlandı · aynı sayfada yeni değişiklik yapıp tekrar yayınlayabilirsin');
+    A.notifyIndexNow?.(fresh.path||'/').catch?.(()=>{});
+    if(!quiet)toast('Yayınlandı · SEO/GEO güncellemesi arama sistemlerine bildirildi');
     return pageId;
   }
   async function publishWorkingNow(label='Değişiklik'){
