@@ -807,7 +807,7 @@
     if (path.startsWith('/admin/') || path.startsWith('/esc-studio/')) return;
     if (document.querySelector('script[data-esc-cms-runtime]')) return;
     const script = document.createElement('script');
-    script.src = '/esc-cms-runtime.js?v=20261006-seo1';
+    script.src = '/esc-cms-runtime.js?v=20261006-eventfix1';
     script.async = true;
     script.dataset.escCmsRuntime = 'true';
     document.head.appendChild(script);

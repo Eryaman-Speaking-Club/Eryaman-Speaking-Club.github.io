@@ -45,6 +45,8 @@
   function applyPatchDoc(doc,p){
     let els=[];try{els=[...doc.querySelectorAll(p.selector)]}catch(_){}
     els.forEach(el=>{
+      if(el.closest?.('[data-esc-managed]'))return;
+      if(p.kind==='attr'&&p.attr==='href'&&el.closest?.('[data-esc-managed-href]'))return;
       if(p.kind==='text')el.textContent=p.value??'';
       else if(p.kind==='textNode'){
         const nodes=[...el.childNodes].filter(n=>n.nodeType===3);
@@ -144,6 +146,11 @@
     doc.addEventListener('mouseover',e=>{const f=findEditable(e.target,doc);if(last)last.removeAttribute('data-esc-admin-hover');if(f){f.el.setAttribute('data-esc-admin-hover','1');last=f.el}},true);
     doc.addEventListener('mouseout',e=>{if(last){last.removeAttribute('data-esc-admin-hover');last=null}},true);
     doc.addEventListener('click',e=>{
+      if(e.target?.closest?.('[data-esc-managed],[data-esc-managed-href]')){
+        e.preventDefault();e.stopPropagation();
+        toast('Bu alan Etkinlik & Fiyatlar bölümünden merkezi olarak yönetilir.');
+        return;
+      }
       const found=findEditable(e.target,doc);if(!found)return;
       e.preventDefault();e.stopPropagation();editClicked(found,doc);
     },true);

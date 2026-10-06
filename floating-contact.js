@@ -95,10 +95,10 @@
       joinStrip.className = 'hero-join-strip';
       joinStrip.innerHTML = isEnglish ? `
         <span class="hero-join-free">FIRST MEETUP IS FREE</span>
-        <span class="hero-join-info"><strong>Sunday, September 20 · 19:00</strong><i></i>Eryaman 1-2 Coffee Lab</span>
+        <span class="hero-join-info"><strong>Next meetup</strong><i></i>Eryaman 1-2 Coffee Lab</span>
       ` : `
         <span class="hero-join-free">İLK BULUŞMA ÜCRETSİZ</span>
-        <span class="hero-join-info"><strong>20 Eylül Pazar · 19:00</strong><i></i>Eryaman 1-2 Coffee Lab</span>
+        <span class="hero-join-info"><strong>Sıradaki buluşma</strong><i></i>Eryaman 1-2 Coffee Lab</span>
       `;
       eyebrow.insertAdjacentElement('afterend', joinStrip);
     }
@@ -144,6 +144,7 @@
     }
 
     [...document.querySelectorAll('.feedback-card')].slice(4).forEach((card) => card.classList.add('esc-feedback-hidden'));
+    window.ESCApplyEventConfig?.();
   };
 
   const prioritizeNextEvent = () => {
@@ -174,6 +175,7 @@
       `;
       oldMap.replaceWith(actions);
     }
+    window.ESCApplyEventConfig?.();
     return true;
   };
 
