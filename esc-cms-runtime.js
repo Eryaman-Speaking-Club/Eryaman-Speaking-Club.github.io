@@ -74,29 +74,53 @@
     });
   }
 
+  function ensureMeta(selector,attrs) {
+    let el=document.querySelector(selector);
+    if(!el){el=document.createElement('meta');Object.entries(attrs||{}).forEach(([k,v])=>el.setAttribute(k,v));document.head.appendChild(el)}
+    return el;
+  }
+  function ensureLink(selector,attrs) {
+    let el=document.querySelector(selector);
+    if(!el){el=document.createElement('link');Object.entries(attrs||{}).forEach(([k,v])=>el.setAttribute(k,v));document.head.appendChild(el)}
+    return el;
+  }
+  function currentCanonical() {
+    const existing=document.querySelector('link[rel="canonical"]')?.getAttribute('href');
+    if(existing)return existing;
+    const path=normalizePath(location.pathname);
+    return location.origin+path;
+  }
   function applySeo(seo) {
-    if (!seo || typeof seo !== 'object') return;
-    if (seo.title) document.title = seo.title;
-    if (seo.description !== undefined) {
-      let meta = document.querySelector('meta[name="description"]');
-      if (!meta) { meta = document.createElement('meta'); meta.name='description'; document.head.appendChild(meta); }
-      meta.content = seo.description || '';
-    }
-    if (seo.og_title) {
-      let meta = document.querySelector('meta[property="og:title"]');
-      if (!meta) { meta=document.createElement('meta'); meta.setAttribute('property','og:title'); document.head.appendChild(meta); }
-      meta.content=seo.og_title;
-    }
-    if (seo.og_description) {
-      let meta = document.querySelector('meta[property="og:description"]');
-      if (!meta) { meta=document.createElement('meta'); meta.setAttribute('property','og:description'); document.head.appendChild(meta); }
-      meta.content=seo.og_description;
-    }
-    if (seo.og_image) {
-      let meta = document.querySelector('meta[property="og:image"]');
-      if (!meta) { meta=document.createElement('meta'); meta.setAttribute('property','og:image'); document.head.appendChild(meta); }
-      meta.content=seo.og_image;
-    }
+    if (!seo || typeof seo !== 'object') seo={};
+    const title=seo.title||document.title||'';
+    const description=seo.description!==undefined?seo.description:(document.querySelector('meta[name="description"]')?.getAttribute('content')||'');
+    const canonical=seo.canonical||currentCanonical();
+    const ogTitle=seo.og_title||title;
+    const ogDescription=seo.og_description||description;
+    const ogImage=seo.og_image||document.querySelector('meta[property="og:image"]')?.getAttribute('content')||'https://eryamanspeakingclub.com/og-card.jpg';
+    const ogType=seo.og_type||'website';
+    const lang=document.documentElement.lang==='en'?'en_US':'tr_TR';
+
+    if (title) document.title=title;
+    const desc=ensureMeta('meta[name="description"]',{name:'description'});desc.content=description||'';
+    const canonicalEl=ensureLink('link[rel="canonical"]',{rel:'canonical'});canonicalEl.href=canonical;
+    const robots=ensureMeta('meta[name="robots"]',{name:'robots'});
+    const existingRobots=robots.getAttribute('content')||'';
+    const indexable=seo.indexable!==undefined?seo.indexable:!/\bnoindex\b/i.test(existingRobots);
+    robots.content=indexable===false?'noindex,nofollow':'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
+
+    const ogTypeEl=ensureMeta('meta[property="og:type"]',{property:'og:type'});ogTypeEl.content=ogType;
+    const ogSite=ensureMeta('meta[property="og:site_name"]',{property:'og:site_name'});ogSite.content='Eryaman Speaking Club';
+    const ogLocale=ensureMeta('meta[property="og:locale"]',{property:'og:locale'});ogLocale.content=lang;
+    const ogTitleEl=ensureMeta('meta[property="og:title"]',{property:'og:title'});ogTitleEl.content=ogTitle;
+    const ogDescEl=ensureMeta('meta[property="og:description"]',{property:'og:description'});ogDescEl.content=ogDescription;
+    const ogUrl=ensureMeta('meta[property="og:url"]',{property:'og:url'});ogUrl.content=canonical;
+    const ogImageEl=ensureMeta('meta[property="og:image"]',{property:'og:image'});ogImageEl.content=ogImage;
+
+    const twCard=ensureMeta('meta[name="twitter:card"]',{name:'twitter:card'});twCard.content='summary_large_image';
+    const twTitle=ensureMeta('meta[name="twitter:title"]',{name:'twitter:title'});twTitle.content=ogTitle;
+    const twDesc=ensureMeta('meta[name="twitter:description"]',{name:'twitter:description'});twDesc.content=ogDescription;
+    const twImage=ensureMeta('meta[name="twitter:image"]',{name:'twitter:image'});twImage.content=ogImage;
   }
 
   function injectBaseStyle() {

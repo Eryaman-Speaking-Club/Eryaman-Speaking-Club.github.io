@@ -144,14 +144,20 @@
     const oldSchema=document.querySelector('script[data-site-refresh-seo]');
     if(oldSchema){try{const data=JSON.parse(oldSchema.textContent);if(data&&Array.isArray(data['@graph']))data['@graph']=data['@graph'].filter(item=>item['@type']!=='Event');oldSchema.textContent=JSON.stringify(data)}catch(_){}}
     let eventSchema=document.getElementById('esc-event-schema');
-    if(!eventSchema){eventSchema=document.createElement('script');eventSchema.type='application/ld+json';eventSchema.id='esc-event-schema';document.head.appendChild(eventSchema)}
-    eventSchema.textContent=JSON.stringify({
-      '@context':'https://schema.org','@type':'Event',
-      name:isEnglish?'Eryaman Speaking Club — '+e.monthEn+' '+e.day+' Meetup':'Eryaman Speaking Club — '+e.day+' '+e.monthTr.charAt(0)+e.monthTr.slice(1).toLocaleLowerCase('tr-TR')+' Buluşması',
-      startDate:e.start,endDate:e.end,eventStatus:'https://schema.org/EventScheduled',eventAttendanceMode:'https://schema.org/OfflineEventAttendanceMode',
-      location:{'@type':'Place',name:e.venue,address:{'@type':'PostalAddress',addressLocality:'Ankara',addressCountry:'TR'}},
-      organizer:{'@type':'Organization',name:'Eryaman Speaking Club',url:'https://eryamanspeakingclub.com/'},url:'https://eryamanspeakingclub.com/#next-event'
-    });
+    const eventEnd=Date.parse(e.end||'');
+    const eventExpired=Number.isFinite(eventEnd)&&eventEnd<Date.now();
+    if(eventExpired){
+      if(eventSchema)eventSchema.remove();
+    }else{
+      if(!eventSchema){eventSchema=document.createElement('script');eventSchema.type='application/ld+json';eventSchema.id='esc-event-schema';document.head.appendChild(eventSchema)}
+      eventSchema.textContent=JSON.stringify({
+        '@context':'https://schema.org','@type':'Event',
+        name:isEnglish?'Eryaman Speaking Club — '+e.monthEn+' '+e.day+' Meetup':'Eryaman Speaking Club — '+e.day+' '+e.monthTr.charAt(0)+e.monthTr.slice(1).toLocaleLowerCase('tr-TR')+' Buluşması',
+        startDate:e.start,endDate:e.end,eventStatus:'https://schema.org/EventScheduled',eventAttendanceMode:'https://schema.org/OfflineEventAttendanceMode',
+        location:{'@type':'Place',name:e.venue,address:{'@type':'PostalAddress',addressLocality:'Ankara',addressCountry:'TR'}},
+        organizer:{'@type':'Organization',name:'Eryaman Speaking Club',url:'https://eryamanspeakingclub.com/'},url:'https://eryamanspeakingclub.com/#next-event'
+      });
+    }
     window.ESC_EVENT_CONFIG=CONFIG;
     window.dispatchEvent(new CustomEvent('esc:event-config:applied',{detail:{source}}));
   }

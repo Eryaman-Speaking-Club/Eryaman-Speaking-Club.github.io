@@ -170,15 +170,125 @@
       $('#closeSections').onclick=async e=>{const btn=e.currentTarget;btn.disabled=true;btn.textContent='Kaydediliyor…';try{await publishWorkingNow('Bölüm düzeni');closeModal()}catch(err){alert(err.message||err);btn.disabled=false;btn.textContent='Kaydet ve canlıya yayınla'}};
     }; draw();
   }
+  function readMeta(doc,selector){
+    return doc?.querySelector(selector)?.getAttribute('content')||'';
+  }
+  function absolutePageUrl(path){
+    const clean=String(path||'/').split('?')[0].split('#')[0]||'/';
+    return 'https://eryamanspeakingclub.com'+(clean.startsWith('/')?clean:'/'+clean);
+  }
+  function effectiveSeo(){
+    const doc=frame?.contentDocument;
+    const robots=readMeta(doc,'meta[name="robots"]');
+    const canonical=doc?.querySelector('link[rel="canonical"]')?.getAttribute('href')||absolutePageUrl(current?.path);
+    const title=workingSeo.title ?? doc?.title ?? current?.name ?? '';
+    const description=workingSeo.description ?? readMeta(doc,'meta[name="description"]');
+    const ogTitle=workingSeo.og_title ?? readMeta(doc,'meta[property="og:title"]') ?? title;
+    const ogDescription=workingSeo.og_description ?? readMeta(doc,'meta[property="og:description"]') ?? description;
+    const ogImage=workingSeo.og_image ?? readMeta(doc,'meta[property="og:image"]') ?? 'https://eryamanspeakingclub.com/og-card.jpg';
+    return {
+      title,
+      description,
+      focus_keyword:workingSeo.focus_keyword||'',
+      canonical:workingSeo.canonical||canonical,
+      indexable:workingSeo.indexable!==undefined?workingSeo.indexable:!/\bnoindex\b/i.test(robots),
+      og_title:ogTitle||title,
+      og_description:ogDescription||description,
+      og_image:ogImage,
+      og_type:workingSeo.og_type||readMeta(doc,'meta[property="og:type"]')||'website'
+    };
+  }
+  function seoScore(seo){
+    const doc=frame?.contentDocument;
+    let score=0, checks=[];
+    const titleLen=String(seo.title||'').trim().length;
+    const descLen=String(seo.description||'').trim().length;
+    const canonicalOk=/^https:\/\//i.test(String(seo.canonical||''));
+    const imageOk=/^https:\/\//i.test(String(seo.og_image||''));
+    const h1=(doc?.querySelector('h1')?.textContent||'').trim();
+    const focus=String(seo.focus_keyword||'').trim().toLocaleLowerCase('tr-TR');
+    const text=(String(seo.title||'')+' '+String(seo.description||'')).toLocaleLowerCase('tr-TR');
+    const items=[
+      [titleLen>=25&&titleLen<=70,25,'Açıklayıcı sayfa başlığı'],
+      [descLen>=70&&descLen<=180,20,'Yeterli meta açıklama'],
+      [canonicalOk,15,'Canonical URL tanımlı'],
+      [imageOk,15,'Sosyal paylaşım görseli tanımlı'],
+      [!!h1,10,'Sayfada H1 başlığı var'],
+      [seo.indexable!==false,10,'Arama motoru indekslemesi açık'],
+      [!focus||text.includes(focus),5,focus?'Hedef ifade başlık/açıklamada geçiyor':'Hedef ifade isteğe bağlı']
+    ];
+    items.forEach(([ok,pts,label])=>{if(ok)score+=pts;checks.push({ok,label})});
+    return {score,checks};
+  }
   function seoModal(){
-    openModal('<h2>SEO & paylaşım bilgileri</h2><form id="seoForm" class="stack">'+
-      '<label>Sayfa başlığı<input name="title" value="'+esc(workingSeo.title||'')+'"></label>'+
-      '<label>Meta açıklama<textarea name="description" rows="4">'+esc(workingSeo.description||'')+'</textarea></label>'+
-      '<label>Open Graph başlığı<input name="og_title" value="'+esc(workingSeo.og_title||'')+'"></label>'+
-      '<label>Open Graph açıklama<textarea name="og_description" rows="3">'+esc(workingSeo.og_description||'')+'</textarea></label>'+
-      '<label>Paylaşım görseli URL<input name="og_image" value="'+esc(workingSeo.og_image||'')+'"></label>'+
-      '<button class="btn primary">Kaydet ve canlıya yayınla</button></form>');
-    $('#seoForm').onsubmit=async e=>{e.preventDefault();const btn=e.currentTarget.querySelector('button');btn.disabled=true;btn.textContent='Kaydediliyor…';try{const f=new FormData(e.currentTarget);workingSeo={title:f.get('title'),description:f.get('description'),og_title:f.get('og_title'),og_description:f.get('og_description'),og_image:f.get('og_image')};await publishWorkingNow('SEO');closeModal()}catch(err){alert(err.message||err);btn.disabled=false;btn.textContent='Kaydet ve canlıya yayınla'}};
+    const s=effectiveSeo();
+    openModal('<div class="seo-modal-head"><div><span class="pill published">SEO</span><h2>Google & paylaşım görünümü</h2><p class="muted">Bu alan arama motorlarının sayfayı anlamasına ve Google / WhatsApp / sosyal medya önizlemelerinin daha kontrollü görünmesine yardımcı olur.</p></div><div class="seo-score"><strong id="seoScore">0</strong><span>/100 kontrol skoru</span></div></div>'+
+      '<form id="seoForm" class="stack seo-form">'+
+        '<div class="seo-grid">'+
+          '<div class="seo-fields">'+
+            '<label>Sayfa başlığı <small id="seoTitleCount"></small><input name="title" maxlength="120" value="'+esc(s.title||'')+'" placeholder="Örn. Eryaman Speaking Club | Ankara İngilizce Konuşma Kulübü"></label>'+
+            '<label>Meta açıklama <small id="seoDescCount"></small><textarea name="description" rows="4" maxlength="320" placeholder="Sayfanın ne sunduğunu doğal ve net biçimde anlat.">'+esc(s.description||'')+'</textarea></label>'+
+            '<label>Ana hedef arama ifadesi <small>Google meta etiketi değildir; içerik planlama yardımcısıdır.</small><input name="focus_keyword" value="'+esc(s.focus_keyword||'')+'" placeholder="Örn. Ankara İngilizce konuşma kulübü"></label>'+
+            '<label>Canonical URL <small>Aynı içeriğin birden fazla URL’si varsa ana adresi belirtir.</small><input name="canonical" type="url" value="'+esc(s.canonical||'')+'"></label>'+
+            '<label>Google indeksleme<select name="indexable"><option value="true" '+(s.indexable!==false?'selected':'')+'>Index · Google’da görünebilir</option><option value="false" '+(s.indexable===false?'selected':'')+'>Noindex · Google sonuçlarında gösterme</option></select></label>'+
+          '</div>'+
+          '<div class="seo-preview-column">'+
+            '<div class="seo-preview-card"><small>GOOGLE ÖNİZLEMESİ</small><div class="seo-preview-url" id="seoPreviewUrl"></div><h3 id="seoPreviewTitle"></h3><p id="seoPreviewDescription"></p></div>'+
+            '<div class="seo-check-card"><div class="card-head"><div><h3>SEO kontrolü</h3><p class="muted">Bu skor Google sıralama puanı değildir; temel alanların eksik olup olmadığını kontrol eder.</p></div></div><div id="seoChecks" class="seo-checks"></div></div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="card seo-social-card"><div class="card-head"><div><h3>Sosyal paylaşım</h3><p class="muted">WhatsApp, LinkedIn ve diğer platformlarda paylaşıldığında kullanılabilecek başlık, açıklama ve görsel.</p></div></div>'+
+          '<div class="grid-2"><label>Open Graph başlığı<input name="og_title" value="'+esc(s.og_title||'')+'"></label><label>Open Graph türü<select name="og_type"><option value="website" '+(s.og_type==='website'?'selected':'')+'>website</option><option value="article" '+(s.og_type==='article'?'selected':'')+'>article</option></select></label></div>'+
+          '<label>Open Graph açıklama<textarea name="og_description" rows="3">'+esc(s.og_description||'')+'</textarea></label>'+
+          '<label>Paylaşım görseli URL <small>Öneri: 1200×630 px ve herkese açık HTTPS görsel.</small><input name="og_image" type="url" value="'+esc(s.og_image||'')+'"></label>'+
+        '</div>'+
+        '<div class="seo-note"><strong>Not:</strong> Başlık ve açıklama karakter aralıkları pratik rehberdir; Google sabit bir karakter sınırı garanti etmez ve sonucu sorguya göre değiştirebilir.</div>'+
+        '<div class="row-actions"><button type="button" id="seoFillBtn" class="btn secondary">Mevcut sayfadan doldur</button><button class="btn primary">Kaydet ve canlıya yayınla</button></div>'+
+      '</form>');
+    const form=$('#seoForm');
+    const collect=()=>{const fd=new FormData(form);return {
+      title:String(fd.get('title')||'').trim(),
+      description:String(fd.get('description')||'').trim(),
+      focus_keyword:String(fd.get('focus_keyword')||'').trim(),
+      canonical:String(fd.get('canonical')||'').trim(),
+      indexable:String(fd.get('indexable'))!=='false',
+      og_title:String(fd.get('og_title')||'').trim(),
+      og_description:String(fd.get('og_description')||'').trim(),
+      og_image:String(fd.get('og_image')||'').trim(),
+      og_type:String(fd.get('og_type')||'website')
+    }};
+    const refresh=()=>{
+      const seo=collect(), result=seoScore(seo);
+      $('#seoTitleCount').textContent=(seo.title.length||0)+' karakter';
+      $('#seoDescCount').textContent=(seo.description.length||0)+' karakter';
+      $('#seoScore').textContent=result.score;
+      $('#seoPreviewUrl').textContent=seo.canonical||absolutePageUrl(current?.path);
+      $('#seoPreviewTitle').textContent=seo.title||current?.name||'Sayfa başlığı';
+      $('#seoPreviewDescription').textContent=seo.description||'Meta açıklama girildiğinde Google önizlemesi burada görünür.';
+      $('#seoChecks').innerHTML=result.checks.map(x=>'<div class="'+(x.ok?'ok':'warn')+'"><span>'+(x.ok?'✓':'!')+'</span><b>'+esc(x.label)+'</b></div>').join('');
+    };
+    form.querySelectorAll('input,textarea,select').forEach(el=>el.addEventListener('input',refresh));
+    form.querySelectorAll('select').forEach(el=>el.addEventListener('change',refresh));
+    $('#seoFillBtn').onclick=()=>{
+      const doc=frame?.contentDocument;
+      form.elements.title.value=doc?.title||current?.name||'';
+      form.elements.description.value=readMeta(doc,'meta[name="description"]')||((doc?.querySelector('main p')?.textContent||'').trim().slice(0,180));
+      form.elements.canonical.value=doc?.querySelector('link[rel="canonical"]')?.href||absolutePageUrl(current?.path);
+      form.elements.og_title.value=readMeta(doc,'meta[property="og:title"]')||form.elements.title.value;
+      form.elements.og_description.value=readMeta(doc,'meta[property="og:description"]')||form.elements.description.value;
+      form.elements.og_image.value=readMeta(doc,'meta[property="og:image"]')||'https://eryamanspeakingclub.com/og-card.jpg';
+      refresh();
+    };
+    refresh();
+    form.onsubmit=async e=>{
+      e.preventDefault();
+      const btn=e.currentTarget.querySelector('button[type="submit"]');btn.disabled=true;btn.textContent='Kaydediliyor…';
+      try{
+        workingSeo=collect();
+        await publishWorkingNow('SEO');
+        closeModal();
+      }catch(err){alert(err.message||err);btn.disabled=false;btn.textContent='Kaydet ve canlıya yayınla'}
+    };
   }
   let saveBusy=false;
   let publishBusy=false;
