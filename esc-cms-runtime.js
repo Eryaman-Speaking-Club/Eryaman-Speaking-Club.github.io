@@ -105,7 +105,9 @@
     const desc=ensureMeta('meta[name="description"]',{name:'description'});desc.content=description||'';
     const canonicalEl=ensureLink('link[rel="canonical"]',{rel:'canonical'});canonicalEl.href=canonical;
     const robots=ensureMeta('meta[name="robots"]',{name:'robots'});
-    robots.content=seo.indexable===false?'noindex,nofollow':'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
+    const existingRobots=robots.getAttribute('content')||'';
+    const indexable=seo.indexable!==undefined?seo.indexable:!/\bnoindex\b/i.test(existingRobots);
+    robots.content=indexable===false?'noindex,nofollow':'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
 
     const ogTypeEl=ensureMeta('meta[property="og:type"]',{property:'og:type'});ogTypeEl.content=ogType;
     const ogSite=ensureMeta('meta[property="og:site_name"]',{property:'og:site_name'});ogSite.content='Eryaman Speaking Club';
