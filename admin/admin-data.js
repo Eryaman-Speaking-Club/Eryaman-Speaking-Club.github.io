@@ -201,21 +201,58 @@
 
   async function settingsView(){
     const {data,error}=await A.state.db.from('esc_cms_settings').select('*').order('key');if(error)throw error;
-    const identity=data.find(x=>x.key==='site_identity')||{key:'site_identity',draft_data:{}};const social=data.find(x=>x.key==='social_links')||{key:'social_links',draft_data:{}};
-    const id=identity.draft_data||{},so=social.draft_data||{};
-    $('#panel').innerHTML='<div class="card"><div class="card-head"><div><h2>Genel site ayarları</h2><p class="muted">Marka, iletişim ve sosyal bağlantılar.</p></div></div><form id="settingsForm" class="stack"><div class="grid-2"><label>Site adı<input name="site_name" value="'+esc(id.site_name||'Eryaman Speaking Club')+'"></label><label>İletişim e-postası<input name="contact_email" type="email" value="'+esc(id.contact_email||'')+'"></label></div><div class="grid-2"><label>Instagram<input name="instagram" value="'+esc(so.instagram||'')+'"></label><label>TikTok<input name="tiktok" value="'+esc(so.tiktok||'')+'"></label></div><button class="btn primary" '+(!A.canEdit()?'disabled':'')+'>Kaydet & yayınla</button></form></div>'+
+    const identity=data.find(x=>x.key==='site_identity')||{key:'site_identity',draft_data:{},published_data:{}};
+    const social=data.find(x=>x.key==='social_links')||{key:'social_links',draft_data:{},published_data:{}};
+    const id=identity.draft_data||identity.published_data||{},so=social.draft_data||social.published_data||{};
+    const helper=id.answer_helper||{};
+    const helperColor=['navy','teal','purple','green','rose','light'].includes(helper.color)?helper.color:'navy';
+    const helperIcon=['question','info','spark'].includes(helper.icon)?helper.icon:'question';
+    const helperShape=['rounded','circle','square'].includes(helper.shape)?helper.shape:'rounded';
+    const colorOptions=[
+      ['navy','Lacivert','#123a6b'],['teal','Turkuaz','#167f83'],['purple','Mor','#6b5fb5'],
+      ['green','Yeşil','#2f7d67'],['rose','Gül kurusu','#a95f78'],['light','Açık','#f4f7fa']
+    ];
+    $('#panel').innerHTML='<div class="card"><div class="card-head"><div><h2>Genel site ayarları</h2><p class="muted">Marka, iletişim, sosyal bağlantılar ve oyun arayüzü.</p></div></div><form id="settingsForm" class="stack">'+
+      '<div class="grid-2"><label>Site adı<input name="site_name" value="'+esc(id.site_name||'Eryaman Speaking Club')+'"></label><label>İletişim e-postası<input name="contact_email" type="email" value="'+esc(id.contact_email||'')+'"></label></div>'+
+      '<div class="grid-2"><label>Instagram<input name="instagram" value="'+esc(so.instagram||'')+'"></label><label>TikTok<input name="tiktok" value="'+esc(so.tiktok||'')+'"></label></div>'+
+      '<section class="helper-admin-box"><div class="helper-admin-copy"><span class="pill live">OYUN ARAYÜZÜ</span><h3>Cevap yardım butonu</h3><p class="muted">Sağ üstte ses ve fullscreen kontrollerinin yanında görünür. Buradaki seçim yayınlandığında tüm public oyunlara uygulanır.</p></div>'+
+        '<div class="helper-admin-preview"><span>Canlı önizleme</span><button type="button" id="helperPreview" data-shape="'+esc(helperShape)+'">'+(helperIcon==='info'?'i':helperIcon==='spark'?'✦':'?')+'</button></div>'+
+        '<div class="helper-color-field"><strong>Renk</strong><div class="helper-theme-grid">'+colorOptions.map(x=>'<label class="helper-theme-option"><input type="radio" name="answer_color" value="'+x[0]+'" '+(helperColor===x[0]?'checked':'')+'><span class="helper-color-dot" style="--dot:'+x[2]+'"></span><em>'+x[1]+'</em></label>').join('')+'</div></div>'+
+        '<div class="grid-2"><label>Simge<select name="answer_icon"><option value="question" '+(helperIcon==='question'?'selected':'')+'>? · Yardım</option><option value="info" '+(helperIcon==='info'?'selected':'')+'>i · Bilgi</option><option value="spark" '+(helperIcon==='spark'?'selected':'')+'>✦ · İpucu</option></select></label>'+
+        '<label>Şekil<select name="answer_shape"><option value="rounded" '+(helperShape==='rounded'?'selected':'')+'>Yumuşak köşe</option><option value="circle" '+(helperShape==='circle'?'selected':'')+'>Yuvarlak</option><option value="square" '+(helperShape==='square'?'selected':'')+'>Kare</option></select></label></div>'+
+      '</section>'+
+      '<button class="btn primary" '+(!A.canEdit()?'disabled':'')+'>Kaydet & yayınla</button></form></div>'+
       '<div class="card"><div class="card-head"><div><h2>Güvenlik</h2><p class="muted">Yönetim paneli hesabının şifresini değiştir.</p></div></div><form id="passwordChangeForm" class="stack"><label>Yeni şifre<input name="password" type="password" minlength="8" autocomplete="new-password" required></label><label>Yeni şifre tekrar<input name="password2" type="password" minlength="8" autocomplete="new-password" required></label><button class="btn primary">Şifreyi değiştir</button></form></div>';
+
+    const previewThemes={navy:['#123a6b','#fff','#123a6b'],teal:['#167f83','#fff','#167f83'],purple:['#6b5fb5','#fff','#6b5fb5'],green:['#2f7d67','#fff','#2f7d67'],rose:['#a95f78','#fff','#a95f78'],light:['#f4f7fa','#123a6b','#d8e4ee']};
+    const refreshPreview=()=>{
+      const f=new FormData($('#settingsForm')),color=f.get('answer_color')||'navy',icon=f.get('answer_icon')||'question',shape=f.get('answer_shape')||'rounded';
+      const p=$('#helperPreview'),t=previewThemes[color]||previewThemes.navy;
+      p.textContent=icon==='info'?'i':icon==='spark'?'✦':'?';p.dataset.shape=shape;p.style.background=t[0];p.style.color=t[1];p.style.borderColor=t[2];
+    };
+    $('#settingsForm').querySelectorAll('input[name="answer_color"],select[name="answer_icon"],select[name="answer_shape"]').forEach(el=>el.addEventListener('change',refreshPreview));
+    refreshPreview();
+
     $('#passwordChangeForm').onsubmit=async e=>{
       e.preventDefault();
       const f=new FormData(e.currentTarget),p=String(f.get('password')||''),p2=String(f.get('password2')||'');
       if(p!==p2){alert('Şifreler aynı değil.');return}
+      try{await window.ESCSupabase.updatePassword(p);e.currentTarget.reset();toast('Şifre değiştirildi')}catch(err){alert(err.message||err)}
+    };
+    $('#settingsForm').onsubmit=async e=>{
+      e.preventDefault();const f=new FormData(e.currentTarget);
       try{
-        await window.ESCSupabase.updatePassword(p);
-        e.currentTarget.reset();
-        toast('Şifre değiştirildi');
+        const identityPayload={...id,site_name:f.get('site_name'),contact_email:f.get('contact_email'),answer_helper:{color:f.get('answer_color')||'navy',icon:f.get('answer_icon')||'question',shape:f.get('answer_shape')||'rounded'}};
+        const socialPayload={...so,instagram:f.get('instagram'),tiktok:f.get('tiktok')};
+        let r=await A.state.db.from('esc_cms_settings').update({draft_data:identityPayload,has_unpublished_changes:true,updated_by:A.state.session.user.id,updated_at:new Date().toISOString()}).eq('key','site_identity');
+        if(r.error)throw r.error;
+        r=await A.state.db.rpc('esc_cms_publish_setting',{p_key:'site_identity'});if(r.error)throw r.error;
+        r=await A.state.db.from('esc_cms_settings').update({draft_data:socialPayload,has_unpublished_changes:true,updated_by:A.state.session.user.id,updated_at:new Date().toISOString()}).eq('key','social_links');
+        if(r.error)throw r.error;
+        r=await A.state.db.rpc('esc_cms_publish_setting',{p_key:'social_links'});if(r.error)throw r.error;
+        toast('Genel ayarlar ve oyun yardım butonu yayınlandı');
       }catch(err){alert(err.message||err)}
     };
-    $('#settingsForm').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.currentTarget);try{let r=await A.state.db.from('esc_cms_settings').update({draft_data:{site_name:f.get('site_name'),contact_email:f.get('contact_email')},has_unpublished_changes:true,updated_by:A.state.session.user.id,updated_at:new Date().toISOString()}).eq('key','site_identity');if(r.error)throw r.error;r=await A.state.db.rpc('esc_cms_publish_setting',{p_key:'site_identity'});if(r.error)throw r.error;r=await A.state.db.from('esc_cms_settings').update({draft_data:{instagram:f.get('instagram'),tiktok:f.get('tiktok')},has_unpublished_changes:true,updated_by:A.state.session.user.id,updated_at:new Date().toISOString()}).eq('key','social_links');if(r.error)throw r.error;r=await A.state.db.rpc('esc_cms_publish_setting',{p_key:'social_links'});if(r.error)throw r.error;toast('Genel ayarlar yayınlandı')}catch(err){alert(err.message)}};
   }
 
   A.register('events',eventsView);A.register('games',gamesView);A.register('educators',educatorsView);A.register('media',mediaView);A.register('analytics',analyticsView);A.register('team',teamView);A.register('settings',settingsView);
