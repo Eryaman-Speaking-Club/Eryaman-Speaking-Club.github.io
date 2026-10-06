@@ -146,20 +146,20 @@
         <span class="next-event-kicker">Next meetup</span>
         <h2>Meet us in Eryaman this Sunday.</h2>
         <div class="next-event-details">
-          <span>📅 <strong>Sunday, September 20</strong></span>
-          <span>🕖 <strong>19:00</strong></span>
+          <span>📅 <strong>Next meetup</strong></span>
+          <span>🕖 <strong>18:00</strong></span>
           <span>📍 <strong>Eryaman 1-2 Coffee Lab</strong></span>
         </div>
         <p>Coffee, conversation and English practice. See you there.</p>
       </div>
-      <a class="next-event-map" href="https://maps.app.goo.gl/7y8SdsCRGYzuSXnr6" target="_blank" rel="noreferrer">Open location <span>↗</span></a>
+      <a class="next-event-map next-event-location" href="https://maps.app.goo.gl/7y8SdsCRGYzuSXnr6" target="_blank" rel="noreferrer">Open location <span>↗</span></a>
     ` : `
       <div class="next-event-copy">
         <span class="next-event-kicker">Bir sonraki buluşma</span>
         <h2>Bu Pazar Eryaman’da buluşuyoruz.</h2>
         <div class="next-event-details">
-          <span>📅 <strong>20 Eylül Pazar</strong></span>
-          <span>🕖 <strong>19:00</strong></span>
+          <span>📅 <strong>Bir sonraki buluşma</strong></span>
+          <span>🕖 <strong>18:00</strong></span>
           <span>📍 <strong>Eryaman 1-2 Coffee Lab</strong></span>
         </div>
         <p>Kahve, sohbet ve İngilizce pratiği. Orada görüşmek üzere.</p>
@@ -167,6 +167,7 @@
       <a class="next-event-map" href="https://maps.app.goo.gl/7y8SdsCRGYzuSXnr6" target="_blank" rel="noreferrer">Konumu aç <span>↗</span></a>
     `;
     events.insertAdjacentElement('beforebegin', card);
+    window.ESCApplyEventConfig?.();
   };
 
   const initConversationGame = () => {
