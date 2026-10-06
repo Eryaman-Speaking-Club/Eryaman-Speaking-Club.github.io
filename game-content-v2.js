@@ -291,6 +291,20 @@
     'job interviews','relationships','first impressions','phone use','weather','fashion','gaming','photography','home life','commuting',
     'productivity','public speaking','language mistakes','online meetings','housework','weekend plans','small talk','making choices','customer service','group projects'
   ];
+  const legacyChoiceTopics=[
+    'daily routines','free time','exercise','money','shopping','cooking','travel','friendship','family','work',
+    'career plans','education','English learning','technology','social media','music','movies','sports','health','stress',
+    'confidence','patience','honesty','trust','teamwork','communication','motivation','habits','decision making','time management',
+    'creativity','goals','weekends','holidays','city life','remote work','meetings','job interviews','relationships','first impressions',
+    'phone use','gaming','learning new skills','saving money','home life','commuting','leadership','problem solving','risk taking','work-life balance'
+  ];
+  const legacyDebateTopics=[
+    'remote work','public transport','social media','online privacy','artificial intelligence','school homework','university education','work-life balance','city traffic','recycling',
+    'healthy eating','screen time','online shopping','cashless payments','public speaking','teamwork','career changes','job interviews','working from home','four-day work weeks',
+    'school uniforms','phone use in class','social media for teenagers','online learning','face-to-face learning','public healthcare','city parks','tourism','international travel','local businesses',
+    'customer reviews','influencers','online news','advertising','video games','streaming services','competitive sports','group projects','office meetings','flexible working hours',
+    'saving money','buying experiences','digital privacy','self-driving cars','cash payments','public libraries','community events','volunteering','language learning','environmental rules'
+  ];
   const legacyFunTopic=i=>legacyFunTopics[i%legacyFunTopics.length];
   const legacyPick=(normal,funny,i)=>{
     const isFunny=i%2===0;
@@ -306,10 +320,10 @@
   };
 
   const hotSeatNormal=[
-    t=>'What is one thing you would improve about '+t+'?',
+    t=>'What has your experience with '+t+' been like?',
     t=>'What have you learned recently about '+t+'?',
-    t=>'What makes '+t+' easier or more difficult?',
-    t=>'What advice would you give someone about '+t+'?',
+    t=>'What do you like or dislike about '+t+'?',
+    t=>'What is one thing people often misunderstand about '+t+'?',
     t=>'What is one good memory connected to '+t+'?'
   ];
   const hotSeatFunny=[
@@ -373,11 +387,11 @@
 
   if(path.includes('/last-thing-you-did/')&&typeof prompts!=='undefined'){
     const normal=[
-      t=>'What was the last useful lesson you learned about '+t+'?',
-      t=>'What was the last decision you made because of '+t+'?',
-      t=>'What was the last problem you solved involving '+t+'?',
-      t=>'What was the last plan you made related to '+t+'?',
-      t=>'What was the last good experience you had with '+t+'?'
+      t=>'When was the last time you talked about '+t+'?',
+      t=>'What was the last new thing you learned about '+t+'?',
+      t=>'When did '+t+' last affect one of your plans?',
+      t=>'What was the last interesting thing you noticed about '+t+'?',
+      t=>'When did you last change your opinion about '+t+'?'
     ];
     const funny=[
       t=>'What was the last conversation about '+t+' that became much more dramatic than necessary?',
@@ -397,11 +411,11 @@
 
   if(path.includes('/what-would-you-do-if/')&&typeof situations!=='undefined'){
     const normal=[
-      t=>'you had to change one thing about '+t+' tomorrow?',
-      t=>'someone asked you for honest advice about '+t+'?',
-      t=>'your usual approach to '+t+' stopped working?',
-      t=>'a close friend strongly disagreed with you about '+t+'?',
-      t=>'you had to make an important decision about '+t+' today?'
+      t=>'you had to make one decision about '+t+' today?',
+      t=>'a friend asked what you really think about '+t+'?',
+      t=>'something related to '+t+' did not go as planned?',
+      t=>'you had to explain your experience with '+t+' to a stranger?',
+      t=>'you could change one thing about '+t+' for a week?'
     ];
     const funny=[
       t=>'you suddenly became famous for your opinions about '+t+'?',
@@ -421,11 +435,16 @@
 
   if(path.includes('/would-you-rather/')&&typeof items!=='undefined'){
     const normal=[
-      t=>['understand '+t+' much better','be able to explain '+t+' clearly'],
-      t=>['get reliable expert advice about '+t,'learn about '+t+' through experience'],
-      t=>['have more time for '+t,'have more money to spend on '+t],
-      t=>['solve one major problem related to '+t,'prevent three small problems related to '+t],
-      t=>['be naturally confident about '+t,'be extremely well prepared for '+t]
+      t=>['understand '+t+' much better','have more real-life experience with '+t],
+      t=>['get reliable expert advice about '+t,'learn about '+t+' through trial and error'],
+      t=>['always feel prepared for '+t,'always stay calm when dealing with '+t],
+      t=>['improve one important thing about '+t,'avoid one common problem related to '+t],
+      t=>['be naturally confident discussing '+t,'always know one useful fact about '+t],
+      t=>['have more time to learn about '+t,'have better guidance about '+t],
+      t=>['make decisions about '+t+' quickly','take more time and rarely regret decisions about '+t],
+      t=>['be very experienced with '+t,'be very creative when dealing with '+t],
+      t=>['know what will change about '+t+' in five years','know what people misunderstand about '+t+' today'],
+      t=>['be able to teach '+t+' clearly','be able to solve problems related to '+t+' quickly']
     ];
     const funny=[
       t=>['give a 10-minute speech about '+t+' with no preparation','answer 20 rapid-fire questions about '+t],
@@ -442,10 +461,10 @@
     fillLegacy(items,i=>{
       const isFunny=i%2===0;
       const slot=Math.floor(i/2);
-      const topicBank=isFunny?legacyFunTopics:legacyTopics;
-      const t=topicBank[slot%topicBank.length];
+      const t=legacyChoiceTopics[slot%legacyChoiceTopics.length];
       const bank=isFunny?funny:normal;
-      const opts=bank[Math.floor(slot/topicBank.length)%bank.length](t);
+      const fn=bank[Math.floor(slot/legacyChoiceTopics.length)%bank.length];
+      const opts=fn(t);
       return [legacyCat(i),opts[0],opts[1]];
     });
     if(typeof build==='function')build();
@@ -482,11 +501,11 @@
 
   if(path.includes('/five-second-challenge/')&&typeof items!=='undefined'){
     const normal=[
-      t=>'Name 3 things connected with '+t+'.',
-      t=>'Name 3 ways to improve '+t+'.',
-      t=>'Name 3 reasons people care about '+t+'.',
-      t=>'Name 3 things that can make '+t+' easier.',
-      t=>'Name 3 good questions to ask about '+t+'.'
+      t=>'Name 3 words connected with '+t+'.',
+      t=>'Name 3 questions you could ask about '+t+'.',
+      t=>'Name 3 situations where '+t+' could be important.',
+      t=>'Name 3 things people might like or dislike about '+t+'.',
+      t=>'Name 3 things people often talk about when '+t+' comes up.'
     ];
     const funny=[
       t=>'Name 3 terrible excuses involving '+t+'.',
@@ -542,11 +561,16 @@
 
   if(path.includes('/debate-roulette/')&&typeof motions!=='undefined'){
     const normal=[
-      t=>legacyCap(t)+' should be taught as a practical life skill.',
-      t=>'People should give more attention to '+t+'.',
-      t=>'Schools should prepare students better for '+t+'.',
-      t=>'Personal experience matters more than theory when it comes to '+t+'.',
-      t=>'Technology will improve '+t+' more than it harms it.'
+      t=>'Society should take '+t+' more seriously.',
+      t=>legacyCap(t)+' creates more benefits than problems.',
+      t=>'Schools should spend more time teaching about '+t+'.',
+      t=>'Technology is improving '+t+' overall.',
+      t=>'People should have more personal choice when it comes to '+t+'.',
+      t=>'Governments should do more about '+t+'.',
+      t=>'There are too many rules around '+t+'.',
+      t=>'The media exaggerates problems related to '+t+'.',
+      t=>'Young people are better prepared for '+t+' than older generations.',
+      t=>'Individual responsibility matters more than government action when it comes to '+t+'.'
     ];
     const funny=[
       t=>'People who start serious conversations about '+t+' before 8 a.m. owe everyone coffee.',
@@ -560,17 +584,23 @@
       t=>'There should be an emergency snack break during arguments about '+t+'.',
       t=>'Every family has one person who takes '+t+' far too seriously.'
     ];
-    fillLegacy(motions,i=>[legacyCat(i),legacyPick(normal,funny,i)]);
+    fillLegacy(motions,i=>{
+      const slot=Math.floor(i/2);
+      const topic=legacyDebateTopics[slot%legacyDebateTopics.length];
+      const bank=i%2===0?funny:normal;
+      const fn=bank[Math.floor(slot/legacyDebateTopics.length)%bank.length];
+      return [i%2===0?'Funny':'Debate',fn(topic)];
+    });
     if(typeof build==='function')build();
   }
 
   if(path.includes('/never-have-i-ever/')&&typeof items!=='undefined'){
     const normal=[
-      t=>'changed my plans because of '+t+'.',
-      t=>'learned an important lesson because of '+t+'.',
-      t=>'asked someone for help with '+t+'.',
+      t=>'talked about '+t+' with someone recently.',
+      t=>'learned something new about '+t+'.',
+      t=>'asked someone for advice about '+t+'.',
       t=>'changed my opinion after learning more about '+t+'.',
-      t=>'given someone advice about '+t+'.'
+      t=>'had a surprisingly good experience related to '+t+'.'
     ];
     const funny=[
       t=>'nodded confidently about '+t+' while understanding almost nothing.',
