@@ -324,7 +324,7 @@
     t=>'What have you learned recently about '+t+'?',
     t=>'What do you like or dislike about '+t+'?',
     t=>'What is one thing people often misunderstand about '+t+'?',
-    t=>'What is one good memory connected to '+t+'?'
+    t=>'What is one real example from your life related to '+t+'?'
   ];
   const hotSeatFunny=[
     t=>'If '+t+' had a customer-service desk, what would you complain about first?',
@@ -415,7 +415,7 @@
       t=>'a friend asked what you really think about '+t+'?',
       t=>'something related to '+t+' did not go as planned?',
       t=>'you had to explain your experience with '+t+' to a stranger?',
-      t=>'you could change one thing about '+t+' for a week?'
+      t=>'you could instantly make one part of '+t+' easier for a week?'
     ];
     const funny=[
       t=>'you suddenly became famous for your opinions about '+t+'?',
@@ -456,7 +456,7 @@
       t=>['receive terrible advice about '+t+' from a celebrity','receive good advice about '+t+' from a stranger'],
       t=>['deal with '+t+' only on Mondays','deal with '+t+' only before 8 a.m.'],
       t=>['have every mistake involving '+t+' shown on a big screen','have every opinion about '+t+' read aloud'],
-      t=>['get unlimited coffee whenever dealing with '+t,'never wait in traffic again after dealing with '+t]
+      t=>['get a dramatic warning siren whenever '+t+' is about to go wrong','get a calm voice saying “you have this” whenever '+t+' becomes stressful']
     ];
     fillLegacy(items,i=>{
       const isFunny=i%2===0;
@@ -600,7 +600,7 @@
       t=>'learned something new about '+t+'.',
       t=>'asked someone for advice about '+t+'.',
       t=>'changed my opinion after learning more about '+t+'.',
-      t=>'had a surprisingly good experience related to '+t+'.'
+      t=>'been pleasantly surprised by something related to '+t+'.'
     ];
     const funny=[
       t=>'nodded confidently about '+t+' while understanding almost nothing.',
