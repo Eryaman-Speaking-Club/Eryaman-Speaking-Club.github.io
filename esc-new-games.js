@@ -182,7 +182,7 @@ function ensureExpandedContent(){
     t=>'If you had to give a TED Talk about '+t+' with zero preparation, what would your opening line be?',
     t=>'What is something people pretend to understand about '+t+'?',
     t=>'If '+t+' came with a warning label, what should it say?',
-    t=>'What completely unnecessary luxury version of '+t+' would people still buy?'
+    t=>'If you could add one completely unnecessary luxury feature to '+t+', what would it be?'
    ]
   },
   opinion:{
@@ -342,7 +342,7 @@ function ensureExpandedContent(){
    case 'storyChain': {
     if(funny){
       const starts=[
-       t=>'You arrive at a café and realise your bag contains '+t+' instead of your own things.',
+       (t,thing,place)=>'You arrive at '+place+' and realise your bag contains '+thing+' instead of your own things.',
        t=>'Your phone sends a message about '+t+' to the completely wrong group chat.',
        t=>'You enter a meeting about '+t+' and everyone thinks you are the expert.',
        t=>'A normal day involving '+t+' suddenly starts feeling like a low-budget action movie.',
@@ -356,7 +356,9 @@ function ensureExpandedContent(){
       const slot=Math.floor(i/2);
       const storyTopic=funTopics[slot%funTopics.length];
       const storyFn=starts[Math.floor(slot/funTopics.length)%starts.length];
-      return [cat(i),storyFn(storyTopic),'Keep the story connected. Each player adds 1–2 sentences and the group should reach an ending.'];
+      const storyThing=storyThings[slot%storyThings.length];
+      const storyPlace=places[Math.floor(slot/storyThings.length)%places.length];
+      return [cat(i),storyFn(storyTopic,storyThing,storyPlace),'Keep the story connected. Each player adds 1–2 sentences and the group should reach an ending.'];
     }
     const thing=storyThings[Math.floor(i/2)%storyThings.length],storyPlace=places[Math.floor(i/2/storyThings.length)%places.length];
     return [cat(i),'When I arrived at '+storyPlace+', I found '+withArticle(thing)+' waiting for me.','Keep the story connected. Each player adds 1–2 sentences and the group should reach an ending.'];
@@ -401,11 +403,11 @@ function ensureExpandedContent(){
     const normalSituations=['waiting for important news','meeting someone for the first time','making an important decision','waiting for transport','helping another person'];
     const funnySituations=['pretending everything is under control','realising they entered the wrong place','holding the wrong bag','trying to hide an embarrassing mistake','acting confident after clearly getting lost','receiving a very confusing message','realising the meeting started an hour ago','trying to look normal after dropping something','discovering their phone battery is at one percent','trying to explain something nobody understands'];
     const slot=Math.floor(i/2);
-    const photoTopic=funny?funTopics[slot%funTopics.length]:topics[slot%topics.length];
     const situations=funny?funnySituations:normalSituations;
-    const situation=situations[Math.floor(slot/(funny?funTopics.length:topics.length))%situations.length];
-    const photoPlace=places[slot%places.length];
-    return {cat:cat(i),title:cap(photoTopic)+' · '+cap(situation),desc:'A person is in or near '+photoPlace+' and is '+situation+'. Use the icons as extra clues.',icons:[emojis[i%emojis.length],emojis[(i+3)%emojis.length],emojis[(i+9)%emojis.length]],questions:['What probably happened just before this moment?','How does the person feel and why?','What is the most likely thing to happen next?']};
+    const situation=situations[Math.floor(slot/storyThings.length)%situations.length];
+    const sceneThing=storyThings[slot%storyThings.length];
+    const photoPlace=places[Math.floor(slot/(storyThings.length*situations.length))%places.length];
+    return {cat:cat(i),title:cap(photoPlace)+' · '+cap(situation),desc:'A person is in or near '+photoPlace+' with '+withArticle(sceneThing)+' and is '+situation+'. Use the icons as extra clues.',icons:[emojis[i%emojis.length],emojis[(i+3)%emojis.length],emojis[(i+9)%emojis.length]],questions:['What probably happened just before this moment?','How does the person feel and why?','What is the most likely thing to happen next?']};
    }
    default:return null;
   }
