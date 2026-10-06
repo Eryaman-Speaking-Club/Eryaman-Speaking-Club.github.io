@@ -130,10 +130,17 @@ function ensureExpandedContent(){
   'productivity','public speaking','language mistakes','online meetings','housework','weekend plans','small talk','making choices','customer service','group projects'
  ];
  const funTopic=i=>funTopics[i%funTopics.length];
- const bankPick=(normal,funny,i,t)=>{
+ const bankPick=(normal,funny,i)=>{
   const useFunny=i%2===0;
-  const bank=useFunny?funny:normal;
-  return bank[Math.floor(i/2)%bank.length](t);
+  const slot=Math.floor(i/2);
+  if(useFunny){
+    const t=funTopics[slot%funTopics.length];
+    const fn=funny[Math.floor(slot/funTopics.length)%funny.length];
+    return fn(t);
+  }
+  const t=topics[slot%topics.length];
+  const fn=normal[Math.floor(slot/topics.length)%normal.length];
+  return fn(t);
  };
  const banks={
   twoTruths:{
@@ -330,7 +337,7 @@ function ensureExpandedContent(){
   const funny=i%2===0;
   const t=funny?funTopic(Math.floor(i/2)):topic(Math.floor(i/2));
   switch(cfg.type){
-   case 'twoTruths': return [cat(i),cap(bankPick(banks.twoTruths.normal,banks.twoTruths.funny,i,t)),'Say three believable statements about this prompt. Two must be true and one must be false.'];
+   case 'twoTruths': return [cat(i),cap(bankPick(banks.twoTruths.normal,banks.twoTruths.funny,i)),'Say three believable statements about this prompt. Two must be true and one must be false.'];
    case 'whoAmI': return [cat(i),cap(target(i))];
    case 'storyChain': {
     if(funny){
@@ -346,14 +353,17 @@ function ensureExpandedContent(){
        t=>'You are five minutes late because of '+t+', but your excuse sounds completely unbelievable.',
        t=>'A perfectly normal plan involving '+t+' becomes a story nobody will believe tomorrow.'
       ];
-      return [cat(i),starts[Math.floor(i/2)%starts.length](t),'Keep the story connected. Each player adds 1–2 sentences and the group should reach an ending.'];
+      const slot=Math.floor(i/2);
+      const storyTopic=funTopics[slot%funTopics.length];
+      const storyFn=starts[Math.floor(slot/funTopics.length)%starts.length];
+      return [cat(i),storyFn(storyTopic),'Keep the story connected. Each player adds 1–2 sentences and the group should reach an ending.'];
     }
     const thing=storyThings[Math.floor(i/2)%storyThings.length],storyPlace=places[Math.floor(i/2/storyThings.length)%places.length];
     return [cat(i),'When I arrived at '+storyPlace+', I found '+withArticle(thing)+' waiting for me.','Keep the story connected. Each player adds 1–2 sentences and the group should reach an ending.'];
    }
    case 'explainBadly': return [cat(i),cap(target(i)),'Describe it indirectly without saying the target, spelling it or translating it.'];
-   case 'roulette': return [cat(i),bankPick(banks.roulette.normal,banks.roulette.funny,i,t),'Give one specific example, then let someone ask one follow-up question.'];
-   case 'opinion': return [cat(i),bankPick(banks.opinion.normal,banks.opinion.funny,i,t)];
+   case 'roulette': return [cat(i),bankPick(banks.roulette.normal,banks.roulette.funny,i),'Give one specific example, then let someone ask one follow-up question.'];
+   case 'opinion': return [cat(i),bankPick(banks.opinion.normal,banks.opinion.funny,i)];
    case 'ranking': {
     const sets=decisionTopics.has(t)?decisionRanks:(socialTopics.has(t)?socialRanks:practicalRanks);
     const angle=Math.floor(i/2/topics.length)%sets.length;
@@ -364,16 +374,16 @@ function ensureExpandedContent(){
     const subject=withArticle(obj);
     return {cat:cat(i),title:'The Missing '+cap(obj),setup:subject.charAt(0).toUpperCase()+subject.slice(1)+' disappeared at '+detectivePlace+' between '+(9+i%10)+':10 and '+(9+i%10)+':20. Your group says you were together the whole time.',facts:['Agree where everyone was standing or sitting.','Agree what each person was doing five minutes earlier.','Agree on one detail the detective can verify.']};
    }
-   case 'finish': return [cat(i),bankPick(banks.finish.normal,banks.finish.funny,i,t)];
+   case 'finish': return [cat(i),bankPick(banks.finish.normal,banks.finish.funny,i)];
    case 'threeClues': return [cat(i),cap(target(i))];
-   case 'mission': return bankPick(banks.mission.normal,banks.mission.funny,i,t);
+   case 'mission': return bankPick(banks.mission.normal,banks.mission.funny,i);
    case 'minuteStory': return [target(i),target(i+137),target(i+419)];
-   case 'wouldILie': return [cat(i),bankPick(banks.lie.normal,banks.lie.funny,i,t)];
+   case 'wouldILie': return [cat(i),bankPick(banks.lie.normal,banks.lie.funny,i)];
    case 'desert': {
     const setting=survivalSettings[i%survivalSettings.length],problem=survivalProblems[Math.floor(i/survivalSettings.length)%survivalProblems.length];
     return {cat:cat(i),title:'Stranded at '+setting+' '+problem,items:Array.from({length:8},(_,j)=>survival[(i+j*3)%survival.length])};
    }
-   case 'bingo': return bankPick(banks.bingo.normal,banks.bingo.funny,i,t);
+   case 'bingo': return bankPick(banks.bingo.normal,banks.bingo.funny,i);
    case 'emoji': {
     const picked=[],g=Math.floor(i/emojis.length);
     const seeds=[i,i+5+g,i+11+g*2,i+19+g*3,i+23+g*5,i+29+g*7];
@@ -381,17 +391,21 @@ function ensureExpandedContent(){
     for(const e of emojis){if(picked.length===4)break;if(!picked.includes(e))picked.push(e)}
     return [cat(i),picked];
    }
-   case 'worstAdvice': return [cat(i),bankPick(banks.worstAdvice.normal,banks.worstAdvice.funny,i,t)];
+   case 'worstAdvice': return [cat(i),bankPick(banks.worstAdvice.normal,banks.worstAdvice.funny,i)];
    case 'sell': {
     const product=sellProducts[i%sellProducts.length],customer=customers[Math.floor(i/sellProducts.length)%customers.length];
     return {item:cap(product),twist:'Sell it to '+customer+'. Make it sound more exciting than it really is, but keep the benefits believable.'};
    }
-   case 'hotTake': return [cat(i),bankPick(banks.hot.normal,banks.hot.funny,i,t)];
+   case 'hotTake': return [cat(i),bankPick(banks.hot.normal,banks.hot.funny,i)];
    case 'photoTalk': {
     const normalSituations=['waiting for important news','meeting someone for the first time','making an important decision','waiting for transport','helping another person'];
     const funnySituations=['pretending everything is under control','realising they entered the wrong place','holding the wrong bag','trying to hide an embarrassing mistake','acting confident after clearly getting lost','receiving a very confusing message','realising the meeting started an hour ago','trying to look normal after dropping something','discovering their phone battery is at one percent','trying to explain something nobody understands'];
-    const situation=funny?funnySituations[Math.floor(i/2)%funnySituations.length]:normalSituations[Math.floor(i/2)%normalSituations.length];
-    return {cat:cat(i),title:cap(place(i))+' · '+cap(situation),desc:'A person is in or near '+place(i)+' and is '+situation+'. Use the icons as extra clues.',icons:[emojis[i%emojis.length],emojis[(i+3)%emojis.length],emojis[(i+9)%emojis.length]],questions:['What probably happened just before this moment?','How does the person feel and why?','What is the most likely thing to happen next?']};
+    const slot=Math.floor(i/2);
+    const photoTopic=funny?funTopics[slot%funTopics.length]:topics[slot%topics.length];
+    const situations=funny?funnySituations:normalSituations;
+    const situation=situations[Math.floor(slot/(funny?funTopics.length:topics.length))%situations.length];
+    const photoPlace=places[slot%places.length];
+    return {cat:cat(i),title:cap(photoTopic)+' · '+cap(situation),desc:'A person is in or near '+photoPlace+' and is '+situation+'. Use the icons as extra clues.',icons:[emojis[i%emojis.length],emojis[(i+3)%emojis.length],emojis[(i+9)%emojis.length]],questions:['What probably happened just before this moment?','How does the person feel and why?','What is the most likely thing to happen next?']};
    }
    default:return null;
   }
