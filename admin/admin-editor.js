@@ -45,8 +45,8 @@
   function applyPatchDoc(doc,p){
     let els=[];try{els=[...doc.querySelectorAll(p.selector)]}catch(_){}
     els.forEach(el=>{
-      if(el.dataset?.escManaged)return;
-      if(p.kind==='attr'&&p.attr==='href'&&el.dataset?.escManagedHref)return;
+      if(el.closest?.('[data-esc-managed]'))return;
+      if(p.kind==='attr'&&p.attr==='href'&&el.closest?.('[data-esc-managed-href]'))return;
       if(p.kind==='text')el.textContent=p.value??'';
       else if(p.kind==='textNode'){
         const nodes=[...el.childNodes].filter(n=>n.nodeType===3);
