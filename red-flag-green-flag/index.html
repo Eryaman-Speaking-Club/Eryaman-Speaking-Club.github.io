@@ -29,7 +29,7 @@ function build(){deck=shuffle(items.filter(x=>selected==='All'||x[0]===selected)
 $('red').onclick=()=>choose('red');$('green').onclick=()=>choose('green');$('next').onclick=next;$('back').onclick=()=>{if(history.length<2)return;const forward=history.pop();deck.splice(pos+1,0,forward);show(history[history.length-1],false)};$('shuffle').onclick=()=>{build();next();ESCGameKit.toast('Deck shuffled')};cats.forEach(c=>{const b=document.createElement('button');b.className='game-chip'+(c==='All'?' active':'');b.textContent=c;b.onclick=()=>{selected=c;document.querySelectorAll('.game-chip').forEach(x=>x.classList.toggle('active',x===b));build();next()};$('chips').appendChild(b)});build();next();
 </script><script src="../esc-depth-pass.js?v=20261005-games-audit4"></script><script src="/game-content-v2.js?v=20261006-fun50qa4"></script>
   <script src="../esc-content-editor.js?v=20260923-audit5"></script>  <script src="/esc-supabase-config.js"></script>
-  <script src="/esc-supabase.js"></script>
+  <script src="/esc-supabase.js?v=20261006-seo2"></script>
   <script src="/site-analytics.js?v=20260922"></script>
 <script src="/esc-game-controls.js?v=20261006-answerhelp2"></script>
 </body></html>
