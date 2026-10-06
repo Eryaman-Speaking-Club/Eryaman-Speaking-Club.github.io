@@ -353,7 +353,7 @@
     workingData=normalizeData(current?.draft_data);workingSeo=clone(current?.draft_seo||{});
     $('#panel').innerHTML='<div class="card"><div class="card-head"><div><h2>Canlı siteyi tıklayarak düzenle</h2><p class="muted">Turuncu çerçeve metin, mavi çerçeve görsel düzenleme alanıdır. Metin, görsel ve SEO değişiklikleri kaydedildiği anda canlı siteye yayınlanır.</p></div><span id="editorState" class="pill '+(current.has_unpublished_changes?'draft':'published')+'">'+(current.has_unpublished_changes?'TASLAK DEĞİŞİKLİK':'YAYINDA · v'+current.version)+'</span></div>'+
       '<div class="editor-toolbar"><label>Sayfa<select id="editorPage">'+pages.map(p=>'<option value="'+p.id+'" '+(p.id===current.id?'selected':'')+'>'+esc(p.name)+' · '+esc(p.path)+'</option>').join('')+'</select></label>'+
-      '<button class="btn secondary" id="reloadEditor">Önizlemeyi yenile</button><button class="btn secondary" id="sectionsBtn">Bölümler</button><button class="btn secondary" id="seoBtn">SEO</button>'+
+      '<button class="btn secondary" id="reloadEditor">Önizlemeyi yenile</button><button class="btn secondary" id="sectionsBtn">Bölümler</button><button class="btn secondary" id="seoBtn">SEO / GEO</button>'+
       '<button class="btn primary" id="publishBtn" '+(!A.canEdit()?'disabled':'')+'>Kaydet & yayınla</button><span id="editorStatus" class="editor-status"></span></div>'+
       '<div class="live-editor-shell"><iframe id="liveEditorFrame" class="live-editor-frame" title="Canlı site editörü"></iframe></div>'+
       '<div class="editor-guide"><span class="text">Metne tıkla → düzenle ve kaydet</span><span class="image">Görsele tıkla → değiştir ve kaydet</span><span>Bölümler → sırala/gizle → kaydet</span><span>Kaydedilen değişiklik → canlı sitede kalıcı</span></div></div>';
@@ -384,6 +384,30 @@
     $('#panel').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{A.state.currentView='siteEditor';$('#viewTitle').textContent='Canlı Site Editörü';renderEditor(b.dataset.edit)});
   }
 
+  function geoAuditFromDoc(doc,page,canonical,indexable,title,description){
+    const h1=String(doc.querySelector('h1')?.textContent||'').replace(/\s+/g,' ').trim();
+    const paragraphs=[...doc.querySelectorAll('.game-hero p, main p, section p, article p')]
+      .map(x=>String(x.textContent||'').replace(/\s+/g,' ').trim())
+      .filter(x=>x.length>=35);
+    const answer=paragraphs[0]||'';
+    const schemas=[...doc.querySelectorAll('script[type="application/ld+json"]')];
+    let validSchemas=0;
+    schemas.forEach(s=>{try{JSON.parse(s.textContent||'');validSchemas++}catch(_){}});
+    const visibleText=String(doc.body?.innerText||'').replace(/\s+/g,' ').trim();
+    const entityNamed=/Eryaman Speaking Club/i.test(visibleText);
+    const checks=[
+      [!!h1,20,'Net bir H1 başlığı'],
+      [answer.length>=50&&answer.length<=420,25,'İlk bölümde doğrudan açıklayıcı cevap'],
+      [validSchemas>0,20,'Yapılandırılmış veri / entity sinyali'],
+      [/^https:\/\//i.test(canonical||''),10,'Canonical kaynak adresi'],
+      [indexable!==false,10,'AI arama için erişilebilir/indexlenebilir'],
+      [entityNamed,10,'Marka/entity adı görünür içerikte net'],
+      [String(title||'').length>=20&&String(description||'').length>=50,5,'Başlık ve açıklama bağlam sağlıyor']
+    ];
+    let score=0;checks.forEach(([ok,pts])=>{if(ok)score+=pts});
+    return {score,checks,h1,answer,validSchemas,entityNamed,pageUpdatedAt:page?.updated_at||null};
+  }
+
   function seoAuditFromHtml(page,html){
     const doc=new DOMParser().parseFromString(html||'','text/html');
     const custom=page.published_seo||{};
@@ -404,7 +428,23 @@
     if(ogTitle&&ogDescription&&/^https:\/\//i.test(ogImage))score+=20;
     if(h1)score+=10;
     if(robots)score+=10;
-    return {page,title,description,canonical,ogTitle,ogDescription,ogImage,robots,indexable,h1,score};
+    const geo=geoAuditFromDoc(doc,page,canonical,indexable,title,description);
+    return {page,title,description,canonical,ogTitle,ogDescription,ogImage,robots,indexable,h1,score,geoScore:geo.score,geo};
+  }
+
+  async function geoGlobalStatus(){
+    const key='c9487a4d6e0b4fdca1e8f7d93b6a21c5';
+    const safeText=async path=>{try{const r=await fetch(path+'?geo_audit='+Date.now(),{cache:'no-store'});return r.ok?await r.text():''}catch(_){return ''}};
+    const [robots,llms,sitemap,keyFile]=await Promise.all([
+      safeText('/robots.txt'),safeText('/llms.txt'),safeText('/sitemap.xml'),safeText('/'+key+'.txt')
+    ]);
+    const oai=/user-agent:\s*OAI-SearchBot[\s\S]*?allow:\s*\//i.test(robots);
+    return {
+      oai,
+      sitemap:/<urlset|<sitemapindex/i.test(sitemap),
+      llms:/#\s*Eryaman Speaking Club/i.test(llms),
+      indexNow:keyFile.trim()===key
+    };
   }
 
   async function seoCenter(){
@@ -413,56 +453,75 @@
       .eq('active',true).eq('page_kind','static').order('category').order('name');
     if(error)throw error;
     const list=data||[];
-    $('#panel').innerHTML='<div class="card"><div class="card-head"><div><h2>SEO Merkezi</h2><p class="muted">Tüm yayınlanan sayfaların title, description, canonical, sosyal paylaşım ve index durumunu tek ekranda kontrol eder.</p></div><button id="seoRefreshAudit" class="btn secondary">Taramayı yenile</button></div><div id="seoAuditBody"><div class="empty">Sayfalar taranıyor…</div></div></div>';
-    const audited=await Promise.all(list.map(async page=>{
-      try{
-        const res=await fetch(page.path+(page.path.includes('?')?'&':'?')+'seo_audit='+Date.now(),{cache:'no-store'});
-        const html=await res.text();
-        return seoAuditFromHtml(page,html);
-      }catch(_){
-        return {page,score:0,title:'',description:'',canonical:'',ogTitle:'',ogDescription:'',ogImage:'',robots:'',indexable:true,h1:'',error:true};
-      }
-    }));
+    $('#panel').innerHTML='<div class="card"><div class="card-head"><div><h2>SEO & GEO Merkezi</h2><p class="muted">Google SEO ile birlikte ChatGPT Search, Copilot ve diğer üretken arama sistemleri için taranabilirlik, entity netliği ve cevaplanabilir içerik yapısını kontrol eder.</p></div><button id="seoRefreshAudit" class="btn secondary">Taramayı yenile</button></div><div id="seoAuditBody"><div class="empty">SEO ve GEO kontrolleri çalışıyor…</div></div></div>';
+
+    const [audited,globalGeo]=await Promise.all([
+      Promise.all(list.map(async page=>{
+        try{
+          const res=await fetch(page.path+(page.path.includes('?')?'&':'?')+'seo_geo_audit='+Date.now(),{cache:'no-store'});
+          const html=await res.text();
+          return seoAuditFromHtml(page,html);
+        }catch(_){
+          return {page,score:0,geoScore:0,title:'',description:'',canonical:'',ogTitle:'',ogDescription:'',ogImage:'',robots:'',indexable:true,h1:'',geo:{checks:[],answer:'',validSchemas:0},error:true};
+        }
+      })),
+      geoGlobalStatus()
+    ]);
+
     const indexed=audited.filter(x=>x.indexable).length;
     const noindex=audited.length-indexed;
-    const good=audited.filter(x=>x.score>=80).length;
-    const needs=audited.length-good;
+    const seoGood=audited.filter(x=>x.score>=80).length;
+    const geoGood=audited.filter(x=>x.geoScore>=80).length;
     const avg=audited.length?Math.round(audited.reduce((n,x)=>n+x.score,0)/audited.length):0;
+    const geoAvg=audited.length?Math.round(audited.reduce((n,x)=>n+x.geoScore,0)/audited.length):0;
     const body=$('#seoAuditBody');
+    const status=(ok,title,desc)=>'<div class="geo-status '+(ok?'ok':'warn')+'"><span>'+(ok?'✓':'!')+'</span><div><strong>'+esc(title)+'</strong><small>'+esc(desc)+'</small></div></div>';
+
     body.innerHTML=
-      '<div class="stats seo-audit-stats">'+
-        '<div class="stat"><span>ORTALAMA SEO</span><strong>'+avg+'/100</strong><small>Temel teknik kapsama</small></div>'+
-        '<div class="stat"><span>İYİ DURUMDA</span><strong>'+good+'</strong><small>80+ kontrol skoru</small></div>'+
-        '<div class="stat"><span>GELİŞTİRİLECEK</span><strong>'+needs+'</strong><small>Eksik metadata bulunan</small></div>'+
-        '<div class="stat"><span>INDEX / NOINDEX</span><strong>'+indexed+' / '+noindex+'</strong><small>Arama motoru görünürlüğü</small></div>'+
+      '<div class="geo-explainer"><div><span class="pill live">GEO</span><h3>Generative Engine Optimization</h3><p>AI sistemlerinin sayfayı kolayca taraması, konuyu doğru anlaması ve cevabında kaynak olarak kullanabilmesi için yapılan içerik + teknik optimizasyon. Buradaki skor bir ChatGPT/Google sıralama garantisi değildir.</p></div><a class="icon-btn" href="/llms.txt" target="_blank">llms.txt ↗</a></div>'+
+      '<div class="geo-global-grid">'+
+        status(globalGeo.oai,'ChatGPT Search crawler','OAI-SearchBot robots.txt içinde açık')+
+        status(globalGeo.sitemap,'Sitemap','Public URL listesi taranabilir')+
+        status(globalGeo.indexNow,'IndexNow','Güncellemeleri Bing/Copilot ekosistemine bildirebilir')+
+        status(globalGeo.llms,'llms.txt','Deneysel AI site özeti mevcut; Google için zorunlu değildir')+
       '</div>'+
-      '<div class="seo-audit-tools"><label>Filtrele <select id="seoAuditFilter"><option value="all">Tüm sayfalar</option><option value="needs">Geliştirilecek</option><option value="index">Index</option><option value="noindex">Noindex</option><option value="game">Oyunlar</option></select></label><input id="seoAuditSearch" type="search" placeholder="Sayfa veya URL ara…"></div>'+
-      '<div class="table-wrap"><table><thead><tr><th>Sayfa</th><th>Skor</th><th>Title</th><th>Description</th><th>Canonical</th><th>Sosyal</th><th>Index</th><th></th></tr></thead><tbody id="seoAuditRows"></tbody></table></div>';
+      '<div class="stats seo-audit-stats">'+
+        '<div class="stat"><span>ORTALAMA SEO</span><strong>'+avg+'/100</strong><small>'+seoGood+' sayfa 80+</small></div>'+
+        '<div class="stat"><span>ORTALAMA GEO</span><strong>'+geoAvg+'/100</strong><small>'+geoGood+' sayfa answer-ready</small></div>'+
+        '<div class="stat"><span>GELİŞTİRİLECEK</span><strong>'+audited.filter(x=>x.score<80||x.geoScore<80).length+'</strong><small>SEO veya GEO eksiği</small></div>'+
+        '<div class="stat"><span>INDEX / NOINDEX</span><strong>'+indexed+' / '+noindex+'</strong><small>Arama görünürlüğü</small></div>'+
+      '</div>'+
+      '<div class="seo-audit-tools"><label>Filtrele <select id="seoAuditFilter"><option value="all">Tüm sayfalar</option><option value="needs">SEO/GEO geliştirilecek</option><option value="geo">GEO 80 altı</option><option value="index">Index</option><option value="noindex">Noindex</option><option value="game">Oyunlar</option></select></label><input id="seoAuditSearch" type="search" placeholder="Sayfa veya URL ara…"></div>'+
+      '<div class="table-wrap"><table><thead><tr><th>Sayfa</th><th>SEO</th><th>GEO</th><th>Title</th><th>Cevap bölümü</th><th>Schema</th><th>Index</th><th></th></tr></thead><tbody id="seoAuditRows"></tbody></table></div>';
+
     const draw=()=>{
       const filter=$('#seoAuditFilter').value,q=($('#seoAuditSearch').value||'').toLocaleLowerCase('tr-TR');
       const rows=audited.filter(x=>{
         if(q&&!((x.page.name+' '+x.page.path).toLocaleLowerCase('tr-TR').includes(q)))return false;
-        if(filter==='needs'&&x.score>=80)return false;
+        if(filter==='needs'&&x.score>=80&&x.geoScore>=80)return false;
+        if(filter==='geo'&&x.geoScore>=80)return false;
         if(filter==='index'&&!x.indexable)return false;
         if(filter==='noindex'&&x.indexable)return false;
         if(filter==='game'&&!String(x.page.path||'').match(/^\/(?!en\/|tr\/|games\/|educators\/|ozel-dersler\/)[a-z0-9-]+\/?$/i))return false;
         return true;
       });
       $('#seoAuditRows').innerHTML=rows.map(x=>{
-        const social=!!(x.ogTitle&&x.ogDescription&&x.ogImage);
-        const scoreClass=x.score>=90?'live':(x.score>=70?'published':'draft');
+        const seoClass=x.score>=90?'live':(x.score>=70?'published':'draft');
+        const geoClass=x.geoScore>=90?'live':(x.geoScore>=70?'published':'draft');
+        const answerOk=(x.geo?.answer||'').length>=50;
+        const schemaOk=(x.geo?.validSchemas||0)>0;
         return '<tr>'+
           '<td><strong>'+esc(x.page.name)+'</strong><br><small>'+esc(x.page.path)+'</small></td>'+
-          '<td><span class="pill '+scoreClass+'">'+x.score+'/100</span></td>'+
-          '<td><span class="seo-audit-dot '+(x.title?'ok':'bad')+'">'+(x.title?'✓':'!')+'</span> '+esc(x.title?x.title.slice(0,54):'Eksik')+'</td>'+
-          '<td><span class="seo-audit-dot '+(x.description?'ok':'bad')+'">'+(x.description?'✓':'!')+'</span> '+(x.description?esc(x.description.length+' karakter'):'Eksik')+'</td>'+
-          '<td><span class="seo-audit-dot '+(/^https:\/\//i.test(x.canonical)?'ok':'bad')+'">'+(/^https:\/\//i.test(x.canonical)?'✓':'!')+'</span> '+(x.canonical?'Var':'Eksik')+'</td>'+
-          '<td><span class="seo-audit-dot '+(social?'ok':'bad')+'">'+(social?'✓':'!')+'</span> '+(social?'Hazır':'Eksik')+'</td>'+
+          '<td><span class="pill '+seoClass+'">'+x.score+'/100</span></td>'+
+          '<td><span class="pill '+geoClass+'">'+x.geoScore+'/100</span></td>'+
+          '<td><span class="seo-audit-dot '+(x.title?'ok':'bad')+'">'+(x.title?'✓':'!')+'</span> '+esc(x.title?x.title.slice(0,48):'Eksik')+'</td>'+
+          '<td><span class="seo-audit-dot '+(answerOk?'ok':'bad')+'">'+(answerOk?'✓':'!')+'</span> '+(answerOk?esc((x.geo.answer||'').slice(0,72)):'Net açıklama eksik')+'</td>'+
+          '<td><span class="seo-audit-dot '+(schemaOk?'ok':'bad')+'">'+(schemaOk?'✓':'!')+'</span> '+(schemaOk?esc(x.geo.validSchemas+' JSON-LD'):'Eksik')+'</td>'+
           '<td><span class="pill '+(x.indexable?'published':'')+'">'+(x.indexable?'INDEX':'NOINDEX')+'</span></td>'+
-          '<td><div class="row-actions"><button class="icon-btn" data-seo-edit="'+x.page.id+'">SEO düzenle</button><a class="icon-btn" href="'+esc(x.page.path)+'" target="_blank">Aç ↗</a></div></td>'+
+          '<td><div class="row-actions"><button class="icon-btn" data-seo-edit="'+x.page.id+'">SEO/GEO düzenle</button><a class="icon-btn" href="'+esc(x.page.path)+'" target="_blank">Aç ↗</a></div></td>'+
         '</tr>';
       }).join('')||'<tr><td colspan="8"><div class="empty">Bu filtrede sayfa yok.</div></td></tr>';
-      $('#seoAuditRows').querySelectorAll('[data-seo-edit]').forEach(b=>b.onclick=()=>{A.state.currentView='siteEditor';$('#viewTitle').textContent='Canlı Site Editörü';renderEditor(b.dataset.seoEdit);setTimeout(()=>toast('Sayfa açıldı · üst menüden SEO butonuna tıkla'),700)});
+      $('#seoAuditRows').querySelectorAll('[data-seo-edit]').forEach(b=>b.onclick=()=>{A.state.currentView='siteEditor';$('#viewTitle').textContent='Canlı Site Editörü';renderEditor(b.dataset.seoEdit);setTimeout(()=>toast('Sayfa açıldı · üst menüden SEO / GEO butonuna tıkla'),700)});
     };
     $('#seoAuditFilter').onchange=draw;$('#seoAuditSearch').oninput=draw;draw();
     $('#seoRefreshAudit').onclick=seoCenter;
