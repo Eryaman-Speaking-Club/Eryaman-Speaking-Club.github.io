@@ -329,7 +329,7 @@
     current=fresh;
     workingData=normalizeData(fresh.draft_data);
     workingSeo=clone(fresh.draft_seo||{});
-    A.notifyIndexNow?.(fresh.path||'/').catch?.(()=>{});
+    A.notifyIndexNow?.(fresh.path||'/');
     if(!quiet)toast('Yayınlandı · SEO/GEO güncellemesi arama sistemlerine bildirildi');
     return pageId;
   }
