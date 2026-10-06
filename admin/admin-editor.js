@@ -90,14 +90,22 @@
         '<label>Yeni görsel yükle<input name="file" type="file" accept="image/*"></label>'+
         '<label>veya görsel URL<input name="url" value="'+esc(currentSrc)+'"></label>'+
         '<label>Alt metin<input name="alt" value="'+esc(currentAlt)+'"></label>'+
-        '<button class="btn primary">Taslağa uygula</button></form>');
+        '<button class="btn primary">Kaydet ve canlıya yayınla</button></form>');
       $('#cmsImageForm').onsubmit=async e=>{
         e.preventDefault();
-        const f=new FormData(e.currentTarget);let url=String(f.get('url')||'').trim();
-        const file=e.currentTarget.elements.file.files[0];
-        if(file){e.currentTarget.querySelector('button').textContent='Yükleniyor…';url=await uploadImage(file,f.get('alt'))}
-        upsertPatch({selector,kind:'image',value:url,alt:f.get('alt')||''});
-        found.el.src=url;found.el.alt=f.get('alt')||'';closeModal();toast('Görsel taslağa uygulandı');
+        const btn=e.currentTarget.querySelector('button');
+        btn.disabled=true;btn.textContent='Kaydediliyor…';
+        try{
+          const f=new FormData(e.currentTarget);let url=String(f.get('url')||'').trim();
+          const file=e.currentTarget.elements.file.files[0];
+          if(file)url=await uploadImage(file,f.get('alt'));
+          upsertPatch({selector,kind:'image',value:url,alt:f.get('alt')||''});
+          found.el.src=url;found.el.alt=f.get('alt')||'';
+          await publishWorkingNow('Görsel');
+          closeModal();
+        }catch(err){
+          alert(err.message||err);btn.disabled=false;btn.textContent='Kaydet ve canlıya yayınla';
+        }
       };
       return;
     }
@@ -106,17 +114,25 @@
     openModal('<h2>Metni düzenle</h2><form id="cmsTextForm" class="stack">'+
       '<label>Metin<textarea name="value" rows="5">'+esc(value)+'</textarea></label>'+
       (anchor?'<label>Bağlantı adresi<input name="href" value="'+esc(anchor.getAttribute('href')||'')+'"></label>':'')+
-      '<button class="btn primary">Taslağa uygula</button></form>');
-    $('#cmsTextForm').onsubmit=e=>{
-      e.preventDefault();const f=new FormData(e.currentTarget);
-      const nv=String(f.get('value')??'');
-      upsertPatch({selector,kind:found.type,node_index:found.nodeIndex,value:nv});
-      if(found.type==='textNode')found.node.nodeValue=nv;else found.el.textContent=nv;
-      if(anchor){
-        const aSelector=cssPath(anchor,doc);const href=String(f.get('href')||'');
-        upsertPatch({selector:aSelector,kind:'attr',attr:'href',value:href});anchor.setAttribute('href',href);
+      '<button class="btn primary">Kaydet ve canlıya yayınla</button></form>');
+    $('#cmsTextForm').onsubmit=async e=>{
+      e.preventDefault();
+      const btn=e.currentTarget.querySelector('button');
+      btn.disabled=true;btn.textContent='Kaydediliyor…';
+      try{
+        const f=new FormData(e.currentTarget);
+        const nv=String(f.get('value')??'');
+        upsertPatch({selector,kind:found.type,node_index:found.nodeIndex,value:nv});
+        if(found.type==='textNode')found.node.nodeValue=nv;else found.el.textContent=nv;
+        if(anchor){
+          const aSelector=cssPath(anchor,doc);const href=String(f.get('href')||'');
+          upsertPatch({selector:aSelector,kind:'attr',attr:'href',value:href});anchor.setAttribute('href',href);
+        }
+        await publishWorkingNow('Metin');
+        closeModal();
+      }catch(err){
+        alert(err.message||err);btn.disabled=false;btn.textContent='Kaydet ve canlıya yayınla';
       }
-      closeModal();toast('Metin taslağa uygulandı');
     };
   }
   function injectEditor(){
@@ -147,11 +163,11 @@
     const draw=()=>{
       openModal('<div class="card-head"><div><h2>Sayfa bölümleri</h2><p class="muted">Bölümleri gizle/göster veya sıralamasını değiştir.</p></div></div><div id="cmsSectionList" class="section-list">'+
         workingData.sections.map((s,i)=>'<div class="section-row '+(s.visible===false?'hidden-section':'')+'"><span class="drag">☰</span><div><strong>'+esc(s.label||s.selector)+'</strong><small>'+esc(s.selector)+'</small></div><div class="row-actions"><button class="icon-btn" data-up="'+i+'" '+(i===0?'disabled':'')+'>↑</button><button class="icon-btn" data-down="'+i+'" '+(i===workingData.sections.length-1?'disabled':'')+'>↓</button><button class="icon-btn" data-toggle="'+i+'">'+(s.visible===false?'Göster':'Gizle')+'</button></div></div>').join('')+
-        '</div><div class="row-actions" style="margin-top:14px"><button id="closeSections" class="btn primary">Tamam</button></div>');
+        '</div><div class="row-actions" style="margin-top:14px"><button id="closeSections" class="btn primary">Kaydet ve canlıya yayınla</button></div>');
       $('#cmsSectionList').querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{const i=+b.dataset.up;[workingData.sections[i-1],workingData.sections[i]]=[workingData.sections[i],workingData.sections[i-1]];workingData.sections.forEach((x,j)=>x.order=j);applyWorking();draw()});
       $('#cmsSectionList').querySelectorAll('[data-down]').forEach(b=>b.onclick=()=>{const i=+b.dataset.down;[workingData.sections[i+1],workingData.sections[i]]=[workingData.sections[i],workingData.sections[i+1]];workingData.sections.forEach((x,j)=>x.order=j);applyWorking();draw()});
       $('#cmsSectionList').querySelectorAll('[data-toggle]').forEach(b=>b.onclick=()=>{const s=workingData.sections[+b.dataset.toggle];s.visible=s.visible===false?true:false;applyWorking();draw()});
-      $('#closeSections').onclick=()=>closeModal();
+      $('#closeSections').onclick=async e=>{const btn=e.currentTarget;btn.disabled=true;btn.textContent='Kaydediliyor…';try{await publishWorkingNow('Bölüm düzeni');closeModal()}catch(err){alert(err.message||err);btn.disabled=false;btn.textContent='Kaydet ve canlıya yayınla'}};
     }; draw();
   }
   function seoModal(){
@@ -161,11 +177,12 @@
       '<label>Open Graph başlığı<input name="og_title" value="'+esc(workingSeo.og_title||'')+'"></label>'+
       '<label>Open Graph açıklama<textarea name="og_description" rows="3">'+esc(workingSeo.og_description||'')+'</textarea></label>'+
       '<label>Paylaşım görseli URL<input name="og_image" value="'+esc(workingSeo.og_image||'')+'"></label>'+
-      '<button class="btn primary">Taslağa uygula</button></form>');
-    $('#seoForm').onsubmit=e=>{e.preventDefault();const f=new FormData(e.currentTarget);workingSeo={title:f.get('title'),description:f.get('description'),og_title:f.get('og_title'),og_description:f.get('og_description'),og_image:f.get('og_image')};closeModal();toast('SEO taslağa uygulandı')};
+      '<button class="btn primary">Kaydet ve canlıya yayınla</button></form>');
+    $('#seoForm').onsubmit=async e=>{e.preventDefault();const btn=e.currentTarget.querySelector('button');btn.disabled=true;btn.textContent='Kaydediliyor…';try{const f=new FormData(e.currentTarget);workingSeo={title:f.get('title'),description:f.get('description'),og_title:f.get('og_title'),og_description:f.get('og_description'),og_image:f.get('og_image')};await publishWorkingNow('SEO');closeModal()}catch(err){alert(err.message||err);btn.disabled=false;btn.textContent='Kaydet ve canlıya yayınla'}};
   }
   let saveBusy=false;
-  async function saveDraft(){
+  let publishBusy=false;
+  async function saveDraft({quiet=false}={}){
     if(!A.canEdit())throw new Error('Bu hesap salt-okunur.');
     if(saveBusy)throw new Error('Önceki kayıt işlemi hâlâ tamamlanıyor.');
     saveBusy=true;
@@ -176,11 +193,11 @@
       }).eq('id',current.id).select('*').single();
       if(error)throw error;
       if(!data?.id)throw new Error('Taslak kaydedilemedi. Sayfayı yenileyip tekrar dene.');
-      current=data;toast('Taslak kaydedildi');return data;
+      current=data;if(!quiet)toast('Taslak kaydedildi');return data;
     } finally { saveBusy=false; }
   }
-  async function publish(){
-    await saveDraft();
+  async function publish({quiet=false}={}){
+    await saveDraft({quiet:true});
     const pageId=current.id;
     const {data,error}=await A.state.db.rpc('esc_cms_publish_page',{p_page_id:pageId,p_note:'Eryaman Speaking Club yönetim panelinden yayınlandı'});
     if(error)throw error;
@@ -190,29 +207,48 @@
     current=fresh;
     workingData=normalizeData(fresh.draft_data);
     workingSeo=clone(fresh.draft_seo||{});
-    toast('Yayınlandı · aynı sayfada yeni değişiklik yapıp tekrar yayınlayabilirsin');
+    if(!quiet)toast('Yayınlandı · aynı sayfada yeni değişiklik yapıp tekrar yayınlayabilirsin');
     return pageId;
+  }
+  async function publishWorkingNow(label='Değişiklik'){
+    if(publishBusy)throw new Error('Önceki yayınlama işlemi hâlâ tamamlanıyor.');
+    publishBusy=true;
+    try{
+      await publish({quiet:true});
+      const stateEl=$('#editorState');
+      if(stateEl){stateEl.className='pill published';stateEl.textContent='YAYINDA · v'+(current?.version||0)}
+      const status=$('#editorStatus');if(status)status.textContent='Kaydedildi ve canlıya yayınlandı';
+      toast(label+' kaydedildi ve canlı siteye yayınlandı');
+      return current;
+    }finally{publishBusy=false}
   }
   function loadFrame(){
     frame=$('#liveEditorFrame');if(!frame)return;
     $('#editorStatus').textContent='Yükleniyor…';
     frame.src=pageUrl(current.path,true);
-    frame.onload=()=>{workingData=normalizeData(current.draft_data);workingSeo=clone(current.draft_seo||{});applyWorking();injectEditor();$('#editorStatus').textContent='Tıklayarak düzenleyebilirsin'};
+    frame.onload=()=>{
+      workingData=normalizeData(current.draft_data);workingSeo=clone(current.draft_seo||{});
+      applyWorking();injectEditor();
+      const win=frame.contentWindow;
+      if(win)win.addEventListener('esc:event-config:applied',()=>requestAnimationFrame(applyWorking));
+      setTimeout(applyWorking,250);
+      setTimeout(applyWorking,900);
+      $('#editorStatus').textContent='Tıklayarak düzenleyebilirsin · değişiklikler kalıcıdır';
+    };
   }
   async function renderEditor(preselect){
     const {data,error}=await A.state.db.from('esc_cms_pages').select('*').eq('active',true).eq('page_kind','static').order('category').order('name');
     if(error)throw error;pages=data||[];
     current=pages.find(p=>p.id===preselect)||pages.find(p=>p.path==='/')||pages[0];
     workingData=normalizeData(current?.draft_data);workingSeo=clone(current?.draft_seo||{});
-    $('#panel').innerHTML='<div class="card"><div class="card-head"><div><h2>Canlı siteyi tıklayarak düzenle</h2><p class="muted">Turuncu çerçeve metin, mavi çerçeve görsel düzenleme alanıdır.</p></div><span id="editorState" class="pill '+(current.has_unpublished_changes?'draft':'published')+'">'+(current.has_unpublished_changes?'TASLAK DEĞİŞİKLİK':'YAYINDA · v'+current.version)+'</span></div>'+
+    $('#panel').innerHTML='<div class="card"><div class="card-head"><div><h2>Canlı siteyi tıklayarak düzenle</h2><p class="muted">Turuncu çerçeve metin, mavi çerçeve görsel düzenleme alanıdır. Metin, görsel ve SEO değişiklikleri kaydedildiği anda canlı siteye yayınlanır.</p></div><span id="editorState" class="pill '+(current.has_unpublished_changes?'draft':'published')+'">'+(current.has_unpublished_changes?'TASLAK DEĞİŞİKLİK':'YAYINDA · v'+current.version)+'</span></div>'+
       '<div class="editor-toolbar"><label>Sayfa<select id="editorPage">'+pages.map(p=>'<option value="'+p.id+'" '+(p.id===current.id?'selected':'')+'>'+esc(p.name)+' · '+esc(p.path)+'</option>').join('')+'</select></label>'+
       '<button class="btn secondary" id="reloadEditor">Önizlemeyi yenile</button><button class="btn secondary" id="sectionsBtn">Bölümler</button><button class="btn secondary" id="seoBtn">SEO</button>'+
-      '<button class="btn secondary" id="saveDraftBtn" '+(!A.canEdit()?'disabled':'')+'>Taslak kaydet</button><button class="btn primary" id="publishBtn" '+(!A.canEdit()?'disabled':'')+'>Yayınla</button><span id="editorStatus" class="editor-status"></span></div>'+
+      '<button class="btn primary" id="publishBtn" '+(!A.canEdit()?'disabled':'')+'>Kaydet & yayınla</button><span id="editorStatus" class="editor-status"></span></div>'+
       '<div class="live-editor-shell"><iframe id="liveEditorFrame" class="live-editor-frame" title="Canlı site editörü"></iframe></div>'+
-      '<div class="editor-guide"><span class="text">Metne tıkla → düzenle</span><span class="image">Görsele tıkla → değiştir</span><span>Bölümler → sırala/gizle</span><span>Yayınla → gerçek siteye gönder</span></div></div>';
+      '<div class="editor-guide"><span class="text">Metne tıkla → düzenle ve kaydet</span><span class="image">Görsele tıkla → değiştir ve kaydet</span><span>Bölümler → sırala/gizle → kaydet</span><span>Kaydedilen değişiklik → canlı sitede kalıcı</span></div></div>';
     $('#editorPage').onchange=()=>renderEditor($('#editorPage').value);
     $('#reloadEditor').onclick=loadFrame;$('#sectionsBtn').onclick=sectionsModal;$('#seoBtn').onclick=seoModal;
-    $('#saveDraftBtn').onclick=async()=>{try{await saveDraft();$('#editorState').textContent='TASLAK DEĞİŞİKLİK'}catch(e){alert(e.message)}};
     $('#publishBtn').onclick=async e=>{
       const btn=e.currentTarget;
       btn.disabled=true;
