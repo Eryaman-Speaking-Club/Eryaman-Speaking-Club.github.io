@@ -384,6 +384,90 @@
     $('#panel').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{A.state.currentView='siteEditor';$('#viewTitle').textContent='Canlı Site Editörü';renderEditor(b.dataset.edit)});
   }
 
+  function seoAuditFromHtml(page,html){
+    const doc=new DOMParser().parseFromString(html||'','text/html');
+    const custom=page.published_seo||{};
+    const meta=(sel)=>doc.querySelector(sel)?.getAttribute('content')||'';
+    const title=String(custom.title||doc.title||'').trim();
+    const description=String(custom.description!==undefined?custom.description:meta('meta[name="description"]')).trim();
+    const canonical=String(custom.canonical||doc.querySelector('link[rel="canonical"]')?.getAttribute('href')||'').trim();
+    const ogTitle=String(custom.og_title||meta('meta[property="og:title"]')||'').trim();
+    const ogDescription=String(custom.og_description||meta('meta[property="og:description"]')||'').trim();
+    const ogImage=String(custom.og_image||meta('meta[property="og:image"]')||'').trim();
+    const robots=meta('meta[name="robots"]');
+    const indexable=custom.indexable!==undefined?custom.indexable:!/\\bnoindex\\b/i.test(robots);
+    const h1=String(doc.querySelector('h1')?.textContent||'').trim();
+    let score=0;
+    if(title.length>=20)score+=20;
+    if(description.length>=50)score+=20;
+    if(/^https:\/\//i.test(canonical))score+=20;
+    if(ogTitle&&ogDescription&&/^https:\/\//i.test(ogImage))score+=20;
+    if(h1)score+=10;
+    if(robots)score+=10;
+    return {page,title,description,canonical,ogTitle,ogDescription,ogImage,robots,indexable,h1,score};
+  }
+
+  async function seoCenter(){
+    const {data,error}=await A.state.db.from('esc_cms_pages')
+      .select('id,name,path,category,version,published_seo,has_unpublished_changes,updated_at')
+      .eq('active',true).eq('page_kind','static').order('category').order('name');
+    if(error)throw error;
+    const list=data||[];
+    $('#panel').innerHTML='<div class="card"><div class="card-head"><div><h2>SEO Merkezi</h2><p class="muted">Tüm yayınlanan sayfaların title, description, canonical, sosyal paylaşım ve index durumunu tek ekranda kontrol eder.</p></div><button id="seoRefreshAudit" class="btn secondary">Taramayı yenile</button></div><div id="seoAuditBody"><div class="empty">Sayfalar taranıyor…</div></div></div>';
+    const audited=await Promise.all(list.map(async page=>{
+      try{
+        const res=await fetch(page.path+(page.path.includes('?')?'&':'?')+'seo_audit='+Date.now(),{cache:'no-store'});
+        const html=await res.text();
+        return seoAuditFromHtml(page,html);
+      }catch(_){
+        return {page,score:0,title:'',description:'',canonical:'',ogTitle:'',ogDescription:'',ogImage:'',robots:'',indexable:true,h1:'',error:true};
+      }
+    }));
+    const indexed=audited.filter(x=>x.indexable).length;
+    const noindex=audited.length-indexed;
+    const good=audited.filter(x=>x.score>=80).length;
+    const needs=audited.length-good;
+    const avg=audited.length?Math.round(audited.reduce((n,x)=>n+x.score,0)/audited.length):0;
+    const body=$('#seoAuditBody');
+    body.innerHTML=
+      '<div class="stats seo-audit-stats">'+
+        '<div class="stat"><span>ORTALAMA SEO</span><strong>'+avg+'/100</strong><small>Temel teknik kapsama</small></div>'+
+        '<div class="stat"><span>İYİ DURUMDA</span><strong>'+good+'</strong><small>80+ kontrol skoru</small></div>'+
+        '<div class="stat"><span>GELİŞTİRİLECEK</span><strong>'+needs+'</strong><small>Eksik metadata bulunan</small></div>'+
+        '<div class="stat"><span>INDEX / NOINDEX</span><strong>'+indexed+' / '+noindex+'</strong><small>Arama motoru görünürlüğü</small></div>'+
+      '</div>'+
+      '<div class="seo-audit-tools"><label>Filtrele <select id="seoAuditFilter"><option value="all">Tüm sayfalar</option><option value="needs">Geliştirilecek</option><option value="index">Index</option><option value="noindex">Noindex</option><option value="game">Oyunlar</option></select></label><input id="seoAuditSearch" type="search" placeholder="Sayfa veya URL ara…"></div>'+
+      '<div class="table-wrap"><table><thead><tr><th>Sayfa</th><th>Skor</th><th>Title</th><th>Description</th><th>Canonical</th><th>Sosyal</th><th>Index</th><th></th></tr></thead><tbody id="seoAuditRows"></tbody></table></div>';
+    const draw=()=>{
+      const filter=$('#seoAuditFilter').value,q=($('#seoAuditSearch').value||'').toLocaleLowerCase('tr-TR');
+      const rows=audited.filter(x=>{
+        if(q&&!((x.page.name+' '+x.page.path).toLocaleLowerCase('tr-TR').includes(q)))return false;
+        if(filter==='needs'&&x.score>=80)return false;
+        if(filter==='index'&&!x.indexable)return false;
+        if(filter==='noindex'&&x.indexable)return false;
+        if(filter==='game'&&!String(x.page.path||'').match(/^\/(?!en\/|tr\/|games\/|educators\/|ozel-dersler\/)[a-z0-9-]+\/?$/i))return false;
+        return true;
+      });
+      $('#seoAuditRows').innerHTML=rows.map(x=>{
+        const social=!!(x.ogTitle&&x.ogDescription&&x.ogImage);
+        const scoreClass=x.score>=90?'live':(x.score>=70?'published':'draft');
+        return '<tr>'+
+          '<td><strong>'+esc(x.page.name)+'</strong><br><small>'+esc(x.page.path)+'</small></td>'+
+          '<td><span class="pill '+scoreClass+'">'+x.score+'/100</span></td>'+
+          '<td><span class="seo-audit-dot '+(x.title?'ok':'bad')+'">'+(x.title?'✓':'!')+'</span> '+esc(x.title?x.title.slice(0,54):'Eksik')+'</td>'+
+          '<td><span class="seo-audit-dot '+(x.description?'ok':'bad')+'">'+(x.description?'✓':'!')+'</span> '+(x.description?esc(x.description.length+' karakter'):'Eksik')+'</td>'+
+          '<td><span class="seo-audit-dot '+(/^https:\/\//i.test(x.canonical)?'ok':'bad')+'">'+(/^https:\/\//i.test(x.canonical)?'✓':'!')+'</span> '+(x.canonical?'Var':'Eksik')+'</td>'+
+          '<td><span class="seo-audit-dot '+(social?'ok':'bad')+'">'+(social?'✓':'!')+'</span> '+(social?'Hazır':'Eksik')+'</td>'+
+          '<td><span class="pill '+(x.indexable?'published':'')+'">'+(x.indexable?'INDEX':'NOINDEX')+'</span></td>'+
+          '<td><div class="row-actions"><button class="icon-btn" data-seo-edit="'+x.page.id+'">SEO düzenle</button><a class="icon-btn" href="'+esc(x.page.path)+'" target="_blank">Aç ↗</a></div></td>'+
+        '</tr>';
+      }).join('')||'<tr><td colspan="8"><div class="empty">Bu filtrede sayfa yok.</div></td></tr>';
+      $('#seoAuditRows').querySelectorAll('[data-seo-edit]').forEach(b=>b.onclick=()=>{A.state.currentView='siteEditor';$('#viewTitle').textContent='Canlı Site Editörü';renderEditor(b.dataset.seoEdit);setTimeout(()=>toast('Sayfa açıldı · üst menüden SEO butonuna tıkla'),700)});
+    };
+    $('#seoAuditFilter').onchange=draw;$('#seoAuditSearch').oninput=draw;draw();
+    $('#seoRefreshAudit').onclick=seoCenter;
+  }
+
   async function historyView(){
     const {data,error}=await A.state.db.from('esc_cms_revisions').select('*').order('created_at',{ascending:false}).limit(150);if(error)throw error;
     $('#panel').innerHTML='<div class="card"><div class="card-head"><div><h2>Sürüm geçmişi</h2><p class="muted">Geri yükleme doğrudan canlıyı değiştirmez; seçilen sürümü taslağa getirir.</p></div></div>'+
@@ -393,6 +477,7 @@
   }
 
   A.register('siteEditor',()=>renderEditor());
+  A.register('seo',seoCenter);
   A.register('pages',pagesView);
   A.register('history',historyView);
 })();
