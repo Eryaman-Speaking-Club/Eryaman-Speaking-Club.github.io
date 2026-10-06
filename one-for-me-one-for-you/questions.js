@@ -97,7 +97,7 @@
     ],
     'communication': [
       ['What makes {x} effective?', 'Give an example of good communication.'],
-      ['What bad habit involving {x} should come with a warning label?', 'What should the warning say?'],
+      ['If {x} came with a social warning label, what would it say?', 'What awkward situation would the warning prevent?'],
       ['How confident are you with {x}?', 'What would help you become better at it?'],
       ['Has technology changed the way people use {x}?', 'Explain one positive and one negative change.'],
       ['What rule or habit would improve {x}?', 'Why would it make communication better?']
@@ -146,7 +146,7 @@
     ],
     'problem solving': [
       ['What would you do first if you faced {x}?', 'Explain your first three steps.'],
-      ['What is the worst possible reaction to {x} that would make a great comedy scene?', 'Then give the sensible reaction.'],
+      ['If {x} happened in a sitcom, what would the most dramatic character do first?', 'Then give the sensible real-life reaction.'],
       ['Have you ever dealt with something like {x}?', 'What happened and what did you learn?'],
       ['Who would you ask for help with {x}?', 'Why would that person be useful?'],
       ['How could you prevent {x} from becoming a bigger problem?', 'Give practical advice.']
