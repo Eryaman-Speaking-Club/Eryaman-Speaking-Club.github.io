@@ -12,6 +12,8 @@
   };
 
   const sleep = ms => new Promise(r => setTimeout(r, ms));
+  let lastPagePayload = null;
+  let lastPagePath = null;
 
   async function client() {
     for (let i = 0; i < 80; i++) {
@@ -105,6 +107,21 @@
     document.head.appendChild(style);
   }
 
+  function applyPublishedPage(data,path,reason='load') {
+    if (!data) return;
+    const content = data.published_data || {};
+    (content.patches || []).forEach(applyPatch);
+    applySections(content.sections || []);
+    applySeo(data.published_seo || {});
+    document.documentElement.dataset.escCmsVersion = String(data.version || 0);
+    window.dispatchEvent(new CustomEvent('esc:cms:applied',{detail:{path,version:data.version||0,reason}}));
+  }
+
+  function reapplyPublishedPage(reason='dynamic-content') {
+    if (!lastPagePayload || !lastPagePath) return;
+    applyPublishedPage(lastPagePayload,lastPagePath,reason);
+  }
+
   async function run() {
     const params = new URLSearchParams(location.search);
     if (params.get('cms_skip') === '1') return;
@@ -163,16 +180,18 @@
         }
       }
       if (error || !data) return;
-      const content = data.published_data || {};
-      (content.patches || []).forEach(applyPatch);
-      applySections(content.sections || []);
-      applySeo(data.published_seo || {});
-      document.documentElement.dataset.escCmsVersion = String(data.version || 0);
-      window.dispatchEvent(new CustomEvent('esc:cms:applied',{detail:{path,version:data.version||0}}));
+      lastPagePayload = data;
+      lastPagePath = path;
+      applyPublishedPage(data,path,'load');
     } catch (_) {}
   }
 
-  window.ESCCMSRuntime = { normalizePath, applyPatch, applySections, applySeo, run };
+  window.addEventListener('esc:event-config:applied',() => {
+    if (!lastPagePayload) return;
+    requestAnimationFrame(() => reapplyPublishedPage('event-config'));
+  });
+
+  window.ESCCMSRuntime = { normalizePath, applyPatch, applySections, applySeo, run, reapplyPublishedPage };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run, {once:true});
   else run();
 })();
