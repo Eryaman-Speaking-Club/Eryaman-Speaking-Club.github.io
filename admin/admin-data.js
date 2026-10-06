@@ -1,30 +1,91 @@
 (() => {
   'use strict';
-  const A=window.ESCAdmin;const {$,$$,esc,toast,openModal,closeModal}=A;
+  const A=window.ESCAdmin;const {$,$,esc,toast,openModal,closeModal}=A;
+
+  const monthsTr=['OCAK','ŞUBAT','MART','NİSAN','MAYIS','HAZİRAN','TEMMUZ','AĞUSTOS','EYLÜL','EKİM','KASIM','ARALIK'];
+  const monthsEn=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const weekdaysTr=['PAZAR','PAZARTESİ','SALI','ÇARŞAMBA','PERŞEMBE','CUMA','CUMARTESİ'];
+  const weekdaysEn=['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
+  const toDateTimeInput=value=>{
+    const m=String(value||'').match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})/);
+    return m?m[1]:'';
+  };
+  const addHoursInput=(value,hours=2)=>{
+    if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(String(value||'')))return '';
+    const d=new Date(value+':00+03:00');
+    if(Number.isNaN(d.getTime()))return '';
+    d.setTime(d.getTime()+hours*3600000);
+    const parts=new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Istanbul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(d);
+    const g=t=>parts.find(x=>x.type===t)?.value||'';
+    return g('year')+'-'+g('month')+'-'+g('day')+'T'+g('hour')+':'+g('minute');
+  };
+  const deriveEventDate=(startInput,endInput)=>{
+    const m=String(startInput||'').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
+    if(!m)throw new Error('Etkinlik başlangıç tarihini ve saatini seç.');
+    const y=Number(m[1]),month=Number(m[2]),day=Number(m[3]),hh=m[4],mm=m[5];
+    const start=startInput+':00+03:00';
+    let normalizedEnd=endInput;
+    const startMs=Date.parse(start);
+    const endMs=Date.parse(String(endInput||'')+':00+03:00');
+    if(!endInput||!Number.isFinite(endMs)||endMs<=startMs)normalizedEnd=addHoursInput(startInput,2);
+    const weekday=new Date(Date.UTC(y,month-1,day)).getUTCDay();
+    return {
+      start,
+      end:normalizedEnd+':00+03:00',
+      day:String(day),
+      monthTr:monthsTr[month-1],
+      monthEn:monthsEn[month-1],
+      weekdayTr:weekdaysTr[weekday],
+      weekdayEn:weekdaysEn[weekday],
+      time:hh+':'+mm
+    };
+  };
 
 
   async function eventsView(){
     const {data,error}=await A.state.db.from('esc_cms_settings').select('*').eq('key','event_config').maybeSingle();if(error)throw error;
     const cfg=A.clone(data?.draft_data||data?.published_data||{});
     const e=cfg.inPerson||{},p=cfg.pricing||{},o=cfg.online||{};
-    $('#panel').innerHTML='<div class="card"><div class="card-head"><div><h2>Etkinlik & fiyatlar</h2><p class="muted">Buradaki değerler ana sayfadaki tekrar eden tarih, saat, mekân, kayıt linki ve fiyat alanlarını merkezi olarak günceller.</p></div><span class="pill '+(data?.has_unpublished_changes?'draft':'published')+'">'+(data?.has_unpublished_changes?'TASLAK':'YAYINDA · v'+(data?.version||0))+'</span></div>'+
+    const startInput=toDateTimeInput(e.start)||'2026-10-11T18:00';
+    const endInput=toDateTimeInput(e.end)||addHoursInput(startInput,2);
+    $('#panel').innerHTML='<div class="card"><div class="card-head"><div><h2>Etkinlik & fiyatlar</h2><p class="muted">Burası etkinlik tarihinin, saatin, mekânın, kayıt linkinin ve fiyatların tek kaynağıdır. Tarihi burada bir kez değiştirmen yeterli; ana sayfadaki tüm tarih alanları otomatik güncellenir.</p></div><span class="pill '+(data?.has_unpublished_changes?'draft':'published')+'">'+(data?.has_unpublished_changes?'TASLAK':'YAYINDA · v'+(data?.version||0))+'</span></div>'+
       '<form id="eventConfigForm" class="stack">'+
-      '<div class="grid-2"><label>Etkinlik başlangıcı (ISO)<input name="start" value="'+esc(e.start||'')+'"></label><label>Etkinlik bitişi (ISO)<input name="end" value="'+esc(e.end||'')+'"></label></div>'+
-      '<div class="grid-3"><label>Gün<input name="day" value="'+esc(e.day||'')+'"></label><label>Ay TR<input name="monthTr" value="'+esc(e.monthTr||'')+'"></label><label>Ay EN<input name="monthEn" value="'+esc(e.monthEn||'')+'"></label></div>'+
-      '<div class="grid-3"><label>Gün TR<input name="weekdayTr" value="'+esc(e.weekdayTr||'')+'"></label><label>Gün EN<input name="weekdayEn" value="'+esc(e.weekdayEn||'')+'"></label><label>Saat<input name="time" value="'+esc(e.time||'')+'"></label></div>'+
+      '<div class="notice"><strong>Merkezi tarih sistemi</strong><br>Gün, ay, hafta günü ve saat başlangıç tarihinden otomatik hesaplanır. Canlı Site Editörü bu alanların üstüne yazamaz.</div>'+
+      '<div class="grid-2"><label>Etkinlik başlangıcı<input name="start" type="datetime-local" required value="'+esc(startInput)+'"></label><label>Etkinlik bitişi<input name="end" type="datetime-local" required value="'+esc(endInput)+'"></label></div>'+
+      '<div id="eventDerivedPreview" class="notice"></div>'+
       '<label>Mekân<input name="venue" value="'+esc(e.venue||'')+'"></label>'+
       '<div class="grid-2"><label>Kayıt formu URL<input name="registrationUrl" value="'+esc(cfg.registrationUrl||'')+'"></label><label>Harita URL<input name="mapUrl" value="'+esc(cfg.mapUrl||'')+'"></label></div>'+
       '<div class="grid-2"><label>Kontenjan<select name="capacity"><option value="limited" '+(e.capacity==='limited'?'selected':'')+'>Sınırlı</option><option value="open" '+(e.capacity!=='limited'?'selected':'')+'>Açık</option></select></label><label>Online ilk buluşma ücretsiz <select name="onlineFree"><option value="true" '+(o.firstMeetupFree!==false?'selected':'')+'>Evet</option><option value="false" '+(o.firstMeetupFree===false?'selected':'')+'>Hayır</option></select></label></div>'+
-      '<div class="grid-2"><label>Tek etkinlik fiyatı<input name="single" type="number" min="0" value="'+esc(p.single??400)+'"></label><label>4 buluşma paketi · 2 ay geçerli<input name="oneMonth" type="number" min="0" value="'+esc(p.oneMonth??1400)+'"></label></div>'+
-      '<div class="grid-2"><label>12 buluşma paketi · 5 ay geçerli<input name="threeMonth" type="number" min="0" value="'+esc(p.threeMonth??3900)+'"></label><label>Online buluşma<input name="onlinePrice" type="number" min="0" value="'+esc(o.price??300)+'"></label></div>'+
+      '<div class="grid-3"><label>Tek yüz yüze buluşma<input name="single" type="number" min="0" value="'+esc(p.single??400)+'"></label><label>4 yüz yüze buluşma<input name="oneMonth" type="number" min="0" value="'+esc(p.oneMonth??1400)+'"></label><label>12 yüz yüze buluşma<input name="threeMonth" type="number" min="0" value="'+esc(p.threeMonth??3900)+'"></label></div>'+
+      '<div class="grid-3"><label>Tek online buluşma<input name="onlinePrice" type="number" min="0" value="'+esc(o.price??300)+'"></label><label>4 online buluşma<input name="onlineFourPack" type="number" min="0" value="'+esc(o.fourPack??1100)+'"></label><label>12 online buluşma<input name="onlineTwelvePack" type="number" min="0" value="'+esc(o.twelvePack??3000)+'"></label></div>'+
       '<div class="row-actions"><button type="button" id="saveEventDraft" class="btn secondary" '+(!A.canEdit()?'disabled':'')+'>Taslak kaydet</button><button class="btn primary" '+(!A.canEdit()?'disabled':'')+'>Kaydet & yayınla</button><a class="btn secondary" href="../#next-event" target="_blank">Canlı bölümü aç ↗</a></div></form></div>';
+
+    const preview=()=>{
+      try{
+        const form=$('#eventConfigForm');
+        const derived=deriveEventDate(form.elements.start.value,form.elements.end.value);
+        $('#eventDerivedPreview').innerHTML='<strong>Canlı sitede kullanılacak tarih:</strong> '+esc(derived.day+' '+derived.monthTr+' · '+derived.weekdayTr+' · '+derived.time)+' <span class="muted">('+esc(derived.day+' '+derived.monthEn+' · '+derived.weekdayEn)+')</span>';
+      }catch(err){
+        $('#eventDerivedPreview').innerHTML='<strong>Tarih kontrolü:</strong> '+esc(err.message||err);
+      }
+    };
+    $('#eventConfigForm').elements.start.addEventListener('input',()=>{
+      const start=$('#eventConfigForm').elements.start.value;
+      const end=$('#eventConfigForm').elements.end;
+      if(!end.value||Date.parse(end.value+':00+03:00')<=Date.parse(start+':00+03:00'))end.value=addHoursInput(start,2);
+      preview();
+    });
+    $('#eventConfigForm').elements.end.addEventListener('input',preview);
+    preview();
+
     const collect=()=>{
       const f=new FormData($('#eventConfigForm'));
+      const derived=deriveEventDate(String(f.get('start')||''),String(f.get('end')||''));
       return {
         registrationUrl:String(f.get('registrationUrl')||'').trim(),mapUrl:String(f.get('mapUrl')||'').trim(),
-        inPerson:{start:f.get('start'),end:f.get('end'),day:f.get('day'),monthTr:String(f.get('monthTr')||'').toUpperCase(),monthEn:String(f.get('monthEn')||'').toUpperCase(),weekdayTr:String(f.get('weekdayTr')||'').toUpperCase(),weekdayEn:String(f.get('weekdayEn')||'').toUpperCase(),time:f.get('time'),venue:f.get('venue'),capacity:f.get('capacity')},
+        inPerson:{...derived,venue:String(f.get('venue')||'').trim(),capacity:f.get('capacity')},
         pricing:{single:Number(f.get('single')||0),oneMonth:Number(f.get('oneMonth')||0),threeMonth:Number(f.get('threeMonth')||0),currency:'TL'},
-        online:{firstMeetupFree:f.get('onlineFree')==='true',price:Number(f.get('onlinePrice')||0),currency:'TL',unitTr:'buluşma',unitEn:'meetup'}
+        online:{firstMeetupFree:f.get('onlineFree')==='true',price:Number(f.get('onlinePrice')||0),fourPack:Number(f.get('onlineFourPack')||0),twelvePack:Number(f.get('onlineTwelvePack')||0),currency:'TL',unitTr:'buluşma',unitEn:'meetup'}
       };
     };
     let saving=false;
@@ -45,7 +106,7 @@
           if(!r.data?.key)throw new Error('Yayınlama tamamlanamadı.');
         }
         if(publish)A.notifyIndexNow?.('/');
-        toast(publish?'Etkinlik ve fiyatlar canlı siteye yayınlandı · IndexNow bildirimi gönderildi':'Etkinlik taslağı kaydedildi');
+        toast(publish?'Etkinlik bilgileri her yerde güncellendi ve canlıya yayınlandı':'Etkinlik taslağı kaydedildi');
       } finally {
         saving=false;
         buttons.forEach(b=>b.disabled=!A.canEdit());
