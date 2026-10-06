@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#081f3b">
   <meta name="description" content="Ankara Eryaman’da yüz yüze ve online İngilizce konuşma pratiği. A2–B2+ seviyeleri, küçük gruplar, speaking oyunları ve sosyal buluşmalar. İlk buluşma ücretsiz.">
-  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+  <meta name="robots" content="noindex,follow,max-image-preview:large">
   <link rel="canonical" href="https://eryamanspeakingclub.com/" data-site-refresh-seo="20260922">
   <link rel="alternate" hreflang="tr" href="https://eryamanspeakingclub.com/">
   <link rel="alternate" hreflang="en" href="https://eryamanspeakingclub.com/en/">
@@ -32,11 +32,25 @@
         "@type": "Organization",
         "name": "Eryaman Speaking Club",
         "url": "https://eryamanspeakingclub.com/",
-        "logo": "https://eryamanspeakingclub.com/og-card.jpg",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://eryamanspeakingclub.com/esc-center-symbol.webp"
+        },
         "sameAs": [
           "https://www.instagram.com/eryamanspeakingclub/",
           "https://www.tiktok.com/@eryamanspeakingclub"
-        ]
+        ],
+        "@id": "https://eryamanspeakingclub.com/#organization"
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://eryamanspeakingclub.com/#website",
+        "url": "https://eryamanspeakingclub.com/",
+        "name": "Eryaman Speaking Club",
+        "publisher": {
+          "@id": "https://eryamanspeakingclub.com/#organization"
+        },
+        "inLanguage": "tr-TR"
       }
     ]
   }
