@@ -9,6 +9,20 @@
   const clone = v => JSON.parse(JSON.stringify(v ?? {}));
   const canEdit = () => state.profile && state.profile.active && state.profile.role !== 'viewer';
   const isSuper = () => state.profile?.role === 'super_admin';
+  const INDEXNOW_KEY='c9487a4d6e0b4fdca1e8f7d93b6a21c5';
+  const INDEXNOW_KEY_URL='https://eryamanspeakingclub.com/'+INDEXNOW_KEY+'.txt';
+  async function notifyIndexNow(path='/'){
+    try{
+      const u=new URL(path||'/', 'https://eryamanspeakingclub.com');
+      u.hash='';
+      const endpoint='https://api.indexnow.org/indexnow?url='+encodeURIComponent(u.href)+'&key='+encodeURIComponent(INDEXNOW_KEY)+'&keyLocation='+encodeURIComponent(INDEXNOW_KEY_URL);
+      await fetch(endpoint,{mode:'no-cors',cache:'no-store'});
+      return true;
+    }catch(err){
+      console.warn('IndexNow notification failed',err);
+      return false;
+    }
+  }
 
   function toast(message){
     const el=$('#toast'); if(!el)return;
@@ -59,7 +73,7 @@
       '<div class="card"><div class="card-head"><div><h2>Site yönetim merkezi</h2><p class="muted">Panelde Publish dediğinde değişiklik Supabase üzerinden gerçek siteye uygulanır.</p></div></div>'+
       '<div class="grid-3">'+
         '<button class="mini-card quick-card" data-go="siteEditor"><span class="pill live">CANLI</span><h3>Canlı Site Editörü</h3><p>Sayfayı aç, metne veya görsele tıkla ve doğrudan düzenle.</p></button>'+
-        '<button class="mini-card quick-card" data-go="seo"><span class="pill">SEO</span><h3>SEO Merkezi</h3><p>Başlık, açıklama, canonical, sosyal paylaşım ve index durumunu tek ekranda denetle.</p></button>'+
+        '<button class="mini-card quick-card" data-go="seo"><span class="pill">SEO</span><h3>SEO & GEO Merkezi</h3><p>SEO, AI görünürlüğü, canonical, sosyal paylaşım ve index durumunu tek ekranda denetle.</p></button>'+
         '<button class="mini-card quick-card" data-go="games"><span class="pill">OYUNLAR</span><h3>Game Hub</h3><p>Oyunları aç/kapat, ayarları ve merkezi içerikleri yönet.</p></button>'+
         '<button class="mini-card quick-card" data-go="educators"><span class="pill">EDTECH</span><h3>Educators</h3><p>Öğretmen, sınıf, plan ve eğitimci kullanıcılarını kontrol et.</p></button>'+
       '</div></div>'+
@@ -69,7 +83,7 @@
 
   async function render(view){
     state.currentView=view;
-    const titles={dashboard:'Genel Bakış',siteEditor:'Canlı Site Editörü',seo:'SEO Merkezi',pages:'Sayfalar & Bölümler',navigation:'Navigasyon & Footer',pageBuilder:'Page Builder',events:'Etkinlik & Fiyatlar',games:'Oyunlar',educators:'Educators',media:'Medya Kütüphanesi',analytics:'Site İstatistikleri',history:'Sürüm Geçmişi',team:'Yönetici Ekibi',settings:'Ayarlar'};
+    const titles={dashboard:'Genel Bakış',siteEditor:'Canlı Site Editörü',seo:'SEO & GEO Merkezi',pages:'Sayfalar & Bölümler',navigation:'Navigasyon & Footer',pageBuilder:'Page Builder',events:'Etkinlik & Fiyatlar',games:'Oyunlar',educators:'Educators',media:'Medya Kütüphanesi',analytics:'Site İstatistikleri',history:'Sürüm Geçmişi',team:'Yönetici Ekibi',settings:'Ayarlar'};
     $('#viewTitle').textContent=titles[view]||view;
     $('#panel').innerHTML='<div class="card"><div class="empty">Yükleniyor…</div></div>';
     try{
@@ -138,6 +152,6 @@
 
   window.ESCAdmin={
     state,$,$$,esc,fmt,clone,toast,openModal,closeModal,uploadAsset,saveMediaRecord,
-    register,render,go,canEdit,isSuper
+    register,render,go,notifyIndexNow,canEdit,isSuper
   };
 })();
