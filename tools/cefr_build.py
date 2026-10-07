@@ -3,3 +3,4 @@
 import build_cefr
 import finalize_cefr
 import cefr_release50
+import cefr50_polish
