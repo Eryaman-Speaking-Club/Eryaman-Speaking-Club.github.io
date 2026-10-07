@@ -612,6 +612,14 @@ Your last phone call: family or a friend?
 Your last walk: where?
 Your last TV show: what show?
 Your last class: what subject?
-Your last snack: sweet or salty?`)).map(x=>({c:x[0],q:x[1]}));
+Your last snack: sweet or salty?
+Your last cafe visit: what did you drink?
+Your last message: who did you send it to?
+Your last rainy day: what did you do?
+Your last small mistake: what happened?
+Your last new place: where was it?
+Your last funny moment: what made you laugh?
+Your last plan with a friend: what did you do?
+Your last thing you learned: what was it?`)).map(x=>({c:x[0],q:x[1]}));
 window.ESCCefrBank={version:'20261007-2',levels,games,types,follow,categorySets,categoryFor,sourceUrl:'https://www.coe.int/en/web/common-european-framework-reference-languages/table-1-cefr-3.3-common-reference-levels-global-scale/'};
 })();
