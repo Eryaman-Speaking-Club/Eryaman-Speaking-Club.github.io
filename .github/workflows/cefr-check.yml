@@ -1,0 +1,30 @@
+name: CEFR content and integration checks
+on:
+  push:
+    branches: [cefr-levels-20261007]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax checks
+        run: |
+          node --check cefr-source.js
+          node --check cefr-bank.js
+          node --check cefr-runtime.js
+          if [ -f tests/cefr-check.cjs ]; then node tests/cefr-check.cjs; fi
+      - name: Export test snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: cefr-test-snapshot
+          path: |
+            **/*.js
+            **/*.css
+            **/*.html
+            **/*.md
+            **/*.cjs
+            cefr-*.js
+          retention-days: 2
