@@ -5,8 +5,8 @@ Runs AFTER the original CEFR integration and its guarded refinements.
 from pathlib import Path
 import re
 ROOT=Path(__file__).resolve().parents[1]
-VERSION='20261007-level50-2'
-EXTRA=['cefr50-conversation.js','cefr50-interpersonal.js','cefr50-activities.js','cefr50-structured.js']
+VERSION='20261007-group3-c2-1'
+EXTRA=['cefr50-conversation.js','cefr50-interpersonal.js','cefr50-activities.js','cefr50-structured.js','cefr-groups.js']
 def once(s,old,new):
     if new in s:return s
     if s.count(old)!=1:raise RuntimeError('Release50 anchor missing: '+old[:100])
