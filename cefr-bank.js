@@ -477,6 +477,84 @@ a chair with no smart features|Question unnecessary complexity while acknowledgi
 };
 const emojiSequences=[['sun','walking','coffee'],['cat','box','surprise'],['bus','rain','home'],['cake','party','laughter'],['book','idea','pen'],['dog','shoe','running'],['train','map','camera'],['alarm','sleep','late'],['food','friends','music'],['phone','wrong message','apology'],['bag','ticket','journey'],['recipe','mistake','new idea']];
 const emojiMap={sun:'\u2600\ufe0f',walking:'\ud83d\udeb6',coffee:'\u2615',cat:'\ud83d\udc31',box:'\ud83d\udce6',surprise:'\ud83d\ude32',bus:'\ud83d\ude8c',rain:'\ud83c\udf27\ufe0f',home:'\ud83c\udfe0',cake:'\ud83c\udf82',party:'\ud83c\udf89',laughter:'\ud83d\ude02',book:'\ud83d\udcd6',idea:'\ud83d\udca1',pen:'\u270f\ufe0f',dog:'\ud83d\udc36',shoe:'\ud83d\udc5f',running:'\ud83c\udfc3',train:'\ud83d\ude86',map:'\ud83d\uddfa\ufe0f',camera:'\ud83d\udcf7',alarm:'\u23f0',sleep:'\ud83d\ude34',late:'\ud83d\udca8',food:'\ud83c\udf7d\ufe0f',friends:'\ud83d\udc65',music:'\ud83c\udfb5',phone:'\ud83d\udcf1','wrong message':'\u2757',apology:'\ud83d\ude4f',bag:'\ud83c\udf92',ticket:'\ud83c\udf9f\ufe0f',journey:'\ud83d\udee3\ufe0f',recipe:'\ud83d\udcdd',mistake:'\ud83d\ude05','new idea':'\ud83d\udca1'};
+
+/* restored-game-categories-20261007 */
+const categorySets={
+ "one-for-me-one-for-you":["Everyday","Fun","Personal","Deep","Spicy"],
+ "last-thing-you-did":["Everyday","Funny","Personal","Spicy"],
+ "what-would-you-do-if":["Everyday","Chaos","Social","Money","Deep","Spicy"],
+ "would-you-rather":["Everyday","Funny","Deep","Impossible","Spicy"],
+ "most-likely-to":["Funny","Chaos","Social","Future","Spicy"],
+ "hot-seat":["Mixed","Funny","Personal","Spicy"],
+ "five-second-challenge":["Easy","Funny","Hard","Spicy"],
+ "red-flag-green-flag":["Dating","Friendship","Work","Personality","Everyday"],
+ "debate-roulette":["Everyday","Fun","Social","Deep","Spicy"],
+ "never-have-i-ever":["Funny","Travel","Work","Social","Spicy"],
+ "two-truths-one-lie":["Daily Life","Travel","Childhood","Work & Study","Social","Fun","Future","Random"],
+ "story-chain":["Everyday","Travel","Mystery","Funny","Future","Social","Adventure","Challenge"],
+ "opinion-line":["Daily Life","Work","Social","Technology","Deep","Relationships"],
+ "question-roulette":["Everyday","Fun","Social","Deep","Spicy"],
+ "finish-the-sentence":["Easy","Personal","Social","Future","Opinion","Fun"],
+ "would-i-lie-to-you":["Travel","Childhood","Work & Study","Social","Food","Funny","Personal","Spicy"],
+ "worst-advice-only":["Daily Life","Work","Study","Social","Travel","Money","Relationships"],
+ "hot-take":["Everyday","Food","Work","Travel","Social","Technology","Relationships","Deep"]
+};
+const includesAny=(t,words)=>words.some(w=>t.includes(w));
+function categoryFor(game,text,i=0){
+ const t=String(text||"").toLowerCase();
+ const sets=categorySets[game];
+ if(!sets)return i%2?"Light-hearted":"Everyday";
+ const has=(...w)=>includesAny(t,w);
+ const relationship=()=>has("date","dating","partner","relationship","crush","romantic","chemistry","jealous","ex ","ex-","love","flirt","first move","couple");
+ const money=()=>has("money","salary","budget","bank","pay","price","cost","cheap","expensive","buy","bought","purchase","spend","save","refund","business");
+ const work=()=>has("work","job","office","manager","colleague","team","meeting","deadline","career","salary","promotion","employee","employer","project");
+ const travel=()=>has("travel","trip","holiday","hotel","train","bus","flight","airport","station","journey","city","town","abroad","camp","museum","map");
+ const tech=()=>has("phone","app","online","internet","technology","digital","ai ","social media","data","privacy","screen","message","email","notification");
+ const social=()=>has("friend","group","people","person","someone","conversation","talk","neighbour","visitor","member","teammate","colleague","community");
+ const fun=()=>has("funny","cat","dog","cake","pizza","hat","dance","sing","banana","robot","zombie","alien","karaoke","sock","meme","movie","film","song","party");
+ const deep=()=>has("success","failure","value","principle","meaning","fair","future","fear","regret","life","decision","assumption","evidence","uncertainty","autonomy","accountability","trade-off","boundary","confidence");
+ switch(game){
+  case "what-would-you-do-if":
+   if(relationship())return "Spicy"; if(money())return "Money"; if(has("alien","zombie","invisible","cat suddenly","dog","robot","secret door","future self","reality show","one percent","wrong date","two plans"))return "Chaos"; if(deep())return "Deep"; if(social())return "Social"; return "Everyday";
+  case "last-thing-you-did":
+   if(relationship())return "Spicy"; if(has("mistake","wrong","laugh","forgot","inside out","dropped","lost"))return "Funny"; if(deep()||has("goal","learn","opinion","habit"))return "Personal"; return "Everyday";
+  case "would-you-rather":
+   if(relationship())return "Spicy"; if(deep())return "Deep"; if(has("robot","pet","cat","dog","giant","tiny","famous","future self","invisible","fly"))return "Impossible"; if(fun())return "Funny"; return "Everyday";
+  case "most-likely-to":
+   if(relationship())return "Spicy"; if(has("future","career","job","goal","learn","plan"))return "Future"; if(has("forget","wrong","alarm","overpack","board game","spreadsheet","dramatic","cat","dog"))return "Chaos"; if(social())return "Social"; return "Funny";
+  case "hot-seat":
+   if(relationship())return "Spicy"; if(deep()||has("habit","goal","learn","feel","proud","decision"))return "Personal"; if(fun()||has("mistake","wrong","weird"))return "Funny"; return "Mixed";
+  case "five-second-challenge":
+   if(relationship())return "Spicy"; if(has("assumption","evidence","trade-off","boundary","feedback","decision","reasons","qualities","ways to"))return "Hard"; if(fun())return "Funny"; return "Easy";
+  case "red-flag-green-flag":
+   if(work())return "Work"; if(relationship())return "Dating"; if(has("friend","friendship"))return "Friendship"; if(has("habit","always","never","person","someone"))return "Personality"; return "Everyday";
+  case "debate-roulette":
+   if(relationship())return "Spicy"; if(deep())return "Deep"; if(social())return "Social"; if(fun())return "Fun"; return "Everyday";
+  case "never-have-i-ever":
+   if(relationship())return "Spicy"; if(work())return "Work"; if(travel())return "Travel"; if(social()||tech())return "Social"; return "Funny";
+  case "opinion-line":
+   if(relationship())return "Relationships"; if(tech())return "Technology"; if(work())return "Work"; if(deep())return "Deep"; if(social())return "Social"; return "Daily Life";
+  case "hot-take":
+   if(relationship())return "Relationships"; if(has("food","pizza","coffee","tea","restaurant","breakfast","dessert","cafe"))return "Food"; if(work())return "Work"; if(travel())return "Travel"; if(tech())return "Technology"; if(deep())return "Deep"; if(social())return "Social"; return "Everyday";
+  case "finish-the-sentence":
+   if(has("next year","five years","future","want to","hope","project"))return "Future"; if(social())return "Social"; if(deep()||has("feel","habit","confident","proud","learn"))return "Personal"; if(has("technology","successful","city","money","free time","social media"))return "Opinion"; if(fun())return "Fun"; return "Easy";
+  case "question-roulette":
+   if(relationship())return "Spicy"; if(deep())return "Deep"; if(social())return "Social"; if(fun()||has("trend","fictional","animal"))return "Fun"; return "Everyday";
+  case "worst-advice-only":
+   if(relationship())return "Relationships"; if(money())return "Money"; if(work())return "Work"; if(has("study","school","class","learn","exam","course"))return "Study"; if(travel())return "Travel"; if(social())return "Social"; return "Daily Life";
+  case "two-truths-one-lie":
+   if(travel())return "Travel"; if(has("child","school","young","family"))return "Childhood"; if(work()||has("study","course","class"))return "Work & Study"; if(social())return "Social"; if(has("future","next year","goal","want to"))return "Future"; if(fun())return "Fun"; if(deep())return "Random"; return "Daily Life";
+  case "story-chain":
+   if(travel())return "Travel"; if(has("myster","secret","note","missing","door"))return "Mystery"; if(has("future","tomorrow","year later"))return "Future"; if(social())return "Social"; if(has("challenge","problem","deadline"))return "Challenge"; if(fun())return "Funny"; if(has("adventure","mountain","forest","island"))return "Adventure"; return "Everyday";
+  case "would-i-lie-to-you":
+   if(relationship())return "Spicy"; if(travel())return "Travel"; if(has("child","school","young","family"))return "Childhood"; if(work()||has("study","class","course"))return "Work & Study"; if(has("food","cook","meal","restaurant","cake","pizza"))return "Food"; if(deep()||has("boundary","decision","opinion"))return "Personal"; if(social())return "Social"; return "Funny";
+  case "one-for-me-one-for-you":
+   if(relationship())return "Spicy"; if(deep())return "Deep"; if(has("feel","habit","goal","learn","decision","proud"))return "Personal"; if(fun())return "Fun"; return "Everyday";
+  default:return sets[0];
+ }
+}
+const taggedFor=(game,a)=>a.map((text,i)=>[categoryFor(game,text,i),text]);
+
 const games={};
 const types={
  'truth-or-dare':'truth','one-for-me-one-for-you':'paired','last-thing-you-did':'past','what-would-you-do-if':'problem','would-you-rather':'choice','most-likely-to':'social','hot-seat':'open','five-second-challenge':'challenge','red-flag-green-flag':'flag','taboo':'taboo','debate-roulette':'motion','never-have-i-ever':'experience','two-truths-one-lie':'twoTruths','who-am-i':'word','story-chain':'story','explain-it-badly':'word','opinion-line':'motion','ranking-room':'ranking','question-roulette':'open','detective-alibi':'detective','finish-the-sentence':'finish','three-clues':'word','secret-mission':'mission','one-minute-story':'triples','would-i-lie-to-you':'personal','desert-island':'packing','conversation-bingo':'bingo','emoji-story':'emoji','worst-advice-only':'problem','sell-me-this':'sell','hot-take':'motion','photo-talk':'photo'};
@@ -490,22 +568,22 @@ for(const [slug,type] of Object.entries(types)){
   const s=source[level];let out;
   switch(type){
    case 'truth':out={truths:s.open.map(x=>x[0]),dares:s.dare.slice()};break;
-   case 'paired':out=s.open.map((x,i)=>({id:'cefr-'+level+'-'+(i+1),q:x[0],f:x[1],category:label(i),level}));break;
-   case 'open':out=tagged(s.open.map(x=>x[0]));break;
-   case 'past':out=s.past.map((q,i)=>({c:label(i),q}));break;
-   case 'problem':out=slug==='what-would-you-do-if'?s.problem.map((q,i)=>({c:label(i),q})):tagged(s.problem);break;
-   case 'choice':out=s.choice.map((x,i)=>[label(i),...x]);break;
-   case 'social':out=tagged(s.social.map(x=>(level==='A1'?'Who in the group ':'Who is most likely to ')+(level==='A1'?x:x.replace(/^(\w+?)s\b/,'$1').replace(/^get /,'get '))+'?'));break;
-   case 'challenge':out=tagged(s.challenge.map(x=>'Name three '+x+'.'));break;
-   case 'flag':out=tagged(s.flag);break;
-   case 'motion':out=tagged(s.motion);break;
-   case 'experience':out=tagged(s.experience);break;
+   case 'paired':out=s.open.map((x,i)=>({id:'cefr-'+level+'-'+(i+1),q:x[0],f:x[1],category:categoryFor(slug,x[0],i),level}));break;
+   case 'open':out=taggedFor(slug,s.open.map(x=>x[0]));break;
+   case 'past':out=s.past.map((q,i)=>({c:categoryFor(slug,q,i),q}));break;
+   case 'problem':out=slug==='what-would-you-do-if'?s.problem.map((q,i)=>({c:categoryFor(slug,q,i),q})):taggedFor(slug,s.problem);break;
+   case 'choice':out=s.choice.map((x,i)=>[categoryFor(slug,x.join(' '),i),...x]);break;
+   case 'social':out=taggedFor(slug,s.social.map(x=>(level==='A1'?'Who in the group ':'Who is most likely to ')+(level==='A1'?x:x.replace(/^(\w+?)s\b/,'$1').replace(/^get /,'get '))+'?'));break;
+   case 'challenge':out=taggedFor(slug,s.challenge.map(x=>'Name three '+x+'.'));break;
+   case 'flag':out=taggedFor(slug,s.flag);break;
+   case 'motion':out=taggedFor(slug,s.motion);break;
+   case 'experience':out=taggedFor(slug,s.experience);break;
    case 'taboo':out=words[level].map((x,i)=>['Vocabulary',x[0].toUpperCase(),split(x[1]).slice(0,Math.min(4,li+1)).map(w=>w.toUpperCase())]);break;
    case 'word':out=words[level].map(x=>['Vocabulary',x[0]]);break;
-   case 'twoTruths':out=s.personal.map((x,i)=>[label(i),'Talk about '+x+'.',level==='A1'?'Say three short sentences: two true, one not true.':follow[level]]);break;
-   case 'story':out=tagged(s.story);break;
-   case 'personal':out=tagged(s.personal.map(x=>(level==='A1'?'Say three short sentences about ':'Tell a true or invented story about ')+x+'.'));break;
-   case 'finish':out=tagged(s.finish);break;
+   case 'twoTruths':out=s.personal.map((x,i)=>[categoryFor(slug,x,i),'Talk about '+x+'.',level==='A1'?'Say three short sentences: two true, one not true.':follow[level]]);break;
+   case 'story':out=taggedFor(slug,s.story);break;
+   case 'personal':out=taggedFor(slug,s.personal.map(x=>(level==='A1'?'Say three short sentences about ':'Tell a true or invented story about ')+x+'.'));break;
+   case 'finish':out=taggedFor(slug,s.finish);break;
    case 'mission':out=s.mission.slice();break;
    case 'bingo':out=s.bingo.slice();break;
    case 'triples':out=triples[level];break;
@@ -521,9 +599,9 @@ for(const [slug,type] of Object.entries(types)){
 }
 // Social prompts use explicit base verbs instead of a morphological guess.
 const socialVerbs={plans:'plan',helps:'help',remembers:'remember',tries:'try',brings:'bring',finds:'find',organises:'organise',makes:'make',keeps:'keep',gets:'get',buys:'buy',takes:'take',packs:'pack',laughs:'laugh',sets:'set',turns:'turn',starts:'start',forgets:'forget',builds:'build',questions:'question',becomes:'become',has:'have',protects:'protect',writes:'write',notices:'notice',researches:'research',checks:'check',distinguishes:'distinguish',changes:'change',requests:'request',communicates:'communicate',creates:'create',spots:'spot',asks:'ask',presents:'present',explains:'explain'};
-for(const level of levels.slice(1)) games['most-likely-to'][level]=tagged(source[level].social.map(s=>{const m=s.match(/^(\S+) (.*)$/);return 'Who is most likely to '+(socialVerbs[m[1]]||m[1])+' '+m[2]+'?'}));
+for(const level of levels.slice(1)) games['most-likely-to'][level]=taggedFor('most-likely-to',source[level].social.map(s=>{const m=s.match(/^(\S+) (.*)$/);return 'Who is most likely to '+(socialVerbs[m[1]]||m[1])+' '+m[2]+'?'}));
 // A1 recency prompts need only familiar words and a short answer, not a past-tense story.
-games['last-thing-you-did'].A1=tagged(lines(`Your last drink: tea, coffee or water?
+games['last-thing-you-did'].A1=taggedFor('last-thing-you-did',lines(`Your last drink: tea, coffee or water?
 Your last meal: what food?
 Your last photo: a person, a place or food?
 Your last shop visit: what shop?
@@ -535,5 +613,5 @@ Your last walk: where?
 Your last TV show: what show?
 Your last class: what subject?
 Your last snack: sweet or salty?`)).map(x=>({c:x[0],q:x[1]}));
-window.ESCCefrBank={version:'20261007-1',levels,games,types,follow,sourceUrl:'https://www.coe.int/en/web/common-european-framework-reference-languages/table-1-cefr-3.3-common-reference-levels-global-scale/'};
+window.ESCCefrBank={version:'20261007-2',levels,games,types,follow,categorySets,categoryFor,sourceUrl:'https://www.coe.int/en/web/common-european-framework-reference-languages/table-1-cefr-3.3-common-reference-levels-global-scale/'};
 })();
