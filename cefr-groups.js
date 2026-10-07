@@ -169,13 +169,13 @@ const topic={
 };
 function scene(cat){return topic[cat]||('a group has to make a fair decision about '+String(cat).toLowerCase());}
 function coverage(game,cat,i,band){
- const type=B.types[game],s=scene(cat),adv=band==='C1-C2',mid=band==='B1-B2';
+ const type=B.types[game],baseScene=scene(cat),s=i===0?baseScene:baseScene+' after the first plan fails and the group has to reconsider',adv=band==='C1-C2',mid=band==='B1-B2';
  const reason=adv?' Explain the assumptions, trade-offs and one reasonable counterargument.':mid?' Explain your reason and give one example.':' Give a clear answer and one simple reason.';
  const prompt=(lead)=>lead+reason;
  if(type==='paired')return {id:'coverage-'+game+'-'+band+'-'+cat.replace(/\W+/g,'-')+'-'+i,q:prompt('How would you respond if '+s+'?'),f:support[band],category:cat,level:band};
  if(type==='past')return {c:cat,q:prompt('Think of a time when '+s+'. What happened?')};
  if(type==='problem'&&game==='what-would-you-do-if')return {c:cat,q:prompt('What would you do if '+s+'?')};
- if(type==='choice')return [cat,'handle the situation quickly and adjust later','wait for more information before deciding'];
+ if(type==='choice')return [cat,'decide quickly about '+s+' and adjust later','wait for more information about '+s+' before deciding'];
  if(type==='social')return [cat,prompt('Who is most likely to handle this well: '+s+'?')];
  if(type==='challenge')return [cat,prompt('Name three ways to respond when '+s+'.')];
  if(type==='flag')return [cat,prompt('Imagine '+s+'. Red flag, green flag, or depends?')];
