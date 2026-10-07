@@ -54,10 +54,10 @@
   <link rel="stylesheet" href="../esc-brand.css?v=20260916-1240">
 <link rel="stylesheet" href="/esc-game-controls.css?v=20261006-answerhelp3">
 <!-- reviewed-cefr-20261007 -->
-<link rel="stylesheet" href="/cefr.css?v=20261007-cefr2">
-<script defer src="/cefr-source.js?v=20261007-cefr2"></script>
-<script defer src="/cefr-bank.js?v=20261007-cefr2"></script>
-<script defer src="/cefr-runtime.js?v=20261007-cefr2"></script>
+<link rel="stylesheet" href="/cefr.css?v=20261007-cefr3">
+<script defer src="/cefr-source.js?v=20261007-cefr3"></script>
+<script defer src="/cefr-bank.js?v=20261007-cefr3"></script>
+<script defer src="/cefr-runtime.js?v=20261007-cefr3"></script>
 </head>
 <body>
   <div class="shell">
@@ -98,9 +98,9 @@
     const soundBtn=$('soundBtn'),pop=$('volumePop'),slider=$('volumeSlider'),value=$('volumeValue');let vol=Math.max(0,Math.min(100,Number(localStorage.getItem('esc-global-volume-v1')??100)));slider.value=vol;value.textContent=vol+'%';soundBtn.textContent=vol===0?'🔇':vol<45?'🔉':'🔊';soundBtn.onclick=e=>{e.stopPropagation();pop.classList.toggle('open')};document.addEventListener('click',e=>{if(!pop.contains(e.target)&&e.target!==soundBtn)pop.classList.remove('open')});slider.oninput=e=>{vol=Number(e.target.value);localStorage.setItem('esc-global-volume-v1',vol);value.textContent=vol+'%';soundBtn.textContent=vol===0?'🔇':vol<45?'🔉':'🔊';tone()};
     buildDeck();next();
   </script>
-  <script src="../esc-content-editor.js?v=20261007-cefr2"></script>  <script src="/esc-supabase-config.js?v=20261006-seofinal"></script>
+  <script src="../esc-content-editor.js?v=20261007-cefr3"></script>  <script src="/esc-supabase-config.js?v=20261006-seofinal"></script>
   <script src="/esc-supabase.js?v=20261006-seofinal"></script>
   <script src="/site-analytics.js?v=20260922"></script>
-<script src="/esc-game-controls.js?v=20261007-cefr2"></script>
+<script src="/esc-game-controls.js?v=20261007-cefr3"></script>
 </body>
 </html>
