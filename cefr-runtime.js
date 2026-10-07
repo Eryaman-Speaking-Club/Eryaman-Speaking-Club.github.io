@@ -9,6 +9,8 @@ const canonical=x=>JSON.stringify(x,(_,v)=>v&&typeof v==='object'&&!Array.isArra
 let saved='B1';try{saved=localStorage.getItem(KEY)||saved}catch(_){}
 const requested=new URLSearchParams(location.search).get('level');
 let level=LEVELS.includes(requested)?requested:LEVELS.includes(saved)?saved:'B1',revision=0;
+/* cefr-category-state-20261007 */
+let category='All';
 try{localStorage.setItem(KEY,level)}catch(_){}
 const listeners=new Set(),overrides={},loaded=new Set(),syncs=new Map();
 const count=x=>Array.isArray(x)?x.length:(x?.truths?.length||0)+(x?.dares?.length||0);
@@ -36,8 +38,21 @@ function validate(game,payload){
  const keys=payload.map(x=>canonical(bank.types[game]==='paired'?x.q:(Array.isArray(x)&&bank.types[game]!=='triples'?x.slice(1):x)).toLowerCase().replace(/\s+/g,' '));
  return new Set(keys).size===keys.length;
 }
-function get(game=slug,l=level){if(!bank.games[game]||!LEVELS.includes(l))return[];return copy(overrides[game]?.[l]||bank.games[game][l])}
-function stats(game,config){return LEVELS.map(l=>{const p=config?.cefr?.version===1&&validate(game,config.cefr.levels?.[l])?config.cefr.levels[l]:get(game,l);return {level:l,count:count(p)}})}
+function categoryOf(game,x){
+ const type=bank.types[game];
+ if(type==='paired')return x?.category||null;
+ if(type==='past'||(type==='problem'&&game==='what-would-you-do-if'))return x?.c||null;
+ if(['ranking','packing','detective','photo'].includes(type))return x?.cat||null;
+ if(['mission','bingo','triples','sell','truth'].includes(type))return null;
+ if(Array.isArray(x)&&['emoji','taboo','choice','twoTruths','word','story','finish','social','challenge','flag','motion','experience','open','personal','problem'].includes(type))return x[0]||null;
+ return null;
+}
+function raw(game=slug,l=level){if(!bank.games[game]||!LEVELS.includes(l))return[];return copy(overrides[game]?.[l]||bank.games[game][l])}
+function categoryCounts(game=slug,l=level){const p=raw(game,l),counts={};if(Array.isArray(p))for(const x of p){const c=categoryOf(game,x);if(c)counts[c]=(counts[c]||0)+1}return counts}
+function categories(game=slug,l=level){const counts=categoryCounts(game,l),ordered=bank.categorySets?.[game]||[];const extras=Object.keys(counts).filter(c=>!ordered.includes(c));return [...ordered,...extras]}
+function filterPayload(game,payload,cat){if(cat==='All'||!Array.isArray(payload))return payload;return payload.filter(x=>categoryOf(game,x)===cat)}
+function get(game=slug,l=level,cat=(game===slug?category:'All')){const p=raw(game,l);return copy(filterPayload(game,p,cat))}
+function stats(game,config){return LEVELS.map(l=>{const p=config?.cefr?.version===1&&validate(game,config.cefr.levels?.[l])?config.cefr.levels[l]:raw(game,l);return {level:l,count:count(p)}})}
 const description={
  A1:['Ba\u015flang\u0131\u00e7','Tan\u0131d\u0131k konular; kelimeler ve k\u0131sa c\u00fcmleler.','Use familiar words and short sentences.'],
  A2:['Temel','G\u00fcnl\u00fck durumlar; basit bir ayr\u0131nt\u0131 ekle.','Use simple sentences. Add one detail.'],
@@ -45,7 +60,8 @@ const description={
  B2:['Orta-\u00fcst\u00fc','Se\u00e7enekleri kar\u015f\u0131la\u015ft\u0131r; g\u00f6r\u00fc\u015f\u00fcn\u00fc destekle.','Compare options and support your view.'],
  C1:['\u0130leri','G\u00f6r\u00fc\u015f\u00fcn\u00fc nitele; istisna ve kar\u015f\u0131 g\u00f6r\u00fc\u015f\u00fc de\u011ferlendir.','Qualify your view; consider an exception or another perspective.']};
 function notify(reason){revision++;for(const fn of listeners){try{fn(level,reason)}catch(e){console.error('CEFR deck refresh failed',e)}}paint();document.dispatchEvent(new CustomEvent('eryaman:levelchange',{detail:{level,reason}}))}
-function setLevel(l){if(!LEVELS.includes(l)||l===level)return false;level=l;try{localStorage.setItem(KEY,l);const u=new URL(location.href);u.searchParams.set('level',l);window.history.replaceState(null,'',u)}catch(_){}notify('level');return true}
+function setLevel(l){if(!LEVELS.includes(l)||l===level)return false;level=l;category='All';try{localStorage.setItem(KEY,l);const u=new URL(location.href);u.searchParams.set('level',l);window.history.replaceState(null,'',u)}catch(_){}notify('level');return true}
+function setCategory(c){const allowed=['All',...categories(slug,level)];if(!allowed.includes(c)||c===category)return false;const counts=categoryCounts(slug,level);if(c!=='All'&&!counts[c])return false;category=c;notify('category');return true}
 function onChange(fn){listeners.add(fn);return()=>listeners.delete(fn)}
 function ready(){document.documentElement.removeAttribute('data-cefr-loading');paint()}
 function paint(){
@@ -57,7 +73,8 @@ function paint(){
  document.documentElement.dataset.cefrLevel=level;
  const select=document.getElementById('cefrLevel');if(select)select.value=level;
  const note=document.getElementById('cefrLevelNote');if(note)note.textContent=description[level][1]+' / '+description[level][2];
- const total=document.getElementById('cefrPoolCount');if(total)total.textContent=supported?count(get())+' kart / '+level:'Se\u00e7ilen seviye oyunlara aktar\u0131l\u0131r.';
+ const total=document.getElementById('cefrPoolCount');if(total)total.textContent=supported?count(get())+' kart / '+level+(category!=='All'?' / '+category:''):'Se\u00e7ilen seviye oyunlara aktar\u0131l\u0131r.';
+ const categoryBar=document.getElementById('cefrCategories');if(categoryBar){categoryBar.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.cat===category));}
  document.querySelectorAll('a.game-card').forEach(a=>{const u=new URL(a.href,location.href);u.searchParams.set('level',level);a.href=u.href});
  document.querySelectorAll('.cefr-card-level').forEach(n=>n.textContent=level);
 }
@@ -84,10 +101,10 @@ function bindLegacy(){
  function refresh(){
   if(typeof stop==='function'&&['hot-seat','taboo','debate-roulette'].includes(slug))stop();
   if(typeof resetClock==='function')resetClock();if(typeof resetVote==='function')resetVote();
-  clear();source.splice(0,source.length,...get());selected='All';
-  const categories=['All',...new Set(source.map(x=>Array.isArray(x)?x[0]:x.c))];
+  clear();source.splice(0,source.length,...get());selected=category;
+  const cats=['All',...categories(slug,level)],counts=categoryCounts(slug,level);
   const host=document.getElementById('chips')||document.getElementById('filters');
-  if(host){host.replaceChildren();for(const c of categories){const b=document.createElement('button');b.type='button';b.className=(host.id==='filters'?'chip':'game-chip')+(c==='All'?' active':'');b.textContent=c;b.dataset.cat=c;b.onclick=()=>{selected=c;clear();host.querySelectorAll('button').forEach(n=>n.classList.toggle('active',n===b));draw()};host.appendChild(b)}}
+  if(host){host.replaceChildren();for(const c of cats){const b=document.createElement('button');b.type='button';b.className=(host.id==='filters'?'chip':'game-chip')+(c===category?' active':'');b.textContent=c;b.dataset.cat=c;b.disabled=c!=='All'&&!counts[c];b.title=b.disabled?'Bu seviyede bu kategoride kart yok / No cards at this level':'';b.onclick=()=>{setCategory(c)};host.appendChild(b)}}
   draw();
  }
  onChange(refresh);refresh();
@@ -227,6 +244,11 @@ function mount(){
  const bar=element('section',{class:'cefr-bar','aria-label':'CEFR level selector'}),label=element('label',{for:'cefrLevel'},'Seviye / Level'),sel=element('select',{id:'cefrLevel'}),note=element('p',{id:'cefrLevelNote'}),total=element('small',{id:'cefrPoolCount',role:'status'});
  for(const l of LEVELS)sel.append(element('option',{value:l},l+' \u00b7 '+description[l][0]));sel.value=level;sel.onchange=()=>setLevel(sel.value);bar.append(label,sel,total,note);
  if(host===document.body)document.body.prepend(bar);else host.after(bar);
+ if(supported&&window.ESC_NEW_GAME&&categories(slug,level).length){
+  const catBar=element('nav',{class:'cefr-category-bar',id:'cefrCategories','aria-label':'Question categories'}),counts=categoryCounts(slug,level);
+  for(const c of ['All',...categories(slug,level)]){const b=element('button',{type:'button','data-cat':c},c);b.className=c===category?'active':'';b.disabled=c!=='All'&&!counts[c];b.onclick=()=>setCategory(c);catBar.append(b)}
+  bar.after(catBar);
+ }
  if(supported){
   // The existing answer-help button keeps its administrator-selected icon and colour.
 
@@ -235,7 +257,7 @@ function mount(){
  }
  paint();
 }
-window.ESCCEFR={get,stats,count,validate,setLevel,onChange,sync,ready,installDefaults,bindLegacy,afterNewRender,guidance,howToPlay,editor,help,get level(){return level},get revision(){return revision},slug,supported,levels:LEVELS};
+window.ESCCEFR={get,raw,stats,count,validate,setLevel,setCategory,categories,categoryCounts,onChange,sync,ready,installDefaults,bindLegacy,afterNewRender,guidance,howToPlay,editor,help,get level(){return level},get category(){return category},get revision(){return revision},slug,supported,levels:LEVELS};
 if(supported)document.documentElement.setAttribute('data-cefr-loading','');
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
 })();
