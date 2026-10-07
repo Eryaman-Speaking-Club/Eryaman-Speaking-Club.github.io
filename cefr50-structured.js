@@ -253,7 +253,70 @@ Food|🥘,📋,❓,👍
 Social|💬,🤔,🤝,😊
 Home|🌧️,🪟,🫖,📚`);
 for(const l of B.levels)add('emoji-story',l,emoji.map(([c,s])=>[c,split(s)]));
-B.version='20261007-level50-1';
-B.expandedSpeakingGames=Object.keys(B.games).filter(g=>!['taboo','who-am-i','explain-it-badly','three-clues'].includes(g));
+
+/* vocabulary-50-release */
+const vocabExtras={
+ A1:rows(`clock|time,hour,wall,morning
+cup|drink,tea,coffee,handle
+spoon|eat,soup,kitchen,metal
+plate|food,table,eat,round
+key|door,open,lock,pocket
+jacket|wear,coat,cold,clothes
+tree|green,leaves,park,tall
+river|water,bridge,flow,bank
+flower|plant,garden,beautiful,smell
+baby|child,small,cry,family`),
+ A2:rows(`backpack|bag,school,carry,shoulders
+bakery|bread,cake,shop,buy
+pharmacy|medicine,health,shop,chemist
+platform|train,station,wait,number
+timetable|times,schedule,bus,train
+toothbrush|teeth,bathroom,clean,paste
+blanket|bed,warm,sleep,cover
+pillow|bed,head,sleep,soft
+elevator|lift,building,up,floor
+entrance|door,enter,building,inside`),
+ B1:rows(`priority|important,first,order,focus
+schedule|plan,time,calendar,appointment
+responsibility|duty,job,task,accountable
+recommendation|suggestion,advice,choose,review
+complaint|problem,unhappy,customer,report
+improvement|better,change,progress,develop
+decision|choose,choice,make,option
+support|help,assist,encourage,back
+agreement|agree,deal,contract,understanding
+progress|improve,forward,development,goal`),
+ B2:rows(`workload|work,tasks,amount,busy
+leadership|leader,manage,team,direct
+collaboration|together,team,cooperate,project
+strategy|plan,goal,approach,long-term
+evaluation|assess,judge,measure,result
+regulation|rule,law,control,official
+diversity|different,people,variety,inclusion
+equality|equal,fair,same,rights
+implementation|practice,plan,apply,execute
+stakeholder|affected,project,interest,organisation`),
+ C1:rows(`externality|side effect,cost,third party,economics
+deliberation|discussion,consider,decision,reasoning
+causality|cause,effect,relationship,evidence
+correlation|relationship,variables,association,statistics
+counterfactual|alternative,hypothetical,past,if
+asymmetry|unequal,difference,imbalance,sides
+path dependence|history,choices,trajectory,lock-in
+moral hazard|risk,incentive,insurance,behaviour
+institutional inertia|organisation,change,resistance,habit
+marginal benefit|additional,gain,extra,value`)
+};
+for(const [li,l] of B.levels.entries()){
+ const n=Math.min(4,li+1);
+ for(const [word,banned] of vocabExtras[l]){
+  const forbidden=split(banned).slice(0,n).map(x=>x.toUpperCase());
+  add('taboo',l,[['Vocabulary',word.toUpperCase(),forbidden]]);
+  for(const game of ['who-am-i','explain-it-badly','three-clues'])add(game,l,[['Vocabulary',word]]);
+ }
+}
+
+B.version='20261007-level50-2';
+B.expandedSpeakingGames=Object.keys(B.games);
 B.taskAdaptedGames=['story-chain','ranking-room','detective-alibi','one-minute-story','desert-island','emoji-story','sell-me-this','photo-talk'];
 })();
