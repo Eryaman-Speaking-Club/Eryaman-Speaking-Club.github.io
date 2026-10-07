@@ -1095,5 +1095,299 @@ has proposed rules for a supposedly spontaneous activity
 has accepted that a trade-off has no perfect solution
 has used humour to soften a criticism that was then misunderstood`)
 };
+
+/* cefr-expanded-speaking-20261007 */
+const add=(level,key,items)=>{source[level][key].push(...items)};
+add("A1","open",[
+["What do you like to do after dinner?","After dinner, I ..."],
+["What food do you always enjoy?","I like ..."],
+["Who do you talk to every day?","I talk to ..."],
+["What is your favourite day of the week?","My favourite day is ..."],
+["What do you usually buy at a cafe?","I usually buy ..."],
+["What do you do when it rains?","I ..."],
+["What is one thing you want to learn?","I want to learn ..."],
+["What makes you laugh?","... makes me laugh."]
+]);
+add("A1","problem",[
+"You have only a little money for lunch. What do you buy?",
+"Your cat suddenly says hello. What do you do?",
+"Your friend likes someone and asks what to say. What do you suggest?",
+"You can learn one new thing this year. What do you choose?",
+"You are late for the bus. What do you do?",
+"Your phone battery is at one percent. What do you do?",
+"You see a friend sitting alone. What do you say?",
+"You have two plans at the same time. Which one do you choose?"
+]);
+add("A1","choice",[
+["stay home","go to a cafe"],["have more free time","have more money"],["a funny cat","a clever dog"],["walk in the rain","wait for the sun"],
+["cook with a friend","eat at a restaurant"],["send a text","make a phone call"],["visit the sea","visit the mountains"],["learn a song","learn a dance"]
+]);
+add("A1","motion",[
+"Friends should eat together often.","A small home can be a happy home.","Phones are useful but sometimes annoying.","Tea is better with friends.",
+"People should walk more.","A good day needs some free time.","Learning English can be fun.","It is okay to say no to plans."
+]);
+add("A1","past",[
+"What did you eat yesterday?","Who did you talk to this morning?","Where did you go last weekend?","What did you buy last time you went shopping?",
+"What did you watch yesterday?","What did you cook last?","When did you last use a bus?","What did you do before coming here?"
+]);
+add("A1","experience",[
+"Do you sometimes cook with friends?","Do you ever walk in the rain?","Do you sometimes forget your keys?","Do you ever call a friend just to talk?",
+"Do you sometimes buy food you did not plan to buy?","Do you ever dance at a party?","Do you sometimes study in a cafe?","Do you ever take too many photos?"
+]);
+add("A1","flag",[
+"A friend remembers your favourite drink.","A person always talks while you are talking.","A friend helps you when you are lost.","Someone is kind to a waiter.",
+"A friend never says thank you.","A person asks before taking your photo.","A friend always chooses the restaurant for everyone.","Someone laughs when another person makes a small mistake."
+]);
+add("A1","social",[
+"shares snacks with everyone","sends a message first","remembers where the best cafe is","forgets their own phone number",
+"brings an umbrella for a friend","gets excited about a free dessert","says hello to a new person","takes a photo of every meal"
+]);
+add("A1","finish",[
+"When I have free time, I ...","A good friend is someone who ...","If I have 100 lira, I ...","My phone is useful because ...",
+"I want to visit ...","I laugh when ...","I feel tired when ...","A good weekend has ..."
+]);
+add("A1","personal",[
+"your favourite weekend activity","a person you talk to every day","a place where you feel comfortable","a small thing that makes you happy",
+"a food you like sharing","a time you got a little lost","something you want to learn","a funny thing you do at home"
+]);
+
+add("A2","open",[
+["What is one thing you do to save money?","I usually ..."],["What kind of place helps you relax?","I like places that ..."],
+["What makes a good weekend for you?","A good weekend includes ..."],["What do you do when you need advice?","I usually ask ..."],
+["What is a small goal you have this month?","I want to ..."],["Which app is most useful in your daily life?","I use ... because ..."],
+["What is one thing you enjoy doing alone?","I enjoy ..."],["What is a simple way to make a new person feel welcome?","I usually ..."]
+]);
+add("A2","problem",[
+"You have enough money for either dinner out or a new book. Which do you choose?",
+"You arrive at a cafe and realise you left your wallet at home. What do you do?",
+"A friend wants to meet, but you need a quiet evening. What do you say?",
+"You receive a message from someone you like, but you do not know how to reply. What do you do?",
+"Your weekend plan is cancelled because of rain. What is your new plan?",
+"You are invited to two birthday parties on the same evening. How do you decide?",
+"Your neighbour asks for help while you are busy. What do you say?",
+"You accidentally book the wrong date for a short trip. What do you do first?"
+]);
+add("A2","choice",[
+["save money for a trip","spend money on a hobby"],["have dinner with friends","have a quiet evening alone"],["take a planned holiday","take a last-minute holiday"],["ask for advice","decide alone"],
+["live near work","live near your friends"],["have a very funny partner","have a very organised partner"],["always know the weather","always know the traffic"],["learn quickly","remember everything you learn"]
+]);
+add("A2","motion",[
+"People should save some money every month.","It is good to spend time alone sometimes.","A first meeting is easier over coffee.","People should turn off work messages in the evening.",
+"Travelling teaches useful life skills.","A simple plan is often better than a perfect plan.","Friends should be honest even when the truth is uncomfortable.","Learning from mistakes is more useful than hiding them."
+]);
+add("A2","past",[
+"When did you last change a plan because of the weather?","What was the last useful thing you bought?","When did you last help a friend with a problem?","What was the last place you visited for the first time?",
+"When did you last forget an important date?","What was the last meal you shared with other people?","When did you last choose a cheaper option?","What was the last new thing you learned?"
+]);
+add("A2","experience",[
+"Have you ever saved money for something special?","Have you ever changed your plans at the last minute?","Have you ever asked a stranger for directions?","Have you ever forgotten your wallet or bank card?",
+"Have you ever met a good friend through another friend?","Have you ever tried a hobby and stopped quickly?","Have you ever gone somewhere alone and enjoyed it?","Have you ever received advice that really helped you?"
+]);
+add("A2","flag",[
+"A friend cancels plans but explains honestly.","Someone checks their phone through the whole conversation.","A colleague thanks everyone who helped with a task.","A person makes jokes about someone who is nervous.",
+"A friend respects it when you need a quiet evening.","Someone always expects other people to pay.","A person changes plans without telling the group.","A friend introduces a new person to everyone."
+]);
+add("A2","social",[
+"plans a good low-cost weekend","knows where to find the best local food","answers messages very quickly","forgets which day the meeting is",
+"gives practical advice","makes a new person feel comfortable","changes a plan when the weather changes","buys a ticket before checking the date"
+]);
+add("A2","finish",[
+"I try to save money by ...","When a friend needs advice, I ...","A place feels welcoming when ...","If my plan changes suddenly, I ...",
+"I want to become better at ...","A good first meeting should ...","When I need a quiet evening, I ...","The most useful thing on my phone is ..."
+]);
+add("A2","personal",[
+"a small goal you completed","a time you changed a plan","something useful you bought","a person who gives good advice",
+"a place that helps you relax","a time you forgot an important date","a hobby you stopped doing","a good memory with friends"
+]);
+
+add("B1","open",[
+["What is one decision you are glad you did not rush?","Explain the choice and what helped you decide."],
+["What small expense is worth it for you?","Give a specific example and explain why."],
+["When do you prefer advice and when do you prefer space?","Compare the two situations."],
+["What makes a group plan easy to join?","Mention one practical detail."],
+["What is a habit you changed successfully?","Explain what finally made the change work."],
+["What type of problem do you solve better with another person?","Give an example."],
+["What makes a place feel like part of your routine?","Describe the place and why you return."],
+["What is one social rule you think people misunderstand?","Explain your view with an example."]
+]);
+add("B1","problem",[
+"You have a limited budget for a weekend with friends, but everyone wants different things. How would you plan it?",
+"A close friend asks for advice but seems to have already made up their mind. What would you do?",
+"You realise you have been paying for a service you never use. What would you do next?",
+"Someone you like gives you mixed signals. How would you handle the situation without guessing too much?",
+"A group member keeps arriving late but contributes well once they arrive. How would you discuss it?",
+"Your holiday accommodation is cheaper than expected but very different from the photos. What would you do?",
+"You have to choose between a useful course and a short holiday. How would you decide?",
+"A friend wants to borrow something expensive that you use often. What would you say?"
+]);
+add("B1","choice",[
+["have a higher salary with a long commute","have a lower salary close to home"],["receive advice from one expert","receive ideas from five friends"],
+["plan a trip carefully","book only the first night and decide later"],["work with a very creative team","work with a very organised team"],
+["date someone very similar to you","date someone with different interests"],["be known as reliable","be known as adventurous"],
+["spend money on experiences","spend money on useful things"],["have one difficult conversation now","avoid it for one month"]
+]);
+add("B1","motion",[
+"People should talk openly about money with close friends.","A good friendship can survive long periods without contact.",
+"It is better to make a reasonable decision quickly than a perfect decision late.","People should leave group chats that make them stressed.",
+"Living close to work improves quality of life more than a larger salary.","You learn more from travelling slowly than visiting many places.",
+"A relationship needs shared values more than shared hobbies.","People should admit when they do not know enough to give advice."
+]);
+add("B1","past",[
+"When did you last spend money on something that saved you time?","When did you last change your opinion because of a friend's experience?",
+"What was the last plan you improved after someone criticised it?","When did you last say no to something you normally agree to?",
+"What was the last situation where you had to choose between two good options?","When did you last make a new person feel included?",
+"What was the last thing you stopped doing because it was no longer useful?","When did you last have a difficult but helpful conversation?"
+]);
+add("B1","experience",[
+"Have you ever negotiated a plan so everyone could join?","Have you ever regretted giving advice too quickly?",
+"Have you ever stopped paying for something after realising you rarely used it?","Have you ever changed a travel plan because of someone else's recommendation?",
+"Have you ever set a boundary with a friend or colleague?","Have you ever chosen free time over earning more money?",
+"Have you ever become friends with someone very different from you?","Have you ever solved a problem by asking a better question?"
+]);
+add("B1","flag",[
+"A friend tells you directly when they cannot afford a plan.","A colleague asks for feedback but argues with every suggestion.",
+"Someone introduces two people who might get along well.","A friend repeatedly shares private stories without checking first.",
+"A person can disagree without making the conversation personal.","Someone always says yes to plans and cancels later.",
+"A friend gives advice only after asking what you actually want.","A teammate admits when they need help before the deadline."
+]);
+add("B1","social",[
+"finds the best compromise in a group","spots an unnecessary expense first","keeps in touch with friends who live far away","starts a difficult conversation calmly",
+"chooses the most practical travel plan","turns a small disagreement into a useful discussion","notices when someone feels left out","buys something useful after weeks of research"
+]);
+add("B1","finish",[
+"I know a decision is right for me when ...","A friendship becomes easier when ...","I am willing to pay more for something if ...","The best advice usually starts with ...",
+"I feel included in a group when ...","A plan becomes too complicated when ...","I changed an old habit after ...","I would rather have an honest conversation than ..."
+]);
+add("B1","personal",[
+"a decision you took time to make","a purchase that genuinely improved your routine","a friendship that works despite distance","a boundary you learned to communicate",
+"a plan that became simpler after discussion","a time someone's advice surprised you","a situation where you changed your mind","a small risk that was worth taking"
+]);
+
+add("B2","open",[
+["When is convenience a reasonable reason to spend more?","Compare cost, time and long-term value."],
+["How can a group make decisions without exhausting everyone?","Suggest a practical process and its limits."],
+["When does honesty require careful timing?","Give an example where delivery matters as much as truth."],
+["What makes a personal boundary easy to respect?","Discuss clarity, consistency and context."],
+["Why do people sometimes confuse confidence with expertise?","Give an example and a way to check the difference."],
+["What makes an experience worth paying more for?","Compare emotional and practical value."],
+["How should people react when a useful habit stops being useful?","Explain how you would notice and adjust."],
+["What makes a disagreement productive rather than repetitive?","Identify behaviours on both sides."]
+]);
+add("B2","problem",[
+"A group can save money by choosing a less accessible venue. How would you balance cost and inclusion?",
+"A friend asks for complete honesty about a sensitive relationship problem. How would you decide what to say?",
+"You discover that the fastest solution to a work problem creates extra work for another team. What would you do?",
+"A travel company offers a cheap option with unclear refund conditions. How would you evaluate the risk?",
+"A popular productivity tool saves time but collects more data than you expected. How would you decide whether to keep using it?",
+"Two friends disagree about whether one person's joke crossed a boundary. How would you help them discuss it?",
+"You can accept a promotion that improves your career but reduces your free time significantly. How would you assess it?",
+"A team agrees with a decision but nobody seems willing to take responsibility for the consequences. What would you do?"
+]);
+add("B2","choice",[
+["choose a transparent service that costs more","choose a cheaper service with unclear conditions"],["work for a respected company with rigid rules","work for a smaller company with more freedom"],
+["keep a friendship peaceful by avoiding one topic","discuss the topic and risk temporary tension"],["make a quick reversible decision","delay until you have more information"],
+["pay more for convenience","spend more time to save money"],["travel to fewer places more deeply","see more places more quickly"],
+["accept direct criticism","receive softer but less specific feedback"],["follow a proven method","try an uncertain but promising approach"]
+]);
+add("B2","motion",[
+"Convenience should not automatically outweigh privacy.","People should explain the assumptions behind strong recommendations.",
+"A fair group decision sometimes requires more than a simple majority.","Clear boundaries improve relationships rather than making them colder.",
+"Companies should make cancellation as easy as signing up.","A useful disagreement is better than artificial agreement.",
+"People should judge advice by evidence, not confidence.","Long-term flexibility is often more valuable than short-term efficiency."
+]);
+add("B2","past",[
+"When did you last notice a hidden cost behind a convenient choice?","When did you last revise a boundary after a reasonable conversation?",
+"What was the last recommendation you checked before following?","When did you last choose a slower option because it felt more responsible?",
+"What was the last disagreement where both sides had a strong point?","When did you last stop using a system that had become too complicated?",
+"What was the last decision where timing mattered as much as the outcome?","When did you last recognise that your first assumption was incomplete?"
+]);
+add("B2","experience",[
+"Have you ever paid more for transparency or reliability?","Have you ever changed a boundary because someone's circumstances changed?",
+"Have you ever discovered that a convenient service had an unexpected cost?","Have you ever challenged advice that sounded confident but lacked evidence?",
+"Have you ever supported a group decision you personally did not prefer?","Have you ever simplified a process after realising it had become inefficient?",
+"Have you ever changed a strong opinion after hearing a better argument?","Have you ever had to balance fairness with speed?"
+]);
+add("B2","flag",[
+"A manager explains the trade-off behind an unpopular decision.","A friend expects immediate replies but rarely answers other people.",
+"Someone admits that their recommendation is based on limited information.","A colleague uses everyone agrees instead of presenting evidence.",
+"A friend states a boundary clearly without blaming anyone.","A person changes the rules whenever the outcome is inconvenient.",
+"A teammate points out who might be affected by a decision.","Someone treats every difference of opinion as a personal attack."
+]);
+add("B2","social",[
+"notices the hidden trade-off in a simple choice","asks the best question before giving advice","changes their mind when the evidence changes","sets a boundary without creating unnecessary conflict",
+"spots when a group decision is becoming inefficient","explains a complex choice clearly","checks the conditions before accepting a cheap offer","turns disagreement into a practical compromise"
+]);
+add("B2","finish",[
+"A convenient option becomes questionable when ...","A fair decision should take account of ...","I trust advice more when ...","A boundary is easier to respect if ...",
+"A disagreement becomes productive when ...","Paying more is reasonable when ...","A process should be simplified if ...","I would reconsider my view if ..."
+]);
+add("B2","personal",[
+"a convenient choice with a hidden cost","a disagreement that improved a decision","a boundary you communicated successfully","a time you questioned confident advice",
+"a group decision you supported despite preferring another option","a process you simplified","a purchase where reliability mattered more than price","a situation where you revised an assumption"
+]);
+
+add("C1","open",[
+["When does flexibility become inconsistency?","Define the distinction and test it with an exception."],
+["How should people weigh private convenience against shared costs?","Identify who benefits, who pays and what alternatives exist."],
+["What makes a recommendation intellectually honest?","Discuss evidence, uncertainty and responsibility."],
+["When does a boundary protect autonomy and when can it become avoidance?","Distinguish legitimate protection from evasion."],
+["Why can efficiency become a misleading goal?","Consider what the metric includes and excludes."],
+["When should a group preserve a rule despite an unusual case?","Compare consistency, precedent and proportionality."],
+["How can people disagree strongly without overstating certainty?","Discuss language, evidence and mutual interpretation."],
+["What makes a compromise sustainable rather than temporary?","Consider incentives, trust and future behaviour."]
+]);
+add("C1","problem",[
+"A policy is efficient on average but repeatedly disadvantages a small group. How would you decide whether redesign is justified?",
+"A colleague gives accurate but damaging feedback in public. How would you separate truth, timing and responsibility?",
+"A service clearly states its data practices, but users have no realistic alternative. Is consent meaningful enough? How would you assess it?",
+"A group keeps a rule mainly because changing it might create a precedent. What questions should be asked before deciding?",
+"An organisation apologises, compensates affected people and keeps the same incentives that caused the problem. How would you evaluate the response?",
+"A friend asks for advice on a choice where every option involves a serious trade-off. How would you avoid pretending there is a perfect answer?",
+"A team uses a successful metric that encourages behaviour nobody actually wants. How would you redesign the measure?",
+"A public decision follows the stated procedure but excludes an important perspective. What would make a review legitimate?"
+]);
+add("C1","choice",[
+["preserve a consistent rule despite one difficult case","create an exception and risk weakening the rule"],["accept an efficient solution with uneven costs","choose a slower solution with fairer distribution"],
+["give a clear recommendation under uncertainty","present options without choosing among them"],["prioritise transparency even when it complicates communication","simplify the message and omit some uncertainty"],
+["protect autonomy through a strict boundary","allow flexibility that requires more negotiation"],["maintain a useful precedent","depart from precedent because circumstances have changed"],
+["reward measurable outcomes","reward less visible contributions that support those outcomes"],["seek consensus","make a timely decision despite unresolved disagreement"]
+]);
+add("C1","motion",[
+"Transparency is insufficient when people lack meaningful alternatives.","A consistent rule can become unfair when circumstances change substantially.",
+"Institutions should report uncertainty as carefully as they report conclusions.","Efficiency metrics often hide the transfer of costs to less visible groups.",
+"A principled exception can strengthen rather than weaken a rule.","The quality of disagreement depends more on framing than on politeness alone.",
+"Accountability requires changing incentives, not only acknowledging mistakes.","A recommendation can be responsible even when the evidence is incomplete."
+]);
+add("C1","past",[
+"When did you last recognise that a fair-looking process excluded an important perspective?","When did you last revise a principle after distinguishing it from a habit?",
+"What was the last recommendation where you had to communicate uncertainty explicitly?","When did you last notice that efficiency for one person created work for someone else?",
+"What was the last disagreement where the real issue was the framing rather than the facts?","When did you last accept an exception without abandoning the underlying rule?",
+"What was the last case where a metric encouraged the wrong behaviour?","When did you last realise that transparency did not necessarily create meaningful choice?"
+]);
+add("C1","experience",[
+"Have you ever supported an exception because strict consistency would have produced an unreasonable result?","Have you ever questioned whether consent was meaningful despite being technically explicit?",
+"Have you ever changed a recommendation after identifying who carried its hidden costs?","Have you ever seen a metric improve while the underlying situation became worse?",
+"Have you ever defended a process and later realised an important perspective was missing?","Have you ever had to communicate a conclusion while emphasising substantial uncertainty?",
+"Have you ever distinguished a useful precedent from an outdated habit?","Have you ever recognised that two people were using the same word to mean different things?"
+]);
+add("C1","flag",[
+"A decision-maker states which evidence would cause them to change course.","Someone invokes precedent without explaining why the earlier case is relevant.",
+"A colleague describes uncertainty clearly before making a recommendation.","A person treats procedural compliance as proof that an outcome is fair.",
+"A friend distinguishes a personal boundary from a judgement about other people.","A team reviews whether its success metric still represents the goal.",
+"Someone presents the strongest opposing argument before responding.","A leader explains who bears the costs of a supposedly efficient solution."
+]);
+add("C1","social",[
+"identifies the assumption that everyone else missed","distinguishes a principled exception from simple favouritism","explains uncertainty without sounding evasive","spots when a useful metric has become the target",
+"frames a disagreement so both sides feel accurately represented","notices who bears the invisible cost of convenience","changes a recommendation without pretending the earlier view was foolish","keeps a complex discussion proportional to the actual stakes"
+]);
+add("C1","finish",[
+"A transparent process can still be unfair if ...","An exception is principled rather than arbitrary when ...","A recommendation remains credible under uncertainty if ...","Efficiency becomes a poor measure when ...",
+"A boundary protects autonomy most clearly when ...","A precedent should be reconsidered when ...","A disagreement is badly framed if ...","Accountability becomes meaningful when ..."
+]);
+add("C1","personal",[
+"a time transparency did not solve the underlying problem","a principled exception you supported","a recommendation you qualified because of uncertainty","a metric that failed to represent the real goal",
+"a disagreement caused partly by different definitions","a decision where hidden costs changed your view","a boundary that required negotiation rather than a simple rule","a situation where changing your mind preserved rather than weakened a principle"
+]);
+
 window.ESCCefrSource={levels,source,lines,rows};
 })();
