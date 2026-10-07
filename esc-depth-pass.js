@@ -1,3 +1,4 @@
+/* CEFR build applied */
 (function(){
   'use strict';
 
@@ -35,6 +36,7 @@
   document.head.appendChild(style);
 
   function attachReset(ids,fn){
+    window.ESCCEFR?.onChange(fn);
     ids.forEach(id=>{const el=$id(id);if(el)el.addEventListener('click',()=>setTimeout(fn,0))});
     document.querySelectorAll('.game-chip').forEach(el=>el.addEventListener('click',()=>setTimeout(fn,0)));
   }
@@ -72,7 +74,7 @@
       attachReset(['next','back','shuffle'],resetRound);resetRound();
     }else{
       const stats=$id('stats');if(!stats)return;stats.textContent='This round · I HAVE: 0 · NEVER: 0';
-      const render=()=>{stats.textContent='This round · I HAVE: '+have+' · NEVER: '+never};const resetRound=()=>{have=0;never=0;render()};
+      const render=()=>{stats.textContent='This round · YES: '+have+' · NO: '+never};const resetRound=()=>{have=0;never=0;render()};
       $id('have').onclick=()=>{have++;$id('have').style.transform='scale(1.02)';$id('story').classList.add('show');success();render()};
       $id('never').onclick=()=>{never++;$id('never').style.transform='scale(1.02)';select();render()};
       attachReset(['next','back','shuffle'],resetRound);resetRound();

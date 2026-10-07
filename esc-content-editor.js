@@ -1,4 +1,6 @@
+/* CEFR build applied */
 (function(){
+  if(window.ESCCEFR?.supported){window.ESCCEFR.bindLegacy();return;}
   const PATH_KEY=location.pathname.replace(/\/+$/,'')||'/';
   const STORAGE_KEY='esc-custom-content-v1:'+PATH_KEY;
   const UNLOCK_KEY='esc-admin-unlocked-v2';

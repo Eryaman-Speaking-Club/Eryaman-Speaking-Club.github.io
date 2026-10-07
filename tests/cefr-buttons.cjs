@@ -24,7 +24,7 @@ const games=Object.keys(JSON.parse(fs.readFileSync('cefr-counts.json','utf8')).c
    for(const level of levels){
     await page.locator('#cefrLevel [data-cefr-level="'+level+'"]').click();await page.waitForTimeout(60);
     const state=await page.evaluate(()=>({level:ESCCEFR.level,loading:document.documentElement.hasAttribute('data-cefr-loading'),raw:ESCCEFR.count(ESCCEFR.raw()),pressed:[...document.querySelectorAll('#cefrLevel [aria-pressed="true"]')].map(b=>b.textContent),poolOK:!window.ESC_NEW_GAME||JSON.stringify(ESC_NEW_GAME.items)===JSON.stringify(ESCCEFR.get()),body:document.body.innerText}));
-    assert.equal(state.level,level);assert.deepEqual(state.pressed,[level]);assert(!state.loading,'Loading did not clear');assert(state.poolOK,'Wrong new-game pool');assert(!state.body.includes('UNREVIEWED_SENTINEL'));
+    assert.equal(state.level,level);if(slug==='one-for-me-one-for-you')assert.equal(await page.locator('#level').textContent(),level+' LEVEL');assert.deepEqual(state.pressed,[level]);assert(!state.loading,'Loading did not clear');assert(state.poolOK,'Wrong new-game pool');assert(!state.body.includes('UNREVIEWED_SENTINEL'));
     const expected=slug==='truth-or-dare'?100:50;assert.equal(state.raw,expected);assert.equal((await page.locator('#cefrPoolCount').textContent()).trim(),expected+' kart / '+level);
     const host=page.locator('#cefrCategories,#filters,#chips').first();let categories=[];
     if(await host.count())categories=await host.locator('button[data-cat]:not([disabled])').evaluateAll(bs=>bs.map(b=>b.dataset.cat));
@@ -40,7 +40,7 @@ const games=Object.keys(JSON.parse(fs.readFileSync('cefr-counts.json','utf8')).c
    }
    if(['what-would-you-do-if','debate-roulette','would-you-rather','one-for-me-one-for-you','truth-or-dare','question-roulette'].includes(slug)){
     await page.locator('#cefrLevel [data-cefr-level="A1"]').click();
-    await page.screenshot({path:'cefr50-'+slug+'-desktop.png',fullPage:true});
+    await page.mouse.move(0,0);await page.waitForTimeout(250);await page.screenshot({path:'cefr50-'+slug+'-desktop.png',fullPage:true});
     await page.setViewportSize({width:390,height:844});await page.screenshot({path:'cefr50-'+slug+'-mobile.png',fullPage:true});
     const dims=await page.locator('#cefrLevel').evaluate(e=>({width:e.getBoundingClientRect().width,scroll:e.scrollWidth}));assert(dims.scroll<=dims.width+2,'Level controls overflow on mobile');
    }

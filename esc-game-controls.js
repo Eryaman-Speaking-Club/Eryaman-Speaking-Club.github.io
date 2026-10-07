@@ -1,3 +1,4 @@
+/* CEFR build applied */
 /* cefr-auto-bootstrap-20261007 */
 (function(){
   const supported=new Set(["truth-or-dare","one-for-me-one-for-you","last-thing-you-did","what-would-you-do-if","would-you-rather","most-likely-to","hot-seat","five-second-challenge","red-flag-green-flag","taboo","debate-roulette","never-have-i-ever","two-truths-one-lie","who-am-i","story-chain","explain-it-badly","opinion-line","ranking-room","question-roulette","detective-alibi","finish-the-sentence","three-clues","secret-mission","one-minute-story","would-i-lie-to-you","desert-island","conversation-bingo","emoji-story","worst-advice-only","sell-me-this","hot-take","photo-talk"]);
@@ -292,6 +293,7 @@
       });
     }
     function open(){
+      if(window.ESCCEFR?.supported){window.ESCCEFR.help();return;}
       fill();layer.classList.add('open');layer.setAttribute('aria-hidden','false');
       document.documentElement.classList.add('esc-answer-help-open');close.focus();
     }

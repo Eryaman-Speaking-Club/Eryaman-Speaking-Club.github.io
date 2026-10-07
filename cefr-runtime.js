@@ -1,7 +1,9 @@
+/* CEFR build applied */
 /* CEFR practice levels. The current level owns its own deck; ungraded legacy
    content is preserved in storage, but never mixed into a graded session. */
 (function(){
 'use strict';
+/* direct-level-buttons-release50 */
 const bank=window.ESCCefrBank;if(!bank)return;
 const LEVELS=bank.levels,slug=window.ESC_CEFR_PAGE_SLUG||location.pathname.split('/').find(part=>bank.games[part]||part==='games'||part==='admin')||'',supported=!!bank.games[slug],KEY='eryaman-cefr-level-v1';
 const copy=x=>JSON.parse(JSON.stringify(x));
@@ -10,7 +12,7 @@ let saved='B1';try{saved=localStorage.getItem(KEY)||saved}catch(_){}
 const requested=new URLSearchParams(location.search).get('level');
 let level=LEVELS.includes(requested)?requested:LEVELS.includes(saved)?saved:'B1',revision=0;
 /* cefr-category-state-20261007 */
-let category='All';
+let category=new URLSearchParams(location.search).get('category')||'All';
 try{localStorage.setItem(KEY,level)}catch(_){}
 const listeners=new Set(),overrides={},loaded=new Set(),syncs=new Map();
 const count=x=>Array.isArray(x)?x.length:(x?.truths?.length||0)+(x?.dares?.length||0);
@@ -18,7 +20,7 @@ const text=x=>typeof x==='string'&&x.trim().length>0&&x.length<1600;
 function validItem(game,x){
  const type=bank.types[game];
  if(['mission','bingo'].includes(type))return text(x);
- if(type==='paired')return x&&text(x.q)&&text(x.f)&&text(x.id);
+ if(type==='paired')return x&&text(x.q)&&text(x.f)&&text(x.id)&&(!x.level||LEVELS.includes(x.level));
  if(['past'].includes(type)||(type==='problem'&&game==='what-would-you-do-if'))return x&&text(x.c)&&text(x.q);
  if(['ranking','packing'].includes(type))return x&&text(x.title)&&Array.isArray(x.items)&&x.items.length===(type==='ranking'?5:6)&&x.items.every(text)&&new Set(x.items).size===x.items.length;
  if(type==='sell')return x&&text(x.item)&&text(x.twist);
@@ -35,6 +37,7 @@ function validate(game,payload){
  if(bank.types[game]==='truth')return payload&&['truths','dares'].every(k=>Array.isArray(payload[k])&&payload[k].length>0&&payload[k].every(text)&&new Set(payload[k].map(s=>s.trim().toLowerCase())).size===payload[k].length);
  if(!Array.isArray(payload)||payload.length<(bank.types[game]==='bingo'?16:1)||payload.length>5000)return false;
  if(!payload.every(x=>validItem(game,x)))return false;
+ if(bank.types[game]==='paired'&&new Set(payload.map(x=>x.id)).size!==payload.length)return false;
  const keys=payload.map(x=>canonical(bank.types[game]==='paired'?x.q:(Array.isArray(x)&&bank.types[game]!=='triples'?x.slice(1):x)).toLowerCase().replace(/\s+/g,' '));
  return new Set(keys).size===keys.length;
 }
@@ -51,7 +54,7 @@ function raw(game=slug,l=level){if(!bank.games[game]||!LEVELS.includes(l))return
 function categoryCounts(game=slug,l=level){const p=raw(game,l),counts={};if(Array.isArray(p))for(const x of p){const c=categoryOf(game,x);if(c)counts[c]=(counts[c]||0)+1}return counts}
 function categories(game=slug,l=level){const counts=categoryCounts(game,l),ordered=bank.categorySets?.[game]||[];const extras=Object.keys(counts).filter(c=>!ordered.includes(c));return [...ordered,...extras]}
 function filterPayload(game,payload,cat){if(cat==='All'||!Array.isArray(payload))return payload;return payload.filter(x=>categoryOf(game,x)===cat)}
-function get(game=slug,l=level,cat=(game===slug?category:'All')){const p=raw(game,l);return copy(filterPayload(game,p,cat))}
+function get(game=slug,l=level,cat=(game===slug&&l===level?category:'All')){const p=raw(game,l);return copy(filterPayload(game,p,cat))}
 function stats(game,config){return LEVELS.map(l=>{const p=config?.cefr?.version===1&&validate(game,config.cefr.levels?.[l])?config.cefr.levels[l]:raw(game,l);return {level:l,count:count(p)}})}
 const description={
  A1:['Ba\u015flang\u0131\u00e7','Tan\u0131d\u0131k konular; kelimeler ve k\u0131sa c\u00fcmleler.','Use familiar words and short sentences.'],
@@ -59,22 +62,44 @@ const description={
  B1:['Orta','Deneyimini anlat; bir neden veya \u00f6rnek ver.','Explain your experience, with a reason or example.'],
  B2:['Orta-\u00fcst\u00fc','Se\u00e7enekleri kar\u015f\u0131la\u015ft\u0131r; g\u00f6r\u00fc\u015f\u00fcn\u00fc destekle.','Compare options and support your view.'],
  C1:['\u0130leri','G\u00f6r\u00fc\u015f\u00fcn\u00fc nitele; istisna ve kar\u015f\u0131 g\u00f6r\u00fc\u015f\u00fc de\u011ferlendir.','Qualify your view; consider an exception or another perspective.']};
-function notify(reason){revision++;for(const fn of listeners){try{fn(level,reason)}catch(e){console.error('CEFR deck refresh failed',e)}}paint();document.dispatchEvent(new CustomEvent('eryaman:levelchange',{detail:{level,reason}}))}
-function setLevel(l){if(!LEVELS.includes(l)||l===level)return false;level=l;category='All';try{localStorage.setItem(KEY,l);const u=new URL(location.href);u.searchParams.set('level',l);window.history.replaceState(null,'',u)}catch(_){}notify('level');return true}
-function setCategory(c){const allowed=['All',...categories(slug,level)];if(!allowed.includes(c)||c===category)return false;const counts=categoryCounts(slug,level);if(c!=='All'&&!counts[c])return false;category=c;notify('category');return true}
+function notify(reason){if(category!=='All'&&!categoryCounts(slug,level)[category])category='All';revision++;for(const fn of listeners){try{fn(level,reason)}catch(e){console.error('CEFR deck refresh failed',e)}}paint();document.dispatchEvent(new CustomEvent('eryaman:levelchange',{detail:{level,reason}}))}
+function updateLocation(){
+ try{localStorage.setItem(KEY,level);const u=new URL(location.href);u.searchParams.set('level',level);if(category==='All')u.searchParams.delete('category');else u.searchParams.set('category',category);window.history.replaceState(null,'',u)}catch(_){}
+}
+function setLevel(l){
+ if(!LEVELS.includes(l)||l===level)return false;
+ level=l;if(category!=='All'&&!categoryCounts(slug,level)[category])category='All';
+ updateLocation();notify('level');return true;
+}
+function setCategory(c){
+ const allowed=['All',...categories(slug,level)],counts=categoryCounts(slug,level);
+ if(!allowed.includes(c)||c===category||(c!=='All'&&!counts[c]))return false;
+ category=c;updateLocation();notify('category');return true;
+}
+function renderCategories(host){
+ if(!host)return;
+ const counts=categoryCounts(slug,level),names=['All',...categories(slug,level)];
+ const signature=JSON.stringify([level,names,counts]);
+ if(host.dataset.pool!==signature){
+  host.replaceChildren();host.dataset.pool=signature;
+  for(const c of names){const b=element('button',{type:'button','data-cat':c},c);b.disabled=c!=='All'&&!counts[c];b.title=b.disabled?'Bu seviyede kart yok / No cards at this level':(c==='All'?count(raw()):counts[c])+' kart / cards';b.onclick=()=>setCategory(c);host.append(b)}
+ }
+ host.querySelectorAll('button').forEach(b=>{const active=b.dataset.cat===category;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))});
+}
 function onChange(fn){listeners.add(fn);return()=>listeners.delete(fn)}
 function ready(){document.documentElement.removeAttribute('data-cefr-loading');paint()}
 function paint(){
+ if(slug==='one-for-me-one-for-you'){const badge=document.getElementById('level');if(badge)badge.textContent=level+' LEVEL';}
  if(slug==='what-would-you-do-if'){const lead=document.querySelector('.lead');if(lead)lead.textContent='Your situation / '+level;}
  if(slug==='most-likely-to'){const lead=document.querySelector('.mlt-lead');if(lead)lead.textContent='Choose someone / '+level;}
  if(slug==='never-have-i-ever'){const story=document.getElementById('story');if(story)story.textContent=description[level][2]+' Sharing a story is optional.';}
 
  const how=document.querySelector('.esc-how-to-play span');if(how&&supported)how.textContent=howToPlay();
  document.documentElement.dataset.cefrLevel=level;
- const select=document.getElementById('cefrLevel');if(select)select.value=level;
+ const group=document.getElementById('cefrLevel');if(group){group.dataset.level=level;group.querySelectorAll('[data-cefr-level]').forEach(b=>{const active=b.dataset.cefrLevel===level;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))})}
  const note=document.getElementById('cefrLevelNote');if(note)note.textContent=description[level][1]+' / '+description[level][2];
  const total=document.getElementById('cefrPoolCount');if(total)total.textContent=supported?count(get())+' kart / '+level+(category!=='All'?' / '+category:''):'Se\u00e7ilen seviye oyunlara aktar\u0131l\u0131r.';
- const categoryBar=document.getElementById('cefrCategories');if(categoryBar){categoryBar.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.cat===category));}
+ renderCategories(document.getElementById('cefrCategories'));
  document.querySelectorAll('a.game-card').forEach(a=>{const u=new URL(a.href,location.href);u.searchParams.set('level',level);a.href=u.href});
  document.querySelectorAll('.cefr-card-level').forEach(n=>n.textContent=level);
 }
@@ -96,7 +121,7 @@ let bound=false;
 function bindLegacy(){
  if(bound||!supported||window.ESC_NEW_GAME||['truth-or-dare','one-for-me-one-for-you'].includes(slug))return;
  const source=legacySource();if(!source)return;bound=true;
- const draw=()=>{if(typeof buildDeck==='function')buildDeck();else if(typeof build==='function')build();if(slug==='hot-seat'&&typeof nextPrompt==='function')nextPrompt();else if(['taboo','debate-roulette'].includes(slug)&&typeof show==='function')show();else if(typeof next==='function')next();ready()};
+ const draw=()=>{if(typeof buildDeck==='function')buildDeck();else if(typeof build==='function')build();if(slug==='hot-seat'&&typeof resetRound==='function')resetRound();else if(slug==='taboo'&&typeof prepareRound==='function')prepareRound();else if(slug==='debate-roulette'&&typeof show==='function')show();else if(typeof next==='function')next();ready()};
  const clear=()=>{try{if(typeof history!=='undefined'&&Array.isArray(history))history.length=0;if(typeof previous!=='undefined'&&Array.isArray(previous))previous.length=0}catch(_){};for(const id of ['historyList','historyCount']){const e=document.getElementById(id);if(e)e.textContent=id==='historyCount'?'0':''}};
  function refresh(){
   if(typeof stop==='function'&&['hot-seat','taboo','debate-roulette'].includes(slug))stop();
@@ -110,23 +135,25 @@ function bindLegacy(){
  onChange(refresh);refresh();
 }
 const lower=()=>level==='A1'||level==='A2';
+function storySupport(){return level==='A1'?'Use short sentences and familiar words.':level==='A2'?'Tell events in order using simple sentences.':level==='B1'?'Connect events with a clear beginning, change and ending.':level==='B2'?'Explain causes, consequences and a character\'s reasons.':'Include a change of perspective; distinguish what a character knows from what they assume.';}
+
 function guidance(type){
  const basic=level==='A1',base=description[level][2];
  const map={
  twoTruths:basic?'Say three short sentences: two true, one not true. The group guesses.': 'Say three statements: two true and one false. '+base,
  whoAmI:basic?'Ask: Is it big? Is it food? Is it a person? Use yes/no questions.':'Ask yes/no questions. Do not look at the hidden target. '+base,
- storyChain:basic?'Add one short sentence. The next person adds one more.':'Continue the same story. '+base,
+ storyChain:basic?'Add one short sentence. The next person adds one more.':'Continue the same story. '+storySupport(),
  explainBadly:basic?'Say two simple clues. Do not say the hidden word.':'Give accurate but indirect clues, without saying the hidden word.',
  roulette:base, opinion:basic?'Choose: agree, not sure, or disagree. Say: I think ...':'Choose a position. '+base,
  ranking:basic?'Put five things in order. Say: Number one is ...':'Rank all five options in your preferred order. '+base,
  finish:basic?'Finish with a word or a short sentence.':base,
  threeClues:basic?'Give three short clues: It is ... It has ... You can ...':'Give three clues without saying the target. Start broad, then narrow down.',
  mission:basic?'Read your card alone. Hide it. Do the small task while you talk.':'Read privately, hide the card, then complete the mission naturally.',
- minuteStory:basic?'Use the three words in three short sentences. The timer is optional.':'Use all three words in a connected story. The timer is optional. '+base,
+ minuteStory:basic?'Use the three words in three short sentences. The timer is optional.':'Use all three words in a connected story. The timer is optional. '+storySupport(),
  wouldILie:basic?'Say three short sentences. True or not true? The group guesses.':'Tell a true or invented account. The group asks two questions, then guesses. '+base,
  desert:basic?'Choose three things. Say: I want ...':'Choose exactly three items. '+base,
  bingo:basic?'Ask: Do you ...? Mark a box when someone says yes.':'Find people who match the squares. Ask a follow-up before marking each square.',
- emoji:basic?'Say one short sentence for each picture.':'Connect all pictures in a story. '+base,
+ emoji:basic?'Say one short sentence for each picture.':'Connect all pictures in a story. '+storySupport(),
  worstAdvice:basic?'Give funny, bad advice. Then give good advice. Keep it safe.':'First give harmless, deliberately bad advice; then switch to useful advice. '+base,
  sell:basic?'Say what it is and two good things about it. The timer is optional.':'Make an honest pitch for this customer. The timer is optional. '+base,
  hotTake:basic?'Say: I agree, or I disagree. Add a short sentence.':'Take a position. The timer is optional. '+base
@@ -153,8 +180,11 @@ function howToPlay(){
 function afterNewRender(type){
  const sub=document.getElementById('sub');if(sub&&!['detective','photoTalk','sell'].includes(type))sub.textContent=guidance(type);
  if(type==='sell'&&sub)sub.textContent=guidance(type)+' '+(window.ESC_NEW_GAME?.items?.find(x=>x.item===document.getElementById('prompt')?.textContent)?.twist||'');
- const rules=document.getElementById('gameRules');if(rules)rules.textContent=guidance(type);
- const desc=document.getElementById('gameDesc');if(desc&&lower())desc.textContent=guidance(type);
+ const rules=document.getElementById('gameRules');if(rules)rules.style.display='none';
+ const meta=document.querySelector('.new-game-meta > span');if(meta)meta.textContent=level+' \u00b7 18+';
+ const desc=document.getElementById('gameDesc');if(desc)desc.textContent=lower()?'Take turns. Help each other. You can pass.':window.ESC_NEW_GAME?.desc||'';
+ if(type==='roulette'&&sub){const q=document.getElementById('prompt')?.textContent;const support=bank.games['one-for-me-one-for-you'][level].find(x=>x.q===q);if(support)sub.textContent=support.f;}
+ const footer=document.querySelector('.new-game-note');if(footer)footer.textContent=lower()?'A short answer is okay. Passing is always okay.':window.ESC_NEW_GAME?.note||'Take turns and explain your view.';
  const tag=document.getElementById('badge');if(tag&&!tag.querySelector('.cefr-card-level')){const n=document.createElement('span');n.className='cefr-card-level';n.textContent=level;tag.append(' / ',n)}
  if(type==='photoTalk'){const n=document.querySelector('.scene-icons');if(n)n.setAttribute('aria-label','Conversation scene; read the description');}
  ready();
@@ -179,8 +209,9 @@ function dialog(title){
 }
 function help(){
  const d=dialog('Nas\u0131l cevap verebilirim? / '+level),type=bank.types[slug],p=element('p',{},description[level][1]+' '+description[level][2]);d.append(p);
- const hidden=['word','taboo','mission'].includes(type);let example='';
+ const hidden=['word','taboo'].includes(type);let example='';
  if(hidden){example=level==='A1'?'It is small. It is blue. You can use it at home.':level==='A2'?'It is something you use when you travel. You can find it in a bag.':level==='B1'?'It is a type of everyday object. You use it to ...':level==='B2'?'It serves a similar purpose to ..., but its main feature is ...':'Its defining feature is ..., although it is sometimes confused with ...';d.append(element('p',{},'Bu \u00f6rnek mevcut gizli kelimenin cevab\u0131 de\u011fildir; ipucu verme kal\u0131b\u0131d\u0131r.'))}
+ else if(type==='mission'||type==='bingo'){example=level==='A1'?'Do you like ...? / Can you ...?':level==='A2'?'What did you do ...? / Why do you like ...?':level==='B1'?'Have you ever ...? What happened next?':level==='B2'?'Could you give an example? What led you to that conclusion?':'What assumptions does that depend on? Under what conditions might your view change?';}
  else if(type==='choice'){example=level==='A1'?'I like tea.':level==='A2'?'I choose tea because I like it.':level==='B1'?'I would choose the first option because ... For example, ...':level==='B2'?'Both have advantages, but I would prioritise ... because ...':'Under these conditions, I would lean towards ..., although ... could change my decision.'}
  else if(type==='triples'||type==='story'||type==='emoji'){example=level==='A1'?'I am at home. My cat is in a box. It is happy.':level==='A2'?'Yesterday, I was at home. My cat jumped into a box. Then it fell asleep.':level==='B1'?'At first, ... Then something unexpected happened: ... In the end, ...':level==='B2'?'Although everything seemed normal, ... This led to ..., and eventually ...':'Looking back, what seemed like ... was actually ... Had ..., the outcome might have been different.'}
  else {const question=document.querySelector('#promptText,#questionText,#q,#prompt,#taskText,#motion')?.textContent?.trim();const pairs=bank.games['one-for-me-one-for-you'][level];const matched=pairs.find(x=>x.q===question);example=matched?.f||({A1:'I like ... / I have ... / It is ...',A2:'I ... because ... It was ...',B1:'In my experience, ... One example is ... That is why ...',B2:'One advantage is ..., whereas ... I would choose ... because ...',C1:'To some extent, ... However, this assumes that ... An important exception would be ...'}[level]);}
@@ -219,10 +250,10 @@ async function editor(){
  const api=await platform();if(!api||!(await api.isAdmin())){location.href='/admin/?next='+encodeURIComponent(slug)+'#games';return}
  await sync();
  const d=dialog('Seviye soru k\u00fct\u00fcphanesi'),sel=element('select',{'aria-label':'Edit level'}),area=element('textarea',{'aria-label':'Question data JSON',rows:'16',spellcheck:'false'}),status=element('p',{role:'status'}),save=element('button',{type:'button'},'Kaydet ve yay\u0131nla'),reset=element('button',{type:'button'},'Bu seviyenin varsay\u0131lanlar\u0131');
- for(const l of LEVELS)sel.append(element('option',{value:l},l+' / '+count(get(slug,l))+' kart'));sel.value=level;
+ for(const l of LEVELS)sel.append(element('option',{value:l},l+' / '+count(raw(slug,l))+' kart'));sel.value=level;
  area.setAttribute('data-cefr-json','');
  d.append(element('p',{},'Yaln\u0131zca se\u00e7ili seviyeyi d\u00fczenler. Eski kar\u0131\u015f\u0131k havuz silinmez ve bu oyunlara kar\u0131\u015ft\u0131r\u0131lmaz. Alan yap\u0131s\u0131n\u0131 koruyun. Her soruyu a\u00e7\u0131kl\u0131k, uygun kelimeler ve cevaplanabilirlik a\u00e7\u0131s\u0131ndan kontrol edin.'),sel,area,status,save,reset);
- let editing=level,base='',busy=false,friendly;function fill(){area.value=JSON.stringify(get(slug,editing),null,2);base=area.value;status.textContent=count(get(slug,editing))+' kart';friendly?.refresh()}
+ let editing=level,base='',busy=false,friendly;function fill(){area.value=JSON.stringify(raw(slug,editing),null,2);base=area.value;status.textContent=count(raw(slug,editing))+' kart';friendly?.refresh()}
  fill();friendly=cardEditor(d,area,()=>editing);friendly.refresh();
  sel.onchange=()=>{if(area.value!==base&&!confirm('Kaydedilmeyen de\u011fi\u015fikliklerden vazge\u00e7ilsin mi?')){sel.value=editing;return}editing=sel.value;fill()};
  reset.onclick=()=>{if(confirm('Yaln\u0131zca bu seviyeyi varsay\u0131lana d\u00f6nd\u00fcrmek i\u00e7in tasla\u011f\u0131 haz\u0131rla? Yay\u0131nlamak i\u00e7in Kaydet gerekir.')){area.value=JSON.stringify(bank.games[slug][editing],null,2);friendly.refresh()}};
@@ -240,14 +271,13 @@ async function editor(){
 }
 function mount(){
  if(!supported&&slug!=='games')return;
+ if(document.getElementById('cefrLevel'))return;
  const host=document.querySelector('.game-hero,.new-game-hero,.hero,.hub-hero')||document.querySelector('header')||document.body;
- const bar=element('section',{class:'cefr-bar','aria-label':'CEFR level selector'}),label=element('label',{for:'cefrLevel'},'Seviye / Level'),sel=element('select',{id:'cefrLevel'}),note=element('p',{id:'cefrLevelNote'}),total=element('small',{id:'cefrPoolCount',role:'status'});
- for(const l of LEVELS)sel.append(element('option',{value:l},l+' \u00b7 '+description[l][0]));sel.value=level;sel.onchange=()=>setLevel(sel.value);bar.append(label,sel,total,note);
+ const bar=element('section',{class:'cefr-bar','aria-label':'CEFR level selector'}),label=element('span',{id:'cefrLevelLabel',class:'cefr-level-label'},'Seviye / Level'),sel=element('div',{id:'cefrLevel',class:'cefr-level-buttons',role:'group','aria-labelledby':'cefrLevelLabel'}),note=element('p',{id:'cefrLevelNote'}),total=element('small',{id:'cefrPoolCount',role:'status'});
+ for(const l of LEVELS){const b=element('button',{type:'button','data-cefr-level':l,'aria-pressed':String(l===level),title:l+' / '+description[l][0]},l);b.className='cefr-level-button'+(l===level?' active':'');b.onclick=e=>{e.stopPropagation();setLevel(l)};sel.append(b)}bar.append(label,sel,total,note);
  if(host===document.body)document.body.prepend(bar);else host.after(bar);
- if(supported&&window.ESC_NEW_GAME&&categories(slug,level).length){
-  const catBar=element('nav',{class:'cefr-category-bar',id:'cefrCategories','aria-label':'Question categories'}),counts=categoryCounts(slug,level);
-  for(const c of ['All',...categories(slug,level)]){const b=element('button',{type:'button','data-cat':c},c);b.className=c===category?'active':'';b.disabled=c!=='All'&&!counts[c];b.onclick=()=>setCategory(c);catBar.append(b)}
-  bar.after(catBar);
+ if(supported&&(window.ESC_NEW_GAME||slug==='one-for-me-one-for-you')&&categories(slug,level).length){
+  const catBar=element('nav',{class:'cefr-category-bar',id:'cefrCategories','aria-label':'Question categories'});bar.after(catBar);renderCategories(catBar);
  }
  if(supported){
   // The existing answer-help button keeps its administrator-selected icon and colour.
@@ -257,7 +287,8 @@ function mount(){
  }
  paint();
 }
-window.ESCCEFR={get,raw,stats,count,validate,setLevel,setCategory,categories,categoryCounts,onChange,sync,ready,installDefaults,bindLegacy,afterNewRender,guidance,howToPlay,editor,help,get level(){return level},get category(){return category},get revision(){return revision},slug,supported,levels:LEVELS};
-if(supported)document.documentElement.setAttribute('data-cefr-loading','');
+if(category!=='All'&&!categoryCounts(slug,level)[category])category='All';
+window.ESCCEFR={get,raw,stats,count,validate,categoryOf,setLevel,setCategory,categories,categoryCounts,onChange,sync,ready,installDefaults,bindLegacy,afterNewRender,guidance,howToPlay,editor,help,get level(){return level},get category(){return category},get revision(){return revision},slug,supported,levels:LEVELS};
+if(supported){document.documentElement.setAttribute('data-cefr-loading','');setTimeout(()=>{if(document.documentElement.hasAttribute('data-cefr-loading')){const n=document.createElement('p');n.className='cefr-load-error';n.textContent='Oyun yüklenemedi. Sayfayı yenileyin / Please reload this game.';document.body.prepend(n)}},10000);}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
 })();

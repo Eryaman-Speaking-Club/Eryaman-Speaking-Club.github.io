@@ -1,3 +1,4 @@
+/* CEFR build applied */
 (() => {
   'use strict';
   const A=window.ESCAdmin;const {$,$$,esc,toast,openModal,closeModal}=A;
@@ -117,6 +118,7 @@
   }
 
   function gameContentStats(slug,config){
+    if(window.ESCCefrBank?.games[slug]){const stats=window.ESCCEFR.stats(slug,config);return {count:stats.reduce((n,x)=>n+x.count,0),label:stats.map(x=>x.level+': '+x.count).join(' / '),mode:'cefr'};}
     const cfg=config||{};
     if(Array.isArray(cfg.content)) return {count:cfg.content.length,label:'ortak içerik',mode:'content'};
     if(slug==='truth-or-dare'){
@@ -164,9 +166,12 @@
     delete metaConfig.content;
     delete metaConfig.truths;
     delete metaConfig.dares;
+    delete metaConfig.cefr;
 
     let libraryHtml='';
-    if(info.mode==='content'){
+    if(info.mode==='cefr'){
+      libraryHtml='<div class="card"><h2>A1 / A2 / B1 / B2 / C1 soru kütüphanesi</h2><p>Eski karışık havuz arşivde korunur; seviyeli oyunlara eklenmez. Sayılar oyun/level kart sayılarıdır; benzer oyunlar uygun kartları paylaşabilir.</p><div class="row-actions">'+window.ESCCEFR.stats(game.slug,config).map(x=>'<a class="btn secondary" href="../'+esc(game.slug)+'/?studio=1&level='+x.level+'" target="_blank" rel="noopener">'+x.level+' / '+x.count+' kart / Düzenle</a>').join('')+'</div></div>';
+    }else if(info.mode==='content'){
       libraryHtml='<div class="card"><div class="card-head"><div><h2>İçerik kütüphanesi</h2><p class="muted">'+info.count+' kayıt · mevcut veri biçimi korunarak ortak backend’e kaydedilir.</p></div></div>'+
         '<label class="field">Kart / soru verisi (JSON)<textarea id="gameLibraryJson" rows="18">'+esc(JSON.stringify(config.content,null,2))+'</textarea></label>'+
         '<p class="muted" style="font-size:10px">İçeriği tamamen boş bırakırsan public oyun güvenli bir “içerik hazırlanıyor” ekranı gösterir; çökmez.</p></div>';
@@ -196,7 +201,10 @@
       try{
         const pc=JSON.parse(f.get('public_config')||'{}');
         const meta=JSON.parse(f.get('meta_config')||'{}');
-        const nextCfg=Object.assign({},config||{},meta||{});
+        const current=await A.state.db.from('game_settings').select('config').eq('game_slug',game.slug).maybeSingle();
+        if(current.error)throw current.error;
+        if(info.mode==='cefr')delete meta.cefr;
+        const nextCfg=Object.assign({},current.data?.config||config||{},meta||{});
         if(info.mode==='content'){
           const raw=$('#gameLibraryJson').value.trim();
           const content=raw?JSON.parse(raw):[];

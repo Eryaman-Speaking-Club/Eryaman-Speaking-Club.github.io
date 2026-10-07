@@ -316,6 +316,7 @@ for(const [li,l] of B.levels.entries()){
  }
 }
 
+B.categorySets['story-chain']=[...new Set([...B.categorySets['story-chain'],'Food','Home','Work','Dating'])];
 B.version='20261007-level50-2';
 B.expandedSpeakingGames=Object.keys(B.games);
 B.taskAdaptedGames=['story-chain','ranking-room','detective-alibi','one-minute-story','desert-island','emoji-story','sell-me-this','photo-talk'];

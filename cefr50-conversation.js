@@ -6,7 +6,7 @@ const B=window.ESCCefrBank;if(!B)throw Error('CEFR bank must load first');
 const rows=s=>s.trim().split('\n').map(s=>s.trim()).filter(Boolean).map(s=>s.split('|').map(s=>s.trim()));
 const clone=x=>JSON.parse(JSON.stringify(x));
 const norm=s=>String(s).toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-function key(game,x){if(typeof x==='string')return norm(x);if(Array.isArray(x))return norm(x.slice(1).join(' '));return norm(x.q||x.title||x.item||JSON.stringify(x));}
+function key(game,x){if(B.types[game]==='emoji')return JSON.stringify(x[1]);if(typeof x==='string')return norm(x);if(Array.isArray(x))return norm(x.slice(1).join(' '));return norm(x.q||x.title||x.item||JSON.stringify(x));}
 function add(game,level,items){const pool=B.games[game][level],seen=new Set(pool.map(x=>key(game,x)));for(const x of items){const k=key(game,x);if(!seen.has(k)){seen.add(k);pool.push(clone(x));}}}
 function cat(game,c){
  const aliases={

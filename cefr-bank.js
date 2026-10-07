@@ -499,9 +499,12 @@ const categorySets={
  "worst-advice-only":["Daily Life","Work","Study","Social","Travel","Money","Relationships"],
  "hot-take":["Everyday","Food","Work","Travel","Social","Technology","Relationships","Deep"]
 };
-const includesAny=(t,words)=>words.some(w=>t.includes(w));
+const includesAny=(t,words)=>words.some(w=>{
+ const term=w.trim().replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+ return new RegExp('(^|[^a-z])'+term+'(?:s|es|ed|ing)?(?=$|[^a-z])','i').test(t);
+});
 function categoryFor(game,text,i=0){
- const t=String(text||"").toLowerCase();
+ const t=String(text||"").toLowerCase().replace(/^who (?:in the group|is most likely to)\s+/, "");
  const sets=categorySets[game];
  if(!sets)return i%2?"Light-hearted":"Everyday";
  const has=(...w)=>includesAny(t,w);
@@ -598,7 +601,7 @@ for(const [slug,type] of Object.entries(types)){
  }
 }
 // Social prompts use explicit base verbs instead of a morphological guess.
-const socialVerbs={plans:'plan',helps:'help',remembers:'remember',tries:'try',brings:'bring',finds:'find',organises:'organise',makes:'make',keeps:'keep',gets:'get',buys:'buy',takes:'take',packs:'pack',laughs:'laugh',sets:'set',turns:'turn',starts:'start',forgets:'forget',builds:'build',questions:'question',becomes:'become',has:'have',protects:'protect',writes:'write',notices:'notice',researches:'research',checks:'check',distinguishes:'distinguish',changes:'change',requests:'request',communicates:'communicate',creates:'create',spots:'spot',asks:'ask',presents:'present',explains:'explain'};
+const socialVerbs={knows:'know',gives:'give',chooses:'choose',identifies:'identify',frames:'frame',answers:'answer',shares:'share',sends:'send',plans:'plan',helps:'help',remembers:'remember',tries:'try',brings:'bring',finds:'find',organises:'organise',makes:'make',keeps:'keep',gets:'get',buys:'buy',takes:'take',packs:'pack',laughs:'laugh',sets:'set',turns:'turn',starts:'start',forgets:'forget',builds:'build',questions:'question',becomes:'become',has:'have',protects:'protect',writes:'write',notices:'notice',researches:'research',checks:'check',distinguishes:'distinguish',changes:'change',requests:'request',communicates:'communicate',creates:'create',spots:'spot',asks:'ask',presents:'present',explains:'explain'};
 for(const level of levels.slice(1)) games['most-likely-to'][level]=taggedFor('most-likely-to',source[level].social.map(s=>{const m=s.match(/^(\S+) (.*)$/);return 'Who is most likely to '+(socialVerbs[m[1]]||m[1])+' '+m[2]+'?'}));
 
 /* what-if-category-coverage-20261007 */

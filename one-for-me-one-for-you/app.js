@@ -1,3 +1,4 @@
+/* CEFR build applied */
 (() => {
   'use strict';
 
@@ -50,6 +51,7 @@
   }
 
   async function saveCloudConfig() {
+    if(window.ESCCEFR?.supported)return;
     try {
       if (!window.ESCSupabase || !window.ESCSupabase.isConfigured()) return;
       if (!(await window.ESCSupabase.isAdmin())) return;
@@ -63,30 +65,10 @@
     }
   }
 
-  async function hydrateCloudConfig() {
-    try {
-      if (!window.ESCSupabase || !window.ESCSupabase.isConfigured()) return;
-      const remote = await window.ESCSupabase.getGameSettings('one-for-me-one-for-you');
-      if (!remote || typeof remote !== 'object') return;
-      config = normalizeConfig(remote);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-    } catch (error) {
-      console.warn('ESC cloud config unavailable; using local fallback.', error);
-    }
-  }
+  async function hydrateCloudConfig(){await window.ESCCEFR.sync();}
 
-  function allCards() {
-    const editedBuiltIns = builtIns.map((card) => {
-      const edit = config.edits[card.id];
-      return edit ? { ...card, q: edit.q, f: edit.f } : card;
-    });
-    return [...editedBuiltIns, ...config.custom.map((card) => ({ ...card, custom: true }))];
-  }
-
-  function activeDeck() {
-    const disabled = new Set(config.disabledIds);
-    return allCards().filter((card) => !disabled.has(card.id));
-  }
+  function allCards(){return window.ESCCEFR.get();}
+  function activeDeck(){return allCards();}
 
   function cardById(id) {
     return allCards().find((card) => card.id === id);
@@ -183,6 +165,7 @@ function playReveal() {
   }
 
   function drawCard() {
+    const levelRevision=window.ESCCEFR.revision;
     const selected = chooseUnusedCard();
     if (!selected) {
       showToast('No active questions are available.');
@@ -194,6 +177,7 @@ function playReveal() {
     card.classList.add('shuffling');
     $('draw').disabled = true;
     setTimeout(() => {
+      if(levelRevision!==window.ESCCEFR.revision)return;
       currentId = selected.id;
       usedIds.add(selected.id);
       $('q').textContent = selected.q;
@@ -247,12 +231,7 @@ function playReveal() {
     renderLibrary();
   }
 
-  function openAdmin() {
-    playClick();
-    $('adminPanel').showModal();
-    if (sessionStorage.getItem(UNLOCK_KEY) === 'yes') showAdminDashboard();
-    else showAdminLogin();
-  }
+  function openAdmin(){void window.ESCCEFR.editor();}
 
   function closeAdmin() {
     playClick();
@@ -476,7 +455,9 @@ function playReveal() {
   }
 
   async function init() {
-    await hydrateCloudConfig();
+    window.ESCCEFR.onChange(()=>{usedIds.clear();resetQuestionCard();$('draw').disabled=false;window.ESCCEFR.ready()});
+    void hydrateCloudConfig();
+    window.ESCCEFR.ready();
     updateSoundButton();
     updateTurn();
     $('start').onclick = startGame;

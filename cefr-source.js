@@ -43,7 +43,7 @@ Pizza is a good breakfast.
 Walking is better than taking a bus.
 Socks are a good birthday present.
 Summer is better than winter.
-Cats are good teachers.
+Cats are funny pets.
 Small homes are better than big homes.
 Monday is a good day.
 Cooking at home is fun.

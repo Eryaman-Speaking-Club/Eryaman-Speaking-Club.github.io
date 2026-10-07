@@ -2,7 +2,7 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const context={console,URL,URLSearchParams,location:{pathname:'/tests/',search:'',href:'http://localhost/tests/'},localStorage:{getItem(){return null},setItem(){}},document:{readyState:'loading',addEventListener(){}},setTimeout,clearTimeout};
 context.window=context;vm.createContext(context);
-for(const file of ['cefr-source.js','cefr-bank.js','cefr-runtime.js'])vm.runInContext(fs.readFileSync(file,'utf8'),context,{filename:file});
+for(const file of ['cefr-source.js', 'cefr-bank.js', 'cefr50-conversation.js', 'cefr50-interpersonal.js', 'cefr50-activities.js', 'cefr50-structured.js', 'cefr-runtime.js'])vm.runInContext(fs.readFileSync(file,'utf8'),context,{filename:file});
 const {games,levels}=context.ESCCefrBank;
 assert.equal(Object.keys(games).length,32);assert.equal(levels.join(','),'A1,A2,B1,B2,C1');
 let total=0;const counts={};
@@ -10,7 +10,7 @@ for(const [slug,byLevel] of Object.entries(games)){
  counts[slug]={};
  for(const level of levels){
   assert(context.ESCCEFR.validate(slug,byLevel[level]),`Invalid ${slug}/${level}`);
-  const n=context.ESCCEFR.count(byLevel[level]);assert(n>=10&&n<=40,`${slug}/${level}: ${n}`);
+  const n=context.ESCCEFR.count(byLevel[level]);assert(n===(slug==='truth-or-dare'?100:context.ESCCefrBank.expandedSpeakingGames.includes(slug)?50:40),`${slug}/${level}: ${n}`);
   total+=n;counts[slug][level]=n;
   const copy=context.ESCCEFR.get(slug,level);assert.equal(JSON.stringify(copy),JSON.stringify(byLevel[level]));
   if(Array.isArray(copy))copy.length=0;assert(context.ESCCEFR.count(context.ESCCEFR.get(slug,level))>0);
@@ -22,7 +22,7 @@ for(const [slug,byLevel] of Object.entries(games)){
 const coreSpeaking=[
  'truth-or-dare','one-for-me-one-for-you','last-thing-you-did','what-would-you-do-if','would-you-rather','most-likely-to','hot-seat','five-second-challenge','red-flag-green-flag','debate-roulette','never-have-i-ever','two-truths-one-lie','opinion-line','question-roulette','finish-the-sentence','would-i-lie-to-you','worst-advice-only','hot-take'
 ];
-for(const game of coreSpeaking)for(const level of levels)assert(context.ESCCEFR.count(context.ESCCEFR.raw(game,level))>=20,`Core pool too small: ${game}/${level}`);
+for(const game of coreSpeaking)for(const level of levels)assert(context.ESCCEFR.count(context.ESCCEFR.raw(game,level))>=50,`Core pool too small: ${game}/${level}`);
 const categorySummary={};
 for(const [game,expected] of Object.entries(context.ESCCefrBank.categorySets)){
  categorySummary[game]={};

@@ -1,8 +1,9 @@
+/* CEFR build applied */
 (() => {
   'use strict';
 
   const defaults = window.ESC_TRUTH_DARE_DEFAULTS || { names: [], truths: [], dares: [] };
-  const STORAGE_KEY = 'esc-truth-dare-v1';
+  const STORAGE_KEY = 'esc-truth-dare-cefr-v1';
   const PASSWORD_HASH_KEY = 'esc-truth-dare-password-hash-v1';
   const ADMIN_SESSION_KEY = 'esc-truth-dare-admin-unlocked-v1';
   const DEFAULT_PASSWORD_HASH = 'c28440d7f9de5738eddf560c79371754e9ffa41fba2afd1efaa3da1458438a52';
@@ -24,8 +25,8 @@
   function defaultState() {
     return {
       names: [],
-      truths: defaults.truths.map((item) => item.text),
-      dares: defaults.dares.map((item) => item.text),
+      truths: window.ESCCEFR.get().truths,
+      dares: window.ESCCEFR.get().dares,
       settings: { fairRotation: true, noRepeat: true, sound: true, vibration: true },
       history: { names: [], truths: [], dares: [] }
     };
@@ -48,8 +49,8 @@
     const history = source.history && typeof source.history === 'object' ? source.history : {};
     return {
       names: Array.isArray(source.names) ? uniqueLines(source.names) : base.names,
-      truths: Array.isArray(source.truths) ? uniqueLines(source.truths) : base.truths,
-      dares: Array.isArray(source.dares) ? uniqueLines(source.dares) : base.dares,
+      truths: base.truths,
+      dares: base.dares,
       settings: {
         fairRotation: settings.fairRotation !== false,
         noRepeat: settings.noRepeat !== false,
@@ -58,15 +59,15 @@
       },
       history: {
         names: Array.isArray(history.names) ? uniqueLines(history.names) : [],
-        truths: Array.isArray(history.truths) ? uniqueLines(history.truths) : [],
-        dares: Array.isArray(history.dares) ? uniqueLines(history.dares) : []
+        truths: Array.isArray(history.truths) ? uniqueLines(history.truths).filter(x=>base.truths.includes(x)) : [],
+        dares: Array.isArray(history.dares) ? uniqueLines(history.dares).filter(x=>base.dares.includes(x)) : []
       }
     };
   }
 
   function loadState() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(STORAGE_KEY)||localStorage.getItem('esc-truth-dare-v1');
       return raw ? normalizeState(JSON.parse(raw)) : defaultState();
     } catch {
       return defaultState();
@@ -86,9 +87,9 @@
     try {
       if (!window.ESCSupabase || !window.ESCSupabase.isConfigured()) return;
       if (!(await window.ESCSupabase.isAdmin())) return;
+      const latest=await window.ESCSupabase.getGameSettings('truth-or-dare')||{};
       await window.ESCSupabase.saveGameSettings('truth-or-dare', {
-        truths: state.truths,
-        dares: state.dares,
+        ...latest,
         settings: state.settings,
         source: 'esc-studio',
         version: 3
@@ -318,6 +319,7 @@
   }
 
   function spinPlayer() {
+    const levelRevision=window.ESCCEFR.revision;
     const button = $('spinPlayer');
     if (state.names.length < 2 || button.disabled) return;
 
@@ -392,6 +394,7 @@
       button.disabled = false;
 
       setTimeout(() => {
+        if(levelRevision!==window.ESCCEFR.revision)return;
         $('selectedPlayer').textContent = `${selectedPlayer}!`;
         showScreen('choice');
       }, 850);
@@ -425,6 +428,7 @@
   }
 
   function spinQuestion(type) {
+    const levelRevision=window.ESCCEFR.revision;
     setQuestionType(type);
     const list = type === 'truth' ? state.truths : state.dares;
     const historyKey = type === 'truth' ? 'truths' : 'dares';
@@ -442,6 +446,7 @@
     text.textContent = type === 'truth' ? 'TRUTH' : 'DARE';
     let ticks = 0;
     const preview = setInterval(() => {
+      if(levelRevision!==window.ESCCEFR.revision){clearInterval(preview);return;}
       const item = list[Math.floor(Math.random() * list.length)];
       text.textContent = item;
       playTick(ticks++);
@@ -449,6 +454,7 @@
 
     setTimeout(() => {
       clearInterval(preview);
+      if(levelRevision!==window.ESCCEFR.revision)return;
       const picked = randomFrom(list, historyKey);
       text.textContent = picked;
       wheel.classList.remove('spinning-question');
@@ -462,7 +468,8 @@
   function chooseType(type) {
     playClick();
     showScreen('question');
-    setTimeout(() => spinQuestion(type), 120);
+    const levelRevision=window.ESCCEFR.revision;
+    setTimeout(()=>{if(levelRevision===window.ESCCEFR.revision)spinQuestion(type)},120);
   }
 
   function nextPlayer() {
@@ -520,6 +527,7 @@
   }
 
   function openAdmin(tab = 'names') {
+    if(tab==='truths'||tab==='dares'){void window.ESCCEFR.editor();return;}
     playClick();
     $('adminPanel').showModal();
     if (sessionStorage.getItem(ADMIN_SESSION_KEY) === 'yes') showAdminDashboard(tab);
@@ -551,6 +559,7 @@
   }
 
   function selectAdminTab(tab) {
+    if(tab==='truths'||tab==='dares'){$('adminPanel').close();void window.ESCCEFR.editor();return;}
     document.querySelectorAll('[data-admin-tab]').forEach((button) => button.classList.toggle('active', button.dataset.adminTab === tab));
     document.querySelectorAll('[data-tab-panel]').forEach((panel) => { panel.hidden = panel.dataset.tabPanel !== tab; });
   }
@@ -566,6 +575,7 @@
   }
 
   function saveEditor(kind) {
+    if(kind!=='names'){void window.ESCCEFR.editor();return;}
     const map = { names: 'namesEditor', truths: 'truthsEditor', dares: 'daresEditor' };
     state[kind] = parseEditor(map[kind]);
     state.history[kind] = [];
@@ -683,7 +693,17 @@
   }
 
   async function init() {
-    await hydrateCloudState();
+    window.ESCCEFR.onChange(()=>{
+      const pool=window.ESCCEFR.get();state.truths=pool.truths;state.dares=pool.dares;
+      state.history.truths=[];state.history.dares=[];
+      clearInterval(spinTimer);if(wheelAnimation){wheelAnimation.onfinish=null;wheelAnimation.cancel();wheelAnimation=null;}
+      labelAnimations.forEach(a=>a.cancel());labelAnimations=[];
+      selectedPlayer='';$('questionText').textContent='';$('questionWheel').classList.remove('spinning-question','revealed');
+      $('wheelLabel').textContent='READY';$('playerWheel').classList.remove('winner');
+      showScreen('player');updateControls();updateAdminCounts();window.ESCCEFR.ready();
+    });
+    void hydrateCloudState();
+    window.ESCCEFR.ready();
     installWheelEnhancements();
     updateControls();
     updateAdminCounts();
