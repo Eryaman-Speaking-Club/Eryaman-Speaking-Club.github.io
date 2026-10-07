@@ -69,6 +69,25 @@ const advancedTerms=[
 ];
 const abstractWords=['assumption','trade-off','incentive','legitimacy','uncertainty','precedent','fairness','autonomy','evidence','responsibility'];
 const extraEmoji=['⚖️','🧭','🔍','🧩','📊','🗣️','🪞','🔄','🎯','🧠'];
+const reserveWords={
+ 'A1-A2':[
+  ['fork','eat,food,kitchen,metal'],['bottle','drink,water,plastic,carry'],['lamp','light,room,table,night'],['towel','dry,bathroom,water,cloth'],['stairs','steps,up,down,building'],
+  ['garden','plants,flowers,outside,home'],['beach','sea,sand,swim,holiday'],['mountain','high,climb,nature,hill'],['market','buy,sell,food,people'],['cinema','film,movie,screen,ticket'],
+  ['hospital','doctor,nurse,health,building'],['village','small,town,houses,countryside'],['office','work,desk,job,company'],['bridge','cross,river,road,over'],['pocket','clothes,small,carry,trousers'],
+  ['shelf','books,wall,store,wood'],['ticket machine','ticket,pay,station,screen'],['playground','children,park,play,swings'],['bakery counter','bread,shop,cake,buy'],['bus lane','bus,road,traffic,drive']
+ ],
+ 'B1-B2':[
+  ['facilitation','meeting,guide,group,discussion'],['mediation','conflict,neutral,agreement,dispute'],['consensus','agreement,group,decision,everyone'],['benchmark','standard,compare,measure,performance'],['bottleneck','delay,process,slow,capacity'],
+  ['workaround','temporary,solution,problem,alternative'],['ownership','responsibility,task,accountable,control'],['retention','keep,employee,customer,stay'],['onboarding','new,employee,start,training'],['escalation','problem,higher,manager,serious'],
+  ['feasibility','possible,practical,plan,resources'],['compliance','rules,law,follow,requirement'],['procurement','buy,supplier,purchase,organisation'],['logistics','transport,delivery,planning,supply'],['contingency plan','backup,risk,alternative,unexpected'],
+  ['stakeholder mapping','people,interest,influence,project'],['peer review','colleague,feedback,quality,check'],['self-awareness','understand,self,behaviour,strength'],['time management','schedule,priority,work,deadline'],['risk assessment','danger,probability,impact,decision'],
+  ['quality control','check,standard,product,defect'],['service recovery','customer,problem,fix,complaint'],['conflict resolution','disagreement,solve,people,agreement'],['decision fatigue','choices,tired,thinking,many'],['learning curve','skill,practice,time,improve']
+ ],
+ 'C1-C2':[
+  ['conceptual clarity','concept,clear,definition,reasoning'],['scope condition','limit,applies,context,claim'],['inferential leap','conclusion,evidence,gap,reasoning'],['distributional effect','who,benefit,cost,impact'],['normative tension','values,conflict,principles,ethics'],
+  ['epistemic standard','evidence,knowledge,threshold,claim'],['institutional design','rules,organisation,incentives,structure'],['governance failure','institution,decision,accountability,breakdown'],['policy feedback','policy,behaviour,future,effect'],['strategic interaction','actors,choices,response,incentive']
+ ]
+};
 
 function c2Question(q,type,i){
  const text=String(q).trim();
@@ -196,6 +215,14 @@ for(const game of Object.keys(B.games)){
   'B1-B2':merge(type,original[game].B1,original[game].B2),
   'C1-C2':merge(type,original[game].C1,c2)
  };
+ if(type==='word'||type==='taboo'){
+  for(const band of GROUP_LEVELS){
+   const seen=new Set(),unique=[];
+   for(const card of grouped[band]){const k=String(card[1]).toLowerCase();if(!seen.has(k)){seen.add(k);unique.push(card)}}
+   for(const [word,banned] of reserveWords[band]){if(unique.length>=100)break;const k=word.toLowerCase();if(seen.has(k))continue;seen.add(k);unique.push(type==='taboo'?['Vocabulary',word.toUpperCase(),split(banned).slice(0,4).map(v=>v.toUpperCase())]:['Vocabulary',word]);}
+   grouped[band]=unique;
+  }
+ }
  for(const band of GROUP_LEVELS)if(type==='paired')grouped[band].forEach(x=>{x.level=band});
  const required=B.categorySets?.[game]||[];
  if(required.length&&type!=='truth'){
