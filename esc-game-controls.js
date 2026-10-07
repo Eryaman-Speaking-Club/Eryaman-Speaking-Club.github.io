@@ -1,3 +1,17 @@
+/* cefr-auto-bootstrap-20261007 */
+(function(){
+  const supported=new Set(["truth-or-dare","one-for-me-one-for-you","last-thing-you-did","what-would-you-do-if","would-you-rather","most-likely-to","hot-seat","five-second-challenge","red-flag-green-flag","taboo","debate-roulette","never-have-i-ever","two-truths-one-lie","who-am-i","story-chain","explain-it-badly","opinion-line","ranking-room","question-roulette","detective-alibi","finish-the-sentence","three-clues","secret-mission","one-minute-story","would-i-lie-to-you","desert-island","conversation-bingo","emoji-story","worst-advice-only","sell-me-this","hot-take","photo-talk"]);
+  const slug=location.pathname.split("/").filter(Boolean).pop()||"";
+  if(!supported.has(slug)||window.ESCCEFR||document.querySelector('script[src*="/cefr-runtime.js"]'))return;
+  if(!document.querySelector('link[href*="/cefr.css"]')){
+    const l=document.createElement("link");l.rel="stylesheet";l.href="/cefr.css?v=20261007-cefr2";document.head.appendChild(l);
+  }
+  const load=src=>new Promise((resolve,reject)=>{const s=document.createElement("script");s.src=src;s.onload=resolve;s.onerror=reject;document.head.appendChild(s)});
+  load("/cefr-source.js?v=20261007-cefr2")
+    .then(()=>load("/cefr-bank.js?v=20261007-cefr2"))
+    .then(()=>load("/cefr-runtime.js?v=20261007-cefr2"))
+    .catch(err=>console.error("CEFR level controls could not load",err));
+})();
 /* Shared display control for every public game. No game state is reset. */
 (() => {
   'use strict';
