@@ -1,12 +1,12 @@
 # Speaking levels: direct buttons and 50-card libraries
 
-## Release 20261007-level50-1
+## Release 20261007-level50-2
 
-All 32 existing game pages and the Game Hub use direct A1, A2, B1, B2 and C1 buttons rather than a dropdown. Exactly one button is pressed at a time. Keyboard activation uses the same real buttons. Category selection is independent of level selection; a supported category is retained on a level change, and both filters are represented in the URL. Category counts and disabled states are refreshed for the new level.
+All 32 existing game pages and the Game Hub use direct A1, A2, B1, B2 and C1 buttons rather than a dropdown. The visible level bar is standardised as Seviye / Level + five pill buttons + the current level card count on the right, matching the approved game-page layout. Exactly one button is pressed at a time. Keyboard activation uses the same real buttons. Category selection is independent of level selection; a supported category is retained on a level change, and both filters are represented in the URL. Category counts and disabled states are refreshed for the new level.
 
-28 conversation and activity games have 50 cards per level. Truth or Dare has 50 Truth questions AND 50 Dare tasks at each level (100 total). The four vocabulary-led games, Taboo, Who Am I, Explain It Badly and Three Clues, retain their existing 40-word-per-level libraries and mechanics. Their common level-control appearance is updated without forcing them into a question-and-answer format.
+All 32 games now have at least 50 cards/items at every CEFR level: A1=50+, A2=50+, B1=50+, B2=50+, C1=50+, so every game has at least 250 level-specific placements overall. Truth or Dare has 50 Truth questions AND 50 Dare tasks at each level (100 per level). Taboo, Who Am I, Explain It Badly and Three Clues now also have 50 level-appropriate vocabulary items per level while keeping their original mechanics.
 
-Total placements across the 160 game-level libraries: 8,050. Placements are not globally unique questions. Related formats intentionally reuse appropriate content. In visual, ranking and storytelling activities, a coherent scene or word set can be shared across levels while the required communicative task and response support differ. The material is teaching practice, not a certified or empirically calibrated CEFR test.
+Total placements across the 160 game-level libraries: 8,250. Placements are not globally unique questions. Related formats intentionally reuse appropriate content. In visual, ranking and storytelling activities, a coherent scene or word set can be shared across levels while the required communicative task and response support differ. The material is teaching practice, not a certified or empirically calibrated CEFR test.
 
 Reference: Council of Europe, CEFR level descriptions and Global Scale. https://www.coe.int/en/web/common-european-framework-reference-languages/level-descriptions
 
