@@ -19,10 +19,27 @@ for(const [slug,byLevel] of Object.entries(games)){
  assert(html.includes('reviewed-cefr-20261007'),`No level boot: ${slug}`);
  assert(!/<script[^>]+src=["'][^"']*game-content-v2/.test(html),`Legacy expansion: ${slug}`);
 }
+const coreSpeaking=[
+ 'truth-or-dare','one-for-me-one-for-you','last-thing-you-did','what-would-you-do-if','would-you-rather','most-likely-to','hot-seat','five-second-challenge','red-flag-green-flag','debate-roulette','never-have-i-ever','two-truths-one-lie','opinion-line','question-roulette','finish-the-sentence','would-i-lie-to-you','worst-advice-only','hot-take'
+];
+for(const game of coreSpeaking)for(const level of levels)assert(context.ESCCEFR.count(context.ESCCEFR.raw(game,level))>=20,`Core pool too small: ${game}/${level}`);
+const categorySummary={};
+for(const [game,expected] of Object.entries(context.ESCCefrBank.categorySets)){
+ categorySummary[game]={};
+ for(const level of levels){
+  const cc=context.ESCCEFR.categoryCounts(game,level);
+  categorySummary[game][level]=cc;
+  for(const c of Object.keys(cc))assert(expected.includes(c),`Unexpected category: ${game}/${level}/${c}`);
+ }
+}
+for(const level of levels){
+ const cc=context.ESCCEFR.categoryCounts('what-would-you-do-if',level);
+ for(const c of context.ESCCefrBank.categorySets['what-would-you-do-if'])assert(cc[c]>0,`Missing What If category: ${level}/${c}`);
+}
 assert.equal(context.ESCCEFR.setLevel('A3'),false);
 assert(!context.ESCCEFR.validate('conversation-bingo',['too short']));
 assert(!context.ESCCEFR.validate('taboo',[['Test','CAT',['CAT']]]));
 assert(!context.ESCCEFR.validate('hot-seat',[['x','Same'],['y','Same']]));
 assert(!fs.readFileSync('esc-new-games.js','utf8').includes('ensureExpandedContent'));
 for(const file of ['esc-new-games.js','esc-content-editor.js','esc-game-controls.js','esc-depth-pass.js','truth-or-dare/app.js','one-for-me-one-for-you/app.js','admin/admin-data.js'])new vm.Script(fs.readFileSync(file,'utf8'),{filename:file});
-console.log(JSON.stringify({games:32,levels:5,combinations:160,totalGameLevelCards:total,counts},null,2));
+console.log(JSON.stringify({games:32,levels:5,combinations:160,totalGameLevelCards:total,counts,categorySummary},null,2));
