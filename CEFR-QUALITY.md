@@ -1,10 +1,10 @@
 # Speaking levels: direct buttons and 50-card libraries
 
-## Release 20261007-level50-2
+## Release 20261007-group3-c2-1
 
-All 32 existing game pages and the Game Hub use direct A1, A2, B1, B2 and C1 buttons rather than a dropdown. The visible level bar is standardised as Seviye / Level + five pill buttons + the current level card count on the right, matching the approved game-page layout. Exactly one button is pressed at a time. Keyboard activation uses the same real buttons. Category selection is independent of level selection; a supported category is retained on a level change, and both filters are represented in the URL. Category counts and disabled states are refreshed for the new level.
+All 32 existing game pages and the Game Hub now use three direct level-band buttons: A1-A2, B1-B2 and C1-C2. The first two bands combine the previously reviewed A1+A2 and B1+B2 libraries. The advanced band combines C1 with a new C2 challenge layer. Category selection remains independent of level selection and both filters are represented in the URL.
 
-All 32 games now have at least 50 cards/items at every CEFR level: A1=50+, A2=50+, B1=50+, B2=50+, C1=50+, so every game has at least 250 level-specific placements overall. Truth or Dare has 50 Truth questions AND 50 Dare tasks at each level (100 per level). Taboo, Who Am I, Explain It Badly and Three Clues now also have 50 level-appropriate vocabulary items per level while keeping their original mechanics.
+Every normal game band contains at least 100 cards/items before any small category-coverage additions, because two 50-card levels are combined. Truth or Dare contains at least 200 placements per band (50 Truth + 50 Dare from each underlying level). C2 adds advanced reasoning prompts and 50 separate advanced vocabulary targets rather than relabelling C1.
 
 Total placements across the 160 game-level libraries: 8,250. Placements are not globally unique questions. Related formats intentionally reuse appropriate content. In visual, ranking and storytelling activities, a coherent scene or word set can be shared across levels while the required communicative task and response support differ. The material is teaching practice, not a certified or empirically calibrated CEFR test.
 
