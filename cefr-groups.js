@@ -228,6 +228,7 @@ function coverage(game,cat,i,band){
  if(type==='paired')return {id:'coverage-'+game+'-'+band+'-'+cat.replace(/\W+/g,'-')+'-'+i,q:prompt('How would you respond if '+s+'?'),f:support[band],category:cat,level:band};
  if(type==='past')return {c:cat,q:prompt('Think of a time when '+s+'. What happened?')};
  if(type==='problem'&&game==='what-would-you-do-if')return {c:cat,q:prompt('What would you do if '+s+'?')};
+ if(type==='problem')return [cat,prompt('A friend is dealing with this situation: '+s+'. What is the worst harmless advice you could give, and what would useful advice be instead?')];
  if(type==='choice')return [cat,'decide quickly about '+s+' and adjust later','wait for more information about '+s+' before deciding'];
  if(type==='social')return [cat,prompt('Who is most likely to handle this well: '+s+'?')];
  if(type==='challenge')return [cat,prompt('Name three ways to respond when '+s+'.')];
