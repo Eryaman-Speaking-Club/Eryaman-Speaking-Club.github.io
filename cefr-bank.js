@@ -600,6 +600,52 @@ for(const [slug,type] of Object.entries(types)){
 // Social prompts use explicit base verbs instead of a morphological guess.
 const socialVerbs={plans:'plan',helps:'help',remembers:'remember',tries:'try',brings:'bring',finds:'find',organises:'organise',makes:'make',keeps:'keep',gets:'get',buys:'buy',takes:'take',packs:'pack',laughs:'laugh',sets:'set',turns:'turn',starts:'start',forgets:'forget',builds:'build',questions:'question',becomes:'become',has:'have',protects:'protect',writes:'write',notices:'notice',researches:'research',checks:'check',distinguishes:'distinguish',changes:'change',requests:'request',communicates:'communicate',creates:'create',spots:'spot',asks:'ask',presents:'present',explains:'explain'};
 for(const level of levels.slice(1)) games['most-likely-to'][level]=taggedFor('most-likely-to',source[level].social.map(s=>{const m=s.match(/^(\S+) (.*)$/);return 'Who is most likely to '+(socialVerbs[m[1]]||m[1])+' '+m[2]+'?'}));
+
+/* what-if-category-coverage-20261007 */
+const whatIfCategoryExtras={
+ A1:[
+  {c:"Everyday",q:"You miss your bus. What do you do?"},
+  {c:"Chaos",q:"Your cat can talk for one hour. What do you ask it?"},
+  {c:"Social",q:"A new person is alone at the club. What do you say?"},
+  {c:"Money",q:"You have 200 lira for the day. What do you buy first?"},
+  {c:"Deep",q:"You can learn one skill instantly. What do you choose?"},
+  {c:"Spicy",q:"Someone you like asks you to get coffee. What do you say?"}
+ ],
+ A2:[
+  {c:"Everyday",q:"You leave your phone on a bus. What do you do first?"},
+  {c:"Chaos",q:"You wake up and every street sign in your town is wrong. What do you do?"},
+  {c:"Social",q:"A friend looks upset but says they are fine. What do you do?"},
+  {c:"Money",q:"You receive an unexpected 1,000 lira gift. What do you do with it?"},
+  {c:"Deep",q:"You can change one daily habit this month. Which habit do you choose?"},
+  {c:"Spicy",q:"Someone you like cancels your plan at the last minute. What do you say?"}
+ ],
+ B1:[
+  {c:"Everyday",q:"Your normal route to work is closed for a week. How would you change your routine?"},
+  {c:"Chaos",q:"You discover that every message you send is automatically translated into the wrong language. What would you do?"},
+  {c:"Social",q:"Two friends expect you to take sides in their disagreement. How would you respond?"},
+  {c:"Money",q:"You get a bonus, but you also have an important expense coming soon. How would you decide what to do?"},
+  {c:"Deep",q:"You can remove one unhelpful habit from your life immediately. Which one would you choose and why?"},
+  {c:"Spicy",q:"Someone you are dating says they need more space. How would you handle the conversation?"}
+ ],
+ B2:[
+  {c:"Everyday",q:"A service you use every day changes its rules in a way that makes life less convenient. How would you respond?"},
+  {c:"Chaos",q:"A harmless joke you make online suddenly becomes widely misunderstood. How would you manage the situation?"},
+  {c:"Social",q:"Your group agrees on a plan, but one quiet member clearly seems uncomfortable. What would you do?"},
+  {c:"Money",q:"A cheaper option would save your group money but create more risk. How would you evaluate the trade-off?"},
+  {c:"Deep",q:"You learn that a decision you strongly supported had an unintended negative effect. How would you reassess it?"},
+  {c:"Spicy",q:"A partner asks for a level of transparency that feels uncomfortable to you. How would you discuss the boundary?"}
+ ],
+ C1:[
+  {c:"Everyday",q:"A routine that once made you efficient now limits your flexibility. How would you decide whether to abandon it?"},
+  {c:"Chaos",q:"A private comment is taken out of context and spreads publicly. How would you balance explanation, accountability and restraint?"},
+  {c:"Social",q:"A group reaches consensus quickly, but you suspect important disagreement is being suppressed. What would you do?"},
+  {c:"Money",q:"A financially efficient decision transfers most of its hidden costs to people with less influence. How would you evaluate it?"},
+  {c:"Deep",q:"New evidence weakens a principle-based position you have defended publicly. How would you revise your stance without becoming inconsistent?"},
+  {c:"Spicy",q:"Two partners have different ideas of privacy but both describe their expectations as reasonable. How would you frame a fair discussion?"}
+ ]
+};
+for(const level of levels)games["what-would-you-do-if"][level].push(...whatIfCategoryExtras[level]);
+
 // A1 recency prompts need only familiar words and a short answer, not a past-tense story.
 games['last-thing-you-did'].A1=taggedFor('last-thing-you-did',lines(`Your last drink: tea, coffee or water?
 Your last meal: what food?
