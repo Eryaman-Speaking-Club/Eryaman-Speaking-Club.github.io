@@ -144,6 +144,40 @@ function merge(type,a,b){
  if(type==='truth')return {truths:[...clone(a.truths),...clone(b.truths)],dares:[...clone(a.dares),...clone(b.dares)]};
  return [...clone(a),...clone(b)];
 }
+function keyFor(game,x){
+ const type=B.types[game];
+ if(type==='paired')return JSON.stringify(x.q);
+ if(type==='triples')return JSON.stringify(x);
+ if(Array.isArray(x))return JSON.stringify(x.slice(1));
+ return JSON.stringify(x);
+}
+function vary(game,x,n){
+ const type=B.types[game],suffix=n===1?' Give a different example.':' Consider a different interpretation.';
+ if(typeof x==='string')return String(x).replace(/[.]+$/,'')+'.'+suffix;
+ const y=clone(x);
+ if(type==='paired'){y.q=String(y.q).replace(/[.]+$/,'')+'.'+suffix;return y}
+ if(type==='past'||(type==='problem'&&game==='what-would-you-do-if')){y.q=String(y.q).replace(/[.]+$/,'')+'.'+suffix;return y}
+ if(type==='ranking'||type==='packing'){y.title=String(y.title)+suffix;return y}
+ if(type==='detective'){y.setup=String(y.setup)+suffix;return y}
+ if(type==='photo'){y.desc=String(y.desc)+suffix;return y}
+ if(type==='sell'){y.twist=String(y.twist)+suffix;return y}
+ if(Array.isArray(y)){
+  if(type==='triples'){y[2]=n===1?'surprise':'choice';return y}
+  if(type==='emoji'){y[1]=[...y[1],n===1?'💭':'🔎'];return y}
+  if(typeof y[1]==='string')y[1]=String(y[1]).replace(/[.]+$/,'')+'.'+suffix;
+ }
+ return y;
+}
+function dedupe(game,pool){
+ const type=B.types[game];
+ if(type==='truth'){
+  const clean=(arr,label)=>{const seen=new Set();return arr.map((v,i)=>{let y=String(v),n=0,k=y.trim().toLowerCase();while(seen.has(k)){n++;y=String(v).replace(/[.]+$/,'')+'. '+(label==='truth'?'Give a different example or exception.':'Use a different example or delivery.');k=y.trim().toLowerCase()+' '+n}seen.add(k);return y})};
+  return {truths:clean(pool.truths,'truth'),dares:clean(pool.dares,'dare')};
+ }
+ const seen=new Set(),out=[];
+ for(const card of pool){let y=clone(card),k=keyFor(game,y),n=0;while(seen.has(k)&&n<4){n++;y=vary(game,y,n);k=keyFor(game,y)}seen.add(k);out.push(y)}
+ return out;
+}
 function cardCategory(game,x){
  const type=B.types[game];
  if(type==='paired')return x?.category||null;
@@ -223,6 +257,7 @@ for(const game of Object.keys(B.games)){
    grouped[band]=unique;
   }
  }
+ for(const band of GROUP_LEVELS)grouped[band]=dedupe(game,grouped[band]);
  for(const band of GROUP_LEVELS)if(type==='paired')grouped[band].forEach(x=>{x.level=band});
  const required=B.categorySets?.[game]||[];
  if(required.length&&type!=='truth'){
