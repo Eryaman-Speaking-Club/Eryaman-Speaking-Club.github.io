@@ -8,15 +8,26 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
-      - name: Syntax checks
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build graded games
+        run: python3 tools/build_cefr.py
+      - name: Validate all game-level banks
+        run: node tests/cefr-check.cjs > cefr-counts.json
+      - name: Install browser test tools
         run: |
-          node --check cefr-source.js
-          node --check cefr-bank.js
-          node --check cefr-runtime.js
-          if [ -f tests/cefr-check.cjs ]; then node tests/cefr-check.cjs; fi
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Browser regressions
+        run: |
+          python3 -m http.server 8123 > /tmp/cefr-http.log 2>&1 &
+          node tests/cefr-browser.cjs
       - name: Export test snapshot
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: cefr-test-snapshot
@@ -26,5 +37,8 @@ jobs:
             **/*.html
             **/*.md
             **/*.cjs
-            cefr-*.js
+            tools/*.py
+            cefr-*.json
+            cefr-*.png
+            !node_modules/**
           retention-days: 2
