@@ -48,6 +48,23 @@ const base='http://127.0.0.1:8123';
   await page.goto(base+'/one-for-me-one-for-you/?level=C1');await page.click('#start');await page.click('#draw');await page.selectOption('#cefrLevel','A1');await page.waitForTimeout(500);assert.equal(await page.locator('#q').textContent(),'Ready?');await page.click('#draw');await page.waitForTimeout(400);assert(await page.evaluate(()=>ESCCEFR.get().some(x=>x.q===document.querySelector('#q').textContent)));
   await page.goto(base+'/truth-or-dare/?level=C1');await page.click('#spinPlayer');await page.waitForSelector('#chooseTruth:visible',{timeout:8000});await page.click('#chooseTruth');await page.waitForTimeout(250);await page.selectOption('#cefrLevel','A1');await page.waitForTimeout(1100);assert.equal(await page.locator('#questionText').textContent(),'');assert((await page.locator('#roundStatus').textContent()).includes('2'));
   await page.goto(base+'/taboo/?level=A1');await page.click('#start');await page.click('#pass');await page.click('#pass');await page.click('#pass');assert(await page.locator('#pass').isDisabled(),'Fourth pass permitted');await page.selectOption('#cefrLevel','C1');assert(await page.evaluate(()=>running===false),'Timer survived level change');
+  // restored-category-filters
+  await page.goto(base+'/what-would-you-do-if/?level=A1');await page.waitForSelector('#cefrLevel');
+  const whatIfCats=await page.locator('#filters button').allTextContents();
+  for(const c of ['All','Everyday','Chaos','Social','Money','Deep','Spicy'])assert(whatIfCats.includes(c),'Missing What If category '+c);
+  assert.equal(await page.locator('#filters button:disabled').count(),0,'What If should have every category at every level');
+  await page.locator('#filters button[data-cat="Money"]').click();await page.waitForTimeout(80);
+  assert.equal(await page.evaluate(()=>ESCCEFR.category),'Money');
+  assert(await page.evaluate(()=>ESCCEFR.get().length>0&&ESCCEFR.get().every(x=>x.c==='Money')),'What If category filter mixed cards');
+  await page.selectOption('#cefrLevel','B2');assert.equal(await page.evaluate(()=>ESCCEFR.category),'All');
+
+  await page.goto(base+'/question-roulette/?level=B1');await page.waitForSelector('#cefrCategories');
+  const rouletteCats=await page.locator('#cefrCategories button').allTextContents();
+  for(const c of ['All','Everyday','Fun','Social','Deep','Spicy'])assert(rouletteCats.includes(c),'Missing Question Roulette category '+c);
+  const socialButton=page.locator('#cefrCategories button[data-cat="Social"]');assert(!(await socialButton.isDisabled()),'Social category unexpectedly empty');
+  await socialButton.click();await page.waitForTimeout(80);
+  assert.equal(await page.evaluate(()=>ESCCEFR.category),'Social');
+  assert(await page.evaluate(()=>ESC_NEW_GAME.items.length>0&&ESC_NEW_GAME.items.every(x=>x[0]==='Social')),'New-game category filter mixed cards');
   await page.goto(base+'/games/?level=A2');await page.selectOption('#cefrLevel','B2');assert(await page.evaluate(()=>[...document.querySelectorAll('a.game-card')].every(a=>new URL(a.href).searchParams.get('level')==='B2')));
   await page.goto(base+'/hot-seat/?level=A3');assert.equal(await page.locator('#cefrLevel').inputValue(),'B2');
   assert.deepEqual(extraErrors,[]);results.push({game:'cross-game-regressions',pass:true});
