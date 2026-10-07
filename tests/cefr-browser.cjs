@@ -45,8 +45,8 @@ const base='http://127.0.0.1:8123';
  // Card animations must not restore an old level after a rapid switch.
  const page=await context.newPage();const extraErrors=[];page.on('pageerror',e=>extraErrors.push(e.message));
  try{
-  await page.goto(base+'/one-for-me-one-for-you/?level=C1-C2');await page.click('#start');await page.click('#draw');await page.locator('#cefrLevel [data-cefr-level="'+'A1'+'"]') .click();await page.waitForTimeout(500);assert.equal(await page.locator('#q').textContent(),'Ready?');await page.click('#draw');await page.waitForTimeout(400);assert(await page.evaluate(()=>ESCCEFR.get().some(x=>x.q===document.querySelector('#q').textContent)));
-  await page.goto(base+'/truth-or-dare/?level=C1-C2');await page.click('#spinPlayer');await page.waitForSelector('#chooseTruth:visible',{timeout:8000});await page.click('#chooseTruth');await page.waitForTimeout(250);await page.locator('#cefrLevel [data-cefr-level="'+'A1'+'"]') .click();await page.waitForTimeout(1100);assert.equal(await page.locator('#questionText').textContent(),'');assert((await page.locator('#roundStatus').textContent()).includes('2'));
+  await page.goto(base+'/one-for-me-one-for-you/?level=C1-C2');await page.click('#start');await page.click('#draw');await page.locator('#cefrLevel [data-cefr-level="'+'A1-A2'+'"]') .click();await page.waitForTimeout(500);assert.equal(await page.locator('#q').textContent(),'Ready?');await page.click('#draw');await page.waitForTimeout(400);assert(await page.evaluate(()=>ESCCEFR.get().some(x=>x.q===document.querySelector('#q').textContent)));
+  await page.goto(base+'/truth-or-dare/?level=C1-C2');await page.click('#spinPlayer');await page.waitForSelector('#chooseTruth:visible',{timeout:8000});await page.click('#chooseTruth');await page.waitForTimeout(250);await page.locator('#cefrLevel [data-cefr-level="'+'A1-A2'+'"]') .click();await page.waitForTimeout(1100);assert.equal(await page.locator('#questionText').textContent(),'');assert((await page.locator('#roundStatus').textContent()).includes('2'));
   await page.goto(base+'/taboo/?level=A1-A2');await page.click('#start');await page.click('#pass');await page.click('#pass');await page.click('#pass');assert(await page.locator('#pass').isDisabled(),'Fourth pass permitted');await page.locator('#cefrLevel [data-cefr-level="'+'C1-C2'+'"]') .click();assert(await page.evaluate(()=>running===false),'Timer survived level change');
   // restored-category-filters
   await page.goto(base+'/what-would-you-do-if/?level=A1-A2');await page.waitForSelector('#cefrLevel');
@@ -65,7 +65,7 @@ const base='http://127.0.0.1:8123';
   await socialButton.click();await page.waitForTimeout(80);
   assert.equal(await page.evaluate(()=>ESCCEFR.category),'Social');
   assert(await page.evaluate(()=>ESC_NEW_GAME.items.length>0&&ESC_NEW_GAME.items.every(x=>x[0]==='Social')),'New-game category filter mixed cards');
-  await page.goto(base+'/games/?level=A1-A2');await page.locator('#cefrLevel [data-cefr-level="'+'B2'+'"]') .click();assert(await page.evaluate(()=>[...document.querySelectorAll('a.game-card')].every(a=>new URL(a.href).searchParams.get('level')==='B1-B2')));
+  await page.goto(base+'/games/?level=A1-A2');await page.locator('#cefrLevel [data-cefr-level="'+'B1-B2'+'"]') .click();assert(await page.evaluate(()=>[...document.querySelectorAll('a.game-card')].every(a=>new URL(a.href).searchParams.get('level')==='B1-B2')));
   await page.goto(base+'/hot-seat/?level=A3');assert.equal(await page.locator('#cefrLevel').getAttribute('data-level'),'B1-B2');
   assert.deepEqual(extraErrors,[]);results.push({game:'cross-game-regressions',pass:true});
  }catch(e){results.push({game:'cross-game-regressions',pass:false,error:e.message,pageerrors:extraErrors});}
