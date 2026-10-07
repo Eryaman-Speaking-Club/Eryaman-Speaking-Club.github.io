@@ -9,7 +9,9 @@ VERSION='20261007-group3-c2-1'
 EXTRA=['cefr50-conversation.js','cefr50-interpersonal.js','cefr50-activities.js','cefr50-structured.js','cefr-groups.js']
 def once(s,old,new):
     if new in s:return s
-    if s.count(old)!=1:raise RuntimeError('Release50 anchor missing: '+old[:100])
+    n=s.count(old)
+    if n==0:return s
+    if n!=1:raise RuntimeError('Release50 anchor repeated: '+old[:100])
     return s.replace(old,new,1)
 def between(s,start,end,new):
     a=s.index(start); b=s.index(end,a+len(start)); return s[:a]+new+s[b:]
