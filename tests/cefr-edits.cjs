@@ -24,4 +24,4 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
  const firstText=await page.locator('#prompt').textContent();await page.click('#skip');await page.locator('#cefrLevel [data-cefr-level="'+'B1-B2'+'"]') .click();assert(await page.evaluate(()=>JSON.stringify(prompts)===JSON.stringify(ESCCEFR.get())));assert.equal(await page.locator('#start').textContent(),'Start Hot Seat');
  await page.close();await browser.close();fs.writeFileSync('cefr-edit-results.json',JSON.stringify({passed:true,checks:['real legacy deck','changed A1 card','sequential C1 save','A1 preserved','unrelated configuration preserved','refresh persistence','group isolation','round reset'],backend:'mocked, not live Supabase'},null,2));
  console.log('CEFR edited-card and persistence regressions passed');
-})().catch(e=>{console.error(e);process.exitCode=1});
+})().catch(e=>{console.error(e);process.exit(1)});
