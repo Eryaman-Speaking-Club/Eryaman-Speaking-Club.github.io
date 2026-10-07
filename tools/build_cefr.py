@@ -6,7 +6,7 @@ Guarded transformations fail visibly if upstream source structure changes.
 from pathlib import Path
 import re
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = '20261007-cefr1'
+VERSION = '20261007-cefr3'
 MARKER = '<!-- reviewed-cefr-20261007 -->'
 def edit(path, fn):
     p = ROOT / path
