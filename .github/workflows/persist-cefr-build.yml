@@ -1,0 +1,36 @@
+name: Persist reviewed CEFR build
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'cefr*.js'
+      - 'cefr*.css'
+      - 'tools/**'
+      - 'tests/**'
+      - '.github/workflows/persist-cefr-build.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  persist:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Build reviewed game files
+        run: python3 tools/cefr_build.py
+      - name: Validate all game-level banks
+        run: node tests/cefr-check.cjs
+      - name: Commit generated game files
+        run: |
+          if git diff --quiet; then
+            echo "No generated changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Persist generated CEFR game build"
+          git push origin HEAD:main
