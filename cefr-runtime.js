@@ -8,9 +8,11 @@ const bank=window.ESCCefrBank;if(!bank)return;
 const LEVELS=bank.levels,slug=window.ESC_CEFR_PAGE_SLUG||location.pathname.split('/').find(part=>bank.games[part]||part==='games'||part==='admin')||'',supported=!!bank.games[slug],KEY='eryaman-cefr-level-v1';
 const copy=x=>JSON.parse(JSON.stringify(x));
 const canonical=x=>JSON.stringify(x,(_,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.keys(v).sort().map(k=>[k,v[k]])):v);
-let saved='B1';try{saved=localStorage.getItem(KEY)||saved}catch(_){}
+const LEGACY_LEVEL_MAP={A1:'A1-A2',A2:'A1-A2',B1:'B1-B2',B2:'B1-B2',C1:'C1-C2',C2:'C1-C2'};
+const normalizeLevel=v=>LEVELS.includes(v)?v:(LEGACY_LEVEL_MAP[v]||null);
+let saved=LEVELS[1]||LEVELS[0];try{saved=localStorage.getItem(KEY)||saved}catch(_){}
 const requested=new URLSearchParams(location.search).get('level');
-let level=LEVELS.includes(requested)?requested:LEVELS.includes(saved)?saved:'B1',revision=0;
+let level=normalizeLevel(requested)||normalizeLevel(saved)||LEVELS[1]||LEVELS[0],revision=0;
 /* cefr-category-state-20261007 */
 let category=new URLSearchParams(location.search).get('category')||'All';
 try{localStorage.setItem(KEY,level)}catch(_){}
@@ -52,16 +54,14 @@ function categoryOf(game,x){
 }
 function raw(game=slug,l=level){if(!bank.games[game]||!LEVELS.includes(l))return[];return copy(overrides[game]?.[l]||bank.games[game][l])}
 function categoryCounts(game=slug,l=level){const p=raw(game,l),counts={};if(Array.isArray(p))for(const x of p){const c=categoryOf(game,x);if(c)counts[c]=(counts[c]||0)+1}return counts}
-function categories(game=slug,l=level){const counts=categoryCounts(game,l),ordered=bank.categorySets?.[game]||[];const extras=Object.keys(counts).filter(c=>!ordered.includes(c));return [...ordered,...extras]}
+function categories(game=slug,l=level){const counts=categoryCounts(game,l),ordered=bank.categorySets?.[game]||[];const active=ordered.filter(c=>counts[c]>0),extras=Object.keys(counts).filter(c=>!ordered.includes(c)&&counts[c]>0);return [...active,...extras]}
 function filterPayload(game,payload,cat){if(cat==='All'||!Array.isArray(payload))return payload;return payload.filter(x=>categoryOf(game,x)===cat)}
 function get(game=slug,l=level,cat=(game===slug&&l===level?category:'All')){const p=raw(game,l);return copy(filterPayload(game,p,cat))}
 function stats(game,config){return LEVELS.map(l=>{const p=config?.cefr?.version===1&&validate(game,config.cefr.levels?.[l])?config.cefr.levels[l]:raw(game,l);return {level:l,count:count(p)}})}
 const description={
- A1:['Ba\u015flang\u0131\u00e7','Tan\u0131d\u0131k konular; kelimeler ve k\u0131sa c\u00fcmleler.','Use familiar words and short sentences.'],
- A2:['Temel','G\u00fcnl\u00fck durumlar; basit bir ayr\u0131nt\u0131 ekle.','Use simple sentences. Add one detail.'],
- B1:['Orta','Deneyimini anlat; bir neden veya \u00f6rnek ver.','Explain your experience, with a reason or example.'],
- B2:['Orta-\u00fcst\u00fc','Se\u00e7enekleri kar\u015f\u0131la\u015ft\u0131r; g\u00f6r\u00fc\u015f\u00fcn\u00fc destekle.','Compare options and support your view.'],
- C1:['\u0130leri','G\u00f6r\u00fc\u015f\u00fcn\u00fc nitele; istisna ve kar\u015f\u0131 g\u00f6r\u00fc\u015f\u00fc de\u011ferlendir.','Qualify your view; consider an exception or another perspective.']};
+ 'A1-A2':['Temel','Günlük konular; kısa ve basit cümlelerden biraz daha ayrıntılı anlatıma geç.','Use clear everyday English. A short answer is fine; add one simple detail if you can.'],
+ 'B1-B2':['Orta','Deneyimini açıkla; neden ver, örnek kullan ve gerektiğinde seçenekleri karşılaştır.','Explain your reason, give an example, and compare another reasonable option when useful.'],
+ 'C1-C2':['İleri','Nüans, varsayım, istisna ve karşı görüşleri değerlendir; görüşünü hassas biçimde savun.','Qualify your view, make assumptions explicit, and address a plausible counterargument or exception.']};
 function notify(reason){if(category!=='All'&&!categoryCounts(slug,level)[category])category='All';revision++;for(const fn of listeners){try{fn(level,reason)}catch(e){console.error('CEFR deck refresh failed',e)}}paint();document.dispatchEvent(new CustomEvent('eryaman:levelchange',{detail:{level,reason}}))}
 function updateLocation(){
  try{localStorage.setItem(KEY,level);const u=new URL(location.href);u.searchParams.set('level',level);if(category==='All')u.searchParams.delete('category');else u.searchParams.set('category',category);window.history.replaceState(null,'',u)}catch(_){}
@@ -98,7 +98,7 @@ function paint(){
  document.documentElement.dataset.cefrLevel=level;
  const group=document.getElementById('cefrLevel');if(group){group.dataset.level=level;group.querySelectorAll('[data-cefr-level]').forEach(b=>{const active=b.dataset.cefrLevel===level;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))})}
  const note=document.getElementById('cefrLevelNote');if(note)note.textContent=description[level][1]+' / '+description[level][2];
- const total=document.getElementById('cefrPoolCount');if(total)total.textContent=supported?count(get())+' kart / '+level+(category!=='All'?' / '+category:''):'Se\u00e7ilen seviye oyunlara aktar\u0131l\u0131r.';
+ const total=document.getElementById('cefrPoolCount');if(total)total.textContent=supported?count(raw())+' kart / '+level:'Seçilen seviye oyunlara aktarılır.';
  renderCategories(document.getElementById('cefrCategories'));
  document.querySelectorAll('a.game-card').forEach(a=>{const u=new URL(a.href,location.href);u.searchParams.set('level',level);a.href=u.href});
  document.querySelectorAll('.cefr-card-level').forEach(n=>n.textContent=level);
@@ -134,29 +134,30 @@ function bindLegacy(){
  }
  onChange(refresh);refresh();
 }
-const lower=()=>level==='A1'||level==='A2';
-function storySupport(){return level==='A1'?'Use short sentences and familiar words.':level==='A2'?'Tell events in order using simple sentences.':level==='B1'?'Connect events with a clear beginning, change and ending.':level==='B2'?'Explain causes, consequences and a character\'s reasons.':'Include a change of perspective; distinguish what a character knows from what they assume.';}
+const lower=()=>level==='A1-A2';
+function storySupport(){return level==='A1-A2'?'Use familiar words and tell events in a clear order.':level==='B1-B2'?'Connect events clearly and explain at least one cause or consequence.':'Include nuance, competing interpretations, or a change of perspective; distinguish what is known from what is assumed.';}
 
 function guidance(type){
- const basic=level==='A1',base=description[level][2];
+ const basic=level==='A1-A2',advanced=level==='C1-C2',base=description[level][2];
  const map={
- twoTruths:basic?'Say three short sentences: two true, one not true. The group guesses.': 'Say three statements: two true and one false. '+base,
- whoAmI:basic?'Ask: Is it big? Is it food? Is it a person? Use yes/no questions.':'Ask yes/no questions. Do not look at the hidden target. '+base,
- storyChain:basic?'Add one short sentence. The next person adds one more.':'Continue the same story. '+storySupport(),
- explainBadly:basic?'Say two simple clues. Do not say the hidden word.':'Give accurate but indirect clues, without saying the hidden word.',
- roulette:base, opinion:basic?'Choose: agree, not sure, or disagree. Say: I think ...':'Choose a position. '+base,
- ranking:basic?'Put five things in order. Say: Number one is ...':'Rank all five options in your preferred order. '+base,
- finish:basic?'Finish with a word or a short sentence.':base,
- threeClues:basic?'Give three short clues: It is ... It has ... You can ...':'Give three clues without saying the target. Start broad, then narrow down.',
- mission:basic?'Read your card alone. Hide it. Do the small task while you talk.':'Read privately, hide the card, then complete the mission naturally.',
- minuteStory:basic?'Use the three words in three short sentences. The timer is optional.':'Use all three words in a connected story. The timer is optional. '+storySupport(),
- wouldILie:basic?'Say three short sentences. True or not true? The group guesses.':'Tell a true or invented account. The group asks two questions, then guesses. '+base,
- desert:basic?'Choose three things. Say: I want ...':'Choose exactly three items. '+base,
- bingo:basic?'Ask: Do you ...? Mark a box when someone says yes.':'Find people who match the squares. Ask a follow-up before marking each square.',
- emoji:basic?'Say one short sentence for each picture.':'Connect all pictures in a story. '+storySupport(),
- worstAdvice:basic?'Give funny, bad advice. Then give good advice. Keep it safe.':'First give harmless, deliberately bad advice; then switch to useful advice. '+base,
- sell:basic?'Say what it is and two good things about it. The timer is optional.':'Make an honest pitch for this customer. The timer is optional. '+base,
- hotTake:basic?'Say: I agree, or I disagree. Add a short sentence.':'Take a position. The timer is optional. '+base
+  twoTruths:basic?'Say three short statements: two true and one false. The group guesses.':advanced?'Make the false statement plausible, answer one follow-up, then reveal it. '+base:'Say three statements: two true and one false. '+base,
+  whoAmI:basic?'Ask simple yes/no questions: Is it a person? Is it a place? Can I use it?':'Ask efficient yes/no questions and narrow the possibilities. '+base,
+  storyChain:basic?'Add one or two short sentences. Keep the same story.':'Continue the same story. '+storySupport(),
+  explainBadly:basic?'Give two simple clues without saying the hidden word.':advanced?'Describe it indirectly but accurately; avoid obvious synonyms and distinguish it from a close alternative.':'Give accurate but indirect clues, without saying the hidden word.',
+  roulette:base,
+  opinion:basic?'Choose agree, not sure, or disagree. Give one reason.':advanced?'Take a position, qualify it, and address one reasonable objection.':'Choose a position and support it with a reason or example.',
+  ranking:basic?'Put the five things in order and explain your first choice.':advanced?'Rank all five; state your criteria and explain one trade-off in the ranking.':'Rank all five options and explain your top two.',
+  finish:basic?'Finish the sentence with a word or short sentence.':advanced?'Finish it, then add one qualification or exception.':base,
+  threeClues:basic?'Give three simple clues: what it is like, where it is used, and one more detail.':advanced?'Give three precise clues, moving from broad to discriminating, without using a direct synonym.':'Give three clues without saying the target. Start broad, then narrow down.',
+  mission:basic?'Read the mission privately and complete the small task naturally.':'Read privately, hide the card, then complete the mission naturally. '+base,
+  minuteStory:basic?'Use the three words in a short connected story. The timer is optional.':'Use all three words in a connected story. The timer is optional. '+storySupport(),
+  wouldILie:basic?'Tell a short true or invented story. The group guesses.':advanced?'Tell a plausible account, answer two probing questions, and keep the details internally consistent. '+base:'Tell a true or invented account. The group asks questions, then guesses. '+base,
+  desert:basic?'Choose three things and give a simple reason for each.':advanced?'Choose exactly three; state your criteria and explain the opportunity cost of leaving out the next-best option.':'Choose exactly three items and explain your priorities. '+base,
+  bingo:basic?'Ask simple questions and mark a box when someone matches it.':'Find people who match the squares. Ask a follow-up before marking each square. '+base,
+  emoji:basic?'Connect the pictures with a few simple sentences.':'Connect all pictures in a coherent story. '+storySupport(),
+  worstAdvice:basic?'Give funny, harmless bad advice, then give useful advice.':advanced?'Give deliberately bad but safe advice, identify why it fails, then replace it with proportionate advice. '+base:'First give harmless, deliberately bad advice; then switch to useful advice. '+base,
+  sell:basic?'Say what it is, who can use it, and two good things about it.':advanced?'Make an honest pitch, state one limitation, and identify who should not buy it. '+base:'Make an honest pitch for this customer. '+base,
+  hotTake:basic?'Say agree or disagree and add one reason.':advanced?'Take a position, state the assumption it depends on, and acknowledge one credible counterpoint. '+base:'Take a position and support it. '+base
  };
  return map[type]||base;
 }
@@ -208,14 +209,21 @@ function dialog(title){
  const d=element('dialog',{class:'cefr-dialog','aria-label':title}),head=element('div',{class:'cefr-dialog-head'}),h=element('h2',{},title),close=element('button',{type:'button','aria-label':'Close / Kapat'},'\u00d7');head.append(h,close);d.append(head);close.onclick=()=>d.close();d.addEventListener('click',e=>{if(e.target===d)d.close()});d.addEventListener('close',()=>d.remove());document.body.append(d);d.showModal();return d;
 }
 function help(){
- const d=dialog('Nas\u0131l cevap verebilirim? / '+level),type=bank.types[slug],p=element('p',{},description[level][1]+' '+description[level][2]);d.append(p);
- const hidden=['word','taboo'].includes(type);let example='';
- if(hidden){example=level==='A1'?'It is small. It is blue. You can use it at home.':level==='A2'?'It is something you use when you travel. You can find it in a bag.':level==='B1'?'It is a type of everyday object. You use it to ...':level==='B2'?'It serves a similar purpose to ..., but its main feature is ...':'Its defining feature is ..., although it is sometimes confused with ...';d.append(element('p',{},'Bu \u00f6rnek mevcut gizli kelimenin cevab\u0131 de\u011fildir; ipucu verme kal\u0131b\u0131d\u0131r.'))}
- else if(type==='mission'||type==='bingo'){example=level==='A1'?'Do you like ...? / Can you ...?':level==='A2'?'What did you do ...? / Why do you like ...?':level==='B1'?'Have you ever ...? What happened next?':level==='B2'?'Could you give an example? What led you to that conclusion?':'What assumptions does that depend on? Under what conditions might your view change?';}
- else if(type==='choice'){example=level==='A1'?'I like tea.':level==='A2'?'I choose tea because I like it.':level==='B1'?'I would choose the first option because ... For example, ...':level==='B2'?'Both have advantages, but I would prioritise ... because ...':'Under these conditions, I would lean towards ..., although ... could change my decision.'}
- else if(type==='triples'||type==='story'||type==='emoji'){example=level==='A1'?'I am at home. My cat is in a box. It is happy.':level==='A2'?'Yesterday, I was at home. My cat jumped into a box. Then it fell asleep.':level==='B1'?'At first, ... Then something unexpected happened: ... In the end, ...':level==='B2'?'Although everything seemed normal, ... This led to ..., and eventually ...':'Looking back, what seemed like ... was actually ... Had ..., the outcome might have been different.'}
- else {const question=document.querySelector('#promptText,#questionText,#q,#prompt,#taskText,#motion')?.textContent?.trim();const pairs=bank.games['one-for-me-one-for-you'][level];const matched=pairs.find(x=>x.q===question);example=matched?.f||({A1:'I like ... / I have ... / It is ...',A2:'I ... because ... It was ...',B1:'In my experience, ... One example is ... That is why ...',B2:'One advantage is ..., whereas ... I would choose ... because ...',C1:'To some extent, ... However, this assumes that ... An important exception would be ...'}[level]);}
- d.append(element('h3',{},'Cevap kal\u0131b\u0131 / Speaking support'),element('blockquote',{},example),element('p',{},'Tek bir do\u011fru cevap yok. Bilmedi\u011fin bir deneyimi uydurman gerekmez; hayali bir \u00f6rnek se\u00e7ebilir veya pas ge\u00e7ebilirsin.'));
+ const d=dialog('Nasıl cevap verebilirim? / '+level),type=bank.types[slug],p=element('p',{},description[level][1]+' '+description[level][2]);d.append(p);
+ const basic=level==='A1-A2',advanced=level==='C1-C2',hidden=['word','taboo'].includes(type);let example='';
+ if(hidden){
+  example=basic?'It is small. You use it at home. It can be blue.':advanced?'Its defining feature is ..., although it can be confused with ...; the key distinction is ...':'It is something you use for ... A similar thing is ..., but this one ...';
+  d.append(element('p',{},'Bu örnek mevcut gizli kelimenin cevabı değildir; sadece ipucu verme kalıbıdır.'));
+ }else if(type==='mission'||type==='bingo'){
+  example=basic?'Do you ...? / Can you ...? / What do you like?':advanced?'What assumption does that depend on? What evidence would change your view?':'Could you give an example? What happened next? Why?';
+ }else if(type==='choice'){
+  example=basic?'I choose the first one because ...':advanced?'I would lean towards ... because ..., although under ... the other option would be more defensible.':'Both have advantages. I would choose ... because ...';
+ }else if(type==='triples'||type==='story'||type==='emoji'){
+  example=basic?'First ... Then ... In the end ...':advanced?'What initially looked like ... turned out to be ...; this changed ... because ...':'At first ... Then ... This led to ... In the end ...';
+ }else{
+  example=basic?'I think ... because ... For example ...':advanced?'To a large extent, ... However, this assumes ... A reasonable exception would be ...':'In my experience, ... One reason is ... For example ... On the other hand ...';
+ }
+ d.append(element('h3',{},'Cevap kalıbı / Speaking support'),element('blockquote',{},example),element('p',{},'Tek bir doğru cevap yok. Kişisel bir deneyimi paylaşmak istemiyorsan hayali bir örnek seçebilir veya pas geçebilirsin.'));
 }
 function cardEditor(dialog,area,getLevel){
  const frame=element('fieldset',{class:'cefr-card-form'}),group=element('select',{'aria-label':'Kart grubu'}),pick=element('select',{'aria-label':'Kart se\u00e7'}),fields=element('div'),add=element('button',{type:'button'},'Yeni kart'),remove=element('button',{type:'button'},'Kart\u0131 sil'),error=element('p',{role:'status'});
