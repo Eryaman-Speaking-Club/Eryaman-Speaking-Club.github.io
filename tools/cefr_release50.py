@@ -21,7 +21,7 @@ for slug in slugs+['games','admin']:
     p=ROOT/slug/'index.html';s=p.read_text()
     s=re.sub(r'<!-- reviewed-cefr-20261007(?:-direct)? -->\s*','',s)
     s=re.sub(r'<link\b[^>]*href=["\'][^"\']*/cefr\.css[^"\']*["\'][^>]*>\s*','',s)
-    s=re.sub(r'<script\b[^>]*src=["\'][^"\']*/(?:cefr-(?:source|bank|runtime)|cefr50-[a-z-]+)\.js[^"\']*["\'][^>]*></script>\s*','',s)
+    s=re.sub(r'<script\b[^>]*src=["\'][^"\']*/(?:cefr-(?:source|bank|groups|runtime)|cefr50-[a-z-]+)\.js[^"\']*["\'][^>]*></script>\s*','',s)
     s=re.sub(r'<script\b[^>]*src=["\'][^"\']*game-content-v2\.js[^"\']*["\'][^>]*></script>','',s)
     tags='\n<!-- reviewed-cefr-20261007 -->\n<link rel="stylesheet" href="/cefr.css?v='+VERSION+'">\n'
     for f in ['cefr-source.js','cefr-bank.js']+EXTRA+['cefr-runtime.js']:
