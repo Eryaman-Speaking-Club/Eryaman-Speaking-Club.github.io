@@ -19,7 +19,8 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
  await page.locator('.cefr-dialog-head button').click();
  await page.reload();await page.waitForFunction(()=>ESCCEFR.get()[0][1]==='What fruit do you like?');assert(await page.evaluate(()=>JSON.stringify(prompts)===JSON.stringify(ESCCEFR.get())));
  await page.locator('#cefrLevel [data-cefr-level="'+'C1-C2'+'"]') .click();assert.equal(await page.evaluate(()=>ESCCEFR.get()[0][1]),'When can a transparent process still produce an unfair result?');
- await page.locator('#cefrLevel [data-cefr-level="'+'A1-A2'+'"]') .click();assert.notEqual(await page.evaluate(()=>ESCCEFR.get()[0][1]),'What fruit do you like?');
+ await page.locator('#cefrLevel [data-cefr-level="'+'B1-B2'+'"]') .click();assert.notEqual(await page.evaluate(()=>ESCCEFR.get()[0][1]),'What fruit do you like?');
+ await page.locator('#cefrLevel [data-cefr-level="'+'A1-A2'+'"]') .click();assert.equal(await page.evaluate(()=>ESCCEFR.get()[0][1]),'What fruit do you like?');
  const firstText=await page.locator('#prompt').textContent();await page.click('#skip');await page.locator('#cefrLevel [data-cefr-level="'+'B1-B2'+'"]') .click();assert(await page.evaluate(()=>JSON.stringify(prompts)===JSON.stringify(ESCCEFR.get())));assert.equal(await page.locator('#start').textContent(),'Start Hot Seat');
  await page.close();await browser.close();fs.writeFileSync('cefr-edit-results.json',JSON.stringify({passed:true,checks:['real legacy deck','changed A1 card','sequential C1 save','A1 preserved','unrelated configuration preserved','refresh persistence','group isolation','round reset'],backend:'mocked, not live Supabase'},null,2));
  console.log('CEFR edited-card and persistence regressions passed');
