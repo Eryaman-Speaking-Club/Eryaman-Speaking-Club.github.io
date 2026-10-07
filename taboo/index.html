@@ -1,4 +1,4 @@
-<!doctype html><html lang="en" data-speaking-release="20261007-level50-2"><head>
+<!doctype html><html lang="en" data-speaking-release="20261007-group3-c2-1"><head>
   <link rel="icon" type="image/png" href="/favicon.png?v=20260922"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0b2f5b">
   <meta name="description" content="Describe the main word without saying any forbidden words. Play freely or create two teams and take turns. Free browser-based English speaking game by Eryaman…">
   <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
@@ -20,15 +20,17 @@
 </style><link rel="stylesheet" href="/esc-game-controls.css?v=20261006-answerhelp3">
 
 
+
 <!-- reviewed-cefr-20261007 -->
-<link rel="stylesheet" href="/cefr.css?v=20261007-level50-2">
-<script src="/cefr-source.js?v=20261007-level50-2"></script>
-<script src="/cefr-bank.js?v=20261007-level50-2"></script>
-<script src="/cefr50-conversation.js?v=20261007-level50-2"></script>
-<script src="/cefr50-interpersonal.js?v=20261007-level50-2"></script>
-<script src="/cefr50-activities.js?v=20261007-level50-2"></script>
-<script src="/cefr50-structured.js?v=20261007-level50-2"></script>
-<script src="/cefr-runtime.js?v=20261007-level50-2"></script>
+<link rel="stylesheet" href="/cefr.css?v=20261007-group3-c2-1">
+<script src="/cefr-source.js?v=20261007-group3-c2-1"></script>
+<script src="/cefr-bank.js?v=20261007-group3-c2-1"></script>
+<script src="/cefr50-conversation.js?v=20261007-group3-c2-1"></script>
+<script src="/cefr50-interpersonal.js?v=20261007-group3-c2-1"></script>
+<script src="/cefr50-activities.js?v=20261007-group3-c2-1"></script>
+<script src="/cefr50-structured.js?v=20261007-group3-c2-1"></script>
+<script src="/cefr-groups.js?v=20261007-group3-c2-1"></script>
+<script src="/cefr-runtime.js?v=20261007-group3-c2-1"></script>
 </head><body><div class="game-shell"><header class="game-topbar"><a class="esc-brand" href="../"><span class="esc-brand-mark"><img src="../esc-center-symbol.webp" alt=""></span><span class="esc-brand-title">Eryaman Speaking Club</span></a><div class="game-actions"><button class="game-action-btn" id="teamsBtn"><span class="desktop-label">Teams</span> 👥</button><button class="game-icon-btn" data-esc-sound aria-label="Sound">🔊</button></div></header><section class="game-hero"><span class="game-eyebrow">🗣️ Describe It</span><h1>Taboo</h1><p>Describe the main word without saying any forbidden words. Play freely or create two teams and take turns.</p></section><nav class="game-chips" id="chips"></nav><main class="game-panel"><div class="game-meta"><span id="deckInfo">Ready</span><span id="catInfo">All categories</span></div><section class="team-strip" id="teamStrip" hidden><div class="team-box" id="teamABox"><strong id="teamAName">Team A</strong><span class="team-score" id="teamAScore">0</span><span id="teamAPlayers"></span></div><div class="turn-box"><strong id="turnTeam">Team A's turn</strong><span id="turnSpeaker">Speaker: Player 1</span></div><div class="team-box" id="teamBBox"><strong id="teamBName">Team B</strong><span class="team-score" id="teamBScore">0</span><span id="teamBPlayers"></span></div></section><section class="game-card"><div class="game-card-inner taboo-card"><span class="game-badge" id="badge">Everyday</span><div class="target" id="target"></div><div class="dont">Do not say</div><div class="forbidden" id="forbidden"></div><div class="timer" id="timer">60</div><div class="score" id="score">Score: 0 · Passes: 0</div><div class="taboo-handoff" id="tabooHandoff" hidden><small>NEXT PLAYER</small><strong id="nextPlayerName">Player</strong><span id="nextPlayerTeam">Team</span><p>Bu oyuncuya ver</p><button class="game-primary" id="handoffReady" type="button">Hazırım · Start 60s</button></div></div></section><div class="taboo-actions"><button class="game-primary" id="start">Start 60s</button><button class="game-success" id="got">✓ Got it</button><button class="taboo-foul" id="tabooFoul" type="button" title="A forbidden word was used. Subtract 1 point and move to the next word." disabled>Taboo -1</button><button class="game-secondary" id="pass">Pass (3 left)</button></div><p id="tabooRoundStatus" class="game-round-status" role="status"></p><div class="game-note" id="gameNote">One speaker describes. Everyone else guesses. No spelling, translations or gestures.</div></main></div>
 <div class="teams-overlay" id="teamsOverlay"><section class="teams-panel" role="dialog" aria-modal="true" aria-label="Taboo team setup"><div class="teams-head"><div><h2>Taboo Teams</h2><p>Create two teams and add player names, one per line. Team setup does not need the admin password.</p></div><button class="teams-close" id="teamsClose" aria-label="Close">×</button></div><div class="teams-grid"><div class="team-editor"><label>Team 1 name<input id="team1Name" value="Team A"></label><label>Players<textarea id="team1Players" placeholder="Ayşe&#10;Mehmet&#10;Can"></textarea></label></div><div class="team-editor"><label>Team 2 name<input id="team2Name" value="Team B"></label><label>Players<textarea id="team2Players" placeholder="Zeynep&#10;Ali&#10;Ece"></textarea></label></div></div><div class="teams-actions"><button class="teams-quick" id="quickPlay">Play without teams</button><button class="teams-reset" id="resetScores">Reset scores</button><button class="teams-save" id="saveTeams">Save & use teams</button></div></section></div>
 <script src="../esc-game-kit.js?v=20261006-sound2x"></script><script>
@@ -39,8 +41,8 @@ const cards=[
 ['Work','MEETING',['OFFICE','TALK','TEAM','ZOOM']],['Work','DEADLINE',['TIME','FINISH','WORK','DATE']],['Work','BOSS',['MANAGER','WORK','OFFICE','LEADER']],['Work','EMAIL',['MESSAGE','SEND','INBOX','WORK']],['Work','SALARY',['MONEY','MONTH','JOB','PAY']],['Work','INTERVIEW',['JOB','QUESTION','HIRE','CV']],['Work','PROMOTION',['JOB','HIGHER','SALARY','POSITION']],['Work','COLLEAGUE',['WORK','OFFICE','PERSON','TEAM']],['Work','PRESENTATION',['SLIDE','SPEAK','AUDIENCE','POWERPOINT']],['Work','REMOTE',['HOME','WORK','ONLINE','OFFICE']],
 ['Entertainment','NETFLIX',['MOVIE','SERIES','WATCH','STREAM']],['Entertainment','CONCERT',['MUSIC','SINGER','LIVE','TICKET']],['Entertainment','KARAOKE',['SING','SONG','MICROPHONE','MUSIC']],['Entertainment','PODCAST',['LISTEN','AUDIO','EPISODE','VOICE']],['Entertainment','MEME',['FUNNY','INTERNET','IMAGE','JOKE']],['Entertainment','GAMING',['PLAY','VIDEO','CONSOLE','GAME']],['Entertainment','CINEMA',['MOVIE','SCREEN','TICKET','FILM']],['Entertainment','PLAYLIST',['MUSIC','SONG','SPOTIFY','LIST']],['Entertainment','SELFIE',['PHOTO','PHONE','FACE','CAMERA']],['Entertainment','VIRAL',['INTERNET','FAMOUS','VIDEO','TREND']]];
 </script><script src="./round.js?v=20261005-taboo-pass3-content1000"></script>
-  <script src="../esc-content-editor.js?v=20261007-level50-2"></script>  <script src="/esc-supabase-config.js?v=20261006-seofinal"></script>
+  <script src="../esc-content-editor.js?v=20261007-group3-c2-1"></script>  <script src="/esc-supabase-config.js?v=20261006-seofinal"></script>
   <script src="/esc-supabase.js?v=20261006-seofinal"></script>
   <script src="/site-analytics.js?v=20260922"></script>
-<script src="/esc-game-controls.js?v=20261007-level50-2"></script>
+<script src="/esc-game-controls.js?v=20261007-group3-c2-1"></script>
 </body></html>

@@ -1,4 +1,4 @@
-<!doctype html><html lang="en" data-speaking-release="20261007-level50-2"><head>
+<!doctype html><html lang="en" data-speaking-release="20261007-group3-c2-1"><head>
   <link rel="icon" type="image/png" href="/favicon.png?v=20260922"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0b2f5b">
   <meta name="description" content="Read the situation, choose your flag, then explain why. The argument matters more than the vote. Free browser-based English speaking game by Eryaman Speaking Club.">
   <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
@@ -19,15 +19,17 @@
 </style><link rel="stylesheet" href="/esc-game-controls.css?v=20261006-answerhelp3">
 
 
+
 <!-- reviewed-cefr-20261007 -->
-<link rel="stylesheet" href="/cefr.css?v=20261007-level50-2">
-<script src="/cefr-source.js?v=20261007-level50-2"></script>
-<script src="/cefr-bank.js?v=20261007-level50-2"></script>
-<script src="/cefr50-conversation.js?v=20261007-level50-2"></script>
-<script src="/cefr50-interpersonal.js?v=20261007-level50-2"></script>
-<script src="/cefr50-activities.js?v=20261007-level50-2"></script>
-<script src="/cefr50-structured.js?v=20261007-level50-2"></script>
-<script src="/cefr-runtime.js?v=20261007-level50-2"></script>
+<link rel="stylesheet" href="/cefr.css?v=20261007-group3-c2-1">
+<script src="/cefr-source.js?v=20261007-group3-c2-1"></script>
+<script src="/cefr-bank.js?v=20261007-group3-c2-1"></script>
+<script src="/cefr50-conversation.js?v=20261007-group3-c2-1"></script>
+<script src="/cefr50-interpersonal.js?v=20261007-group3-c2-1"></script>
+<script src="/cefr50-activities.js?v=20261007-group3-c2-1"></script>
+<script src="/cefr50-structured.js?v=20261007-group3-c2-1"></script>
+<script src="/cefr-groups.js?v=20261007-group3-c2-1"></script>
+<script src="/cefr-runtime.js?v=20261007-group3-c2-1"></script>
 </head><body><div class="game-shell"><header class="game-topbar"><a class="esc-brand" href="../"><span class="esc-brand-mark"><img src="../esc-center-symbol.webp" alt=""></span><span class="esc-brand-title">Eryaman Speaking Club</span></a><div class="game-actions"><button class="game-icon-btn" data-esc-sound aria-label="Sound">🔊</button></div></header><section class="game-hero"><span class="game-eyebrow">🚩 Quick Judgment</span><h1>Red Flag / Green Flag</h1><p>Read the situation, choose your flag, then explain why. The argument matters more than the vote.</p></section><nav class="game-chips" id="chips"></nav><main class="game-panel"><div class="game-meta"><span id="deckInfo">Ready</span><span id="catInfo">All categories</span></div><section class="game-card"><div class="game-card-inner rf-card"><span class="game-badge" id="badge">Dating</span><div class="game-prompt rf-prompt" id="prompt"></div><div><div class="rf-choice"><button class="rf-btn rf-red" id="red">🚩 RED FLAG</button><button class="rf-btn rf-green" id="green">💚 GREEN FLAG</button></div><div class="follow" id="follow">Why? Give one reason. Someone who disagrees gets one counterargument.</div><div class="tally"><span id="redCount">Red: 0</span><span>•</span><span id="greenCount">Green: 0</span></div></div></div></section><div class="game-controls"><button class="game-secondary" id="back">↩ Previous</button><button class="game-primary" id="next">Next situation →</button><button class="game-secondary" id="shuffle">↻ Shuffle</button></div><div class="game-note">Vote first. Explain second. Changing your mind is allowed.</div></main></div><script src="../esc-game-kit.js?v=20261006-sound2x"></script><script>
 const items=[
 ['Dating','They reply after eight hours, but they are online all day.'],['Dating','They are still close friends with every ex.'],['Dating','They say “I am not ready for a relationship” but act like you are dating.'],['Dating','They never post you, but post everything else.'],['Dating','They want to meet your friends very early.'],['Dating','They remember small details you mentioned weeks ago.'],['Dating','They ask for your phone password after two dates.'],['Dating','They always pay but never let you pay.'],['Dating','They cancel plans twice, then make a thoughtful new plan.'],['Dating','They talk about their ex on the first date.'],['Dating','They text “good morning” every single day.'],['Dating','They hate all of their exes.'],['Dating','They say “I am brutally honest.”'],['Dating','They need several hours alone every day.'],['Dating','They do not use social media at all.'],['Dating','They are late to every date but always apologise.'],
@@ -38,9 +40,9 @@ const items=[
 const cats=['All','Dating','Friendship','Work','Personality','Everyday'];let selected='All',deck=[],pos=-1,history=[],r=0,g=0;const $=id=>document.getElementById(id),shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 function build(){deck=shuffle(items.filter(x=>selected==='All'||x[0]===selected));pos=-1;$('catInfo').textContent=selected==='All'?'All categories':selected}function resetChoice(){for(const id of ['red','green'])$(id).classList.remove('chosen');$('follow').classList.remove('show')}function show(x,save=true){$('badge').textContent=x[0];$('prompt').textContent=x[1];resetChoice();if(save)history.push(x);ESCGameKit.audio.soft()}function next(){if(!deck.length||pos>=deck.length-1)build();show(deck[++pos]);$('deckInfo').textContent=Math.max(0,deck.length-pos-1)+' left'}function choose(which){resetChoice();$(which).classList.add('chosen');$('follow').classList.add('show');if(which==='red'){r++;$('redCount').textContent='Red: '+r}else{g++;$('greenCount').textContent='Green: '+g}ESCGameKit.audio.select()}
 $('red').onclick=()=>choose('red');$('green').onclick=()=>choose('green');$('next').onclick=next;$('back').onclick=()=>{if(history.length<2)return;const forward=history.pop();deck.splice(pos+1,0,forward);show(history[history.length-1],false)};$('shuffle').onclick=()=>{build();next();ESCGameKit.toast('Deck shuffled')};cats.forEach(c=>{const b=document.createElement('button');b.className='game-chip'+(c==='All'?' active':'');b.textContent=c;b.onclick=()=>{selected=c;document.querySelectorAll('.game-chip').forEach(x=>x.classList.toggle('active',x===b));build();next()};$('chips').appendChild(b)});build();next();
-</script><script src="../esc-depth-pass.js?v=20261007-level50-2"></script>
-  <script src="../esc-content-editor.js?v=20261007-level50-2"></script>  <script src="/esc-supabase-config.js?v=20261006-seofinal"></script>
+</script><script src="../esc-depth-pass.js?v=20261007-group3-c2-1"></script>
+  <script src="../esc-content-editor.js?v=20261007-group3-c2-1"></script>  <script src="/esc-supabase-config.js?v=20261006-seofinal"></script>
   <script src="/esc-supabase.js?v=20261006-seofinal"></script>
   <script src="/site-analytics.js?v=20260922"></script>
-<script src="/esc-game-controls.js?v=20261007-level50-2"></script>
+<script src="/esc-game-controls.js?v=20261007-group3-c2-1"></script>
 </body></html>
