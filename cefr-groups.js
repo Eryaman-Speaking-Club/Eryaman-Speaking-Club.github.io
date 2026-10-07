@@ -196,6 +196,7 @@ for(const game of Object.keys(B.games)){
   'B1-B2':merge(type,original[game].B1,original[game].B2),
   'C1-C2':merge(type,original[game].C1,c2)
  };
+ for(const band of GROUP_LEVELS)if(type==='paired')grouped[band].forEach(x=>{x.level=band});
  const required=B.categorySets?.[game]||[];
  if(required.length&&type!=='truth'){
   for(const band of GROUP_LEVELS){
