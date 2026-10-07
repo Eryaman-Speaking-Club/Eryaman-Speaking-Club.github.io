@@ -20,7 +20,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Build reviewed CEFR games
-        run: python3 tools/build_cefr.py
+        run: python3 tools/cefr_build.py
       - name: Validate every game-level bank
         run: node tests/cefr-check.cjs
       - name: Configure Pages

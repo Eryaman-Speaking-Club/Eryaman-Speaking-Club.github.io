@@ -15,7 +15,7 @@ jobs:
         with:
           node-version: '22'
       - name: Build graded games
-        run: python3 tools/build_cefr.py
+        run: python3 tools/cefr_build.py
       - name: Validate all game-level banks
         run: node tests/cefr-check.cjs > cefr-counts.json
       - name: Install browser test tools
@@ -26,6 +26,7 @@ jobs:
         run: |
           python3 -m http.server 8123 > /tmp/cefr-http.log 2>&1 &
           node tests/cefr-browser.cjs
+          node tests/cefr-edits.cjs
       - name: Export test snapshot
         if: always()
         uses: actions/upload-artifact@v4

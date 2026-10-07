@@ -1,0 +1,26 @@
+'use strict';
+const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs');
+(async()=>{
+ const browser=await chromium.launch();const context=await browser.newContext();const db={};
+ await context.route(/^https?:\/\/(?!127\.0\.0\.1:8123)/,r=>r.abort());
+ await context.exposeBinding('readLibrary',(_,s)=>db[s]||{unrelatedSetting:'keep',content:[['legacy','DO NOT SHOW']]});
+ await context.exposeBinding('writeLibrary',(_,s,x)=>{db[s]=JSON.parse(JSON.stringify(x))});
+ await context.addInitScript(()=>{window.ESCSupabase={isConfigured:()=>false,getGameSettings:s=>window.readLibrary(s),saveGameSettings:(s,x)=>window.writeLibrary(s,x),isAdmin:async()=>true,getSession:async()=>({user:{id:'test'}}),getClient:async()=>null}});
+ const page=await context.newPage();page.setDefaultTimeout(8000);
+ await page.goto('http://127.0.0.1:8123/hot-seat/?level=A1');await page.waitForSelector('#cefrLevel');
+ assert(await page.evaluate(()=>JSON.stringify(prompts)===JSON.stringify(ESCCEFR.get())),'Actual legacy deck not graded');
+ await page.evaluate(()=>{void ESCCEFR.editor()});await page.waitForSelector('dialog[open] .cefr-card-form');
+ const first=page.locator('[data-cefr-field="1"]');await first.fill('What fruit do you like?');
+ await page.getByRole('button',{name:'Kaydet ve yayınla',exact:true}).click();await page.waitForFunction(()=>document.querySelector('dialog')?.textContent.includes('Kaydedildi ve sunucudan'));
+ assert.equal(db['hot-seat'].cefr.levels.A1[0][1],'What fruit do you like?');
+ await page.selectOption('select[aria-label="Edit level"]','C1');await first.fill('When can a transparent process still produce an unfair result?');
+ await page.getByRole('button',{name:'Kaydet ve yayınla',exact:true}).click();await page.waitForFunction(()=>document.querySelector('dialog')?.textContent.includes('Kaydedildi ve sunucudan'));
+ assert.equal(db['hot-seat'].cefr.levels.A1[0][1],'What fruit do you like?');assert.equal(db['hot-seat'].unrelatedSetting,'keep');
+ await page.locator('.cefr-dialog-head button').click();
+ await page.reload();await page.waitForFunction(()=>ESCCEFR.get()[0][1]==='What fruit do you like?');assert(await page.evaluate(()=>JSON.stringify(prompts)===JSON.stringify(ESCCEFR.get())));
+ await page.selectOption('#cefrLevel','C1');assert.equal(await page.evaluate(()=>ESCCEFR.get()[0][1]),'When can a transparent process still produce an unfair result?');
+ await page.selectOption('#cefrLevel','A2');assert.notEqual(await page.evaluate(()=>ESCCEFR.get()[0][1]),'What fruit do you like?');
+ const firstText=await page.locator('#prompt').textContent();await page.click('#skip');await page.selectOption('#cefrLevel','B2');assert(await page.evaluate(()=>JSON.stringify(prompts)===JSON.stringify(ESCCEFR.get())));assert.equal(await page.locator('#start').textContent(),'Start Hot Seat');
+ await page.close();await browser.close();fs.writeFileSync('cefr-edit-results.json',JSON.stringify({passed:true,checks:['real legacy deck','changed A1 card','sequential C1 save','A1 preserved','unrelated configuration preserved','refresh persistence','exact level isolation','round reset'],backend:'mocked, not live Supabase'},null,2));
+ console.log('CEFR edited-card and persistence regressions passed');
+})().catch(e=>{console.error(e);process.exitCode=1});
