@@ -4,7 +4,8 @@ const context={console,URL,URLSearchParams,location:{pathname:'/tests/',search:'
 context.window=context;vm.createContext(context);
 for(const file of ['cefr-source.js', 'cefr-bank.js', 'cefr50-conversation.js', 'cefr50-interpersonal.js', 'cefr50-activities.js', 'cefr50-structured.js', 'cefr-groups.js', 'cefr-clarity.js', 'cefr-quality.js', 'cefr-tip-guide.js', 'cefr-runtime.js'])vm.runInContext(fs.readFileSync(file,'utf8'),context,{filename:file});
 const {games,levels}=context.ESCCefrBank;
-assert.equal(context.ESCCefrBank.qualityVersion,'20261011-quality2');
+assert.equal(context.ESCCefrBank.qualityVersion,'20261011-quality4');
+assert.equal(context.ESCCefrBank.curriculumVersion,'20261011-curriculum1');
 assert.equal(Object.keys(games).length,32);assert.equal(levels.join(','),'A1-A2,B1-B2,C1-C2');
 let total=0;const counts={};
 const BAD_QUESTIONS=/Give a different example|after the first plan fails|accepting its strongest downside|What assumption behind your answer|Complete this advanced mission|surprising passion|passionate debate|Then rank your answers/i;
