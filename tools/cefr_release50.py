@@ -5,8 +5,8 @@ Runs AFTER the original CEFR integration and its guarded refinements.
 from pathlib import Path
 import re
 ROOT=Path(__file__).resolve().parents[1]
-VERSION='20261007-group3-c2-1'
-EXTRA=['cefr50-conversation.js','cefr50-interpersonal.js','cefr50-activities.js','cefr50-structured.js','cefr-groups.js']
+VERSION='20261011-clear2'
+EXTRA=['cefr50-conversation.js','cefr50-interpersonal.js','cefr50-activities.js','cefr50-structured.js','cefr-groups.js','cefr-clarity.js']
 def once(s,old,new):
     if new in s:return s
     n=s.count(old)
@@ -21,7 +21,7 @@ for slug in slugs+['games','admin']:
     p=ROOT/slug/'index.html';s=p.read_text()
     s=re.sub(r'<!-- reviewed-cefr-20261007(?:-direct)? -->\s*','',s)
     s=re.sub(r'<link\b[^>]*href=["\'][^"\']*/cefr\.css[^"\']*["\'][^>]*>\s*','',s)
-    s=re.sub(r'<script\b[^>]*src=["\'][^"\']*/(?:cefr-(?:source|bank|groups|runtime)|cefr50-[a-z-]+)\.js[^"\']*["\'][^>]*></script>\s*','',s)
+    s=re.sub(r'<script\b[^>]*src=["\'][^"\']*/(?:cefr-(?:source|bank|groups|clarity|runtime)|cefr50-[a-z-]+)\.js[^"\']*["\'][^>]*></script>\s*','',s)
     s=re.sub(r'<script\b[^>]*src=["\'][^"\']*game-content-v2\.js[^"\']*["\'][^>]*></script>','',s)
     tags='\n<!-- reviewed-cefr-20261007 -->\n<link rel="stylesheet" href="/cefr.css?v='+VERSION+'">\n'
     for f in ['cefr-source.js','cefr-bank.js']+EXTRA+['cefr-runtime.js']:

@@ -2,14 +2,17 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const context={console,URL,URLSearchParams,location:{pathname:'/tests/',search:'',href:'http://localhost/tests/'},localStorage:{getItem(){return null},setItem(){}},document:{readyState:'loading',addEventListener(){}},setTimeout,clearTimeout};
 context.window=context;vm.createContext(context);
-for(const file of ['cefr-source.js', 'cefr-bank.js', 'cefr50-conversation.js', 'cefr50-interpersonal.js', 'cefr50-activities.js', 'cefr50-structured.js', 'cefr-groups.js', 'cefr-runtime.js'])vm.runInContext(fs.readFileSync(file,'utf8'),context,{filename:file});
+for(const file of ['cefr-source.js', 'cefr-bank.js', 'cefr50-conversation.js', 'cefr50-interpersonal.js', 'cefr50-activities.js', 'cefr50-structured.js', 'cefr-groups.js', 'cefr-clarity.js', 'cefr-runtime.js'])vm.runInContext(fs.readFileSync(file,'utf8'),context,{filename:file});
 const {games,levels}=context.ESCCefrBank;
+assert.equal(context.ESCCefrBank.clarityVersion,'20261011-clear2');
 assert.equal(Object.keys(games).length,32);assert.equal(levels.join(','),'A1-A2,B1-B2,C1-C2');
 let total=0;const counts={};
+const BAD_QUESTIONS=/Give a different example|after the first plan fails|accepting its strongest downside|What assumption behind your answer|Complete this advanced mission|surprising passion|passionate debate|Then rank your answers/i;
 for(const [slug,byLevel] of Object.entries(games)){
  counts[slug]={};
  for(const level of levels){
   assert(context.ESCCEFR.validate(slug,byLevel[level]),`Invalid ${slug}/${level}`);
+  assert(!BAD_QUESTIONS.test(JSON.stringify(byLevel[level])),`Unclear generated prompt: ${slug}/${level}`);
   const n=context.ESCCEFR.count(byLevel[level]);assert(n>=(slug==='truth-or-dare'?200:100),`${slug}/${level}: ${n}`);
   total+=n;counts[slug][level]=n;
   const copy=context.ESCCEFR.get(slug,level);assert.equal(JSON.stringify(copy),JSON.stringify(byLevel[level]));
@@ -17,6 +20,8 @@ for(const [slug,byLevel] of Object.entries(games)){
  }
  const html=fs.readFileSync(slug+'/index.html','utf8');
  assert(html.includes('reviewed-cefr-20261007'),`No level boot: ${slug}`);
+ assert(html.includes('/cefr-clarity.js?v=20261011-clear2'),`Clarity pass not loaded: ${slug}`);
+ assert(html.indexOf('cefr-groups.js') < html.indexOf('cefr-clarity.js') && html.indexOf('cefr-clarity.js') < html.indexOf('cefr-runtime.js'),`Wrong script order: ${slug}`);
  assert(!/<script[^>]+src=["'][^"']*game-content-v2/.test(html),`Legacy expansion: ${slug}`);
 }
 const coreSpeaking=[
