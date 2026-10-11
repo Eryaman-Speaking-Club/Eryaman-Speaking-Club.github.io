@@ -1,7 +1,7 @@
 name: CEFR content and integration checks
 on:
   push:
-    branches: [cefr-levels-20261007, cefr-groups-20261007]
+    branches: [cefr-levels-20261007, cefr-groups-20261007, qa-speaking-games-20261011]
   workflow_dispatch:
 permissions:
   contents: read
@@ -30,6 +30,9 @@ jobs:
         run: |
           python3 -m http.server 8123 > /tmp/cefr-http.log 2>&1 &
           node tests/cefr-browser.cjs
+      - name: Fullscreen, mobile and four-tip help smoke tests
+        if: always() && steps.build.outcome == 'success' && steps.install.outcome == 'success'
+        run: node tests/qa-speaking-games.cjs
       - name: Edited-card persistence regressions
         if: always() && steps.build.outcome == 'success' && steps.install.outcome == 'success'
         run: node tests/cefr-edits.cjs
@@ -52,5 +55,6 @@ jobs:
             cefr-*.png
             cefr50-*.json
             cefr50-*.png
+            qa-*.json
             !node_modules/**
           retention-days: 2
