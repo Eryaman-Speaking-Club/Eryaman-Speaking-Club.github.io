@@ -14,3 +14,12 @@
 @media(max-width:650px){.cefr-bar{padding:12px;margin:12px 0;gap:10px}.cefr-level-buttons{flex-basis:100%;max-width:none;gap:6px}.cefr-level-buttons .cefr-level-button{padding:10px 6px;min-height:44px;font-size:14px}.cefr-bar #cefrPoolCount{margin-left:0;flex-basis:100%}.cefr-bar p{font-size:12px}}
 
 [data-cefr-loading] #scenarioCard{visibility:hidden}
+
+.cefr-tips-dialog{width:min(760px,calc(100vw - 28px))}
+.cefr-tips-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}
+.cefr-tip-card{min-width:0;padding:16px;border:1px solid #dce7ef;border-radius:16px;background:#f8fbfe}
+.cefr-tip-card small{display:block;color:#3776aa;font-weight:800}
+.cefr-tip-card h3{margin:8px 0;color:#153a60;font-size:16px}
+.cefr-tip-card p{margin:0;color:#31506f;font-size:15px;line-height:1.7}
+.cefr-tips-prompt{padding:11px 14px;background:#edf4fb;border-radius:12px;color:#153a60;font-weight:650}
+@media(max-width:640px){.cefr-tips-grid{grid-template-columns:1fr;gap:9px}.cefr-tip-card{padding:12px}}

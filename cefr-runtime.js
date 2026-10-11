@@ -209,21 +209,28 @@ function dialog(title){
  const d=element('dialog',{class:'cefr-dialog','aria-label':title}),head=element('div',{class:'cefr-dialog-head'}),h=element('h2',{},title),close=element('button',{type:'button','aria-label':'Close / Kapat'},'\u00d7');head.append(h,close);d.append(head);close.onclick=()=>d.close();d.addEventListener('click',e=>{if(e.target===d)d.close()});d.addEventListener('close',()=>d.remove());document.body.append(d);d.showModal();return d;
 }
 function help(){
- const d=dialog('Nasıl cevap verebilirim? / '+level),type=bank.types[slug],p=element('p',{},description[level][1]+' '+description[level][2]);d.append(p);
- const basic=level==='A1-A2',advanced=level==='C1-C2',hidden=['word','taboo'].includes(type);let example='';
- if(hidden){
-  example=basic?'It is small. You use it at home. It can be blue.':advanced?'Its defining feature is ..., although it can be confused with ...; the key distinction is ...':'It is something you use for ... A similar thing is ..., but this one ...';
-  d.append(element('p',{},'Bu örnek mevcut gizli kelimenin cevabı değildir; sadece ipucu verme kalıbıdır.'));
- }else if(type==='mission'||type==='bingo'){
-  example=basic?'Do you ...? / Can you ...? / What do you like?':advanced?'What assumption does that depend on? What evidence would change your view?':'Could you give an example? What happened next? Why?';
- }else if(type==='choice'){
-  example=basic?'I choose the first one because ...':advanced?'I would lean towards ... because ..., although under ... the other option would be more defensible.':'Both have advantages. I would choose ... because ...';
- }else if(type==='triples'||type==='story'||type==='emoji'){
-  example=basic?'First ... Then ... In the end ...':advanced?'What initially looked like ... turned out to be ...; this changed ... because ...':'At first ... Then ... This led to ... In the end ...';
- }else{
-  example=basic?'I think ... because ... For example ...':advanced?'To a large extent, ... However, this assumes ... A reasonable exception would be ...':'In my experience, ... One reason is ... For example ... On the other hand ...';
- }
- d.append(element('h3',{},'Cevap kalıbı / Speaking support'),element('blockquote',{},example),element('p',{},'Tek bir doğru cevap yok. Kişisel bir deneyimi paylaşmak istemiyorsan hayali bir örnek seçebilir veya pas geçebilirsin.'));
+ const d=dialog('Nasıl cevap verebilirim? / '+level),type=bank.types[slug],idx=level==='A1-A2'?1:level==='C1-C2'?3:2;
+ const hidden=['word','taboo'].includes(type)||['who-am-i','explain-it-badly','three-clues'].includes(slug);
+ const prompt=hidden?'':(document.querySelector('#prompt,#question,#questionText,#cardText,#truthText,#dareText')?.textContent||'').trim();
+ const sets={
+ general:[['Start / Başla','I think ___ is ___.','In my opinion, ___ because ___.','My view is ___, although it depends on ___.'],['Reason / Neden','Because it is ___.','The main reason is ___.','An important reason is ___; however, ___.'],['Example / Örnek','For example, ___.','I remember when ___, and ___.','For instance, ___ demonstrates why ___.'],['Follow-up / Devam','What about you?','Can you give another example?','Under what circumstances would you disagree?']],
+ choice:[['Choose / Seç','I choose ___ because ___.','I would go with ___, mainly because ___.','I would favour ___, notwithstanding ___.'],['Reason / Neden','It helps me ___.','The main advantage is ___.','The trade-off is ___, but I value ___ more.'],['Example / Örnek','For example, ___.','Last time, ___ worked well because ___.','Imagine ___; this shows why ___ is more suitable.'],['Follow-up / Devam','Which one?','Would you choose the same? Why?','What situation would make you choose differently?']],
+ story:[['Beginning / Başlangıç','One day, ___.','It started when ___.','Initially, everything seemed ___ until ___.'],['What happened? / Olay','Then ___.','After that, ___, so ___.','The turning point was ___, which caused ___.'],['Ending / Sonuç','Finally, ___.','In the end, ___ and I felt ___.','Ultimately, ___; looking back, I realise ___.'],['Follow-up / Devam','And then?','What happened next?','What could have changed the outcome?']],
+ explain:[['Describe / Anlat','It is a thing that ___.','It is commonly used for ___.','Its defining purpose is ___, although ___.'],['Detail / Ayrıntı','It is big / small.','It is similar to ___, but ___.','Unlike ___, the key difference is ___.'],['Example / Örnek','You find it in ___.','People might use it when ___.','A typical scenario would involve ___ because ___.'],['Follow-up / Devam','Is it a thing?','Where would you find it?','Which feature distinguishes it from similar things?']],
+ quick:[['First / İlk','My first answer is ___.','The first thing that comes to mind is ___.','My immediate response is ___.'],['Second / İkinci','And ___.','Another example would be ___.','A second possibility is ___.'],['Third / Üçüncü','Finally, ___.','My third answer is ___.','A final example worth considering is ___.'],['Keep going / Devam','Your turn!','Can you think of another?','Which answer was the most original?']]
+ };
+ let mode='general';
+ if(hidden)mode='explain';
+ else if(['choice','ranking','packing','flag','social'].includes(type)||['would-you-rather','most-likely-to','red-flag-green-flag'].includes(slug))mode='choice';
+ else if(['story','emoji','triples','twoTruths','detective'].includes(type)||['story-chain','one-minute-story','two-truths-one-lie','would-i-lie-to-you'].includes(slug))mode='story';
+ else if(type==='challenge'||['five-second-challenge','hot-seat'].includes(slug))mode='quick';
+ const grid=element('div',{class:'cefr-tips-grid'});
+ d.classList.add('cefr-tips-dialog');
+ d.append(element('p',{},'Dört adımda cevabını oluştur. Boşlukları kendi fikrinle doldur. '+description[level][2]));
+ if(prompt)d.append(element('p',{class:'cefr-tips-prompt'},'Current question: '+prompt.slice(0,200)));
+ if(hidden)d.append(element('p',{},'Gizli kelimeyi veya yasak kelimeleri söyleme. Bunlar yalnızca örnek cümle kalıplarıdır.'));
+ for(const [i,row] of sets[mode].entries()){const card=element('section',{class:'cefr-tip-card'});card.append(element('small',{},(i+1)+' / 4'),element('h3',{},row[0]),element('p',{},row[idx]));grid.append(card)}
+ d.append(grid,element('p',{},'Tek bir doğru cevap yok. Kısa başla, neden ekle, örnek ver ve bir devam sorusu sor. İstersen hayalî bir örnek kullan veya pas geç.'));
 }
 function cardEditor(dialog,area,getLevel){
  const frame=element('fieldset',{class:'cefr-card-form'}),group=element('select',{'aria-label':'Kart grubu'}),pick=element('select',{'aria-label':'Kart se\u00e7'}),fields=element('div'),add=element('button',{type:'button'},'Yeni kart'),remove=element('button',{type:'button'},'Kart\u0131 sil'),error=element('p',{role:'status'});
