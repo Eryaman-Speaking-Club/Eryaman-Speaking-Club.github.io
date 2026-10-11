@@ -5,8 +5,9 @@ const context={console,URL,URLSearchParams,location:{pathname:'/tests/',search:'
 context.window=context;vm.createContext(context);
 for(const file of scripts)vm.runInContext(fs.readFileSync(file,'utf8'),context,{filename:file});
 const B=context.ESCCefrBank,R=context.ESCCEFR;
-assert.equal(B.qualityVersion,'20261011-quality2');
+assert.equal(B.qualityVersion,'20261011-quality4');
 assert.equal(Object.keys(B.games).length,32);
+assert.equal(B.curriculumVersion,'20261011-curriculum1');
 assert.equal(B.levels.length,3);
 let total=0;
 function questionOf(game,x){
@@ -43,7 +44,7 @@ for(const [game,pools] of Object.entries(B.games))for(const level of B.levels){
   }
  }
  const html=fs.readFileSync(game+'/index.html','utf8');
- for(const file of ['cefr-quality.js','cefr-tip-guide.js'])assert(html.includes('/'+file+'?v=20261011-quality3'),'Missing new script '+game+'/'+file);
+ for(const file of ['cefr-quality.js','cefr-tip-guide.js'])assert(html.includes('/'+file+'?v=20261011-quality4'),'Missing new script '+game+'/'+file);
 }
 for(const level of B.levels){
  const q=game=>new Set(B.games[game][level].map(x=>normalize(questionOf(game,x))));
@@ -66,6 +67,26 @@ for(const level of B.levels){
 for(const level of B.levels)
  for(const x of B.games['question-roulette'][level])
   assert(typeof x[2]==='string'&&x[2].endsWith('?'),'Missing roulette follow-up: '+level);
+
+
+/* Grammar must match the "I HAVE / NEVER" game and never ask about habits. */
+const experiences=B.games['never-have-i-ever']['A1-A2'];
+assert.equal(experiences.length,100,'A1 experience bank shrank');
+assert(experiences.every(item=>/^Have you ever [a-z].+\?$/.test(item[1])),'Never Have I Ever has a mismatched question');
+assert.equal(new Set(experiences.map(item=>item[1].toLowerCase())).size,100,'Repeated easy experiences');
+for(const level of B.levels){
+ const debate=new Set(B.games['debate-roulette'][level].map(item=>item[1].toLowerCase()));
+ for(const game of ['opinion-line','hot-take']){
+  const overlapping=B.games[game][level].filter(item=>debate.has(item[1].toLowerCase()));
+  assert(overlapping.length<=40,game+' reuses too many Debate Roulette motions: '+level+'/'+overlapping.length);
+ }
+}
+for(const game of ['taboo','who-am-i','explain-it-badly','three-clues']){
+ const words=B.games[game]['C1-C2'].map(item=>item[1].toUpperCase());
+ for(const term of ['PROPORTIONALITY','RECIPROCITY','INSTITUTIONAL INERTIA','MARGINAL BENEFIT'])
+  assert(!words.includes(term),'Unplayable advanced jargon remained: '+game+'/'+term);
+ assert.equal(new Set(words).size,100,'C1 target words duplicated: '+game);
+}
 
 const guide=context.ESCSpeakingTipGuide.build('Which animal would make a terrible bus driver?','hot-seat','B1-B2','quick',false);
 assert.equal(guide.cards.length,4);

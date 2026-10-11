@@ -1,7 +1,7 @@
 name: CEFR content and integration checks
 on:
   push:
-    branches: [cefr-levels-20261007, cefr-groups-20261007, improve-speaking-content-20261011]
+    branches: [cefr-levels-20261007, cefr-groups-20261007, improve-speaking-content-20261011, improve-speaking-curriculum-20261011]
   workflow_dispatch:
 permissions:
   contents: read

@@ -20,8 +20,8 @@ for(const [slug,byLevel] of Object.entries(games)){
  }
  const html=fs.readFileSync(slug+'/index.html','utf8');
  assert(html.includes('reviewed-cefr-20261007'),`No level boot: ${slug}`);
- assert(html.includes('/cefr-quality.js?v=20261011-quality3'),`Question quality not loaded: ${slug}`);
- assert(html.includes('/cefr-tip-guide.js?v=20261011-quality3'),`Contextual tips not loaded: ${slug}`);
+ assert(html.includes('/cefr-quality.js?v=20261011-quality4'),`Question quality not loaded: ${slug}`);
+ assert(html.includes('/cefr-tip-guide.js?v=20261011-quality4'),`Contextual tips not loaded: ${slug}`);
  assert(html.indexOf('cefr-groups.js') < html.indexOf('cefr-clarity.js') && html.indexOf('cefr-clarity.js') < html.indexOf('cefr-quality.js') && html.indexOf('cefr-quality.js') < html.indexOf('cefr-tip-guide.js') && html.indexOf('cefr-tip-guide.js') < html.indexOf('cefr-runtime.js'),`Wrong script order: ${slug}`);
  assert(!/<script[^>]+src=["'][^"']*game-content-v2/.test(html),`Legacy expansion: ${slug}`);
 }
