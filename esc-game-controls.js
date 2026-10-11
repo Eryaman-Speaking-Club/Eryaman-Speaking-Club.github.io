@@ -5,17 +5,20 @@
   const slug=location.pathname.split("/").filter(Boolean).pop()||"";
   if(!supported.has(slug)||window.ESCCEFR||document.querySelector('script[src*="/cefr-runtime.js"]'))return;
   if(!document.querySelector('link[href*="/cefr.css"]')){
-    const l=document.createElement("link");l.rel="stylesheet";l.href="/cefr.css?v=20261007-group3-c2-1";document.head.appendChild(l);
+    const l=document.createElement("link");l.rel="stylesheet";l.href="/cefr.css?v=20261011-quality3";document.head.appendChild(l);
   }
   const load=src=>new Promise((resolve,reject)=>{const s=document.createElement("script");s.src=src;s.onload=resolve;s.onerror=reject;document.head.appendChild(s)});
-  load("/cefr-source.js?v=20261007-group3-c2-1")
-    .then(()=>load("/cefr-bank.js?v=20261007-group3-c2-1"))
-    .then(()=>load("/cefr50-conversation.js?v=20261007-group3-c2-1"))
-    .then(()=>load("/cefr50-interpersonal.js?v=20261007-group3-c2-1"))
-    .then(()=>load("/cefr50-activities.js?v=20261007-group3-c2-1"))
-    .then(()=>load("/cefr50-structured.js?v=20261007-group3-c2-1"))
-    .then(()=>load("/cefr-groups.js?v=20261007-group3-c2-1"))
-    .then(()=>load("/cefr-runtime.js?v=20261007-group3-c2-1"))
+  load("/cefr-source.js?v=20261011-quality3")
+    .then(()=>load("/cefr-bank.js?v=20261011-quality3"))
+    .then(()=>load("/cefr50-conversation.js?v=20261011-quality3"))
+    .then(()=>load("/cefr50-interpersonal.js?v=20261011-quality3"))
+    .then(()=>load("/cefr50-activities.js?v=20261011-quality3"))
+    .then(()=>load("/cefr50-structured.js?v=20261011-quality3"))
+    .then(()=>load("/cefr-groups.js?v=20261011-quality3"))
+    .then(()=>load("/cefr-clarity.js?v=20261011-quality3"))
+    .then(()=>load("/cefr-quality.js?v=20261011-quality3"))
+    .then(()=>load("/cefr-tip-guide.js?v=20261011-quality3"))
+    .then(()=>load("/cefr-runtime.js?v=20261011-quality3"))
     .catch(err=>console.error("CEFR level controls could not load",err));
 })();
 /* Shared display control for every public game. No game state is reset. */
@@ -194,7 +197,7 @@
   function answerSlug(){return (location.pathname.split('/').filter(Boolean).pop()||'').toLowerCase()}
   function answerHash(value){let h=0;for(let i=0;i<value.length;i++)h=((h<<5)-h+value.charCodeAt(i))|0;return Math.abs(h)}
   function visiblePrompt(){
-    const selectors=['#prompt','#question','#questionText','#cardText','#truthText','#dareText','.new-game-prompt','.game-prompt','.question-text','.card-question','.prompt-text','.main-question'];
+    const selectors=['#q','#prompt','#question','#questionText','#cardText','#truthText','#dareText','.new-game-prompt','.game-prompt','.question-text','.card-question','.prompt-text','.main-question'];
     for(const selector of selectors){
       for(const node of document.querySelectorAll(selector)){
         const text=(node.textContent||'').replace(/\s+/g,' ').trim();
@@ -314,6 +317,49 @@
     document.addEventListener('keydown',e=>{if(e.key==='Escape'&&layer.classList.contains('open')){e.preventDefault();e.stopPropagation();shut()}},true);
   }
 
+
+  /* Report a confusing card through a pre-filled email. No backend or private
+     player information is collected. The user must choose to send the email. */
+  function mountQuestionReport(){
+    const slug=answerSlug();
+    if(!HOW_TO_PLAY[slug]||document.querySelector('.esc-question-report-btn'))return;
+    const help=document.querySelector('.esc-answer-help-btn');
+    const host=help?.parentElement||document.querySelector('.game-actions,.new-game-actions,.header-actions,.esc-display-actions,header.topbar,header');
+    if(!host)return;
+    const button=document.createElement('button');
+    button.type='button';button.className='esc-question-report-btn';
+    button.title='Report a confusing question / Soruyu bildir';
+    button.setAttribute('aria-label','Report unclear or incorrect question');
+    button.textContent='⚑';
+    if(help)help.insertAdjacentElement('afterend',button);else host.appendChild(button);
+    button.addEventListener('click',()=>{
+      const current=visiblePrompt();
+      const prompt=current.text;
+      if(!prompt||/^(ready\?|start game|start hot seat|content is being prepared|build a story)$/i.test(prompt)){
+        const msg='Önce bir soru açın, ardından bildirim yapın. / Draw a question first.';
+        if(window.ESCGameKit?.toast)window.ESCGameKit.toast(msg);
+        else window.alert(msg);
+        return;
+      }
+      const level=window.ESCCEFR?.level||'Not selected';
+      const subject='Eryaman Speaking Club - Question feedback';
+      const body=[
+        'GAME / OYUN: '+slug,
+        'LEVEL / SEVİYE: '+level,
+        'QUESTION / SORU: '+prompt.slice(0,700),
+        '',
+        'Problem / Sorun:',
+        '[ ] Difficult to understand / Anlaşılmıyor',
+        '[ ] Repeated / Tekrar',
+        '[ ] Wrong category or level / Yanlış kategori veya seviye',
+        '[ ] Other / Diğer',
+        '',
+        'Suggested wording / Önerim:'
+      ].join('\n');
+      window.location.href='mailto:eryamanspeakingclub@gmail.com?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+    });
+  }
+
   const current = () => document.fullscreenElement || document.webkitFullscreenElement || null;
   function notice(message) {
     let el = document.getElementById('escDisplayStatus');
@@ -386,5 +432,5 @@
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && fallback) { fallback = false; sync(); } });
   window.addEventListener('esc:languagechange', sync);
   window.ESCFullscreen = { mount, toggle };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { mount(); mountHowToPlay(); mountAnswerHelp(); void loadAnswerTheme(); }); else { mount(); mountHowToPlay(); mountAnswerHelp(); void loadAnswerTheme(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { mount(); mountHowToPlay(); mountAnswerHelp(); mountQuestionReport(); void loadAnswerTheme(); }); else { mount(); mountHowToPlay(); mountAnswerHelp(); mountQuestionReport(); void loadAnswerTheme(); }
 })();

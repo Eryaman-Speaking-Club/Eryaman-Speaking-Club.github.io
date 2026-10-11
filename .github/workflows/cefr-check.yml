@@ -1,7 +1,7 @@
 name: CEFR content and integration checks
 on:
   push:
-    branches: [cefr-levels-20261007, cefr-groups-20261007]
+    branches: [cefr-levels-20261007, cefr-groups-20261007, improve-speaking-content-20261011]
   workflow_dispatch:
 permissions:
   contents: read
@@ -21,6 +21,8 @@ jobs:
           python3 tools/cefr_build.py
       - name: Validate all game-level banks
         run: node tests/cefr-check.cjs > cefr-counts.json
+      - name: Review content diversity and clarity
+        run: node tests/quality-content.cjs
       - name: Install browser test tools
         id: install
         run: |
@@ -30,6 +32,8 @@ jobs:
         run: |
           python3 -m http.server 8123 > /tmp/cefr-http.log 2>&1 &
           node tests/cefr-browser.cjs
+      - name: Mobile and question help regressions
+        run: node tests/qa-speaking-games.cjs
       - name: Edited-card persistence regressions
         if: always() && steps.build.outcome == 'success' && steps.install.outcome == 'success'
         run: node tests/cefr-edits.cjs
@@ -52,5 +56,6 @@ jobs:
             cefr-*.png
             cefr50-*.json
             cefr50-*.png
+            qa-*.json
             !node_modules/**
           retention-days: 2

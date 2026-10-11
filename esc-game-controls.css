@@ -66,3 +66,8 @@ button.esc-answer-help-btn:focus-visible{outline:3px solid #efac48;outline-offse
 }
 
 @media(prefers-reduced-motion:reduce){.esc-answer-help-btn{transition:none}}
+
+/* Small, optional feedback icon next to question help. */
+button.esc-question-report-btn{width:44px;height:44px;min-width:44px;min-height:44px;max-width:44px;flex:0 0 44px;display:inline-flex;align-items:center;justify-content:center;padding:0;border:1px solid #dce6ef;border-radius:13px;background:#fff;color:#53718b;font:700 23px/1 system-ui,sans-serif;cursor:pointer;box-sizing:border-box}
+button.esc-question-report-btn:hover{background:#f1f6fa;color:#123a6b}
+button.esc-question-report-btn:focus-visible{outline:3px solid #efac48;outline-offset:3px}

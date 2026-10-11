@@ -211,7 +211,7 @@ function dialog(title){
 function help(){
  const d=dialog('Nasıl cevap verebilirim? / '+level),type=bank.types[slug],idx=level==='A1-A2'?1:level==='C1-C2'?3:2;
  const hidden=['word','taboo'].includes(type)||['who-am-i','explain-it-badly','three-clues'].includes(slug);
- const prompt=hidden?'':(document.querySelector('#prompt,#question,#questionText,#cardText,#truthText,#dareText')?.textContent||'').trim();
+ const prompt=hidden?'':(document.querySelector('#q,#prompt,#question,#questionText,#cardText,#truthText,#dareText')?.textContent||'').trim();
  const sets={
  general:[['Start / Başla','I think ___ is ___.','In my opinion, ___ because ___.','My view is ___, although it depends on ___.'],['Reason / Neden','Because it is ___.','The main reason is ___.','An important reason is ___; however, ___.'],['Example / Örnek','For example, ___.','I remember when ___, and ___.','For instance, ___ demonstrates why ___.'],['Follow-up / Devam','What about you?','Can you give another example?','Under what circumstances would you disagree?']],
  choice:[['Choose / Seç','I choose ___ because ___.','I would go with ___, mainly because ___.','I would favour ___, notwithstanding ___.'],['Reason / Neden','It helps me ___.','The main advantage is ___.','The trade-off is ___, but I value ___ more.'],['Example / Örnek','For example, ___.','Last time, ___ worked well because ___.','Imagine ___; this shows why ___ is more suitable.'],['Follow-up / Devam','Which one?','Would you choose the same? Why?','What situation would make you choose differently?']],
@@ -224,12 +224,14 @@ function help(){
  else if(['choice','ranking','packing','flag','social'].includes(type)||['would-you-rather','most-likely-to','red-flag-green-flag'].includes(slug))mode='choice';
  else if(['story','emoji','triples','twoTruths','detective'].includes(type)||['story-chain','one-minute-story','two-truths-one-lie','would-i-lie-to-you'].includes(slug))mode='story';
  else if(type==='challenge'||['five-second-challenge','hot-seat'].includes(slug))mode='quick';
+ const smart=window.ESCSpeakingTipGuide?.build(prompt,slug,level,mode,hidden)||null;
+ const cards=smart?.cards||sets[mode].map(row=>[row[0],row[idx]]);
  const grid=element('div',{class:'cefr-tips-grid'});
  d.classList.add('cefr-tips-dialog');
- d.append(element('p',{},'Dört adımda cevabını oluştur. Boşlukları kendi fikrinle doldur. '+description[level][2]));
+ d.append(element('p',{},smart?.focus||('Dört adımda cevabını oluştur. Boşlukları kendi fikrinle doldur. '+description[level][2])));
  if(prompt)d.append(element('p',{class:'cefr-tips-prompt'},'Current question: '+prompt.slice(0,200)));
  if(hidden)d.append(element('p',{},'Gizli kelimeyi veya yasak kelimeleri söyleme. Bunlar yalnızca örnek cümle kalıplarıdır.'));
- for(const [i,row] of sets[mode].entries()){const card=element('section',{class:'cefr-tip-card'});card.append(element('small',{},(i+1)+' / 4'),element('h3',{},row[0]),element('p',{},row[idx]));grid.append(card)}
+ for(const [i,row] of cards.entries()){const card=element('section',{class:'cefr-tip-card'});card.append(element('small',{},(i+1)+' / 4'),element('h3',{},row[0]),element('p',{},row[1]));grid.append(card)}
  d.append(grid,element('p',{},'Tek bir doğru cevap yok. Kısa başla, neden ekle, örnek ver ve bir devam sorusu sor. İstersen hayalî bir örnek kullan veya pas geç.'));
 }
 function cardEditor(dialog,area,getLevel){
