@@ -3,7 +3,7 @@
 const {chromium}=require('playwright');
 const fs=require('node:fs'), assert=require('node:assert/strict');
 const base='http://127.0.0.1:8123';
-const games=['question-roulette','one-for-me-one-for-you','hot-seat','taboo',
+const games=['question-roulette','one-for-me-one-for-you','hot-seat','taboo','never-have-i-ever','hot-take',
 'would-you-rather','five-second-challenge','story-chain','truth-or-dare',
 'what-would-you-do-if','opinion-line','three-clues','emoji-story',
 'red-flag-green-flag','most-likely-to','worst-advice-only','ranking-room'];

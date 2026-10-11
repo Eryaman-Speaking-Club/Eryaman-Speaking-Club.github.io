@@ -87,6 +87,18 @@ const specific=[
 function build(question,slug,level,mode,hidden){
  const q=empty(question);
  if(hidden||!q||/^(ready\?|start|new round|secret mission|build a story|use all three words)$/i.test(q))return null;
+ if(slug==='never-have-i-ever'&&/^Have you ever [a-z]/i.test(q)){
+  const action=q.replace(/^Have you ever /i,'').replace(/\?$/,'').replace(/\byour\b/gi,'my').replace(/\byou\b/gi,'I');
+  return {
+   focus:'Choose I HAVE or NEVER first. Then share one short detail only if you want to. You can also pass.',
+   cards:[
+    ['1 · I HAVE','Yes, I have. I have '+action+'.'],
+    ['2 · NEVER',"No, I haven't. I have never done that."],
+    ['3 · One detail','It happened last year, and I remember it clearly.'],
+    ['4 · Ask back','What about you? Have you ever done that?']
+   ]
+  };
+ }
  const override=specific.find(x=>x.re.test(q));
  if(override)return {focus:override.focus,cards:override.cards};
  const lower=q.toLowerCase();

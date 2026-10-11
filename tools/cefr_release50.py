@@ -5,7 +5,7 @@ Runs AFTER the original CEFR integration and its guarded refinements.
 from pathlib import Path
 import re
 ROOT=Path(__file__).resolve().parents[1]
-VERSION='20261011-quality3'
+VERSION='20261011-quality4'
 EXTRA=['cefr50-conversation.js','cefr50-interpersonal.js','cefr50-activities.js','cefr50-structured.js','cefr-groups.js','cefr-clarity.js','cefr-quality.js','cefr-tip-guide.js']
 def once(s,old,new):
     if new in s:return s

@@ -5,8 +5,9 @@ const context={console,URL,URLSearchParams,location:{pathname:'/tests/',search:'
 context.window=context;vm.createContext(context);
 for(const file of scripts)vm.runInContext(fs.readFileSync(file,'utf8'),context,{filename:file});
 const B=context.ESCCefrBank,R=context.ESCCEFR;
-assert.equal(B.qualityVersion,'20261011-quality2');
+assert.equal(B.qualityVersion,'20261011-quality4');
 assert.equal(Object.keys(B.games).length,32);
+assert.equal(B.curriculumVersion,'20261011-curriculum1');
 assert.equal(B.levels.length,3);
 let total=0;
 function questionOf(game,x){
@@ -43,7 +44,7 @@ for(const [game,pools] of Object.entries(B.games))for(const level of B.levels){
   }
  }
  const html=fs.readFileSync(game+'/index.html','utf8');
- for(const file of ['cefr-quality.js','cefr-tip-guide.js'])assert(html.includes('/'+file+'?v=20261011-quality3'),'Missing new script '+game+'/'+file);
+ for(const file of ['cefr-quality.js','cefr-tip-guide.js'])assert(html.includes('/'+file+'?v=20261011-quality4'),'Missing new script '+game+'/'+file);
 }
 for(const level of B.levels){
  const q=game=>new Set(B.games[game][level].map(x=>normalize(questionOf(game,x))));
@@ -52,6 +53,12 @@ for(const level of B.levels){
  assert([...a].filter(x=>c.has(x)).length<=5,'One-for-me and roulette overlap too much');
  assert([...b].filter(x=>c.has(x)).length<=5,'Hot Seat and roulette overlap too much');
 }
+const storyEasy=B.games['story-chain']['A1-A2'];
+assert(storyEasy.every(row=>!row[1].includes('Then a surprise changes the plan.')),'A1 stories still repeat the same twist');
+const lastAdvanced=B.games['last-thing-you-did']['C1-C2'];
+assert(lastAdvanced.every(item=>(item.q.match(/\?/g)||[]).length===1),'C1 last-thing cards must have one clear question');
+assert.equal(new Set(lastAdvanced.map(item=>item.q.toLowerCase())).size,100,'C1 last-thing must have 100 distinct questions');
+
 // The word games now share only a portion of their vocabulary.
 for(const level of B.levels){
  const original=new Set(B.games['taboo'][level].map(x=>String(x[1]).toLowerCase()));
@@ -67,6 +74,30 @@ for(const level of B.levels)
  for(const x of B.games['question-roulette'][level])
   assert(typeof x[2]==='string'&&x[2].endsWith('?'),'Missing roulette follow-up: '+level);
 
+
+/* Grammar must match the "I HAVE / NEVER" game and never ask about habits. */
+const experiences=B.games['never-have-i-ever']['A1-A2'];
+assert.equal(experiences.length,100,'A1 experience bank shrank');
+assert(experiences.every(item=>/^Have you ever [a-z].+\?$/.test(item[1])),'Never Have I Ever has a mismatched question');
+assert.equal(new Set(experiences.map(item=>item[1].toLowerCase())).size,100,'Repeated easy experiences');
+for(const level of B.levels){
+ const debate=new Set(B.games['debate-roulette'][level].map(item=>item[1].toLowerCase()));
+ for(const game of ['opinion-line','hot-take']){
+  const overlapping=B.games[game][level].filter(item=>debate.has(item[1].toLowerCase()));
+  assert(overlapping.length<=40,game+' reuses too many Debate Roulette motions: '+level+'/'+overlapping.length);
+ }
+}
+for(const game of ['taboo','who-am-i','explain-it-badly','three-clues']){
+ const words=B.games[game]['C1-C2'].map(item=>item[1].toUpperCase());
+ for(const term of ['PROPORTIONALITY','RECIPROCITY','INSTITUTIONAL INERTIA','MARGINAL BENEFIT'])
+  assert(!words.includes(term),'Unplayable advanced jargon remained: '+game+'/'+term);
+ assert.equal(new Set(words).size,100,'C1 target words duplicated: '+game);
+}
+
+const neverTips=context.ESCSpeakingTipGuide.build('Have you ever left your keys at home?','never-have-i-ever','A1-A2','past',false);
+assert.equal(neverTips.cards.length,4);
+assert(neverTips.cards[0][1].includes('left my keys at home'), 'The help should match the actual experience and use correct pronouns');
+assert(neverTips.cards[1][1].includes("No, I haven't"), 'Both voting options need an example');
 const guide=context.ESCSpeakingTipGuide.build('Which animal would make a terrible bus driver?','hot-seat','B1-B2','quick',false);
 assert.equal(guide.cards.length,4);
 assert(guide.cards.some(([label,s])=>s.includes('giraffe')),'Help not matched to the current question');
