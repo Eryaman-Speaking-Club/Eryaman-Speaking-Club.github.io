@@ -57,6 +57,7 @@ const storyEasy=B.games['story-chain']['A1-A2'];
 assert(storyEasy.every(row=>!row[1].includes('Then a surprise changes the plan.')),'A1 stories still repeat the same twist');
 const lastAdvanced=B.games['last-thing-you-did']['C1-C2'];
 assert(lastAdvanced.every(item=>(item.q.match(/\?/g)||[]).length===1),'C1 last-thing cards must have one clear question');
+assert.equal(new Set(lastAdvanced.map(item=>item.q.toLowerCase())).size,100,'C1 last-thing must have 100 distinct questions');
 
 // The word games now share only a portion of their vocabulary.
 for(const level of B.levels){
