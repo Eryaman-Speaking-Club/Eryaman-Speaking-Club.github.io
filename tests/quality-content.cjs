@@ -52,6 +52,21 @@ for(const level of B.levels){
  assert([...a].filter(x=>c.has(x)).length<=5,'One-for-me and roulette overlap too much');
  assert([...b].filter(x=>c.has(x)).length<=5,'Hot Seat and roulette overlap too much');
 }
+// The word games now share only a portion of their vocabulary.
+for(const level of B.levels){
+ const original=new Set(B.games['taboo'][level].map(x=>String(x[1]).toLowerCase()));
+ for(const slug of ['who-am-i','three-clues','explain-it-badly']){
+  const words=B.games[slug][level].map(x=>String(x[1]).toLowerCase());
+  assert.equal(words.length,100,'Wrong word-card count: '+slug+'/'+level);
+  assert.equal(new Set(words).size,100,'Repeated target word: '+slug+'/'+level);
+  assert([...words].filter(x=>original.has(x)).length<=60,'Word-game overlap too high: '+slug+'/'+level);
+ }
+}
+// Roulette must retain the follow-up question on every card.
+for(const level of B.levels)
+ for(const x of B.games['question-roulette'][level])
+  assert(typeof x[2]==='string'&&x[2].endsWith('?'),'Missing roulette follow-up: '+level);
+
 const guide=context.ESCSpeakingTipGuide.build('Which animal would make a terrible bus driver?','hot-seat','B1-B2','quick',false);
 assert.equal(guide.cards.length,4);
 assert(guide.cards.some(([label,s])=>s.includes('giraffe')),'Help not matched to the current question');

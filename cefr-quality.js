@@ -155,5 +155,23 @@ for(const level of levels){
  }
 }
 
+
+/* Word-driven games need their own mix of vocabulary. Taboo retains its
+   vetted forbidden-word rules; the other games get 50 fresh levelled words. */
+const extraWordBank={"A1-A2":["pencil","notebook","television","radio","sofa","desk","carpet","curtain","roof","ceiling","floor","stove","oven","dishwasher","sink","fork","knife","bowl","glass","napkin","soap","shampoo","tissue","comb","scarf","gloves","socks","boots","belt","jeans","sweater","coat","skirt","dress","bench","fountain","sidewalk","traffic light","crosswalk","taxi","ferry","tram","motorcycle","helmet","seat belt","museum ticket","postcard","envelope","stamp","magnet"],"B1-B2":["appointment reminder","queue jumper","cancellation","late fee","receipt book","invoice","replacement","customer service","free trial","shared calendar","waiting list","check-in","boarding pass","connecting flight","travel insurance","seat reservation","traffic jam","rush hour","roadworks","delivery tracking","parcel locker","community centre","donation","fundraiser","compliment","awkward silence","small talk","inside joke","group chat","notification","screen time","password manager","data backup","device update","video call","meeting notes","job interview","training session","team leader","project deadline","price comparison","return policy","sales pitch","customer loyalty","product recall","handmade gift","meal planning","waste sorting","emergency contact","practical joke"],"C1-C2":["double standard","echo chamber","selective attention","risk tolerance","hidden incentive","face-saving","moral dilemma","plausible deniability","false dilemma","conflict escalation","power imbalance","group pressure","unspoken expectation","emotional labour","social norm","ethical compromise","reasonable doubt","value judgement","information overload","decision paralysis","quiet quitting","professional burnout","competing interests","slippery slope","trust deficit","public apology","reputation management","responsible leadership","digital footprint","consumer confidence","perceived fairness","shared accountability","personal autonomy","cultural misunderstanding","implicit agreement","short-term reward","long-term consequence","unintended bias","strategic silence","public perception","social acceptance","personal responsibility","group identity","first-mover advantage","preventive action","real-world impact","emotional reassurance","gradual improvement","shifting priorities","work-life boundaries"]};
+for(const level of levels){
+ const additions=extraWordBank[level];
+ const baseWords=new Set(original['who-am-i'][level].map(card=>String(card[1]).toLowerCase()));
+ if(additions.some(word=>baseWords.has(word.toLowerCase())))throw Error('New vocabulary duplicates graded bank: '+level);
+ const cards=additions.map(word=>['Vocabulary',word]);
+ G['who-am-i'][level]=[...original['who-am-i'][level].slice(0,60),...cards.slice(0,40)];
+ G['three-clues'][level]=[...original['three-clues'][level].slice(40,100),...cards.slice(0,40)];
+ G['explain-it-badly'][level]=[...original['explain-it-badly'][level].slice(0,50),...cards];
+ for(const game of ['who-am-i','three-clues','explain-it-badly']){
+  const keys=G[game][level].map(x=>x[1].toLowerCase());
+  if(keys.length!==100||new Set(keys).size!==100)throw Error('Word library error '+game+'/'+level);
+ }
+}
+
 B.qualityVersion='20261011-quality2';
 })();
