@@ -14,7 +14,20 @@ for(const level of levels){
  const hot=[...HOT[level],...recent];assertUnique('hot-seat',level,hot);G['hot-seat'][level]=hot;
  const choices=original['would-you-rather'][level].slice(0,35).map(([cat,a,b])=>[cat==='Funny'||cat==='Impossible'?'Fun':cat==='Spicy'?'Spicy':cat==='Deep'?'Deep':'Everyday','Which would you prefer: '+a+' or '+b+'?']);
  const scenarios=original['what-would-you-do-if'][level].slice(0,35).map(({c,q})=>[c==='Chaos'?'Fun':c==='Social'?'Social':c==='Deep'?'Deep':c==='Spicy'?'Spicy':'Everyday',q]);
- const roulette=[...ROULETTE[level],...choices,...scenarios];assertUnique('question-roulette',level,roulette);G['question-roulette'][level]=roulette;
+ const followups={
+  Everyday:'How is this connected to your own life?',
+  Fun:'What is the funniest thing that could happen next?',
+  Social:'How might the other person respond?',
+  Deep:'What experience could change your mind?',
+  Spicy:'Would your answer change in a different relationship?'
+ };
+ const roulette=[...ROULETTE[level],...choices,...scenarios].map(([cat,q])=>{
+   let follow=followups[cat]||'Can you give one clear example?';
+   if(/^which would you prefer/i.test(q))follow='What is the main reason for your choice?';
+   if(/^what would you do|^how would you respond|^you (are|have|find|see|forgot|lost|miss)/i.test(q))follow='What would you do next?';
+   return [cat,q,follow];
+ });
+ assertUnique('question-roulette',level,roulette);G['question-roulette'][level]=roulette;
 }
 
 /* Remove forced second questions from C1-C2: keep one clear main task.
