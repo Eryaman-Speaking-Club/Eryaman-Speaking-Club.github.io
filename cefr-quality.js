@@ -166,7 +166,7 @@ for(const level of levels){
  const cards=additions.map(word=>['Vocabulary',word]);
  G['who-am-i'][level]=[...original['who-am-i'][level].slice(0,60),...cards.slice(0,40)];
  G['three-clues'][level]=[...original['three-clues'][level].slice(40,100),...cards.slice(0,40)];
- G['explain-it-badly'][level]=[...original['explain-it-badly'][level].slice(0,50),...cards];
+ G['explain-it-badly'][level]=[...original['explain-it-badly'][level].slice(0,30),...original['explain-it-badly'][level].slice(70,100),...cards.slice(5,45)];
  for(const game of ['who-am-i','three-clues','explain-it-badly']){
   const keys=G[game][level].map(x=>x[1].toLowerCase());
   if(keys.length!==100||new Set(keys).size!==100)throw Error('Word library error '+game+'/'+level);
