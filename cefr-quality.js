@@ -215,6 +215,28 @@ for(const game of ['taboo','who-am-i','explain-it-badly','three-clues']){
  }
  if(cards.length!==100||new Set(cards.map(x=>x[1].toLowerCase())).size!==100)throw Error('Advanced word duplicate: '+game);
 }
+
+/* Finish the first-read clarity pass: no stacked questions on Last Thing,
+   and no repeated artificial story twists at the easy level. */
+const simplifyLast=new Map([["When did you last notice that your explanation for a purchase was improving faster than the purchase's usefulness?","When did you last make excuses for buying something you barely used?"],["When did you last notice that a familiar solution was being preferred mainly because it was familiar?","When did you last choose a familiar solution even though a better option was available?"],["When did you last separate a principle you wanted to preserve from a method you could change?","When did you keep the same goal but change your approach?"],["What was the last piece of recognition that failed to capture what you valued about your work?","When did someone praise your work for something that did not matter to you?"],["When did you last hear a useful distinction between reassurance and control in a discussion of dating?","When did a conversation about dating help you recognise controlling behaviour?"],["What was the last disagreement where the real issue was the framing rather than the facts?","When did an argument turn out to be about wording rather than facts?"],["When did you last hear an elaborate defence of something that was simply a personal preference?","When did someone give a complicated reason for simply liking something?"],["When did a discussion of romantic gestures last raise a question about the freedom to decline?","When did a romantic gesture make you think about the right to say no?"],["What was the last relationship story in which context changed the apparent fairness of a decision?","What relationship story made you change your mind after learning more details?"],["When did you last notice a romantic storyline treating compatibility as something simpler than it is?","Which film or series made a relationship look easier than it really is?"],["When did you last notice that efficiency for one person created work for someone else?","When did saving time for one person create extra work for another?"],["When did you last notice that a convenient arrangement shifted effort onto somebody less visible?","When did a convenient decision make life harder for someone else?"],["What was the last minor inconvenience presented as evidence of a much larger social problem?","When did someone treat a small inconvenience like a major social problem?"],["When did you last hear an apology for a tiny mistake that was impressively disproportionate?","When did someone make an overly dramatic apology for a tiny mistake?"],["When did you last recognise that a fair-looking process excluded an important perspective?","When did a process seem fair until you noticed someone was left out?"],["What was the last judgement you qualified because your example was not representative?","When did you change an opinion because one example was not enough?"],["What was the last fictional couple whose disagreement involved two individually reasonable expectations?","Which fictional couple disagreed even though both sides had reasonable expectations?"],["When did you last distinguish a clear procedure from a genuinely usable service?","When did clear instructions still leave you unable to use a service?"],["What was the last routine whose emotional value differed from its practical purpose?","Which habit matters to you for emotional reasons rather than practical ones?"],["When did you last spend effort demonstrating organisation rather than achieving a result?","When did organising a task take more time than doing it?"]]);
+for(const item of G['last-thing-you-did']['C1-C2']){
+ const match=item.q.match(/^(.*?\?)(?:\s+(.+\?))$/);
+ if(match){
+  item.followUp=match[2];
+  item.q=simplifyLast.get(match[1])||match[1];
+ } else if(simplifyLast.has(item.q)){
+  item.q=simplifyLast.get(item.q);
+ }
+ if((item.q.match(/\?/g)||[]).length>1)throw Error('Unsplit last-thing question');
+}
+const firstQuestions=G['last-thing-you-did']['C1-C2'].map(item=>item.q.toLowerCase());
+if(new Set(firstQuestions).size!==firstQuestions.length)throw Error('Overlapping C1 last-thing prompts after review');
+for(const level of levels){
+ for(const item of G['story-chain'][level]){
+  item[1]=item[1].replace(/\s+Then (?:a surprise changes the plan|the group needs a new plan)\.$/,'');
+ }
+}
+
 B.curriculumVersion='20261011-curriculum1';
 B.qualityVersion='20261011-quality4';
 })();

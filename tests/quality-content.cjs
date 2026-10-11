@@ -53,6 +53,11 @@ for(const level of B.levels){
  assert([...a].filter(x=>c.has(x)).length<=5,'One-for-me and roulette overlap too much');
  assert([...b].filter(x=>c.has(x)).length<=5,'Hot Seat and roulette overlap too much');
 }
+const storyEasy=B.games['story-chain']['A1-A2'];
+assert(storyEasy.every(row=>!row[1].includes('Then a surprise changes the plan.')),'A1 stories still repeat the same twist');
+const lastAdvanced=B.games['last-thing-you-did']['C1-C2'];
+assert(lastAdvanced.every(item=>(item.q.match(/\?/g)||[]).length===1),'C1 last-thing cards must have one clear question');
+
 // The word games now share only a portion of their vocabulary.
 for(const level of B.levels){
  const original=new Set(B.games['taboo'][level].map(x=>String(x[1]).toLowerCase()));
