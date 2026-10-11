@@ -66,7 +66,7 @@ const opinion={"A1-A2":[["Daily Life","Breakfast is better than dinner."],["Dail
 const motionSource=original['debate-roulette'];
 for(const level of levels){
  const adaptOpinion=motionSource[level].slice(0,70).map(([cat,q])=>[cat==='Fun'?'Daily Life':cat==='Social'?'Social':cat==='Deep'?'Deep':cat==='Spicy'?'Relationships':'Daily Life',q]);
- const adaptTake=motionSource[level].slice(30,100).map(([cat,q])=>[cat==='Fun'?'Food':cat==='Social'?'Social':cat==='Spicy'?'Relationships':cat==='Deep'?'Deep':'Everyday',q]);
+ const adaptTake=motionSource[level].slice(30,100).map(([cat,q])=>[cat==='Fun'?(/food|pizza|coffee|tea|breakfast|dinner|lunch|restaurant|sandwich|snack|cake|cafe|menu|biscuit/i.test(q)?'Food':'Everyday'):cat==='Social'?'Social':cat==='Spicy'?'Relationships':cat==='Deep'?'Deep':'Everyday',q]);
  const oi=[...opinion[level],...adaptOpinion];
  const ht=[...takes[level],...adaptTake];
  assertUnique('opinion-line',level,oi);assertUnique('hot-take',level,ht);
