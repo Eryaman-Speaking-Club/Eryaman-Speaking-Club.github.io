@@ -88,6 +88,10 @@ for(const game of ['taboo','who-am-i','explain-it-badly','three-clues']){
  assert.equal(new Set(words).size,100,'C1 target words duplicated: '+game);
 }
 
+const neverTips=context.ESCSpeakingTipGuide.build('Have you ever left your keys at home?','never-have-i-ever','A1-A2','past',false);
+assert.equal(neverTips.cards.length,4);
+assert(neverTips.cards[0][1].includes('left my keys at home'), 'The help should match the actual experience and use correct pronouns');
+assert(neverTips.cards[1][1].includes("No, I haven't"), 'Both voting options need an example');
 const guide=context.ESCSpeakingTipGuide.build('Which animal would make a terrible bus driver?','hot-seat','B1-B2','quick',false);
 assert.equal(guide.cards.length,4);
 assert(guide.cards.some(([label,s])=>s.includes('giraffe')),'Help not matched to the current question');
