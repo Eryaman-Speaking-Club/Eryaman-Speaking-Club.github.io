@@ -75,6 +75,7 @@ for(const slug of legacy){
  assert(html.includes("ESCNoRepeat.makeDeck('"+slug+"'"),'Legacy deck is not guarded: '+slug);
  assert(html.includes("ESCNoRepeat.mark('"+slug+"'"),'Legacy displayed card is not recorded: '+slug);
  assert(html.includes("ESCNoRepeat.nextFrom('"+slug+"'"),'Legacy deck does not check freshness at draw time: '+slug);
+ assert(html.includes('!window.ESCCEFR?.supported'),'Legacy game consumes ungraded cards at startup: '+slug);
 }
 const external=[
  ['taboo/round.js',"ESCNoRepeat.makeDeck('taboo'","ESCNoRepeat.mark('taboo'","ESCNoRepeat.nextFrom('taboo'"],
@@ -82,6 +83,7 @@ const external=[
  ['truth-or-dare/app.js',"ESCNoRepeat.pick('truth-or-dare'","state.settings.noRepeat=true"],
  ['esc-new-games.js','ESCNoRepeat.makeDeck(cfg.slug','ESCNoRepeat.drawMany(cfg.slug','ESCNoRepeat.nextFrom(cfg.slug']
 ];
+assert(fs.readFileSync('taboo/round.js','utf8').includes('!window.ESCCEFR?.supported'),'Taboo draws extra words before CEFR hydration');
 for(const [file,...needles]of external){
  const js=fs.readFileSync(file,'utf8');
  for(const needle of needles)assert(js.includes(needle),'No-repeat adapter missing in '+file+': '+needle);
