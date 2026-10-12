@@ -305,6 +305,5 @@ cats.forEach(c=>{
 });
 
 loadTeams();
-build();
-show();
+if(!window.ESCCEFR?.supported){build();show()}
 sync();
