@@ -53,4 +53,34 @@ const seventh=boardBrowser.api.drawMany('conversation-bingo',bingo,16);
 assert.equal(new Set(seventh).size,16,'Duplicate inside bingo board');
 assert(seventh.some(x=>!squares.has(x)),'Remaining 4 new bingo squares were not used');
 assert.equal(boardBrowser.api.progress('conversation-bingo',bingo).used,16);
+
+/* Static integration guard: re-generating the site must not undo the adapters. */
+const legacy=['last-thing-you-did','what-would-you-do-if','would-you-rather','most-likely-to','hot-seat','five-second-challenge','red-flag-green-flag','debate-roulette','never-have-i-ever'];
+for(const slug of legacy){
+ const html=fs.readFileSync(slug+'/index.html','utf8');
+ assert(html.includes("ESCNoRepeat.makeDeck('"+slug+"'"),'Legacy deck is not guarded: '+slug);
+ assert(html.includes("ESCNoRepeat.mark('"+slug+"'"),'Legacy displayed card is not recorded: '+slug);
+}
+const external=[
+ ['taboo/round.js',"ESCNoRepeat.makeDeck('taboo'","ESCNoRepeat.mark('taboo'"],
+ ['one-for-me-one-for-you/app.js',"ESCNoRepeat.makeDeck('one-for-me-one-for-you'","ESCNoRepeat.mark('one-for-me-one-for-you'"],
+ ['truth-or-dare/app.js',"ESCNoRepeat.pick('truth-or-dare'","state.settings.noRepeat=true"],
+ ['esc-new-games.js','ESCNoRepeat.makeDeck(cfg.slug','ESCNoRepeat.drawMany(cfg.slug']
+];
+for(const [file,...needles]of external){
+ const js=fs.readFileSync(file,'utf8');
+ for(const needle of needles)assert(js.includes(needle),'No-repeat adapter missing in '+file+': '+needle);
+}
+const slugs=[
+'truth-or-dare','one-for-me-one-for-you','last-thing-you-did','what-would-you-do-if','would-you-rather','most-likely-to','hot-seat','five-second-challenge','red-flag-green-flag','taboo','debate-roulette','never-have-i-ever',
+'two-truths-one-lie','who-am-i','story-chain','explain-it-badly','opinion-line','ranking-room','question-roulette','detective-alibi','finish-the-sentence','three-clues','secret-mission','one-minute-story',
+'would-i-lie-to-you','desert-island','conversation-bingo','emoji-story','worst-advice-only','sell-me-this','hot-take','photo-talk'
+];
+assert.equal(slugs.length,32);
+for(const slug of slugs){
+ const html=fs.readFileSync(slug+'/index.html','utf8');
+ assert(html.includes('/esc-no-repeat.js?v=20261012-norepeat1'),'Question rotation script not loaded: '+slug);
+ assert(html.indexOf('esc-no-repeat.js')<html.lastIndexOf('</head>'),'Question rotation loads after the game: '+slug);
+}
+
 console.log(JSON.stringify({passed:true,testedQuestions:100,cycles:2,persistent:true,perLevel:true,perGame:true,separateTruthDare:true,categoryRetention:true,bingoUniqueSquares:96,bingoBoards:7}));
