@@ -23,3 +23,7 @@
 .cefr-tip-card p{margin:0;color:#31506f;font-size:15px;line-height:1.7}
 .cefr-tips-prompt{padding:11px 14px;background:#edf4fb;border-radius:12px;color:#153a60;font-weight:650}
 @media(max-width:640px){.cefr-tips-grid{grid-template-columns:1fr;gap:9px}.cefr-tip-card{padding:12px}}
+
+/* no-repeat-visible-progress-v2 */
+.cefr-bar .cefr-remaining{font:650 12px/1.4 system-ui,sans-serif;color:#486479;letter-spacing:.01em;white-space:nowrap;flex-shrink:0}
+@media(max-width:650px){.cefr-bar .cefr-remaining{flex-basis:auto;margin-left:0;max-width:100%}}

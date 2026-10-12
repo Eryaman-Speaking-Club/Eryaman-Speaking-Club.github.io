@@ -51,8 +51,9 @@ function paintCard(){
 }
 
 function show(){
-  if(!deck.length||pos>=deck.length-1)build();
-  activeCard=deck[++pos]||null;
+  const picked=window.ESCNoRepeat.nextFrom('taboo',cards.filter(x=>Array.isArray(x)&&x[1]&&Array.isArray(x[2])&&x[2].length&&(selected==='All'||x[0]===selected)),deck,pos);
+  deck=picked.deck;pos=picked.index;
+  activeCard=picked.card;
   if(activeCard)window.ESCNoRepeat.mark('taboo',activeCard);
   $('badge').textContent=activeCard?.[0]||'EMPTY';
   paintCard();
@@ -304,6 +305,5 @@ cats.forEach(c=>{
 });
 
 loadTeams();
-build();
-show();
+if(!window.ESCCEFR?.supported){build();show()}
 sync();
