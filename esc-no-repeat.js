@@ -47,6 +47,7 @@ function write(store,obj){
  if(obj.used.length>5000)obj.used=obj.used.slice(-5000);
  memory.set(store,{used:obj.used.slice(),last:obj.last});
  try{root.localStorage?.setItem(store,JSON.stringify(obj))}catch(_){}
+ updateCounter();
 }
 function randomise(items){
  const array=[...items];
@@ -90,6 +91,28 @@ function mark(game,card,variant=''){
  if(!state.used.includes(id))state.used.push(id);
  state.last=id;write(store,state);return true;
 }
+
+function isFresh(game,card,variant=''){
+ const id=key(game,card);
+ if(!id)return false;
+ return !read(storageKey(game,variant)).used.includes(id);
+}
+/* Decks may be prepared before a second browser tab shows a card.
+   Revalidate at the moment of display, without replaying stale questions. */
+function nextFrom(game,items,queued,index=-1,variant=''){
+ const pool=unique(game,items);
+ if(!pool.length)return {deck:[],index:-1,card:null};
+ const allowed=new Set(pool.map(x=>key(game,x)));
+ let deck=Array.isArray(queued)?queued:[],pos=Number.isInteger(index)?index:-1;
+ const maximum=pool.length+deck.length+2;
+ for(let attempt=0;attempt<maximum;attempt++){
+  if(!deck.length||pos>=deck.length-1){deck=makeDeck(game,pool,variant);pos=-1}
+  const card=deck[++pos];
+  if(card&&allowed.has(key(game,card))&&isFresh(game,card,variant))return {deck,index:pos,card};
+ }
+ return {deck,index:pos,card:null};
+}
+
 function pick(game,items,variant=''){
  const deck=makeDeck(game,items,variant);
  const first=deck[0]||null;
@@ -123,5 +146,56 @@ function progress(game,items,variant=''){
  const pool=unique(game,items),seen=new Set(read(storageKey(game,variant)).used);
  return {available:pool.length,used:pool.filter(x=>seen.has(key(game,x))).length};
 }
-root.ESCNoRepeat={key,makeDeck,mark,pick,drawMany,progress};
+
+/* Unseen-card counter: works with category filters and Truth/Dare subdecks.
+   The counter never changes the established level and category controls. */
+function updateCounter(){
+ const doc=root.document,api=root.ESCCEFR;
+ if(!doc||!api?.supported||!api.slug)return;
+ const bar=doc.querySelector('.cefr-bar');if(!bar)return;
+ let data;
+ try{
+   let chosen=api.category||'All';
+   if(chosen==='All'&&api.categoryCounts){
+     const categories=api.categoryCounts(api.slug,api.level);
+     const buttons=doc.querySelectorAll('.game-chip.active,.chip.active');
+     for(const button of buttons){
+       const name=button.dataset.cat||button.textContent?.trim();
+       if(Object.prototype.hasOwnProperty.call(categories,name)){chosen=name;break}
+     }
+   }
+   data=api.get(api.slug,api.level,chosen);
+ }catch(_){return}
+ let total=0,used=0;
+ if(Array.isArray(data)){
+   const p=progress(api.slug,data);total=p.available;used=p.used;
+ }else if(data&&Array.isArray(data.truths)&&Array.isArray(data.dares)){
+   const a=progress(api.slug,data.truths,'truth');
+   const b=progress(api.slug,data.dares,'dare');
+   total=a.available+b.available;used=a.used+b.used;
+ }else return;
+ let target=doc.getElementById('cefrUnseenCount');
+ if(!target){
+   target=doc.createElement('small');
+   target.id='cefrUnseenCount';target.className='cefr-remaining';
+   target.setAttribute('aria-label','Questions not yet shown on this device');
+   const source=doc.getElementById('cefrPoolCount');
+   if(source)source.after(target);else bar.append(target);
+ }
+ target.textContent='Yeni / New: '+Math.max(0,total-used)+' / '+total;
+ target.title='Bu cihazda bu seviye ve kategoride henüz gösterilmemiş kartlar. / Cards not yet shown on this device.';
+}
+function initCounter(){
+ updateCounter();
+ root.document?.addEventListener('eryaman:levelchange',updateCounter);
+ root.addEventListener?.('storage',event=>{
+   if(event?.key===null||event?.key?.startsWith(PREFIX))updateCounter();
+ });
+}
+if(root.document){
+ if(root.document.readyState==='loading')root.document.addEventListener('DOMContentLoaded',initCounter);
+ else initCounter();
+}
+
+root.ESCNoRepeat={key,makeDeck,mark,pick,drawMany,progress,isFresh,nextFrom,updateCounter};
 })(window);

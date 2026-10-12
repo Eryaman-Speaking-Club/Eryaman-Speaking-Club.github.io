@@ -86,11 +86,9 @@ function nextItem(){
     history.push(board);historyCursor=history.length-1;
     renderItem(board);aud().soft();return;
   }
-  if(!deck.length||pos>=deck.length-1){
-    deck=window.ESCNoRepeat.makeDeck(cfg.slug,items);
-    pos=-1;
-  }
-  const x=deck[++pos];
+  const picked=window.ESCNoRepeat.nextFrom(cfg.slug,items,deck,pos);
+  deck=picked.deck;pos=picked.index;
+  const x=picked.card;
   if(x===undefined||!playableItem(x)){showEmpty();return}
   history.push(x);historyCursor=history.length-1;
   try{renderItem(x);window.ESCNoRepeat.mark(cfg.slug,x);aud().soft()}

@@ -44,7 +44,7 @@ for(const [game,pools] of Object.entries(B.games))for(const level of B.levels){
   }
  }
  const html=fs.readFileSync(game+'/index.html','utf8');
- for(const file of ['cefr-quality.js','cefr-tip-guide.js'])assert(html.includes('/'+file+'?v=20261012-norepeat1'),'Missing new script '+game+'/'+file);
+ for(const file of ['cefr-quality.js','cefr-tip-guide.js'])assert(html.includes('/'+file+'?v=20261012-norepeat2'),'Missing new script '+game+'/'+file);
 }
 for(const level of B.levels){
  const q=game=>new Set(B.games[game][level].map(x=>normalize(questionOf(game,x))));

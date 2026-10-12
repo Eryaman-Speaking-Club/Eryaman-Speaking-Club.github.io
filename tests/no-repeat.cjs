@@ -79,7 +79,7 @@ const slugs=[
 assert.equal(slugs.length,32);
 for(const slug of slugs){
  const html=fs.readFileSync(slug+'/index.html','utf8');
- assert(html.includes('/esc-no-repeat.js?v=20261012-norepeat1'),'Question rotation script not loaded: '+slug);
+ assert(html.includes('/esc-no-repeat.js?v=20261012-norepeat2'),'Question rotation script not loaded: '+slug);
  assert(html.indexOf('esc-no-repeat.js')<html.lastIndexOf('</head>'),'Question rotation loads after the game: '+slug);
 }
 
