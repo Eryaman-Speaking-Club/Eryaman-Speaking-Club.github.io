@@ -403,19 +403,11 @@
 
   function randomFrom(list, historyKey) {
     if (!list.length) return '';
-    let pool = list.slice();
-    if (state.settings.noRepeat) {
-      const used = new Set(state.history[historyKey]);
-      pool = pool.filter((item) => !used.has(item));
-      if (!pool.length) {
-        state.history[historyKey] = [];
-        pool = list.slice();
-        showToast(`All ${historyKey} used — starting again.`);
-      }
-    }
-    const selected = pool[Math.floor(Math.random() * pool.length)] || '';
-    if (selected && state.settings.noRepeat && !state.history[historyKey].includes(selected)) state.history[historyKey].push(selected);
-    return selected;
+    // Truths and dares have independent persisted queues within each level.
+    const variant=historyKey==='truths'?'truth':'dare';
+    const picked=window.ESCNoRepeat.pick('truth-or-dare',list,variant)||'';
+    if(picked&&!state.history[historyKey].includes(picked))state.history[historyKey].push(picked);
+    return picked;
   }
 
   function setQuestionType(type) {
@@ -602,7 +594,7 @@
   function updateSetting(key, value) {
     state.settings[key] = value;
     if (key === 'fairRotation') state.history.names = [];
-    if (key === 'noRepeat') { state.history.truths = []; state.history.dares = []; }
+    if (key === 'noRepeat') { state.settings.noRepeat = true; return; }
     saveState();
     populateEditors();
   }
@@ -693,6 +685,9 @@
   }
 
   async function init() {
+    state.settings.noRepeat=true;
+    const alwaysOn=$('noRepeat');
+    if(alwaysOn){alwaysOn.checked=true;alwaysOn.disabled=true;alwaysOn.title='Always enabled until all cards are used.';}
     window.ESCCEFR.onChange(()=>{
       const pool=window.ESCCEFR.get();state.truths=pool.truths;state.dares=pool.dares;
       state.history.truths=[];state.history.dares=[];

@@ -5,7 +5,7 @@
   const slug=location.pathname.split("/").filter(Boolean).pop()||"";
   if(!supported.has(slug)||window.ESCCEFR||document.querySelector('script[src*="/cefr-runtime.js"]'))return;
   if(!document.querySelector('link[href*="/cefr.css"]')){
-    const l=document.createElement("link");l.rel="stylesheet";l.href="/cefr.css?v=20261011-quality4";document.head.appendChild(l);
+    const l=document.createElement("link");l.rel="stylesheet";l.href="/cefr.css?v=20261012-norepeat1";document.head.appendChild(l);
   }
   const load=src=>new Promise((resolve,reject)=>{const s=document.createElement("script");s.src=src;s.onload=resolve;s.onerror=reject;document.head.appendChild(s)});
   load("/cefr-source.js?v=20261011-quality4")
@@ -18,7 +18,8 @@
     .then(()=>load("/cefr-clarity.js?v=20261011-quality4"))
     .then(()=>load("/cefr-quality.js?v=20261011-quality4"))
     .then(()=>load("/cefr-tip-guide.js?v=20261011-quality4"))
-    .then(()=>load("/cefr-runtime.js?v=20261011-quality4"))
+    .then(()=>load("/cefr-runtime.js?v=20261012-norepeat1"))
+    .then(()=>load("/esc-no-repeat.js?v=20261012-norepeat1"))
     .catch(err=>console.error("CEFR level controls could not load",err));
 })();
 /* Shared display control for every public game. No game state is reset. */
