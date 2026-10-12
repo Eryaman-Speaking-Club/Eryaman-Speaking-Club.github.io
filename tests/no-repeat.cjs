@@ -54,18 +54,33 @@ assert.equal(new Set(seventh).size,16,'Duplicate inside bingo board');
 assert(seventh.some(x=>!squares.has(x)),'Remaining 4 new bingo squares were not used');
 assert.equal(boardBrowser.api.progress('conversation-bingo',bingo).used,16);
 
+/* Open tabs can cache their own decks. Recheck each candidate at draw time. */
+const concurrent=newBrowser({});
+const prepared=concurrent.api.makeDeck('hot-seat',pool);
+assert.equal(concurrent.api.isFresh('hot-seat',prepared[0]),true);
+concurrent.api.mark('hot-seat',prepared[0]); // another tab used this first
+assert.equal(concurrent.api.isFresh('hot-seat',prepared[0]),false);
+const second=concurrent.api.nextFrom('hot-seat',pool,prepared,-1);
+assert(second.card,'The stale deck should still have fresh questions');
+assert.notEqual(concurrent.api.key('hot-seat',second.card),concurrent.api.key('hot-seat',prepared[0]));
+assert(second.index>0,'First stale card was not skipped');
+concurrent.api.mark('hot-seat',second.card);
+assert.equal(concurrent.api.progress('hot-seat',pool).used,2);
+assert.equal(typeof concurrent.api.updateCounter,'function','Unseen counter missing');
+
 /* Static integration guard: re-generating the site must not undo the adapters. */
 const legacy=['last-thing-you-did','what-would-you-do-if','would-you-rather','most-likely-to','hot-seat','five-second-challenge','red-flag-green-flag','debate-roulette','never-have-i-ever'];
 for(const slug of legacy){
  const html=fs.readFileSync(slug+'/index.html','utf8');
  assert(html.includes("ESCNoRepeat.makeDeck('"+slug+"'"),'Legacy deck is not guarded: '+slug);
  assert(html.includes("ESCNoRepeat.mark('"+slug+"'"),'Legacy displayed card is not recorded: '+slug);
+ assert(html.includes("ESCNoRepeat.nextFrom('"+slug+"'"),'Legacy deck does not check freshness at draw time: '+slug);
 }
 const external=[
- ['taboo/round.js',"ESCNoRepeat.makeDeck('taboo'","ESCNoRepeat.mark('taboo'"],
+ ['taboo/round.js',"ESCNoRepeat.makeDeck('taboo'","ESCNoRepeat.mark('taboo'","ESCNoRepeat.nextFrom('taboo'"],
  ['one-for-me-one-for-you/app.js',"ESCNoRepeat.makeDeck('one-for-me-one-for-you'","ESCNoRepeat.mark('one-for-me-one-for-you'"],
  ['truth-or-dare/app.js',"ESCNoRepeat.pick('truth-or-dare'","state.settings.noRepeat=true"],
- ['esc-new-games.js','ESCNoRepeat.makeDeck(cfg.slug','ESCNoRepeat.drawMany(cfg.slug']
+ ['esc-new-games.js','ESCNoRepeat.makeDeck(cfg.slug','ESCNoRepeat.drawMany(cfg.slug','ESCNoRepeat.nextFrom(cfg.slug']
 ];
 for(const [file,...needles]of external){
  const js=fs.readFileSync(file,'utf8');
