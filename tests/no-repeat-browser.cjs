@@ -138,11 +138,17 @@ async function progress(page,slug){
       const p=window.ESCNoRepeat.progress('hot-seat',window.ESCCEFR.get());
       return document.querySelector('#cefrUnseenCount')?.textContent==='Yeni / New: '+(p.available-p.used)+' / '+p.available;
     });
+    const beforeCrossTab=await first.evaluate(q=>({
+      current:document.querySelector('#prompt')?.textContent,
+      fresh:window.ESCNoRepeat.isFresh('hot-seat',['Mixed',q]),
+      store:JSON.parse(localStorage.getItem('esc-seen-v1:hot-seat:A1-A2')||'null'),
+      counter:document.querySelector('#cefrUnseenCount')?.textContent
+    }),secondQuestion);
     await first.click('#skip');
     const thirdQuestion=await first.locator('#prompt').textContent();
     assert.notEqual(thirdQuestion,firstQuestion,'First tab repeated its own previous question');
-    assert.notEqual(thirdQuestion,secondQuestion,'First tab did not skip a card used in second tab');
-    const category=first.locator('#chips button').filter({hasText:/^Everyday$/});
+    assert.notEqual(thirdQuestion,secondQuestion,'First tab did not skip a card used in second tab: '+JSON.stringify({firstQuestion,secondQuestion,thirdQuestion,beforeCrossTab}));
+    const category=first.locator('#chips button').filter({hasText:/^Personal$/});
     await category.click();
     const scoped=await first.evaluate(()=>{
       const c=document.querySelector('#chips button.active')?.textContent?.trim()||'All';
