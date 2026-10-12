@@ -21,6 +21,8 @@ jobs:
           python3 tools/cefr_build.py
       - name: Validate all game-level banks
         run: node tests/cefr-check.cjs > cefr-counts.json
+      - name: Verify no-repeat deck memory
+        run: node tests/no-repeat.cjs
       - name: Review content diversity and clarity
         run: node tests/quality-content.cjs
       - name: Install browser test tools

@@ -28,7 +28,18 @@ async function progress(page,slug){
    page.on('pageerror',e=>errors.push(e.message));
    await page.goto(base+'/'+slug+'/?level=A1-A2',{waitUntil:'domcontentloaded'});
    await page.waitForFunction(()=>window.ESCNoRepeat&&window.ESCCEFR);
-   await page.waitForFunction(g=>window.ESCNoRepeat.progress(g,window.ESCCEFR.get()).used>=1,slug);
+   try{
+    await page.waitForFunction(g=>window.ESCNoRepeat.progress(g,window.ESCCEFR.get()).used>=1,slug,{timeout:5000});
+   }catch(e){
+    const diagnostic=await page.evaluate(g=>({
+      level:window.ESCCEFR?.level,available:window.ESCCEFR?.get(g)?.length,
+      progress:window.ESCNoRepeat?.progress(g,window.ESCCEFR?.get(g)),
+      prompt:document.querySelector('#prompt')?.textContent,
+      status:document.querySelector('#cefrLevel')?.textContent,
+      script:!!document.querySelector('script[src*="esc-no-repeat.js"]')
+    }),slug);
+    throw new Error(slug+' did not draw initial question: '+JSON.stringify(diagnostic)+' JS: '+JSON.stringify(errors)+' '+e.message);
+   }
    const observed=new Set();
    const getText=()=>page.evaluate(g=>{
     if(g==='what-would-you-do-if')return document.getElementById('questionText')?.textContent;
