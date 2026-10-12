@@ -80,14 +80,20 @@ function nextItem(){
   const items=usableItems();
   if(!items.length || (cfg.type==='bingo'&&items.length<16)){showEmpty();return}
   if(historyCursor<history.length-1){historyCursor++;renderItem(history[historyCursor]);aud().soft();return}
+  if(cfg.type==='bingo'){
+    const board=window.ESCNoRepeat.drawMany(cfg.slug,items,16);
+    if(!board.length){showEmpty();return}
+    history.push(board);historyCursor=history.length-1;
+    renderItem(board);aud().soft();return;
+  }
   if(!deck.length||pos>=deck.length-1){
-    deck=cfg.type==='bingo'?Array.from({length:30},()=>shuffle(items).slice(0,Math.min(16,items.length))):shuffle(items);
+    deck=window.ESCNoRepeat.makeDeck(cfg.slug,items);
     pos=-1;
   }
   const x=deck[++pos];
   if(x===undefined||!playableItem(x)){showEmpty();return}
   history.push(x);historyCursor=history.length-1;
-  try{renderItem(x);aud().soft()}
+  try{renderItem(x);window.ESCNoRepeat.mark(cfg.slug,x);aud().soft()}
   catch(e){
     console.warn('Invalid game card skipped.',e);
     const safe=window.ESCCEFR.get(cfg.slug).filter(validItem);
@@ -225,7 +231,7 @@ function init(){
  $('#gameTitle').textContent=cfg.title||'Speaking Game';$('#gameDesc').textContent=cfg.desc||'';$('#gameEyebrow').textContent=cfg.eyebrow||'SPEAKING GAME';document.title=(cfg.title||'Game')+' · Eryaman Speaking Club';
  (cfg.rules||[]).forEach(r=>{const s=document.createElement('span');s.textContent=r;$('#gameRules').appendChild(s)});
  const items=usableItems();
- if(cfg.type==='bingo')deck=Array.from({length:30},()=>shuffle(items).slice(0,Math.min(16,items.length)));else deck=shuffle(items);
+ deck=cfg.type==='bingo'?[]:window.ESCNoRepeat.makeDeck(cfg.slug,items);
  nextItem();
  void syncRemote();
  window.EryamanSpeakingGame={refresh(){deck=[];pos=-1;history=[];historyCursor=-1;nextItem()},resetToBuiltIns,config:cfg};

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-speaking-release="20261011-quality4">
+<html lang="en" data-speaking-release="20261012-norepeat1">
 <head>
   <link rel="icon" type="image/png" href="/favicon.png?v=20260922">
   <meta charset="UTF-8" />
@@ -76,7 +76,7 @@
     }
   </style>
   <link rel="stylesheet" href="../esc-brand.css?v=20260916-1240">
-<link rel="stylesheet" href="/esc-game-controls.css?v=20261011-quality4">
+<link rel="stylesheet" href="/esc-game-controls.css?v=20261012-norepeat1">
 
 
 
@@ -85,18 +85,19 @@
 
 
 <!-- reviewed-cefr-20261007 -->
-<link rel="stylesheet" href="/cefr.css?v=20261011-quality4">
-<script src="/cefr-source.js?v=20261011-quality4"></script>
-<script src="/cefr-bank.js?v=20261011-quality4"></script>
-<script src="/cefr50-conversation.js?v=20261011-quality4"></script>
-<script src="/cefr50-interpersonal.js?v=20261011-quality4"></script>
-<script src="/cefr50-activities.js?v=20261011-quality4"></script>
-<script src="/cefr50-structured.js?v=20261011-quality4"></script>
-<script src="/cefr-groups.js?v=20261011-quality4"></script>
-<script src="/cefr-clarity.js?v=20261011-quality4"></script>
-<script src="/cefr-quality.js?v=20261011-quality4"></script>
-<script src="/cefr-tip-guide.js?v=20261011-quality4"></script>
-<script src="/cefr-runtime.js?v=20261011-quality4"></script>
+<link rel="stylesheet" href="/cefr.css?v=20261012-norepeat1">
+<script src="/cefr-source.js?v=20261012-norepeat1"></script>
+<script src="/cefr-bank.js?v=20261012-norepeat1"></script>
+<script src="/cefr50-conversation.js?v=20261012-norepeat1"></script>
+<script src="/cefr50-interpersonal.js?v=20261012-norepeat1"></script>
+<script src="/cefr50-activities.js?v=20261012-norepeat1"></script>
+<script src="/cefr50-structured.js?v=20261012-norepeat1"></script>
+<script src="/cefr-groups.js?v=20261012-norepeat1"></script>
+<script src="/cefr-clarity.js?v=20261012-norepeat1"></script>
+<script src="/cefr-quality.js?v=20261012-norepeat1"></script>
+<script src="/cefr-tip-guide.js?v=20261012-norepeat1"></script>
+<script src="/cefr-runtime.js?v=20261012-norepeat1"></script>
+<script src="/esc-no-repeat.js?v=20261012-norepeat1"></script>
 </head>
 <body>
   <div class="shell">
@@ -157,8 +158,8 @@
       o.connect(g).connect(ctx.destination);o.start();o.stop(ctx.currentTime+dur+.01);
     }
     const shuffle=a=>{const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b};
-    function buildDeck(){deck=shuffle(prompts.filter(p=>selected==='All'||p.c===selected));index=-1;$('deckInfo').textContent=`${deck.length} prompts`; $('categoryInfo').textContent=selected==='All'?'All categories':selected;}
-    function show(p,save=true){if(!p)return;promptText.textContent=p.q;badge.textContent=p.c;icon.textContent=icons[p.c]||'⏳';if(save){history.unshift(p);history=history.slice(0,6);renderHistory()}tone(p.c==='Spicy'?520:440,.075,.10)}
+    function buildDeck(){deck=window.ESCNoRepeat.makeDeck('last-thing-you-did',prompts.filter(p=>selected==='All'||p.c===selected));index=-1;$('deckInfo').textContent=`${deck.length} prompts`; $('categoryInfo').textContent=selected==='All'?'All categories':selected;}
+    function show(p,save=true){if(!p)return;promptText.textContent=p.q;badge.textContent=p.c;icon.textContent=icons[p.c]||'⏳';if(save){window.ESCNoRepeat.mark('last-thing-you-did',p);history.unshift(p);history=history.slice(0,6);renderHistory()}tone(p.c==='Spicy'?520:440,.075,.10)}
     function next(){if(!deck.length||index>=deck.length-1)buildDeck();index++;const p=deck[index];previous.push(p);show(p);$('deckInfo').textContent=`${Math.max(0,deck.length-index-1)} left in this deck`;}
     function back(){if(previous.length<2)return;const forward=previous.pop();deck.splice(index+1,0,forward);const p=previous[previous.length-1];show(p,false)}
     function renderHistory(){$('historyCount').textContent=history.length;$('historyList').innerHTML=history.map(x=>`<span class="history-item">${x.q.replace(/</g,'&lt;')}</span>`).join('')}
@@ -173,9 +174,9 @@
     buildDeck();next();
   </script>
 
-  <script src="../esc-content-editor.js?v=20261011-quality4"></script>  <script src="/esc-supabase-config.js?v=20261006-seofinal"></script>
+  <script src="../esc-content-editor.js?v=20261012-norepeat1"></script>  <script src="/esc-supabase-config.js?v=20261006-seofinal"></script>
   <script src="/esc-supabase.js?v=20261006-seofinal"></script>
   <script src="/site-analytics.js?v=20260922"></script>
-<script src="/esc-game-controls.js?v=20261011-quality4"></script>
+<script src="/esc-game-controls.js?v=20261012-norepeat1"></script>
 </body>
 </html>

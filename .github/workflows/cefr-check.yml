@@ -1,7 +1,7 @@
 name: CEFR content and integration checks
 on:
   push:
-    branches: [cefr-levels-20261007, cefr-groups-20261007, improve-speaking-content-20261011, improve-speaking-curriculum-20261011]
+    branches: [cefr-levels-20261007, cefr-groups-20261007, improve-speaking-content-20261011, improve-speaking-curriculum-20261011, fix-question-repeats-20261012]
   workflow_dispatch:
 permissions:
   contents: read
@@ -21,6 +21,8 @@ jobs:
           python3 tools/cefr_build.py
       - name: Validate all game-level banks
         run: node tests/cefr-check.cjs > cefr-counts.json
+      - name: Verify no-repeat deck memory
+        run: node tests/no-repeat.cjs
       - name: Review content diversity and clarity
         run: node tests/quality-content.cjs
       - name: Install browser test tools
@@ -34,6 +36,8 @@ jobs:
           node tests/cefr-browser.cjs
       - name: Mobile and question help regressions
         run: node tests/qa-speaking-games.cjs
+      - name: No-repeat browser regressions
+        run: node tests/no-repeat-browser.cjs
       - name: Edited-card persistence regressions
         if: always() && steps.build.outcome == 'success' && steps.install.outcome == 'success'
         run: node tests/cefr-edits.cjs
@@ -57,5 +61,6 @@ jobs:
             cefr50-*.json
             cefr50-*.png
             qa-*.json
+            no-repeat-*.json
             !node_modules/**
           retention-days: 2

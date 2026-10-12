@@ -34,7 +34,7 @@ function saveTeamConfig(){
 }
 
 function build(){
-  deck=shuffle(cards.filter(x=>Array.isArray(x)&&x[1]&&Array.isArray(x[2])&&x[2].length&&(selected==='All'||x[0]===selected)));
+  deck=window.ESCNoRepeat.makeDeck('taboo',cards.filter(x=>Array.isArray(x)&&x[1]&&Array.isArray(x[2])&&x[2].length&&(selected==='All'||x[0]===selected)));
   pos=-1;
   $('catInfo').textContent=selected==='All'?'All categories':selected;
 }
@@ -53,6 +53,7 @@ function paintCard(){
 function show(){
   if(!deck.length||pos>=deck.length-1)build();
   activeCard=deck[++pos]||null;
+  if(activeCard)window.ESCNoRepeat.mark('taboo',activeCard);
   $('badge').textContent=activeCard?.[0]||'EMPTY';
   paintCard();
   $('deckInfo').textContent=Math.max(0,deck.length-pos-1)+' left';

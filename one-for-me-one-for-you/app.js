@@ -155,13 +155,10 @@ function playReveal() {
   function chooseUnusedCard() {
     const deck = activeDeck();
     if (!deck.length) return null;
-    let available = deck.filter((card) => !usedIds.has(card.id));
-    if (!available.length) {
-      usedIds.clear();
-      available = deck;
-      showToast('New round shuffled.');
-    }
-    return available[Math.floor(Math.random() * available.length)] || null;
+    // The browser remembers shown prompts across reloads and level switches.
+    // Replaying through the old "back" navigation never consumes a fresh card.
+    const available=window.ESCNoRepeat.makeDeck('one-for-me-one-for-you',deck);
+    return available.find(card=>!usedIds.has(card.id))||available[0]||null;
   }
 
   function drawCard() {
@@ -180,6 +177,7 @@ function playReveal() {
       if(levelRevision!==window.ESCCEFR.revision)return;
       currentId = selected.id;
       usedIds.add(selected.id);
+      window.ESCNoRepeat.mark('one-for-me-one-for-you',selected);
       $('q').textContent = selected.q;
       $('f').textContent = selected.f || 'Explain your answer and give an example.';
       $('draw').setAttribute('hidden', '');
