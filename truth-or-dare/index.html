@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-speaking-release="20261012-norepeat2">
+<html lang="en" data-speaking-release="20261013-player-fix">
 <head>
   <link rel="icon" type="image/png" href="/favicon.png?v=20260922">
   <meta charset="UTF-8">
@@ -252,7 +252,7 @@
       <button id="closeNames" class="close-button" aria-label="Close">×</button>
       <div class="panel-tag">PLAYERS · NO PASSWORD</div>
       <h2>Player names</h2>
-      <p class="names-note">Add or edit names freely. Use one name per line. Saving refreshes the game so the wheel uses the new list immediately.</p>
+      <p class="names-note">Use one name per line. Changes apply immediately. Players are kept in this tab for up to 12 hours; a new session starts with an empty list.</p>
       <textarea id="quickNamesEditor" spellcheck="false" placeholder="İdris\nYağmur\n..." aria-label="Player names"></textarea>
       <div class="quick-actions">
         <button id="saveQuickNames" class="primary-button">Save names</button>
@@ -329,10 +329,9 @@
   </script>
   <script src="../esc-supabase-config.js?v=20261006-seofinal"></script>
   <script src="../esc-supabase.js?v=20261006-seofinal"></script>
-  <script src="./app.js?v=20261012-norepeat2"></script>
+  <script src="./app.js?v=20261013-player-fix"></script>
   <script>
     (() => {
-      const STATE_KEY = 'esc-truth-dare-v1';
       const VOLUME_KEY = 'esc-truth-dare-volume-percent-v1';
       const $ = (id) => document.getElementById(id);
 
@@ -400,26 +399,6 @@
       syncVolume(window.ESC_SOUND_PERCENT ?? 200);
       if (volumeSlider) volumeSlider.addEventListener('input', (event) => syncVolume(event.currentTarget.value));
 
-      const defaultState = () => {
-        const defaults = window.ESC_TRUTH_DARE_DEFAULTS || { names: [], truths: [], dares: [] };
-        return {
-          names: [],
-          truths: Array.isArray(defaults.truths) ? defaults.truths.map((item) => item.text) : [],
-          dares: Array.isArray(defaults.dares) ? defaults.dares.map((item) => item.text) : [],
-          settings: { fairRotation: true, noRepeat: true, sound: true, vibration: true },
-          history: { names: [], truths: [], dares: [] }
-        };
-      };
-
-      const loadState = () => {
-        try {
-          const raw = localStorage.getItem(STATE_KEY);
-          return raw ? JSON.parse(raw) : defaultState();
-        } catch (_) {
-          return defaultState();
-        }
-      };
-
       const uniqueNames = (text) => {
         const seen = new Set();
         return String(text || '').split(/\r?\n/).map((name) => name.trim()).filter((name) => {
@@ -434,19 +413,18 @@
       const namesEditor = $('quickNamesEditor');
 
       const openNamesPanel = () => {
-        const current = loadState();
-        namesEditor.value = Array.isArray(current.names) ? current.names.join('\n') : '';
+        const manager = window.ESCTruthDarePlayers;
+        if (!manager) return;
+        namesEditor.value = manager.getNames().join('\n');
         namesPanel.showModal();
         setTimeout(() => namesEditor.focus(), 40);
       };
 
       const persistNames = (names) => {
-        const current = loadState();
-        current.names = names;
-        current.history = current.history && typeof current.history === 'object' ? current.history : { names: [], truths: [], dares: [] };
-        current.history.names = [];
-        localStorage.setItem(STATE_KEY, JSON.stringify(current));
-        window.location.reload();
+        const manager = window.ESCTruthDarePlayers;
+        if (!manager) return;
+        manager.setNames(names);
+        namesPanel.close();
       };
 
       if ($('players')) $('players').onclick = openNamesPanel;
