@@ -4,11 +4,14 @@
 
   const defaults = window.ESC_TRUTH_DARE_DEFAULTS || { names: [], truths: [], dares: [] };
   const STORAGE_KEY = 'esc-truth-dare-cefr-v1';
+  const LEGACY_STORAGE_KEY = 'esc-truth-dare-v1';
+  const PLAYER_SESSION_KEY = 'esc-truth-dare-players-session-v2';
+  const PLAYER_SESSION_MAX_AGE = 12 * 60 * 60 * 1000;
   const PASSWORD_HASH_KEY = 'esc-truth-dare-password-hash-v1';
   const ADMIN_SESSION_KEY = 'esc-truth-dare-admin-unlocked-v1';
   const DEFAULT_PASSWORD_HASH = 'c28440d7f9de5738eddf560c79371754e9ffa41fba2afd1efaa3da1458438a52';
   const STUDIO_MODE = new URLSearchParams(location.search).get('studio') === '1';
-  const CLUB_LOGO_URL = '../51a64254-0651-4c02-8235-bef5325d7947%20(1).png';
+  const CLUB_LOGO_URL = '../esc-center-symbol.svg';
   const WHEEL_COLORS = ['#123a6b', '#f74f54', '#225f9d', '#f28b45', '#0b2f5b', '#ef7e65'];
 
   const $ = (id) => document.getElementById(id);
@@ -65,17 +68,58 @@
     };
   }
 
-  function loadState() {
+  function persistedState(source) {
+    return { ...source, names: [], history: { ...source.history, names: [] } };
+  }
+
+  function loadPlayerSession() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY)||localStorage.getItem('esc-truth-dare-v1');
-      return raw ? normalizeState(JSON.parse(raw)) : defaultState();
+      const raw = sessionStorage.getItem(PLAYER_SESSION_KEY);
+      if (!raw) return { names: [], history: [] };
+      const data = JSON.parse(raw);
+      const age = Date.now() - Number(data.savedAt);
+      if (!Number.isFinite(age) || age < 0 || age > PLAYER_SESSION_MAX_AGE) {
+        sessionStorage.removeItem(PLAYER_SESSION_KEY);
+        return { names: [], history: [] };
+      }
+      const names = uniqueLines(Array.isArray(data.names) ? data.names : []);
+      const history = uniqueLines(Array.isArray(data.history) ? data.history : []).filter(name => names.includes(name));
+      return { names, history };
     } catch {
-      return defaultState();
+      return { names: [], history: [] };
     }
   }
 
+  function loadState() {
+    let restored = defaultState();
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+      if (raw) restored = normalizeState(JSON.parse(raw));
+      // Migrate preferences but never carry participants over from previous meetups.
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(persistedState(restored)));
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+    } catch (error) {
+      console.warn('Truth or Dare preferences migration unavailable.', error);
+    }
+    const players = loadPlayerSession();
+    restored.names = players.names;
+    restored.history.names = players.history;
+    return restored;
+  }
+
   function saveState(message) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    try {
+      sessionStorage.setItem(PLAYER_SESSION_KEY, JSON.stringify({
+        names: state.names,
+        history: state.history.names,
+        savedAt: Date.now()
+      }));
+      // Settings and question history persist; player names do not.
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(persistedState(state)));
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+    } catch (error) {
+      console.warn('Truth or Dare local save unavailable.', error);
+    }
     void saveCloudState();
     updateAdminCounts();
     updateControls();
@@ -111,7 +155,7 @@
         settings: remote.settings && typeof remote.settings === 'object' ? remote.settings : state.settings,
         history: state.history
       });
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(persistedState(state)));
     } catch (error) {
       console.warn('ESC cloud state unavailable; using local fallback.', error);
     }
@@ -179,12 +223,14 @@
       .wheel-name-layer{position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:50%}
       .wheel-name{position:absolute;transform:translate(-50%,-50%) rotate(var(--counter-rotation,0deg));transform-origin:center;color:#fff;font-weight:950;line-height:1.05;letter-spacing:-.02em;text-align:center;text-shadow:0 2px 6px rgba(0,0,0,.38);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:4px 6px;pointer-events:none;z-index:3}
       .wheel-rotor .wheel-ring{z-index:1}
-      .wheel-center{z-index:5!important;width:39.2%!important;height:39.2%!important;padding:10px!important;position:relative;overflow:hidden}
-      .wheel-center strong.logo-mode{width:86px;height:86px;margin-top:5px;display:block;overflow:hidden;border-radius:50%;position:relative}
-      .wheel-logo-symbol{position:absolute;display:block;width:185px;height:185px;max-width:none;left:50%;top:50%;transform:translate(-50%,-50%);object-fit:contain}
+      .wheel-center{z-index:5!important;width:39.2%!important;height:39.2%!important;padding:10px!important;position:relative;overflow:hidden;border-radius:50%}
+      .wheel-center.show-logo{padding:0!important}
+      .wheel-center.show-logo #wheelLabel{display:none}
+      .wheel-center strong.logo-mode{position:absolute;inset:0;width:100%;height:100%;margin:0;display:block;overflow:hidden;border-radius:50%}
+      .wheel-logo-symbol{display:block;width:100%;height:100%;max-width:100%;object-fit:contain;object-position:center;border-radius:50%}
       .wheel-center strong:not(.logo-mode){font-size:clamp(18px,4vw,32px)!important}
       .player-wheel.is-spinning{will-change:auto}
-      @media(max-width:560px){.wheel-name{font-size:9px!important}.wheel-center{width:40%!important;height:40%!important;padding:8px!important}.wheel-center strong.logo-mode{width:64px;height:64px}.wheel-logo-symbol{width:138px;height:138px}}
+      @media(max-width:560px){.wheel-name{font-size:9px!important}.wheel-center{width:40%!important;height:40%!important;padding:8px!important}.wheel-center.show-logo{padding:0!important}}
     `;
     document.head.appendChild(style);
   }
@@ -193,28 +239,15 @@
     const name = $('wheelName');
     if (!name) return;
     name.classList.add('logo-mode');
+    name.parentElement.classList.add('show-logo');
     name.innerHTML = `<img class="wheel-logo-symbol" src="${CLUB_LOGO_URL}" alt="Eryaman Speaking Club symbol">`;
   }
 
   function centerSelectedName(value) {
     const name = $('wheelName');
     name.classList.remove('logo-mode');
+    name.parentElement.classList.remove('show-logo');
     name.textContent = value || '?';
-  }
-
-  function ensureWheelRotor() {
-    const wheel = $('playerWheel');
-    let rotor = wheel.querySelector('.wheel-rotor');
-    if (rotor) return rotor;
-
-    rotor = document.createElement('div');
-    rotor.className = 'wheel-rotor';
-    const center = wheel.querySelector('.wheel-center');
-    Array.from(wheel.children)
-      .filter((child) => child.classList && child.classList.contains('wheel-ring'))
-      .forEach((ring) => rotor.appendChild(ring));
-    wheel.insertBefore(rotor, center || null);
-    return rotor;
   }
 
   function ensureWheelRotor() {
@@ -246,7 +279,11 @@
     layer.replaceChildren();
 
     const names = state.names.slice();
-    if (!names.length) return;
+    if (!names.length) {
+      rotor.style.background = 'conic-gradient(#dce5ee 0deg 360deg)';
+      rotor.style.transform = 'rotate(0deg)';
+      return;
+    }
 
     const segment = 360 / names.length;
     const gap = Math.min(2.4, Math.max(1.0, segment * 0.055));
@@ -566,17 +603,36 @@
     return uniqueLines($(id).value.split(/\r?\n/));
   }
 
+  function setPlayers(names, message = 'Player list updated.') {
+    clearInterval(spinTimer);
+    if (wheelAnimation) {
+      wheelAnimation.onfinish = null;
+      wheelAnimation.cancel();
+      wheelAnimation = null;
+    }
+    labelAnimations.forEach(animation => animation.cancel());
+    labelAnimations = [];
+    selectedPlayer = '';
+    wheelRotation = 0;
+    state.names = uniqueLines(Array.isArray(names) ? names : []);
+    state.history.names = [];
+    $('wheelLabel').textContent = 'READY';
+    $('playerWheel').classList.remove('winner', 'is-spinning');
+    centerLogo();
+    showScreen('player');
+    saveState(message);
+    return state.names.slice();
+  }
+
   function saveEditor(kind) {
-    if(kind!=='names'){void window.ESCCEFR.editor();return;}
-    const map = { names: 'namesEditor', truths: 'truthsEditor', dares: 'daresEditor' };
-    state[kind] = parseEditor(map[kind]);
-    state.history[kind] = [];
-    saveState(`${kind[0].toUpperCase()}${kind.slice(1)} saved.`);
+    if (kind !== 'names') { void window.ESCCEFR.editor(); return; }
+    setPlayers(parseEditor('namesEditor'), 'Player names saved.');
     populateEditors();
   }
 
   function clearEditorList(kind) {
     if (!confirm(`Remove all ${kind}?`)) return;
+    if (kind === 'names') { setPlayers([], 'All players removed.'); populateEditors(); return; }
     state[kind] = [];
     state.history[kind] = [];
     saveState(`All ${kind} removed.`);
@@ -584,7 +640,8 @@
   }
 
   function restoreList(kind) {
-    const source = kind === 'names' ? defaults.names : defaults[kind].map((item) => item.text);
+    if (kind === 'names') { setPlayers(defaults.names.slice(), 'Sample players restored.'); populateEditors(); return; }
+    const source = defaults[kind].map((item) => item.text);
     state[kind] = source.slice();
     state.history[kind] = [];
     saveState(`Sample ${kind} restored.`);
@@ -694,7 +751,7 @@
       clearInterval(spinTimer);if(wheelAnimation){wheelAnimation.onfinish=null;wheelAnimation.cancel();wheelAnimation=null;}
       labelAnimations.forEach(a=>a.cancel());labelAnimations=[];
       selectedPlayer='';$('questionText').textContent='';$('questionWheel').classList.remove('spinning-question','revealed');
-      $('wheelLabel').textContent='READY';$('playerWheel').classList.remove('winner');
+      $('wheelLabel').textContent='READY';$('playerWheel').classList.remove('winner');centerLogo();
       showScreen('player');updateControls();updateAdminCounts();window.ESCCEFR.ready();
     });
     void hydrateCloudState();
@@ -778,6 +835,12 @@
       setTimeout(() => openAdmin('truths'), 0);
     }
   }
+
+  // One source of truth for the quick player editor and the spinning wheel.
+  window.ESCTruthDarePlayers = {
+    getNames: () => state.names.slice(),
+    setNames: (names) => setPlayers(names)
+  };
 
   void init();
 })();
