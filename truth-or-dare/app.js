@@ -226,8 +226,8 @@
       .wheel-center{z-index:5!important;width:39.2%!important;height:39.2%!important;padding:10px!important;position:relative;overflow:hidden;border-radius:50%}
       .wheel-center.show-logo{padding:0!important}
       .wheel-center.show-logo #wheelLabel{display:none}
-      .wheel-center strong.logo-mode{position:absolute;inset:0;width:100%;height:100%;margin:0;display:block;overflow:hidden;border-radius:50%}
-      .wheel-logo-symbol{display:block;width:100%;height:100%;max-width:100%;object-fit:contain;object-position:center;border-radius:50%}
+      .wheel-center strong.logo-mode{position:absolute;inset:0;width:100%;height:100%;margin:0;display:grid;place-items:center;overflow:hidden;border-radius:50%}
+      .wheel-logo-symbol{display:block;width:80%;height:80%;max-width:80%;aspect-ratio:1;object-fit:contain;object-position:center;border-radius:50%;pointer-events:none;user-select:none}
       .wheel-center strong:not(.logo-mode){font-size:clamp(18px,4vw,32px)!important}
       .player-wheel.is-spinning{will-change:auto}
       @media(max-width:560px){.wheel-name{font-size:9px!important}.wheel-center{width:40%!important;height:40%!important;padding:8px!important}.wheel-center.show-logo{padding:0!important}}
