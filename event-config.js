@@ -110,6 +110,7 @@
 
   function apply(source='local') {
     const e = CONFIG.inPerson;
+    const onlineEvent = e.eventKind === 'online';
     const upcoming = Number.isFinite(Date.parse(e.end||'')) && Date.parse(e.end)>Date.now();
     const registrationOpen = upcoming && e.registrationEnabled !== false;
     const featured = q('.next-event-card');
@@ -120,14 +121,14 @@
     const heroStrip = markManaged(q('.hero-join-strip'));
     if (heroStrip && upcoming) {
       heroStrip.innerHTML = isEnglish
-        ? '<span class="hero-join-free">'+e.monthEn+' '+e.day+' · '+(registrationOpen?'REGISTRATION OPEN':'REGISTRATION CLOSED')+'</span><span class="hero-join-info"><strong>'+e.weekdayEn.charAt(0)+e.weekdayEn.slice(1).toLowerCase()+' · '+e.time+'</strong><i></i>'+safeText(e.venue)+'</span>'
-        : '<span class="hero-join-free">'+e.day+' '+e.monthTr+' · '+(registrationOpen?'KAYITLAR AÇIK':'KAYITLAR KAPALI')+'</span><span class="hero-join-info"><strong>'+e.weekdayTr.charAt(0)+e.weekdayTr.slice(1).toLocaleLowerCase('tr-TR')+' · '+e.time+'</strong><i></i>'+safeText(e.venue)+'</span>';
+        ? '<span class="hero-join-free">'+e.monthEn+' '+e.day+' · '+(onlineEvent?'ONLINE · ':'')+(registrationOpen?'REGISTRATION OPEN':'REGISTRATION CLOSED')+'</span><span class="hero-join-info"><strong>'+e.weekdayEn.charAt(0)+e.weekdayEn.slice(1).toLowerCase()+' · '+e.time+'</strong><i></i>'+safeText(e.venue)+'</span>'
+        : '<span class="hero-join-free">'+e.day+' '+e.monthTr+' · '+(onlineEvent?'ONLINE · ':'')+(registrationOpen?'KAYITLAR AÇIK':'KAYITLAR KAPALI')+'</span><span class="hero-join-info"><strong>'+e.weekdayTr.charAt(0)+e.weekdayTr.slice(1).toLocaleLowerCase('tr-TR')+' · '+e.time+'</strong><i></i>'+safeText(e.venue)+'</span>';
     }
 
     const heroJoin = markManaged(q('.hero-actions .join-primary'));
     if (heroJoin) {
       heroJoin.innerHTML = !registrationOpen ? (isEnglish?'See upcoming meetups <span>→</span>':'Yaklaşan buluşmaları gör <span>→</span>') : (isEnglish ? 'Join the '+e.monthEn+' '+e.day+' meetup <span>→</span>' : e.day+' '+e.monthTr.charAt(0)+e.monthTr.slice(1).toLocaleLowerCase('tr-TR')+' buluşmasına katıl <span>→</span>');
-      applyJoinMode(heroJoin,'in_person');
+      applyJoinMode(heroJoin,onlineEvent?'online':'in_person');
     }
 
     const heroProof = markManaged(q('.hero-proof p'));
@@ -156,29 +157,29 @@
     if(next){
       next.setAttribute('aria-label',dateLabel());
       const heading=markManaged(next.querySelector('.next-event-copy h2'));
-      if(heading) heading.textContent=isEnglish
-        ? 'Save your seat for this '+titleCaseEn(e.weekdayEn)+'.'
-        : 'Bu '+titleCaseTr(e.weekdayTr)+' masadaki yerini ayırt.';
+      if(heading) heading.textContent=onlineEvent
+        ? (isEnglish?'Join our next online conversation.':'Sıradaki online buluşmamıza katıl.')
+        : (isEnglish?'Save your seat for this '+titleCaseEn(e.weekdayEn)+'.':'Bu '+titleCaseTr(e.weekdayTr)+' masadaki yerini ayırt.');
       const kicker=markManaged(next.querySelector('.next-event-kicker'));
       if(kicker) kicker.textContent=!registrationOpen ? (isEnglish?'REGISTRATION CLOSED':'KAYITLAR KAPALI') : isEnglish
         ? (e.capacity==='limited'?'REGISTRATION OPEN · LIMITED CAPACITY':'REGISTRATION OPEN')
         : (e.capacity==='limited'?'KAYITLAR AÇIK · KONTENJAN SINIRLI':'KAYITLAR AÇIK');
       const details=markManaged(next.querySelector('.next-event-details'));
       if(details) details.innerHTML=(isEnglish
-        ? '<span>🕖 <strong>'+e.time+'</strong></span><span>📍 <strong>'+safeText(e.venue)+'</strong></span><span>💬 <strong>Speaking · games · new people</strong></span>'
-        : '<span>🕖 <strong>'+e.time+'</strong></span><span>📍 <strong>'+safeText(e.venue)+'</strong></span><span>💬 <strong>Speaking · oyunlar · yeni insanlar</strong></span>');
+        ? '<span>🕖 <strong>'+e.time+'</strong></span><span>'+(onlineEvent?'💻':'📍')+' <strong>'+safeText(e.venue)+'</strong></span><span>💬 <strong>Speaking · games · new people</strong></span>'
+        : '<span>🕖 <strong>'+e.time+'</strong></span><span>'+(onlineEvent?'💻':'📍')+' <strong>'+safeText(e.venue)+'</strong></span><span>💬 <strong>Speaking · oyunlar · yeni insanlar</strong></span>');
       const urgency=markManaged(next.querySelector('.next-event-urgency'));
       if(urgency) urgency.textContent=!registrationOpen?(isEnglish?'Registrations are closed':'Kayıtlar kapalı'):isEnglish?'Save your seat for '+e.monthEn+' '+e.day:e.day+' '+e.monthTr.charAt(0)+e.monthTr.slice(1).toLocaleLowerCase('tr-TR')+' için yerini ayırt';
-      applyJoinMode(next.querySelector('.next-event-join'),'in_person');
-      const map=markManagedHref(next.querySelector('.next-event-location'));if(map){const safe=safeHttpsUrl(CONFIG.mapUrl);if(safe)map.href=safe;else map.removeAttribute('href');}
+      applyJoinMode(next.querySelector('.next-event-join'),onlineEvent?'online':'in_person');
+      const map=markManagedHref(next.querySelector('.next-event-location'));if(map){map.style.display=onlineEvent?'none':'';const safe=safeHttpsUrl(CONFIG.mapUrl);if(!onlineEvent&&safe)map.href=safe;else map.removeAttribute('href');}
     }
 
     const galleryDate=markManaged(q('.gallery-join-cta small'));
     if(galleryDate)galleryDate.textContent=!upcoming ? (isEnglish?'UPCOMING MEETUPS':'YAKLAŞAN BULUŞMALAR') : isEnglish?'NEXT MEETUP · '+e.weekdayEn+', '+e.monthEn+' '+e.day+' · '+e.time:'SIRADAKİ BULUŞMA · '+e.day+' '+e.monthTr+' '+e.weekdayTr+' · '+e.time;
-    applyJoinMode(q('.gallery-join-cta a'),'in_person');
+    applyJoinMode(q('.gallery-join-cta a'),onlineEvent?'online':'in_person');
 
     const feedbackDate=markManaged(q('.feedback-intro-cta span'));if(feedbackDate)feedbackDate.textContent=upcoming?dateLabel(true):(isEnglish?'Upcoming events':'Yaklaşan etkinlikler');
-    applyJoinMode(q('.feedback-intro-cta a'),'in_person');
+    applyJoinMode(q('.feedback-intro-cta a'),onlineEvent?'online':'in_person');
 
     qa('.online-meetup-cta, .online-plan .meetup-price-cta').forEach(link=>applyJoinMode(link,'online'));
     qa('.meetup-price-card:not(.online-plan) .meetup-price-cta').forEach(link=>{if(link.href.includes('forms.gle'))applyJoinMode(link,'in_person')});
@@ -204,8 +205,8 @@
       eventSchema.textContent=JSON.stringify({
         '@context':'https://schema.org','@type':'Event',
         name:isEnglish?'Eryaman Speaking Club — '+e.monthEn+' '+e.day+' Meetup':'Eryaman Speaking Club — '+e.day+' '+e.monthTr.charAt(0)+e.monthTr.slice(1).toLocaleLowerCase('tr-TR')+' Buluşması',
-        startDate:e.start,endDate:e.end,eventStatus:'https://schema.org/EventScheduled',eventAttendanceMode:'https://schema.org/OfflineEventAttendanceMode',
-        location:{'@type':'Place',name:e.venue,address:{'@type':'PostalAddress',addressLocality:'Ankara',addressCountry:'TR'}},
+        startDate:e.start,endDate:e.end,eventStatus:'https://schema.org/EventScheduled',eventAttendanceMode:onlineEvent?'https://schema.org/OnlineEventAttendanceMode':'https://schema.org/OfflineEventAttendanceMode',
+        location:onlineEvent?{'@type':'VirtualLocation',url:'https://eryamanspeakingclub.com/events/'}:{'@type':'Place',name:e.venue,address:{'@type':'PostalAddress',addressLocality:'Ankara',addressCountry:'TR'}},
         organizer:{'@type':'Organization',name:'Eryaman Speaking Club',url:'https://eryamanspeakingclub.com/'},url:'https://eryamanspeakingclub.com/#next-event'
       });
     }
@@ -227,7 +228,7 @@
       // One canonical event table: never rely on old manual CMS date again.
       const {data:events,error:eventError}=await db.from('esc_public_upcoming_events')
         .select('event_code,start_at,end_at,venue,location_url,kind,status,registration_enabled')
-        .eq('status','planned').eq('kind','in_person')
+        .eq('status','planned')
         .gt('end_at',new Date().toISOString())
         .order('start_at',{ascending:true}).limit(1);
       if(!eventError&&events?.length){
@@ -254,6 +255,7 @@
           time:part('hour')+':'+part('minute'),
           venue:event.venue,
           eventCode:event.event_code,
+          eventKind:event.kind,
           registrationEnabled:event.registration_enabled===true
         };
         if(event.location_url && safeHttpsUrl(event.location_url))CONFIG.mapUrl=event.location_url;
