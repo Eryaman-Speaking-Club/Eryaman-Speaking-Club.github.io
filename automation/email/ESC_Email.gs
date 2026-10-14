@@ -33,6 +33,17 @@ function ESC_EMAIL_setup() {
     ['GONDERIM_AKTIF', 'KAPALI', 'Önce ESC_EMAIL_test; hazır olduğunda AÇIK yap.'],
     ['GONDERICI', ESC_EMAIL.account, 'Apps Script bu Gmail hesabıyla yetkilendirilmeli.']
   ]);
+  // Eski etkinliklere yanlışlıkla bildirim gitmesini önleyen başlangıç tarihi.
+  // Tekrar kurulum yapılırsa mevcut değer değiştirilmez.
+  const configSheet = ss.getSheetByName(ESC_EMAIL.settings);
+  if (!String(configSheet.getRange('A4').getDisplayValue()).trim()) {
+    configSheet.getRange('A4:C4').setValues([[
+      'ETKINLIK_ILK_TARIH',
+      Utilities.formatDate(new Date(), ESC_EMAIL.timeZone, 'dd.MM.yyyy'),
+      'Bu tarihten önce başlayan etkinliklere hatırlatma veya teşekkür gönderilmez.'
+    ]]);
+  }
+
   escEmailEnsureSheet_(ss, ESC_EMAIL.log, [
     ['İşlem Zamanı', 'Tekil Anahtar', 'Tür', 'E-posta', 'Üye No',
       'Etkinlik No', 'Durum', 'Hata / Not']
@@ -117,6 +128,8 @@ function escEmailProcessScheduled_(preview) {
   try {
     if (!preview) escEmailAssertSender_(ss);
     const ctx = escEmailContext_(ss);
+    const firstEventTime = escEmailFirstEventTime_(ss);
+    const byEvent = {};
     const members = escEmailReadMembers_(ss);
     const rosters = escEmailReadRosters_(ss);
     const eventsSheet = ss.getSheetByName(ESC_EMAIL.events);
@@ -133,7 +146,7 @@ function escEmailProcessScheduled_(preview) {
       const eventId = String(row[0] || '').trim();
       if (!eventId || !rosters.has(eventId)) return;
       const times = escEmailParseEventTime_(row[1], row[2]);
-      if (!times) return;
+      if (!times || times.start < firstEventTime) return;
       const state = escEmailSimplify_(row[12]);
       if (state === 'iptal' || state === 'iptal edildi') return;
 
@@ -163,6 +176,8 @@ function escEmailProcessScheduled_(preview) {
         if (seen.has(key)) return;
         seen.add(key);
         dueCount += 1;
+        const eventKey = kind + ':' + eventId;
+        byEvent[eventKey] = (byEvent[eventKey] || 0) + 1;
         if (preview) return;
         const info = 'Tarih: ' + dateText + '\nSaat: ' + hoursText +
           '\nTür: ' + format + '\nYer / platform: ' + venue +
@@ -193,9 +208,23 @@ function escEmailProcessScheduled_(preview) {
     Logger.log((preview ? 'Önizleme' : 'Gönderim') +
       ': uygun=' + dueCount + ', denenen=' + attempted +
       ', başarılı=' + delivered);
+    Logger.log('Etkinlik bazında adaylar (kişisel veri içermez): ' +
+      JSON.stringify(byEvent));
   } finally {
     lock.releaseLock();
   }
+}
+
+function escEmailFirstEventTime_(ss) {
+  const settings = ss.getSheetByName(ESC_EMAIL.settings);
+  if (!settings) throw new Error('E-posta Otomasyonu sekmesi bulunamadı.');
+  const value = settings.getRange('B4').getValue();
+  const parsed = escEmailParseEventTime_(value, '00.00-23.59');
+  if (!parsed) {
+    throw new Error('Güvenlik: E-posta Otomasyonu!B4 geçerli başlangıç ' +
+      'tarihi olmalı (ör. 14.10.2026). Gönderim durduruldu.');
+  }
+  return parsed.start;
 }
 
 function escEmailReadMembers_(ss) {
