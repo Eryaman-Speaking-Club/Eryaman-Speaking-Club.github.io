@@ -83,6 +83,55 @@ function ESC_EMAIL_preview() {
   escEmailProcessScheduled_(true);
 }
 
+/**
+ * Yalnızca gelecek etkinlikler için planlanan gönderimleri listeler.
+ * Gmail'e bağlanmaz, hiçbir mesaj göndermez ve günlükte kayıt oluşturmaz.
+ */
+function ESC_EMAIL_plan() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const firstEventTime = escEmailFirstEventTime_(ss);
+  const members = escEmailReadMembers_(ss);
+  const rosters = escEmailReadRosters_(ss);
+  const blocked = escEmailBlocked_(ss);
+  const eventSheet = ss.getSheetByName(ESC_EMAIL.events);
+  const count = Math.min(Math.max(0, eventSheet.getLastRow() - 4), 200);
+  const events = count ? eventSheet.getRange(5, 1, count, 15).getValues() : [];
+  const pending = [];
+  const now = Date.now();
+
+  events.forEach(function (row) {
+    const eventId = String(row[0] || '').trim();
+    if (!eventId || !rosters.has(eventId)) return;
+    if (escEmailSimplify_(row[12]) !== 'planlandi') return;
+    const times = escEmailParseEventTime_(row[1], row[2]);
+    if (!times || times.start < firstEventTime || times.start <= now) return;
+    if (!String(row[3] || '').trim() || !String(row[5] || '').trim()) return;
+    const planned = times.start - 24 * 3600000;
+    const alreadyQueued = new Set();
+    const recipients = rosters.get(eventId).filter(function (entry) {
+      if (!entry.listed) return false;
+      const member = members.get(entry.memberId);
+      if (!member || !member.email || !member.consent) return false;
+      if (blocked.has(member.email)) return false;
+      if (alreadyQueued.has(entry.memberId)) return false;
+      alreadyQueued.add(entry.memberId);
+      return true;
+    }).length;
+
+    pending.push({
+      event: eventId,
+      reminderAt: Utilities.formatDate(new Date(planned),
+        ESC_EMAIL.timeZone, 'dd.MM.yyyy HH:mm'),
+      recipients: recipients
+    });
+  });
+
+  Logger.log('GÖNDERİMSİZ PLAN: ' + JSON.stringify(pending));
+  Logger.log('Bu fonksiyon hiçbir e-posta göndermedi. ' +
+    'B2 gönderim anahtarı: ' +
+    (escEmailActive_(ss) ? 'AÇIK' : 'KAPALI'));
+}
+
 function ESC_EMAIL_onFormSubmit(e) {
   if (!e || !e.range || e.range.getSheet().getName() !== ESC_EMAIL.form) return;
   const lock = LockService.getScriptLock();
@@ -150,8 +199,12 @@ function escEmailProcessScheduled_(preview) {
       const state = escEmailSimplify_(row[12]);
       if (state === 'iptal' || state === 'iptal edildi') return;
 
+      // Etkinlikten 24 saat önce başlayan 1 saatlik pencere.
+      // Bir kişi sonradan listeye eklenirse geç hatırlatma gönderilmez.
+      // Saatlik Apps Script tetikleyicisi nedeniyle kesin dakika garanti edilmez.
+      const reminderAt = times.start - 24 * hour;
       const reminderDue = state === 'planlandi' &&
-        times.start > now + 2 * hour && times.start <= now + 24 * hour;
+        now >= reminderAt && now < reminderAt + hour;
       const thanksDue = state === 'tamamlandi' && times.end &&
         times.end + hour <= now && times.end + 7 * 24 * hour >= now;
       if (!reminderDue && !thanksDue) return;
