@@ -18,7 +18,8 @@ const ESC_EMAIL = Object.freeze({
   log: 'E-posta Günlüğü',
   blocked: 'E-posta Engelleme',
   templates: 'E-posta Şablonları',
-  maxPerRun: 35
+  maxPerRun: 35,
+  rosterBlockSize: 500
 });
 
 function ESC_EMAIL_setup() {
@@ -53,18 +54,26 @@ function ESC_EMAIL_setup() {
     ['E-posta', 'Açıklama', 'Tarih']
   ]);
 
-  const handlers = ScriptApp.getProjectTriggers().map(function (trigger) {
-    return trigger.getHandlerFunction();
-  });
-  if (handlers.indexOf('ESC_EMAIL_onFormSubmit') === -1) {
+  const triggers = ScriptApp.getProjectTriggers();
+  if (!triggers.some(function (trigger) {
+    return trigger.getHandlerFunction() === 'ESC_EMAIL_onFormSubmit';
+  })) {
     ScriptApp.newTrigger('ESC_EMAIL_onFormSubmit')
       .forSpreadsheet(ss).onFormSubmit().create();
   }
-  if (handlers.indexOf('ESC_EMAIL_runScheduled') === -1) {
-    ScriptApp.newTrigger('ESC_EMAIL_runScheduled')
-      .timeBased().everyHours(1).create();
-  }
-  Logger.log('Kurulum hazır. Gönderim KAPALI. Şimdi ESC_EMAIL_test çalıştırın.');
+
+  // Eski saatlik tetikleyiciyi SADECE ESC fonksiyonu için yenile.
+  // Önce yeni tetikleyiciyi oluştur: oluşturma başarısız olursa eskisi kalsın.
+  const oldTimers = triggers.filter(function (trigger) {
+    return trigger.getHandlerFunction() === 'ESC_EMAIL_runScheduled';
+  });
+  ScriptApp.newTrigger('ESC_EMAIL_runScheduled')
+    .timeBased().everyMinutes(15).create();
+  oldTimers.forEach(function (trigger) { ScriptApp.deleteTrigger(trigger); });
+
+  Logger.log('Kurulum hazır. Hatırlatmalar 15 dakikada bir kontrol edilecek. ' +
+    'Gerçek gönderim durumu: ' + (escEmailActive_(ss) ? 'AÇIK' : 'KAPALI'));
+
 }
 
 function ESC_EMAIL_test() {
@@ -92,7 +101,6 @@ function ESC_EMAIL_plan() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const firstEventTime = escEmailFirstEventTime_(ss);
   const members = escEmailReadMembers_(ss);
-  const rosters = escEmailReadRosters_(ss);
   const blocked = escEmailBlocked_(ss);
   const eventSheet = ss.getSheetByName(ESC_EMAIL.events);
   const count = Math.min(Math.max(0, eventSheet.getLastRow() - 4), 200);
@@ -100,13 +108,24 @@ function ESC_EMAIL_plan() {
   const pending = [];
   const now = Date.now();
 
-  events.forEach(function (row) {
+  // Katılım tabloları her etkinlik için 500 satırlık bloklardan oluşur.
+  // Sadece gelecekteki PLANLANDI etkinliklerinin bloklarını oku.
+  const specs = [];
+  events.forEach(function (row, index) {
     const eventId = String(row[0] || '').trim();
-    if (!eventId || !rosters.has(eventId)) return;
-    if (escEmailSimplify_(row[12]) !== 'planlandi') return;
+    if (!eventId || escEmailSimplify_(row[12]) !== 'planlandi') return;
     const times = escEmailParseEventTime_(row[1], row[2]);
     if (!times || times.start < firstEventTime || times.start <= now) return;
     if (!String(row[3] || '').trim() || !String(row[5] || '').trim()) return;
+    specs.push({ id: eventId, index: index, type: row[3] });
+  });
+  const rosters = escEmailReadRosters_(ss, specs);
+
+  specs.forEach(function (spec) {
+    const eventId = spec.id;
+    if (!rosters.has(eventId)) return;
+    const row = events[spec.index];
+    const times = escEmailParseEventTime_(row[1], row[2]);
     const planned = times.start - 24 * 3600000;
     const alreadyQueued = new Set();
     const recipients = rosters.get(eventId).filter(function (entry) {
@@ -176,12 +195,31 @@ function escEmailProcessScheduled_(preview) {
     const firstEventTime = escEmailFirstEventTime_(ss);
     const byEvent = {};
     const members = escEmailReadMembers_(ss);
-    const rosters = escEmailReadRosters_(ss);
     const eventsSheet = ss.getSheetByName(ESC_EMAIL.events);
     const n = Math.min(Math.max(0, eventsSheet.getLastRow() - 4), 200);
     const rows = n ? eventsSheet.getRange(5, 1, n, 15).getValues() : [];
     const now = Date.now();
     const hour = 3600000;
+
+    // Zamanı henüz gelmemiş etkinlikler için devasa katılım tablolarını tarama.
+    const due = [];
+    rows.forEach(function (row, index) {
+      const eventId = String(row[0] || '').trim();
+      if (!eventId) return;
+      const times = escEmailParseEventTime_(row[1], row[2]);
+      if (!times || times.start < firstEventTime) return;
+      const state = escEmailSimplify_(row[12]);
+      const reminderAt = times.start - 24 * hour;
+      const reminderDue = state === 'planlandi' &&
+        now >= reminderAt && now < reminderAt + hour;
+      const thanksDue = state === 'tamamlandi' && times.end &&
+        times.end + hour <= now && times.end + 7 * 24 * hour >= now;
+      if ((reminderDue || thanksDue) &&
+          String(row[3] || '').trim() && String(row[5] || '').trim()) {
+        due.push({ id: eventId, index: index, type: row[3] });
+      }
+    });
+    const rosters = escEmailReadRosters_(ss, due);
     let dueCount = 0;
     let attempted = 0;
     let delivered = 0;
@@ -197,7 +235,7 @@ function escEmailProcessScheduled_(preview) {
 
       // Etkinlikten 24 saat önce başlayan 1 saatlik pencere.
       // Bir kişi sonradan listeye eklenirse geç hatırlatma gönderilmez.
-      // Saatlik Apps Script tetikleyicisi nedeniyle kesin dakika garanti edilmez.
+      // 15 dakikalık Apps Script tetikleyicisi tam dakika garantisi vermez.
       const reminderAt = times.start - 24 * hour;
       const reminderDue = state === 'planlandi' &&
         now >= reminderAt && now < reminderAt + hour;
@@ -312,23 +350,51 @@ function escEmailReadMembers_(ss) {
   return members;
 }
 
-function escEmailReadRosters_(ss) {
+/**
+ * Kayıt sayfalarının gerçek düzeni: Etkinlikler!A5, ilk 500 katılım satırı,
+ * Etkinlikler!A6 sonraki 500 satır, ...; ör. ETK-017 -> 8004. satır.
+ * Satır 8000 sınırı yoktur. Yalnızca istenen etkinlik bloklarını okur.
+ * Sayfa düzeni değişirse yanlış kişilere mesaj göndermek yerine hata verir.
+ */
+function escEmailReadRosters_(ss, eventSpecs) {
   const rosters = new Map();
-  ESC_EMAIL.rosters.forEach(function (name) {
-    const sheet = ss.getSheetByName(name);
-    const n = Math.min(Math.max(0, sheet.getLastRow() - 3), 8000);
-    const rows = n ? sheet.getRange(4, 1, n, 6).getValues() : [];
-    rows.forEach(function (r) {
-      const eventId = String(r[0] || '').trim();
-      const memberId = String(r[1] || '').trim();
-      if (!eventId || !memberId) return;
-      if (!rosters.has(eventId)) rosters.set(eventId, []);
-      rosters.get(eventId).push({
+  const seenSpecs = new Set();
+  eventSpecs.forEach(function (spec) {
+    if (seenSpecs.has(spec.id)) throw new Error('Tekrarlanan etkinlik numarası: ' + spec.id);
+    seenSpecs.add(spec.id);
+    const kind = escEmailSimplify_(spec.type);
+    const sheetName = kind === 'online' ? 'Katılım Online' :
+      kind === 'face to face' ? 'Katılım Yüz Yüze' : '';
+    if (!sheetName) {
+      Logger.log('Bilinmeyen etkinlik türü; atlandı: ' + spec.id);
+      return;
+    }
+    const sheet = ss.getSheetByName(sheetName);
+    if (!sheet) throw new Error('Katılım sayfası bulunamadı: ' + sheetName);
+    const blockStart = 4 + spec.index * ESC_EMAIL.rosterBlockSize;
+    if (blockStart + ESC_EMAIL.rosterBlockSize - 1 > sheet.getMaxRows()) {
+      throw new Error('Katılım sayfasında etkinlik bloğu bulunamadı: ' + spec.id);
+    }
+    const rows = sheet.getRange(blockStart, 1, ESC_EMAIL.rosterBlockSize, 6).getValues();
+    const firstId = String(rows[0][0] || '').trim();
+    if (firstId && firstId !== spec.id) {
+      throw new Error('Katılım bloğu etkinlik numarasıyla uyuşmuyor: ' + spec.id);
+    }
+    const entries = [];
+    rows.forEach(function (row) {
+      const eventId = String(row[0] || '').trim();
+      const memberId = String(row[1] || '').trim();
+      if (eventId && eventId !== spec.id) {
+        throw new Error('Katılım satırında farklı etkinlik numarası: ' + spec.id);
+      }
+      if (eventId !== spec.id || !memberId) return;
+      entries.push({
         memberId: memberId,
-        listed: escEmailYes_(r[4]),
-        attended: escEmailYes_(r[5])
+        listed: escEmailYes_(row[4]),
+        attended: escEmailYes_(row[5])
       });
     });
+    rosters.set(spec.id, entries);
   });
   return rosters;
 }
