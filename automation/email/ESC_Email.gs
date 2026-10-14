@@ -190,11 +190,17 @@ function ESC_EMAIL_selfTest() {
   const specs = [];
   rows.forEach(function (row, index) {
     const id = String(row[0] || '').trim();
-    if (!id || (!row[1] && !row[2])) return; // Boş gelecek şablonları
+    if (!id) return;
+    const state = escEmailSimplify_(row[12]);
+    if (!row[1] && !row[2]) {
+      if (state === 'planlandi') {
+        throw new Error('Planlandı olarak işaretli etkinlikte tarih/saat boş: ' + id);
+      }
+      return; // Boş gelecek şablonları.
+    }
     const times = escEmailParseEventTime_(row[1], row[2]);
     if (!times) throw new Error('Geçersiz etkinlik zamanı: ' + id);
     if (times.start < before || times.end <= now) return; // Tarihi geçenler
-    const state = escEmailSimplify_(row[12]);
     if (state === 'iptal' || state === 'iptal edildi') return;
     if (state !== 'planlandi') {
       throw new Error('Gelecek etkinlik Planlandı olmalı: ' + id);
@@ -271,8 +277,12 @@ function ESC_EMAIL_runScheduled() {
     const summary = escEmailProcessScheduled_(false);
     const active = escEmailActive_(SpreadsheetApp.getActiveSpreadsheet());
     const failed = summary ? summary.attempted - summary.delivered : 0;
-    escEmailHealth_(active ? (failed ? 'KONTROL GEREKİYOR' : 'ÇALIŞIYOR')
-      : 'KAPALI', failed ? failed + ' e-posta işlenemedi.' : '');
+    const invalid = summary ? summary.invalidEvents : 0;
+    const needsAttention = !!(failed || invalid);
+    escEmailHealth_(active
+      ? (needsAttention ? 'KONTROL GEREKİYOR' : 'ÇALIŞIYOR') : 'KAPALI',
+    needsAttention ? failed + ' gönderim başarısız; ' +
+      invalid + ' etkinlik bilgisi eksik/hatalı.' : '');
   } catch (error) {
     escEmailHealth_('HATA', String(error));
     escEmailAlert_('Zamanlanmış e-posta işlemi', error);
@@ -291,6 +301,7 @@ function escEmailProcessScheduled_(preview) {
     const firstEventTime = escEmailFirstEventTime_(ss);
     const schedule = escEmailScheduleSettings_(ss);
     const byEvent = {};
+    let invalidEvents = 0;
     const members = escEmailReadMembers_(ss);
     const rows = escEmailReadEvents_(ss);
     const now = Date.now();
@@ -301,9 +312,11 @@ function escEmailProcessScheduled_(preview) {
       if (!eventId) return;
       const times = escEmailParseEventTime_(row[1], row[2]);
       if (!times) {
-        if (escEmailSimplify_(row[12]) === 'planlandi' && (row[1] || row[2])) {
-          escEmailAlert_('Geçersiz etkinlik zamanı',
-            new Error(eventId + ': tarih veya saat geçersiz.'));
+        if (escEmailSimplify_(row[12]) === 'planlandi') {
+          invalidEvents += 1;
+          Logger.log('UYARI ' + eventId + ': tarih veya saat geçersiz/boş.');
+          if (!preview) escEmailAlert_('Geçersiz etkinlik zamanı',
+            new Error(eventId + ': tarih veya saat geçersiz/boş.'));
         }
         return;
       }
@@ -312,7 +325,9 @@ function escEmailProcessScheduled_(preview) {
         escEmailSimplify_(row[12]), times, now, schedule);
       if (status.reminder || status.thanks) {
         if (!String(row[3] || '').trim() || !String(row[5] || '').trim()) {
-          escEmailAlert_('Eksik etkinlik bilgisi',
+          invalidEvents += 1;
+          Logger.log('UYARI ' + eventId + ': etkinlik türü veya mekân boş.');
+          if (!preview) escEmailAlert_('Eksik etkinlik bilgisi',
             new Error(eventId + ': etkinlik türü veya mekân boş.'));
           return;
         }
@@ -385,7 +400,8 @@ function escEmailProcessScheduled_(preview) {
       ', başarılı=' + delivered);
     Logger.log('Etkinlik bazında adaylar (kişisel veri içermez): ' +
       JSON.stringify(byEvent));
-    return { dueCount: dueCount, attempted: attempted, delivered: delivered };
+    return { dueCount: dueCount, attempted: attempted,
+      delivered: delivered, invalidEvents: invalidEvents };
   } finally {
     lock.releaseLock();
   }
