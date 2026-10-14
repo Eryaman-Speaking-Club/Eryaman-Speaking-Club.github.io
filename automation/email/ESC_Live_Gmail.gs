@@ -93,6 +93,14 @@ function ESC_LIVE_run() {
         if(!subject || !body || /\{\{[a-z_]+\}\}/i.test(subject+' '+body)){
           throw new Error('Şablonda doldurulmamış alan veya boş içerik');
         }
+        // The queue is authorized at claim time, but a long batch may cross
+        // the event start. Never send any pre-event message after start.
+        if (['welcome','reminder','change','cancelled'].includes(String(item.kind))) {
+          const startsAt=Date.parse(String(item.event_start_at||''));
+          if (!Number.isFinite(startsAt) || Date.now() >= startsAt) {
+            throw new Error('Etkinlik başladı veya başlangıç tarihi geçersiz; mesaj gönderilmedi.');
+          }
+        }
         // MailApp returning without exception is acceptance, not inbox delivery proof.
         MailApp.sendEmail({to:item.email,subject:subject,body:body,
           name:ESC_LIVE.name,replyTo:ESC_LIVE.sender});
