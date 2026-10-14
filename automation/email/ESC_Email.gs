@@ -46,6 +46,25 @@ function ESC_EMAIL_setup() {
     ]]);
   }
 
+  // Ayarlar ilk kez kurulurken doldurulur; sonraki çalışmalarda kullanıcı
+  // tarafından değiştirilmiş değerleri kesinlikle üzerine yazma.
+  const scheduleDefaults = [
+    ['HATIRLATMA_SAAT_ONCE', 24,
+      'Etkinlikten kaç saat önce? 24 = 1 gün. 1-168 arası tam sayı.'],
+    ['TESEKKUR_SAAT_SONRA', 1,
+      'Etkinlik bitiminden kaç saat sonra? 1 = 1 saat. 0-72 arası tam sayı.']
+  ];
+  scheduleDefaults.forEach(function (row, index) {
+    const targetRow = 5 + index;
+    const key = String(configSheet.getRange(targetRow, 1).getValue() || '').trim();
+    if (!key) {
+      configSheet.getRange(targetRow, 1, 1, 3).setValues([row]);
+    } else if (key !== row[0]) {
+      throw new Error('E-posta Otomasyonu!A' + targetRow +
+        ' alanı beklenenden farklı. Veriler değiştirilmedi.');
+    }
+  });
+
   escEmailEnsureSheet_(ss, ESC_EMAIL.log, [
     ['İşlem Zamanı', 'Tekil Anahtar', 'Tür', 'E-posta', 'Üye No',
       'Etkinlik No', 'Durum', 'Hata / Not']
@@ -100,6 +119,7 @@ function ESC_EMAIL_preview() {
 function ESC_EMAIL_plan() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const firstEventTime = escEmailFirstEventTime_(ss);
+  const schedule = escEmailScheduleSettings_(ss);
   const members = escEmailReadMembers_(ss);
   const blocked = escEmailBlocked_(ss);
   const eventSheet = ss.getSheetByName(ESC_EMAIL.events);
@@ -126,7 +146,7 @@ function ESC_EMAIL_plan() {
     if (!rosters.has(eventId)) return;
     const row = events[spec.index];
     const times = escEmailParseEventTime_(row[1], row[2]);
-    const planned = times.start - 24 * 3600000;
+    const planned = times.start - schedule.reminderHoursBefore * 3600000;
     const alreadyQueued = new Set();
     const recipients = rosters.get(eventId).filter(function (entry) {
       if (!entry.listed) return false;
@@ -141,6 +161,9 @@ function ESC_EMAIL_plan() {
     pending.push({
       event: eventId,
       reminderAt: Utilities.formatDate(new Date(planned),
+        ESC_EMAIL.timeZone, 'dd.MM.yyyy HH:mm'),
+      thanksEarliestAt: Utilities.formatDate(
+        new Date(times.end + schedule.thanksHoursAfter * 3600000),
         ESC_EMAIL.timeZone, 'dd.MM.yyyy HH:mm'),
       recipients: recipients
     });
@@ -193,14 +216,13 @@ function escEmailProcessScheduled_(preview) {
     if (!preview) escEmailAssertSender_(ss);
     const ctx = escEmailContext_(ss);
     const firstEventTime = escEmailFirstEventTime_(ss);
+    const schedule = escEmailScheduleSettings_(ss);
     const byEvent = {};
     const members = escEmailReadMembers_(ss);
     const eventsSheet = ss.getSheetByName(ESC_EMAIL.events);
     const n = Math.min(Math.max(0, eventsSheet.getLastRow() - 4), 200);
     const rows = n ? eventsSheet.getRange(5, 1, n, 15).getValues() : [];
     const now = Date.now();
-    const hour = 3600000;
-
     // Zamanı henüz gelmemiş etkinlikler için devasa katılım tablolarını tarama.
     const due = [];
     rows.forEach(function (row, index) {
@@ -208,13 +230,9 @@ function escEmailProcessScheduled_(preview) {
       if (!eventId) return;
       const times = escEmailParseEventTime_(row[1], row[2]);
       if (!times || times.start < firstEventTime) return;
-      const state = escEmailSimplify_(row[12]);
-      const reminderAt = times.start - 24 * hour;
-      const reminderDue = state === 'planlandi' &&
-        now >= reminderAt && now < reminderAt + hour;
-      const thanksDue = state === 'tamamlandi' && times.end &&
-        times.end + hour <= now && times.end + 7 * 24 * hour >= now;
-      if ((reminderDue || thanksDue) &&
+      const status = escEmailDueKinds_(
+        escEmailSimplify_(row[12]), times, now, schedule);
+      if ((status.reminder || status.thanks) &&
           String(row[3] || '').trim() && String(row[5] || '').trim()) {
         due.push({ id: eventId, index: index, type: row[3] });
       }
@@ -233,17 +251,10 @@ function escEmailProcessScheduled_(preview) {
       const state = escEmailSimplify_(row[12]);
       if (state === 'iptal' || state === 'iptal edildi') return;
 
-      // Etkinlikten 24 saat önce başlayan 1 saatlik pencere.
-      // Bir kişi sonradan listeye eklenirse geç hatırlatma gönderilmez.
-      // 15 dakikalık Apps Script tetikleyicisi tam dakika garantisi vermez.
-      const reminderAt = times.start - 24 * hour;
-      const reminderDue = state === 'planlandi' &&
-        now >= reminderAt && now < reminderAt + hour;
-      const thanksDue = state === 'tamamlandi' && times.end &&
-        times.end + hour <= now && times.end + 7 * 24 * hour >= now;
-      if (!reminderDue && !thanksDue) return;
+      const status = escEmailDueKinds_(state, times, now, schedule);
+      if (!status.reminder && !status.thanks) return;
 
-      const kind = reminderDue ? 'reminder' : 'thanks';
+      const kind = status.reminder ? 'reminder' : 'thanks';
       const dateText = Utilities.formatDate(new Date(times.start),
         ESC_EMAIL.timeZone, 'dd.MM.yyyy');
       const hoursText = String(row[2] || '').trim();
@@ -317,6 +328,48 @@ function escEmailTemplate_(ss, kind, replacements) {
     });
   };
   return { subject: fill(match[1]), body: fill(match[2]) };
+}
+
+/**
+ * Saat ayarları E-posta Otomasyonu!B5:B6 alanlarından okunur.
+ * Eksik veya geçersiz değer varken e-posta göndermeyi reddeder.
+ */
+function escEmailScheduleSettings_(ss) {
+  const sheet = ss.getSheetByName(ESC_EMAIL.settings);
+  if (!sheet) throw new Error('E-posta Otomasyonu sekmesi bulunamadı.');
+  const rows = sheet.getRange('A5:B6').getValues();
+  const expected = ['HATIRLATMA_SAAT_ONCE', 'TESEKKUR_SAAT_SONRA'];
+  rows.forEach(function (row, index) {
+    const value = row[1];
+    const min = index === 0 ? 1 : 0;
+    const max = index === 0 ? 168 : 72;
+    if (String(row[0] || '').trim() !== expected[index] ||
+        typeof value !== 'number' || !Number.isInteger(value) ||
+        value < min || value > max) {
+      throw new Error('Geçersiz e-posta zaman ayarı: E-posta Otomasyonu!B' +
+        (index + 5) + '. Lütfen ' + min + '-' + max +
+        ' aralığında tam sayı girin. Gönderim yapılmadı.');
+    }
+  });
+  return { reminderHoursBefore: rows[0][1], thanksHoursAfter: rows[1][1] };
+}
+
+/**
+ * Hem ön seçimde hem gerçek gönderimde AYNI zaman kontrolünü kullan.
+ * Hatırlatmalar ayarlanan saatin ardından en fazla 1 saatlik pencerede;
+ * teşekkürler ise ayarlanan saatten itibaren 24 saatlik pencerede işlenir.
+ * Etkinlik durumu uygun değilse asla gönderilmez.
+ */
+function escEmailDueKinds_(state, times, now, schedule) {
+  const hour = 3600000;
+  const reminderAt = times.start - schedule.reminderHoursBefore * hour;
+  const thanksAt = times.end + schedule.thanksHoursAfter * hour;
+  return {
+    reminder: state === 'planlandi' &&
+      now >= reminderAt && now < Math.min(times.start, reminderAt + hour),
+    thanks: state === 'tamamlandi' && !!times.end &&
+      now >= thanksAt && now < thanksAt + 24 * hour
+  };
 }
 
 function escEmailFirstEventTime_(ss) {
