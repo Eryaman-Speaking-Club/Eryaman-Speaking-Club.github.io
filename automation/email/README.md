@@ -8,7 +8,7 @@ Bu modül, mevcut **Yönetim Paneli** Google Sheets dosyası üzerinde çalışa
 - **Kayıtlar**: A = üye no, C = ad, D = e-posta, P = iletişim onayı; satır 5'ten itibaren. Bu sayfa mevcut kayıt formundan formüllerle beslenir; formüller değiştirilmez.
 - **Etkinlikler**: A = etkinlik no, B = tarih, C = saat aralığı, D = tür, E = tema, F = mekân/platform, M = durum; satır 5'ten itibaren.
 - **Katılım Yüz Yüze / Katılım Online**: A = etkinlik no, B = üye no, E = listede, F = katıldı; satır 4'ten itibaren.
-- Yeni oluşan **E-posta Otomasyonu**: B2 = `KAPALI` (başlangıç durumu) veya `AÇIK`; B3 = yetkili Gmail adresi; **B4 = otomasyonun başlangıç tarihi**. Bu tarihten önce başlayan etkinlikler asla otomatik bildirim almaz. B4 `ESC_EMAIL_setup` sırasında yalnızca boşsa atanır.
+- Yeni oluşan **E-posta Otomasyonu**: B2 = `KAPALI` (başlangıç durumu) veya `AÇIK`; B3 = yetkili Gmail adresi; **B4 = otomasyonun başlangıç tarihi**, **B5 = hatırlatma için etkinlikten kaç saat önce**, **B6 = teşekkür için etkinlik bittikten kaç saat sonra**. B5 ve B6 sayıları Apps Script tarafından her çalışmada yeniden okunur; kod değiştirmeye gerek yoktur. Bu tarihten önce başlayan etkinlikler otomatik bildirim almaz. B4 `ESC_EMAIL_setup` sırasında yalnızca boşsa atanır.
 - Yeni oluşan **E-posta Günlüğü**: tekil gönderim kimliği, tür, durum ve hata kaydı.
 - Yeni oluşan **E-posta Engelleme**: A sütununda gönderim yapılmaması gereken adresler.
 
@@ -30,8 +30,8 @@ Bu modül, mevcut **Yönetim Paneli** Google Sheets dosyası üzerinde çalışa
 ## Gönderim mantığı
 
 - **Yeni kayıt onayı**: Yalnızca aktivasyondan **sonraki** `Kayıt Formu` gönderimlerinde, geçerli e-posta ve açık iletişim onayı varsa. Her adrese en fazla bir otomatik hoş geldin e-postası.
-- **Etkinlik hatırlatması**: Durumu `Planlandı` olan bir etkinliğe ilgili katılım sayfasında **Listede = TRUE** olarak bağlanan üyelere, etkinlikten **24 saat önce başlayan bir saatlik pencerede** gönderilir. Örnek: 18 Ekim 18.00 etkinliği için 17 Ekim 18.00–19.00 aralığı. Yükseltme sırasında eski saatlik tetikleyici **15 dakikalık** kontrolle değiştirilir; Apps Script dakikası dakikasına garanti etmez. Katılımcı hatırlatma penceresi geçtikten sonra eklenirse gecikmiş otomatik hatırlatma gönderilmez.
-- **Etkinlik sonrası teşekkür**: Durumu **Tamamlandı** olan etkinliğe **Katıldı = TRUE** işaretli üyeler için, etkinlik bitiminden en erken 1 saat sonra ve en geç 7 gün içinde. Geriye dönük eski katılımcılara gereksiz toplu gönderim yapılmasını önlemek için açılıştan önce günlük ve etkinlik durumları gözden geçirilmeli.
+- **Etkinlik hatırlatması**: Durumu `Planlandı` olan bir etkinliğe ilgili katılım sayfasında **Listede = TRUE** olarak bağlanan üyelere, `E-posta Otomasyonu!B5` hücresindeki saat kadar önce başlayan **1 saatlik pencerede** gönderilir (varsayılan 24 saat; örnek: 18 Ekim 18.00 etkinliği için 17 Ekim 18.00–19.00). Yükseltme sırasında eski saatlik tetikleyici **15 dakikalık** kontrolle değiştirilir; Apps Script dakikası dakikasına garanti etmez. Katılımcı hatırlatma penceresi geçtikten sonra eklenirse gecikmiş otomatik hatırlatma gönderilmez.
+- **Etkinlik sonrası teşekkür**: Durumu **Tamamlandı** olan etkinliğe **Katıldı = TRUE** işaretli üyeler için, `E-posta Otomasyonu!B6` hücresindeki saat kadar **etkinlik bitiminden sonra** gönderilir (varsayılan 1 saat). Teşekkürlerin, ayarlanan başlangıç anından itibaren 24 saatlik gönderim penceresi vardır; çok geç tamamlanan etkinlikler için geriye dönük mesaj gönderilmez.
 - **Kod güncellemesi:** GitHub dosyasını değiştirmek, Google Apps Script editöründeki mevcut kodu güncellemez. Yöneticinin `ESC_Email.gs` içeriğini yeni sürümle değiştirip **kaydetmesi** gerekir. **Bu yükseltmede `ESC_EMAIL_setup` mutlaka bir kez yeniden çalıştırılmalıdır** ki eski saatlik kontrol 15 dakikaya geçsin. Kod kaydetmek ve setup çalıştırmak tek başına e-posta göndermez. Gerçek gönderimler için ayrıca **B2 = AÇIK** gerekir.
 - **Başlangıç tarihi kuralı:** `E-posta Otomasyonu!B4` tarihinden önce başlayan etkinliklere hiçbir etkinlik bildirimi gönderilmez. Bu alan boş veya geçersizse zamanlı gönderim güvenlik nedeniyle durdurulur. Örneğin 14.10.2026 tarihli yeni kurulum 11 Ekim'de tamamlanmış bir etkinlik için geriye dönük teşekkür göndermez.
 - `ESC_EMAIL_preview` yürütme günlüklerinde mesaj adayı sayısını **etkinlik ve bildirim türüne göre** listeler; kişisel e-posta adresleri loglanmaz.
@@ -62,6 +62,24 @@ Bu modül, mevcut **Yönetim Paneli** Google Sheets dosyası üzerinde çalışa
 - Mevcut aktif Apps Script editörü GitHub'daki yeni kodu otomatik almaz. Yeni davranış için ESC yöneticisi `ESC_Email.gs` dosyasını son sürümle değiştirip kaydetmelidir.
 - Bu adım **hiçbir gönderim başlatmaz**. E-posta Otomasyonu!B2 **KAPALI** tutulur.
 - Etkinlik hatırlatmalarında mevcut, daha önceden ödeme yapmış veya paketi bulunan kişilerden tekrar ödeme istenmemesi gerektiği şablonda belirtilmiştir. Mevcut sistem otomatik ödeme durumu ayrımı yapmaz; gerekirse gönderimden önce katılımcılar yönetici tarafından kontrol edilmelidir.
+
+## Zamanlamayı Yönetim Paneli'nden değiştirmek (Ekim 2026)
+
+**E-posta Otomasyonu** sekmesindeki alanlar:
+
+| Hücre | Kontrol | Varsayılan | İzin verilen değer |
+|---|---|---:|---|
+| B2 | Tüm otomatik gönderimler | KAPALI | AÇIK veya KAPALI |
+| B5 | Hatırlatmayı etkinlikten kaç saat önce gönder? | 24 | 1-168 tam sayı |
+| B6 | Teşekkür mesajını etkinlik bittikten kaç saat sonra gönder? | 1 | 0-72 tam sayı |
+
+- B5 = 24: 18.10.2026 18:00 buluşması için hatırlatma 17.10.2026 18:00–19:00 penceresine girer. B5 = 48: bir gün daha erken gönderilir.
+- B6 = 1: 18.10.2026 18:00–20:00 buluşması sonrası en erken 21:00'de, yalnızca etkinlik **Tamamlandı** ve katılımcı **Katıldı** ise teşekkür mesajı gönderilir.
+- 15 dakikalık zamanlayıcı tam dakika garantisi vermez; e-postalar gönderim penceresi içinde işlenir. Tekrarlı gönderimi önlemek için günlükte tekil anahtarlar kullanılır.
+- B5/B6 değerlerini **tam sayı** gir. Hücreler için sayı sınırı veri doğrulaması bulunur; kod ayrıca geçersiz değerlerde **gönderimi durdurur**.
+- Google Sheets şablonları, mesaj konularını ve metinlerini kontrol eder; B5/B6 yalnızca **gönderim zamanlamasını** değiştirir.
+- **Önemli:** GitHub'a yeni kod kaydetmek, canlı Apps Script editörünü kendiliğinden güncellemez. Bu sürümde `ESC_Email.gs` dosyasının yeni içeriği Apps Script'e **bir kez** yapıştırılıp kaydedilmeli. Bundan sonraki saat ayarları için tekrar kod güncellemek gerekmez.
+- Mesajlar kapalı kalır: `E-posta Otomasyonu!B2 = KAPALI`; test ve gerçek gönderim ayrı yönetilir.
 
 ## Performans ve yeni sürüm kontrolü (Ekim 2026)
 
