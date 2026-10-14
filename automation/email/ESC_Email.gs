@@ -268,8 +268,13 @@ function ESC_EMAIL_onFormSubmit(e) {
 
 function ESC_EMAIL_runScheduled() {
   try {
-    escEmailProcessScheduled_(false);
+    const summary = escEmailProcessScheduled_(false);
+    const active = escEmailActive_(SpreadsheetApp.getActiveSpreadsheet());
+    const failed = summary ? summary.attempted - summary.delivered : 0;
+    escEmailHealth_(active ? (failed ? 'KONTROL GEREKİYOR' : 'ÇALIŞIYOR')
+      : 'KAPALI', failed ? failed + ' e-posta işlenemedi.' : '');
   } catch (error) {
+    escEmailHealth_('HATA', String(error));
     escEmailAlert_('Zamanlanmış e-posta işlemi', error);
     throw error;
   }
@@ -380,6 +385,7 @@ function escEmailProcessScheduled_(preview) {
       ', başarılı=' + delivered);
     Logger.log('Etkinlik bazında adaylar (kişisel veri içermez): ' +
       JSON.stringify(byEvent));
+    return { dueCount: dueCount, attempted: attempted, delivered: delivered };
   } finally {
     lock.releaseLock();
   }
@@ -649,6 +655,30 @@ function escEmailSend_(ctx, key, kind, email, memberId, eventId,
     ]]);
     escEmailAlert_('E-posta gönderim hatası', error);
     return false;
+  }
+}
+
+/**
+ * Düzenli sağlık bilgisi. Sadece E-posta Otomasyonu!A8:C10 yazılır;
+ * açık/kapalı ayarına ve katılımcı kayıtlarına dokunulmaz.
+ */
+function escEmailHealth_(status, error) {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet()
+      .getSheetByName(ESC_EMAIL.settings);
+    if (!sheet) return;
+    sheet.getRange('A8:C9').setValues([
+      ['SON_OTOMATIK_KONTROL', new Date(),
+        'Mevcut zamanlayıcı her 15 dakikada bir kontrol eder.'],
+      ['OTOMASYON_DURUMU', status,
+        'Hata durumunda yöneticiye uyarı gönderilmeye çalışılır.']
+    ]);
+    if (error) sheet.getRange('A10:C10').setValues([[
+      'SON_HATA', String(error).slice(0, 250),
+      'Ayrıntılar için Apps Script > Yürütmeler ve E-posta Günlüğü.'
+    ]]);
+  } catch (healthError) {
+    Logger.log('Sağlık göstergesi yazılamadı: ' + healthError);
   }
 }
 
