@@ -68,13 +68,14 @@ function ESC_CALENDAR_sync() {
 function ESC_CALENDAR_runDaily() {
   try {
     const report = escCalendarSync_();
-    const status = report.disabled ? 'KAPALI' :
+    const status = report.busy ? 'MEŞGUL | sonraki kontrolde yeniden denenecek' :
+      report.disabled ? 'KAPALI' :
       ('ÇALIŞIYOR | ' + report.created + ' yeni, ' +
        report.existing + ' mevcut, ' + report.remaining + ' boş yuva');
     escCalendarStatus_(status);
     Logger.log('TAKVİM: ' + status +
       '. Katılımcılara hiçbir e-posta gönderilmedi.');
-    if (!report.disabled && report.remaining <= 12) {
+    if (!report.disabled && !report.busy && report.remaining <= 12) {
       escCalendarAlert_('Etkinlik yuvaları azalıyor: ' +
         report.remaining + ' boş yuva kaldı. Katılım blokları ' +
         'genişletilmeden 200 etkinlik sınırı aşılmamalıdır.');
@@ -91,7 +92,7 @@ function escCalendarSync_() {
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(20000)) {
     Logger.log('Takvim kilitli; sonraki günlük kontrolde yeniden denenecek.');
-    return { disabled: false, created: 0, existing: 0, remaining: -1 };
+    return { busy: true, disabled: false, created: 0, existing: 0, remaining: -1 };
   }
   try {
     const plan = escCalendarPlan_(ss);
@@ -165,7 +166,17 @@ function escCalendarPlan_(ss) {
       continue;
     }
     const hasDate = escCalendarHasValue_(row[1]);
+    if (!hasDate && String(status[0] || '').trim() === 'Planlandı') {
+      throw new Error('Planlanan etkinlikte tarih eksik: ' + id);
+    }
     if (hasDate) {
+      if (!escCalendarHasValue_(row[2]) ||
+          !escCalendarHasValue_(row[3]) ||
+          !escCalendarHasValue_(row[5]) ||
+          !escCalendarHasValue_(status[0])) {
+        throw new Error('Tarihi olan etkinlikte saat, tür, mekân ' +
+          'veya durum eksik: ' + id);
+      }
       const dateKey = escCalendarDateKey_(row[1]);
       if (!dateKey) throw new Error('Etkinlik tarihi okunamıyor: ' + id);
       occupied.add(dateKey);
