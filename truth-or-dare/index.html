@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-speaking-release="20261014-logo-bottom-fit">
+<html lang="en" data-speaking-release="20261014-wheel-polish-v2">
 <head>
   <link rel="icon" type="image/png" href="/favicon.png?v=20260922">
   <meta charset="UTF-8">
@@ -21,7 +21,7 @@
   <meta name="twitter:description" content="Practice English speaking with this free browser-based conversation game. Free browser-based English speaking game by Eryaman Speaking Club.">
   <meta name="twitter:image" content="https://eryamanspeakingclub.com/og-card.jpg">
 <title>Truth or Dare | Free English Speaking Game</title>
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./styles.css?v=20261014-wheel-polish-v2">
   <link rel="stylesheet" href="../esc-brand.css?v=20260915-2241">
   <style>
     .player-wheel.wheel-click-target{cursor:pointer;touch-action:manipulation;user-select:none}
@@ -116,15 +116,16 @@
         </div>
 
         <div id="emptyPlayers" class="empty-card" hidden>
-          <strong>Add at least 2 names to start playing.</strong>
-          <button id="openNames" class="link-button">Add names</button>
+          <strong>Who's playing today?</strong>
+          <p>Add at least two names to start the wheel.</p>
+          <button id="openNames" class="primary-button" type="button">+ Add players</button>
         </div>
 
         <div class="screen-actions">
           <button id="spinPlayer" class="primary-button">Spin for a player</button>
           <button id="newRound" class="secondary-button">New round</button>
         </div>
-        <div id="roundStatus" class="round-status"></div>
+        <div id="roundStatus" class="round-status" role="status" aria-live="polite"></div>
         <div class="volume-control">
           <label for="volumeSlider"><span>Sound level</span><output id="volumeValue" for="volumeSlider">200%</output></label>
           <input id="volumeSlider" type="range" min="0" max="300" step="10" value="200" aria-label="Sound level">
@@ -329,7 +330,7 @@
   </script>
   <script src="../esc-supabase-config.js?v=20261006-seofinal"></script>
   <script src="../esc-supabase.js?v=20261006-seofinal"></script>
-  <script src="./app.js?v=20261014-logo-bottom-fit"></script>
+  <script src="./app.js?v=20261014-wheel-polish-v2"></script>
   <script>
     (() => {
       const VOLUME_KEY = 'esc-truth-dare-volume-percent-v1';
@@ -374,7 +375,11 @@
         wheel.removeAttribute('title'); // No native tooltip over the wheel.
 
         const triggerSpin = () => {
-          if (spinButton.disabled || wheel.classList.contains('spinning') || wheel.classList.contains('winner')) return;
+          if (spinButton.disabled) {
+            $('players')?.click();
+            return;
+          }
+          if (wheel.classList.contains('is-spinning') || wheel.classList.contains('spinning')) return;
           spinButton.click();
         };
 
