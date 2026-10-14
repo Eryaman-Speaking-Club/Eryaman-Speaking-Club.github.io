@@ -186,3 +186,37 @@ main{width:min(800px,100%);margin:0 auto;padding-bottom:24px}
   .editor-actions>*{flex:1}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* Truth or Dare — polished player wheel and first-time setup (2026-10-14).
+   Scoped to this screen; other games and question views remain untouched. */
+#playerScreen .screen-copy{margin-bottom:14px}
+#playerScreen .screen-copy h1{font-size:clamp(34px,4.7vw,50px);line-height:1.08;letter-spacing:-.047em}
+#playerScreen .screen-copy p{font-size:14px;line-height:1.55}
+#playerScreen .wheel-stage{width:min(386px,100%,82vw);margin:17px auto 22px;transition:width .22s ease}
+#playerScreen .wheel-stage.is-empty{width:min(306px,100%,70vw);margin-top:18px;margin-bottom:14px}
+#playerScreen .wheel-pointer{top:-3px;border-left-width:12px;border-right-width:12px;border-top-width:23px;filter:drop-shadow(0 4px 5px rgb(11 47 91/.16))}
+#playerScreen .player-wheel{box-shadow:0 19px 50px rgb(11 47 91/.15),inset 0 0 0 9px #fff,inset 0 0 0 11px #d9e2ea}
+#playerScreen .player-wheel.winner{box-shadow:0 23px 58px rgb(11 47 91/.2),0 0 0 6px rgb(242 163 41/.14),inset 0 0 0 9px #fff,inset 0 0 0 11px #d9e2ea}
+#playerScreen .wheel-stage.is-empty .player-wheel{box-shadow:0 16px 45px rgb(11 47 91/.13),inset 0 0 0 9px #fff,inset 0 0 0 11px #d9e2ea}
+#playerScreen .wheel-stage.is-empty .wheel-pointer{opacity:.94}
+#playerScreen .empty-card{width:min(430px,100%);margin:4px auto 0;padding:17px 20px 18px;border:1px solid #dce7f0;border-radius:19px;background:#fff;box-shadow:0 14px 35px rgb(11 47 91/.07)}
+#playerScreen .empty-card strong{font-size:17px;line-height:1.3;letter-spacing:-.025em;margin-bottom:4px}
+#playerScreen .empty-card p{color:var(--muted);font-size:13px;line-height:1.5;margin:0 auto 14px}
+#playerScreen .empty-card .primary-button{min-height:46px;padding:11px 22px;box-shadow:0 9px 20px rgb(11 47 91/.18)}
+#playerScreen .screen-actions .primary-button{min-height:48px}
+#playerScreen .round-status{display:inline-flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;padding:8px 13px;border:1px solid #d8e6ee;border-radius:999px;background:#f7fafc;color:#4d6b82;font-size:12px;font-weight:800}
+#playerScreen .round-status::before{content:"";width:7px;height:7px;border-radius:50%;background:#2b9b8b}
+#playerScreen .volume-control{margin-top:16px}
+@media(max-width:680px){
+  #playerScreen .screen-copy h1{font-size:clamp(30px,7.2vw,40px)}
+  #playerScreen .screen-copy p{font-size:13px}
+  #playerScreen .wheel-stage{width:min(356px,100%,86vw)}
+  #playerScreen .wheel-stage.is-empty{width:min(282px,100%,76vw)}
+  #playerScreen .empty-card{padding:16px}
+}
+@media(max-width:430px){
+  #playerScreen .wheel-stage.is-empty{width:min(274px,100%,78vw)}
+  #playerScreen .empty-card strong{font-size:16px}
+  #playerScreen .screen-actions>*{flex:1 1 138px}
+}
+@media(prefers-reduced-motion:reduce){#playerScreen .wheel-stage{transition:none}}
