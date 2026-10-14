@@ -223,14 +223,14 @@
       .wheel-name-layer{position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:50%}
       .wheel-name{position:absolute;transform:translate(-50%,-50%) rotate(var(--counter-rotation,0deg));transform-origin:center;color:#fff;font-weight:950;line-height:1.05;letter-spacing:-.02em;text-align:center;text-shadow:0 2px 6px rgba(0,0,0,.38);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:4px 6px;pointer-events:none;z-index:3}
       .wheel-rotor .wheel-ring{z-index:1}
-      .wheel-center{z-index:5!important;width:42%!important;height:42%!important;padding:10px!important;position:relative;overflow:hidden;border-radius:50%;background:#fff;box-shadow:0 10px 30px rgba(11,47,91,.17),inset 0 0 0 1px #e2e9ef}
-      .wheel-center.show-logo{padding:0!important}
+      .wheel-center{z-index:5!important;width:10%!important;height:10%!important;min-width:22px;min-height:22px;padding:0!important;position:relative;overflow:hidden;border-radius:50%;background:#fff;box-shadow:0 10px 30px rgba(11,47,91,.17),inset 0 0 0 1px #e2e9ef}
+      .wheel-center.show-logo{padding:0!important} .wheel-center #wheelLabel,.wheel-center #wheelName{display:none!important}
       .wheel-center.show-logo #wheelLabel{display:none!important}
       .wheel-center strong.logo-mode{position:absolute;left:50%;bottom:9%;transform:translateX(-50%);width:72%;height:72%;margin:0;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:50%}
       .wheel-logo-symbol{display:block;width:100%;height:100%;max-width:100%;object-fit:contain;object-position:center;border-radius:50%;pointer-events:none;user-select:none}
       .wheel-center strong:not(.logo-mode){font-size:clamp(17px,3.5vw,30px)!important}
       .player-wheel.is-spinning{will-change:auto}
-      @media(max-width:560px){.wheel-name{font-size:9px!important}.wheel-center{width:43%!important;height:43%!important}.wheel-center strong.logo-mode{width:72%;height:72%;bottom:9%}}
+      @media(max-width:560px){.wheel-name{font-size:9px!important}.wheel-center{width:10%!important;height:10%!important}.wheel-center strong.logo-mode{width:72%;height:72%;bottom:9%}}
     `;
     document.head.appendChild(style);
   }
@@ -240,7 +240,7 @@
     if (!name) return;
     name.classList.add('logo-mode');
     name.parentElement.classList.add('show-logo');
-    name.innerHTML = `<img class="wheel-logo-symbol" src="${CLUB_LOGO_URL}" alt="Eryaman Speaking Club symbol">`;
+    name.replaceChildren();
   }
 
   function centerSelectedName(value) {
