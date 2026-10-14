@@ -223,14 +223,13 @@
       .wheel-name-layer{position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:50%}
       .wheel-name{position:absolute;transform:translate(-50%,-50%) rotate(var(--counter-rotation,0deg));transform-origin:center;color:#fff;font-weight:950;line-height:1.05;letter-spacing:-.02em;text-align:center;text-shadow:0 2px 6px rgba(0,0,0,.38);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:4px 6px;pointer-events:none;z-index:3}
       .wheel-rotor .wheel-ring{z-index:1}
-      .wheel-center{z-index:5!important;width:39.2%!important;height:39.2%!important;padding:10px!important;position:relative;overflow:hidden;border-radius:50%}
-      .wheel-center.show-logo{padding:0!important}
-      .wheel-center.show-logo #wheelLabel{display:none}
-      .wheel-center strong.logo-mode{position:absolute;inset:0;width:100%;height:100%;margin:0;display:grid;place-items:center;overflow:hidden;border-radius:50%}
-      .wheel-logo-symbol{display:block;width:80%;height:80%;max-width:80%;aspect-ratio:1;object-fit:contain;object-position:center;border-radius:50%;pointer-events:none;user-select:none}
+      .wheel-center{z-index:5!important;width:39.2%!important;height:39.2%!important;position:relative;overflow:hidden;border-radius:50%;background:#fff;padding:0!important;box-shadow:0 13px 36px rgb(11 47 91/.18),inset 0 0 0 1px #e2e9ef}
+      .wheel-center.show-logo #wheelLabel{display:none!important}
+      .wheel-center strong.logo-mode{position:absolute;left:50%;bottom:8%;transform:translateX(-50%);width:58%;height:58%;margin:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+      .wheel-logo-symbol{display:block;width:100%;height:100%;max-width:100%;object-fit:contain;object-position:center;pointer-events:none;user-select:none}
       .wheel-center strong:not(.logo-mode){font-size:clamp(18px,4vw,32px)!important}
       .player-wheel.is-spinning{will-change:auto}
-      @media(max-width:560px){.wheel-name{font-size:9px!important}.wheel-center{width:40%!important;height:40%!important;padding:8px!important}.wheel-center.show-logo{padding:0!important}}
+      @media(max-width:560px){.wheel-name{font-size:9px!important}.wheel-center{width:40%!important;height:40%!important}.wheel-center strong.logo-mode{width:56%;height:56%;bottom:8%}}
     `;
     document.head.appendChild(style);
   }
