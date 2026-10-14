@@ -67,7 +67,8 @@
   function applyJoinMode(link, mode) {
     if (!link) return;
     markManagedHref(link);
-    link.href = CONFIG.registrationUrl;
+    const eventPortal = /^\/events\/?(?:\?|$)/.test(CONFIG.registrationUrl||'');
+    link.href = eventPortal ? '/events/?type='+encodeURIComponent(mode) : CONFIG.registrationUrl;
     link.dataset.joinMode = mode;
     link.dataset.analyticsTarget = mode === 'online' ? 'online_registration' : 'in_person_registration';
   }
@@ -122,7 +123,7 @@
 
     const heroJoin = markManaged(q('.hero-actions .join-primary'));
     if (heroJoin) {
-      heroJoin.innerHTML = isEnglish ? 'Join the '+e.monthEn+' '+e.day+' meetup <span>→</span>' : e.day+' '+e.monthTr.charAt(0)+e.monthTr.slice(1).toLocaleLowerCase('tr-TR')+' buluşmasına katıl <span>→</span>';
+      heroJoin.innerHTML = !upcoming ? (isEnglish?'See upcoming meetups <span>→</span>':'Yaklaşan buluşmaları gör <span>→</span>') : (isEnglish ? 'Join the '+e.monthEn+' '+e.day+' meetup <span>→</span>' : e.day+' '+e.monthTr.charAt(0)+e.monthTr.slice(1).toLocaleLowerCase('tr-TR')+' buluşmasına katıl <span>→</span>');
       applyJoinMode(heroJoin,'in_person');
     }
 
@@ -222,6 +223,7 @@
         .eq('status','planned').eq('published',true).eq('kind','in_person')
         .gt('end_at',new Date().toISOString())
         .order('start_at',{ascending:true}).limit(1);
+      if(!eventError) CONFIG.registrationUrl='/events/';
       if(!eventError&&events?.length){
         const event=events[0];
         const start=new Date(event.start_at),end=new Date(event.end_at);
