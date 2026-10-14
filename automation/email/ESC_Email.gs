@@ -1,5 +1,6 @@
 /**
  * Eryaman Speaking Club - kayıt ve etkinlik e-posta otomasyonu
+ * Güvenli zamanlama: geçmişe hatırlatma yok, tekil alıcı, hata bildirimi.
  * Google Sheets > Uzantılar > Apps Script bölümünde AYRI bir
  * ESC_Email.gs dosyasına eklenir. Mevcut kodlar silinmez.
  *
@@ -123,8 +124,7 @@ function ESC_EMAIL_plan() {
   const members = escEmailReadMembers_(ss);
   const blocked = escEmailBlocked_(ss);
   const eventSheet = ss.getSheetByName(ESC_EMAIL.events);
-  const count = Math.min(Math.max(0, eventSheet.getLastRow() - 4), 200);
-  const events = count ? eventSheet.getRange(5, 1, count, 15).getValues() : [];
+  const events = escEmailReadEvents_(ss);
   const pending = [];
   const now = Date.now();
 
@@ -153,8 +153,8 @@ function ESC_EMAIL_plan() {
       const member = members.get(entry.memberId);
       if (!member || !member.email || !member.consent) return false;
       if (blocked.has(member.email)) return false;
-      if (alreadyQueued.has(entry.memberId)) return false;
-      alreadyQueued.add(entry.memberId);
+      if (alreadyQueued.has(member.email)) return false;
+      alreadyQueued.add(member.email);
       return true;
     }).length;
 
@@ -173,6 +173,65 @@ function ESC_EMAIL_plan() {
   Logger.log('Bu fonksiyon hiçbir e-posta göndermedi. ' +
     'B2 gönderim anahtarı: ' +
     (escEmailActive_(ss) ? 'AÇIK' : 'KAPALI'));
+}
+
+/**
+ * KATILIMCILARA E-POSTA GÖNDERMEZ. Ayar, şablon, yaklaşan etkinlik,
+ * katılım bloğu ve alıcı koşullarının toplu kontrolüdür.
+ */
+function ESC_EMAIL_selfTest() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const before = escEmailFirstEventTime_(ss);
+  const schedule = escEmailScheduleSettings_(ss);
+  const members = escEmailReadMembers_(ss);
+  const ctx = escEmailContext_(ss);
+  const rows = escEmailReadEvents_(ss);
+  const now = Date.now();
+  const specs = [];
+  rows.forEach(function (row, index) {
+    const id = String(row[0] || '').trim();
+    if (!id || (!row[1] && !row[2])) return; // Boş gelecek şablonları
+    const times = escEmailParseEventTime_(row[1], row[2]);
+    if (!times) throw new Error('Geçersiz etkinlik zamanı: ' + id);
+    if (times.start < before || times.end <= now) return; // Tarihi geçenler
+    const state = escEmailSimplify_(row[12]);
+    if (state === 'iptal' || state === 'iptal edildi') return;
+    if (state !== 'planlandi') {
+      throw new Error('Gelecek etkinlik Planlandı olmalı: ' + id);
+    }
+    if (!String(row[3] || '').trim() || !String(row[5] || '').trim()) {
+      throw new Error('Gelecek etkinlik türü veya mekânı eksik: ' + id);
+    }
+    specs.push({ id: id, index: index, type: row[3] });
+  });
+  const rosters = escEmailReadRosters_(ss, specs);
+  const sample = {
+    ad: 'Örnek', tarih: '18.10.2026', saat: '18.00-20.00',
+    mekan: 'Örnek mekân', tur: 'Online', tema: '', etkinlik: 'TEST'
+  };
+  ['welcome', 'reminder', 'thanks'].forEach(function (kind) {
+    const t = escEmailTemplate_(ss, kind, sample);
+    if (!t.subject || !t.body || /\{\{[a-z]+\}\}/.test(t.body)) {
+      throw new Error('Şablon eksik veya çözülmemiş değişken var: ' + kind);
+    }
+  });
+  const summary = specs.map(function (spec) {
+    const emails = new Set();
+    (rosters.get(spec.id) || []).forEach(function (entry) {
+      const member = members.get(entry.memberId);
+      if (entry.listed && member && member.email && member.consent &&
+          !ctx.blocked.has(member.email)) emails.add(member.email);
+    });
+    return { etkinlik: spec.id, hatırlatmaAdayı: emails.size };
+  });
+  Logger.log('GÖNDERİMSİZ GÜVENLİK TESTİ BAŞARILI. ' +
+    'Başlangıç tarihi=' + Utilities.formatDate(new Date(before),
+      ESC_EMAIL.timeZone, 'dd.MM.yyyy') +
+    ', hatırlatma saat önce=' + schedule.reminderHoursBefore +
+    ', teşekkür saat sonra=' + schedule.thanksHoursAfter +
+    ', gönderim anahtarı=' + (escEmailActive_(ss) ? 'AÇIK' : 'KAPALI'));
+  Logger.log('Gelecek etkinlik ve adaylar: ' + JSON.stringify(summary));
+  Logger.log('Katılımcılara hiçbir test e-postası gönderilmedi.');
 }
 
 function ESC_EMAIL_onFormSubmit(e) {
@@ -198,13 +257,21 @@ function ESC_EMAIL_onFormSubmit(e) {
     if (!message) return;
     escEmailSend_(ctx, 'welcome:' + email, 'Kayıt alındı', email,
       '', '', message.subject, message.body);
+  } catch (error) {
+    escEmailAlert_('Yeni kayıt işlemi', error);
+    throw error;
   } finally {
     lock.releaseLock();
   }
 }
 
 function ESC_EMAIL_runScheduled() {
-  escEmailProcessScheduled_(false);
+  try {
+    escEmailProcessScheduled_(false);
+  } catch (error) {
+    escEmailAlert_('Zamanlanmış e-posta işlemi', error);
+    throw error;
+  }
 }
 
 function escEmailProcessScheduled_(preview) {
@@ -219,9 +286,7 @@ function escEmailProcessScheduled_(preview) {
     const schedule = escEmailScheduleSettings_(ss);
     const byEvent = {};
     const members = escEmailReadMembers_(ss);
-    const eventsSheet = ss.getSheetByName(ESC_EMAIL.events);
-    const n = Math.min(Math.max(0, eventsSheet.getLastRow() - 4), 200);
-    const rows = n ? eventsSheet.getRange(5, 1, n, 15).getValues() : [];
+    const rows = escEmailReadEvents_(ss);
     const now = Date.now();
     // Zamanı henüz gelmemiş etkinlikler için devasa katılım tablolarını tarama.
     const due = [];
@@ -242,6 +307,7 @@ function escEmailProcessScheduled_(preview) {
     let attempted = 0;
     let delivered = 0;
     const seen = new Set(ctx.keys);
+    const seenAddresses = new Set(ctx.eventEmails);
 
     rows.forEach(function (row) {
       const eventId = String(row[0] || '').trim();
@@ -271,8 +337,10 @@ function escEmailProcessScheduled_(preview) {
         if (!member || !member.email || !member.consent) return;
         if (ctx.blocked.has(member.email)) return;
         const key = kind + ':' + eventId + ':' + entry.memberId;
-        if (seen.has(key)) return;
+        const addressKey = kind + '|' + eventId + '|' + member.email;
+        if (seen.has(key) || seenAddresses.has(addressKey)) return;
         seen.add(key);
+        seenAddresses.add(addressKey);
         dueCount += 1;
         const eventKey = kind + ':' + eventId;
         byEvent[eventKey] = (byEvent[eventKey] || 0) + 1;
@@ -356,8 +424,8 @@ function escEmailScheduleSettings_(ss) {
 
 /**
  * Hem ön seçimde hem gerçek gönderimde AYNI zaman kontrolünü kullan.
- * Hatırlatmalar ayarlanan saatin ardından en fazla 1 saatlik pencerede;
- * teşekkürler ise ayarlanan saatten itibaren 24 saatlik pencerede işlenir.
+ * Hatırlatma, hedef saatten itibaren etkinlik başlayana kadar telafi edilebilir;
+ * teşekkür ise hedef saatten itibaren en fazla 24 saat içinde işlenir.
  * Etkinlik durumu uygun değilse asla gönderilmez.
  */
 function escEmailDueKinds_(state, times, now, schedule) {
@@ -365,10 +433,14 @@ function escEmailDueKinds_(state, times, now, schedule) {
   const reminderAt = times.start - schedule.reminderHoursBefore * hour;
   const thanksAt = times.end + schedule.thanksHoursAfter * hour;
   return {
+    // Zamanlayıcı geçici olarak çalışmazsa yalnızca etkinlik BAŞLAMADAN
+    // önce gecikmiş hatırlatmayı telafi et. Geçmiş etkinlik hatırlatması yok.
     reminder: state === 'planlandi' &&
-      now >= reminderAt && now < Math.min(times.start, reminderAt + hour),
-    thanks: state === 'tamamlandi' && !!times.end &&
-      now >= thanksAt && now < thanksAt + 24 * hour
+      now >= reminderAt && now < times.start,
+    // "Planlandı" olarak kalan etkinliklerde de sadece gerçekten
+    // Katıldı + Yeni işaretli kişiye, etkinlik bitince teşekkür gönder.
+    thanks: (state === 'tamamlandi' || state === 'planlandi') &&
+      !!times.end && now >= thanksAt && now < thanksAt + 24 * hour
   };
 }
 
@@ -382,6 +454,17 @@ function escEmailFirstEventTime_(ss) {
       'tarihi olmalı (ör. 14.10.2026). Gönderim durduruldu.');
   }
   return parsed.start;
+}
+
+/** Tek etkinlik kaynağı: sıradaki tüm kayıtlı etkinlikleri otomatik tara. */
+function escEmailReadEvents_(ss) {
+  const sheet = ss.getSheetByName(ESC_EMAIL.events);
+  if (!sheet) throw new Error('Etkinlikler sekmesi bulunamadı.');
+  const count = Math.max(0, sheet.getLastRow() - 4);
+  if (count > 1000) {
+    throw new Error('Etkinlik sayısı 1000 sınırını aştı; gönderimler durduruldu.');
+  }
+  return count ? sheet.getRange(5, 1, count, 15).getValues() : [];
 }
 
 function escEmailReadMembers_(ss) {
@@ -481,12 +564,23 @@ function escEmailParseEventTime_(dateValue, rangeValue) {
 
 function escEmailContext_(ss) {
   const log = ss.getSheetByName(ESC_EMAIL.log);
-  const records = log && log.getLastRow() > 1
-    ? log.getRange(2, 2, log.getLastRow() - 1, 1).getValues() : [];
+  if (!log) throw new Error('E-posta Günlüğü sekmesi bulunamadı.');
+  // B:G = Anahtar, Tür, E-posta, Üye, Etkinlik, Durum.
+  const records = log.getLastRow() > 1
+    ? log.getRange(2, 2, log.getLastRow() - 1, 6).getValues() : [];
+  const eventEmails = new Set();
+  records.forEach(function (r) {
+    if ((r[1] === 'reminder' || r[1] === 'thanks') && r[4] && r[2]) {
+      // PROCESSING veya belirsiz sonuç da ikinci kez gönderilmez.
+      eventEmails.add(r[1] + '|' + String(r[4]).trim() + '|' +
+        escEmailNormalizeAddress_(r[2]));
+    }
+  });
   return {
     ss: ss,
     log: log,
     keys: new Set(records.map(function (r) { return String(r[0] || ''); })),
+    eventEmails: eventEmails,
     blocked: escEmailBlocked_(ss)
   };
 }
@@ -504,8 +598,8 @@ function escEmailSend_(ctx, key, kind, email, memberId, eventId,
                        subject, body) {
   if (ctx.keys.has(key) || ctx.blocked.has(email)) return false;
   if (MailApp.getRemainingDailyQuota() < 1) {
-    Logger.log('Günlük Gmail gönderim kotası doldu; yeni e-posta gönderilmedi.');
-    return false;
+    throw new Error('Gmail günlük gönderim kotası doldu. ' +
+      'Etkinlik başlamadan sonraki kontrol deneyecek.');
   }
 
   const log = ctx.log;
@@ -515,6 +609,7 @@ function escEmailSend_(ctx, key, kind, email, memberId, eventId,
   ]]);
   SpreadsheetApp.flush();
   ctx.keys.add(key);
+  if (eventId) ctx.eventEmails.add(kind + '|' + eventId + '|' + email);
   const footer = '\n\n---\nBu mesaj ESC kayıt veya etkinlik bilgilendirmesidir. ' +
     'Bu e-postaları almak istemiyorsan mesajı yanıtlayarak bize bildirebilirsin.\n' +
     'eryamanspeakingclub.com';
@@ -535,7 +630,30 @@ function escEmailSend_(ctx, key, kind, email, memberId, eventId,
     log.getRange(logRow, 7, 1, 2).setValues([[
       'ERROR - MANUAL REVIEW', String(error).slice(0, 300)
     ]]);
+    escEmailAlert_('E-posta gönderim hatası', error);
     return false;
+  }
+}
+
+/** Hatalarda yalnızca yöneticiyi, en fazla günde bir kez bilgilendir. */
+function escEmailAlert_(source, error) {
+  try {
+    const today = Utilities.formatDate(new Date(), ESC_EMAIL.timeZone, 'yyyyMMdd');
+    const props = PropertiesService.getScriptProperties();
+    const key = 'ESC_EMAIL_LAST_ALERT_DAY';
+    if (props.getProperty(key) === today) return;
+    if (MailApp.getRemainingDailyQuota() < 1) return;
+    MailApp.sendEmail({
+      to: ESC_EMAIL.account,
+      subject: '[ESC] E-posta otomasyonu kontrol gerekli',
+      body: 'Otomasyon hatası: ' + source + '\n\n' +
+        String(error).slice(0, 1200) + '\n\n' +
+        'Apps Script > Yürütmeler ve E-posta Günlüğü bölümlerini kontrol edin.',
+      name: 'Eryaman Speaking Club'
+    });
+    props.setProperty(key, today);
+  } catch (notificationError) {
+    Logger.log('Yönetici hata bildirimi başarısız: ' + notificationError);
   }
 }
 
