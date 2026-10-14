@@ -111,6 +111,7 @@
   function apply(source='local') {
     const e = CONFIG.inPerson;
     const upcoming = Number.isFinite(Date.parse(e.end||'')) && Date.parse(e.end)>Date.now();
+    const registrationOpen = upcoming && e.registrationEnabled !== false;
     const featured = q('.next-event-card');
     if(featured) featured.style.display = upcoming ? '' : 'none';
     const strip = q('.hero-join-strip');
@@ -119,13 +120,13 @@
     const heroStrip = markManaged(q('.hero-join-strip'));
     if (heroStrip && upcoming) {
       heroStrip.innerHTML = isEnglish
-        ? '<span class="hero-join-free">'+e.monthEn+' '+e.day+' · REGISTRATION OPEN</span><span class="hero-join-info"><strong>'+e.weekdayEn.charAt(0)+e.weekdayEn.slice(1).toLowerCase()+' · '+e.time+'</strong><i></i>'+safeText(e.venue)+'</span>'
-        : '<span class="hero-join-free">'+e.day+' '+e.monthTr+' · KAYITLAR AÇIK</span><span class="hero-join-info"><strong>'+e.weekdayTr.charAt(0)+e.weekdayTr.slice(1).toLocaleLowerCase('tr-TR')+' · '+e.time+'</strong><i></i>'+safeText(e.venue)+'</span>';
+        ? '<span class="hero-join-free">'+e.monthEn+' '+e.day+' · '+(registrationOpen?'REGISTRATION OPEN':'REGISTRATION CLOSED')+'</span><span class="hero-join-info"><strong>'+e.weekdayEn.charAt(0)+e.weekdayEn.slice(1).toLowerCase()+' · '+e.time+'</strong><i></i>'+safeText(e.venue)+'</span>'
+        : '<span class="hero-join-free">'+e.day+' '+e.monthTr+' · '+(registrationOpen?'KAYITLAR AÇIK':'KAYITLAR KAPALI')+'</span><span class="hero-join-info"><strong>'+e.weekdayTr.charAt(0)+e.weekdayTr.slice(1).toLocaleLowerCase('tr-TR')+' · '+e.time+'</strong><i></i>'+safeText(e.venue)+'</span>';
     }
 
     const heroJoin = markManaged(q('.hero-actions .join-primary'));
     if (heroJoin) {
-      heroJoin.innerHTML = !upcoming ? (isEnglish?'See upcoming meetups <span>→</span>':'Yaklaşan buluşmaları gör <span>→</span>') : (isEnglish ? 'Join the '+e.monthEn+' '+e.day+' meetup <span>→</span>' : e.day+' '+e.monthTr.charAt(0)+e.monthTr.slice(1).toLocaleLowerCase('tr-TR')+' buluşmasına katıl <span>→</span>');
+      heroJoin.innerHTML = !registrationOpen ? (isEnglish?'See upcoming meetups <span>→</span>':'Yaklaşan buluşmaları gör <span>→</span>') : (isEnglish ? 'Join the '+e.monthEn+' '+e.day+' meetup <span>→</span>' : e.day+' '+e.monthTr.charAt(0)+e.monthTr.slice(1).toLocaleLowerCase('tr-TR')+' buluşmasına katıl <span>→</span>');
       applyJoinMode(heroJoin,'in_person');
     }
 
@@ -133,8 +134,8 @@
     if (heroProof && !upcoming) heroProof.innerHTML = isEnglish ? '<strong>First meetup is free · A2–B2+</strong> · Discover future meetups' : '<strong>İlk buluşma ücretsiz · A2–B2+</strong> · Yaklaşan buluşmaları keşfet';
     if (heroProof && upcoming) {
       heroProof.innerHTML = isEnglish
-        ? '<strong>First meetup is free · Open to A2–B2+ levels</strong><br>'+e.monthEn+' '+e.day+' registration is open · '+(e.capacity==='limited'?'limited capacity':'registration open')+' · come on your own'
-        : '<strong>İlk buluşma ücretsiz · A2–B2+ seviyelerine açık</strong><br>'+e.day+' '+e.monthTr.charAt(0)+e.monthTr.slice(1).toLocaleLowerCase('tr-TR')+' kayıtları açık · '+(e.capacity==='limited'?'kontenjan sınırlı':'kayıt açık')+' · tek başına gelebilirsin';
+        ? '<strong>First meetup is free · Open to A2–B2+ levels</strong><br>'+e.monthEn+' '+e.day+(registrationOpen?' registration is open · ':' registration is closed · ')+(registrationOpen?(e.capacity==='limited'?'limited capacity':'registration open'):'registration closed')+' · come on your own'
+        : '<strong>İlk buluşma ücretsiz · A2–B2+ seviyelerine açık</strong><br>'+e.day+' '+e.monthTr.charAt(0)+e.monthTr.slice(1).toLocaleLowerCase('tr-TR')+(registrationOpen?' kayıtları açık · ':' kayıtları kapalı · ')+(registrationOpen?(e.capacity==='limited'?'kontenjan sınırlı':'kayıt açık'):'kayıt kapalı')+' · tek başına gelebilirsin';
     }
 
     const scrollCue = markManaged(q('.scroll-cue span'));
@@ -159,7 +160,7 @@
         ? 'Save your seat for this '+titleCaseEn(e.weekdayEn)+'.'
         : 'Bu '+titleCaseTr(e.weekdayTr)+' masadaki yerini ayırt.';
       const kicker=markManaged(next.querySelector('.next-event-kicker'));
-      if(kicker) kicker.textContent=isEnglish
+      if(kicker) kicker.textContent=!registrationOpen ? (isEnglish?'REGISTRATION CLOSED':'KAYITLAR KAPALI') : isEnglish
         ? (e.capacity==='limited'?'REGISTRATION OPEN · LIMITED CAPACITY':'REGISTRATION OPEN')
         : (e.capacity==='limited'?'KAYITLAR AÇIK · KONTENJAN SINIRLI':'KAYITLAR AÇIK');
       const details=markManaged(next.querySelector('.next-event-details'));
@@ -167,7 +168,7 @@
         ? '<span>🕖 <strong>'+e.time+'</strong></span><span>📍 <strong>'+safeText(e.venue)+'</strong></span><span>💬 <strong>Speaking · games · new people</strong></span>'
         : '<span>🕖 <strong>'+e.time+'</strong></span><span>📍 <strong>'+safeText(e.venue)+'</strong></span><span>💬 <strong>Speaking · oyunlar · yeni insanlar</strong></span>');
       const urgency=markManaged(next.querySelector('.next-event-urgency'));
-      if(urgency) urgency.textContent=isEnglish?'Save your seat for '+e.monthEn+' '+e.day:e.day+' '+e.monthTr.charAt(0)+e.monthTr.slice(1).toLocaleLowerCase('tr-TR')+' için yerini ayırt';
+      if(urgency) urgency.textContent=!registrationOpen?(isEnglish?'Registrations are closed':'Kayıtlar kapalı'):isEnglish?'Save your seat for '+e.monthEn+' '+e.day:e.day+' '+e.monthTr.charAt(0)+e.monthTr.slice(1).toLocaleLowerCase('tr-TR')+' için yerini ayırt';
       applyJoinMode(next.querySelector('.next-event-join'),'in_person');
       const map=markManagedHref(next.querySelector('.next-event-location'));if(map){const safe=safeHttpsUrl(CONFIG.mapUrl);if(safe)map.href=safe;else map.removeAttribute('href');}
     }
@@ -225,7 +226,7 @@
       CONFIG.registrationUrl='/events/';
       // One canonical event table: never rely on old manual CMS date again.
       const {data:events,error:eventError}=await db.from('esc_public_upcoming_events')
-        .select('event_code,start_at,end_at,venue,location_url,kind,status')
+        .select('event_code,start_at,end_at,venue,location_url,kind,status,registration_enabled')
         .eq('status','planned').eq('kind','in_person')
         .gt('end_at',new Date().toISOString())
         .order('start_at',{ascending:true}).limit(1);
@@ -252,7 +253,8 @@
           weekdayEn:weekdays[weekdayNum],
           time:part('hour')+':'+part('minute'),
           venue:event.venue,
-          eventCode:event.event_code
+          eventCode:event.event_code,
+          registrationEnabled:event.registration_enabled===true
         };
         if(event.location_url && safeHttpsUrl(event.location_url))CONFIG.mapUrl=event.location_url;
       }else if(!eventError){
