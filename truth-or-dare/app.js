@@ -223,13 +223,14 @@
       .wheel-name-layer{position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:50%}
       .wheel-name{position:absolute;transform:translate(-50%,-50%) rotate(var(--counter-rotation,0deg));transform-origin:center;color:#fff;font-weight:950;line-height:1.05;letter-spacing:-.02em;text-align:center;text-shadow:0 2px 6px rgba(0,0,0,.38);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:4px 6px;pointer-events:none;z-index:3}
       .wheel-rotor .wheel-ring{z-index:1}
-      .wheel-center{z-index:5!important;width:39.2%!important;height:39.2%!important;position:relative;overflow:hidden;border-radius:50%;background:#fff;padding:0!important;box-shadow:0 13px 36px rgb(11 47 91/.18),inset 0 0 0 1px #e2e9ef}
+      .wheel-center{z-index:5!important;width:42%!important;height:42%!important;padding:10px!important;position:relative;overflow:hidden;border-radius:50%;background:#fff;box-shadow:0 10px 30px rgba(11,47,91,.17),inset 0 0 0 1px #e2e9ef}
+      .wheel-center.show-logo{padding:0!important}
       .wheel-center.show-logo #wheelLabel{display:none!important}
-      .wheel-center strong.logo-mode{position:absolute;left:50%;bottom:8%;transform:translateX(-50%);width:58%;height:58%;margin:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
-      .wheel-logo-symbol{display:block;width:100%;height:100%;max-width:100%;object-fit:contain;object-position:center;pointer-events:none;user-select:none}
-      .wheel-center strong:not(.logo-mode){font-size:clamp(18px,4vw,32px)!important}
+      .wheel-center strong.logo-mode{position:absolute;left:50%;bottom:9%;transform:translateX(-50%);width:72%;height:72%;margin:0;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:50%}
+      .wheel-logo-symbol{display:block;width:100%;height:100%;max-width:100%;object-fit:contain;object-position:center;border-radius:50%;pointer-events:none;user-select:none}
+      .wheel-center strong:not(.logo-mode){font-size:clamp(17px,3.5vw,30px)!important}
       .player-wheel.is-spinning{will-change:auto}
-      @media(max-width:560px){.wheel-name{font-size:9px!important}.wheel-center{width:40%!important;height:40%!important}.wheel-center strong.logo-mode{width:56%;height:56%;bottom:8%}}
+      @media(max-width:560px){.wheel-name{font-size:9px!important}.wheel-center{width:43%!important;height:43%!important}.wheel-center strong.logo-mode{width:72%;height:72%;bottom:9%}}
     `;
     document.head.appendChild(style);
   }
@@ -278,8 +279,9 @@
     layer.replaceChildren();
 
     const names = state.names.slice();
-    if (!names.length) {
-      rotor.style.background = 'conic-gradient(#dce5ee 0deg 360deg)';
+    if (names.length < 2) {
+      // Preview segments rather than a large blank disc while waiting for players.
+      rotor.style.background = 'conic-gradient(#dbe9f4 0deg 57deg,#fff 57deg 60deg,#f9e7e4 60deg 117deg,#fff 117deg 120deg,#e3edf6 120deg 177deg,#fff 177deg 180deg,#f9ecd8 180deg 237deg,#fff 237deg 240deg,#e6edf7 240deg 297deg,#fff 297deg 300deg,#f8e2e4 300deg 357deg,#fff 357deg 360deg)';
       rotor.style.transform = 'rotate(0deg)';
       return;
     }
@@ -330,11 +332,22 @@
   }
 
   function updateControls() {
-    const canPlay = state.names.length >= 2;
-    $('emptyPlayers').hidden = canPlay;
+    const count = state.names.length;
+    const canPlay = count >= 2;
+    const emptyCard = $('emptyPlayers');
+    $('playerWheel').closest('.wheel-stage')?.classList.toggle('is-empty', !canPlay);
+    emptyCard.hidden = canPlay;
     $('spinPlayer').disabled = !canPlay;
+    $('newRound').disabled = !canPlay;
+    $('spinPlayer').closest('.screen-actions').hidden = !canPlay;
+    $('roundStatus').hidden = !canPlay;
+    if (!canPlay) {
+      emptyCard.querySelector('strong').textContent = count === 1 ? 'One player added — almost ready!' : "Who's playing today?";
+      emptyCard.querySelector('p').textContent = count === 1 ? 'Add one more name to start the wheel.' : 'Add at least two names to start the wheel.';
+      $('openNames').textContent = count === 1 ? 'Edit players' : '+ Add players';
+    }
     const used = state.settings.fairRotation ? state.history.names.filter((name) => state.names.includes(name)).length : 0;
-    $('roundStatus').textContent = state.settings.fairRotation && canPlay ? `${Math.min(used, state.names.length)} of ${state.names.length} players used this round` : `${state.names.length} players ready`;
+    $('roundStatus').textContent = state.settings.fairRotation && canPlay ? `${Math.min(used, count)} of ${count} players have had a turn` : `${count} players ready`;
     $('sound').textContent = state.settings.sound ? '🔊' : '🔇';
     $('sound').setAttribute('aria-label', state.settings.sound ? 'Turn sound off' : 'Turn sound on');
     renderWheel();
@@ -762,7 +775,6 @@
     showScreen('player');
 
     $('spinPlayer').onclick = spinPlayer;
-    $('playerWheel').onclick = spinPlayer;
     $('newRound').onclick = newRound;
     $('chooseTruth').onclick = () => chooseType('truth');
     $('chooseDare').onclick = () => chooseType('dare');
