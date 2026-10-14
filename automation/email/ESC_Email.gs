@@ -211,6 +211,7 @@ function ESC_EMAIL_selfTest() {
   };
   ['welcome', 'reminder', 'thanks'].forEach(function (kind) {
     const t = escEmailTemplate_(ss, kind, sample);
+    if (!t) return; // PASİF şablon bilinçli olarak gönderilmez.
     if (!t.subject || !t.body || /\{\{[a-z]+\}\}/.test(t.body)) {
       throw new Error('Şablon eksik veya çözülmemiş değişken var: ' + kind);
     }
@@ -294,11 +295,22 @@ function escEmailProcessScheduled_(preview) {
       const eventId = String(row[0] || '').trim();
       if (!eventId) return;
       const times = escEmailParseEventTime_(row[1], row[2]);
-      if (!times || times.start < firstEventTime) return;
+      if (!times) {
+        if (escEmailSimplify_(row[12]) === 'planlandi' && (row[1] || row[2])) {
+          escEmailAlert_('Geçersiz etkinlik zamanı',
+            new Error(eventId + ': tarih veya saat geçersiz.'));
+        }
+        return;
+      }
+      if (times.start < firstEventTime) return;
       const status = escEmailDueKinds_(
         escEmailSimplify_(row[12]), times, now, schedule);
-      if ((status.reminder || status.thanks) &&
-          String(row[3] || '').trim() && String(row[5] || '').trim()) {
+      if (status.reminder || status.thanks) {
+        if (!String(row[3] || '').trim() || !String(row[5] || '').trim()) {
+          escEmailAlert_('Eksik etkinlik bilgisi',
+            new Error(eventId + ': etkinlik türü veya mekân boş.'));
+          return;
+        }
         due.push({ id: eventId, index: index, type: row[3] });
       }
     });
@@ -331,8 +343,11 @@ function escEmailProcessScheduled_(preview) {
 
       rosters.get(eventId).forEach(function (entry) {
         if (attempted >= ESC_EMAIL.maxPerRun) return;
+        // Uzun bir işlem etkinlik başlangıcını aşarsa hatırlatmayı DURDUR.
+        if (kind === 'reminder' && Date.now() >= times.start) return;
         if (kind === 'reminder' && !entry.listed) return;
-        if (kind === 'thanks' && (!entry.attended || !entry.isNew)) return;
+        if (kind === 'thanks' &&
+            (!entry.listed || !entry.attended || !entry.isNew)) return;
         const member = members.get(entry.memberId);
         if (!member || !member.email || !member.consent) return;
         if (ctx.blocked.has(member.email)) return;
@@ -383,9 +398,12 @@ function escEmailTemplate_(ss, kind, replacements) {
   const match = templates.find(function (row) {
     return String(row[0] || '').trim().toLowerCase() === kind;
   });
-  if (!match || escEmailSimplify_(match[3]) !== 'aktif' ||
+  if (!match) throw new Error('E-posta şablonu bulunamadı: ' + kind);
+  const enabled = escEmailSimplify_(match[3]);
+  if (enabled === 'pasif') return null; // Kullanıcı şablonu kapattı.
+  if (enabled !== 'aktif' ||
       !String(match[1]).trim() || !String(match[2]).trim()) {
-    throw new Error('E-posta şablonu etkin veya eksiksiz değil: ' + kind);
+    throw new Error('E-posta şablonu geçersiz veya eksik: ' + kind);
   }
   const fill = function (value) {
     return String(value).replace(/\{\{([a-z]+)\}\}/g, function (_, key) {
@@ -502,8 +520,7 @@ function escEmailReadRosters_(ss, eventSpecs) {
     const sheetName = kind === 'online' ? 'Katılım Online' :
       kind === 'face to face' ? 'Katılım Yüz Yüze' : '';
     if (!sheetName) {
-      Logger.log('Bilinmeyen etkinlik türü; atlandı: ' + spec.id);
-      return;
+      throw new Error('Bilinmeyen etkinlik türü: ' + spec.id);
     }
     const sheet = ss.getSheetByName(sheetName);
     if (!sheet) throw new Error('Katılım sayfası bulunamadı: ' + sheetName);
