@@ -162,11 +162,14 @@
       select('Etkinlik günü','weekday',String(rule.weekday),w.map((x,i)=>[String(i),x]))+
       field('Başlangıç saati','start_time','time',String(rule.start_time).slice(0,5),'required')+
       field('Süre (dakika)','duration_minutes','number',rule.duration_minutes,'required min="30" max="480"')+
-      field('Mekân','venue','text',rule.venue,'required maxlength="160"')+
+      field('Mekân / Platform','venue','text',rule.venue,'required maxlength="160"')+
+      field('Meet bağlantısı (online)','meeting_url','url',rule.meeting_url||'')+
+      field('Harita bağlantısı (yüz yüze)','map_url','url',rule.map_url||'')+
       field('Kontenjan','capacity','number',rule.capacity,'required min="1" max="500"')+
       select('Otomatik oluştur','active',String(rule.active),[['true','AÇIK'],['false','KAPALI']])+
+      select('Sitede yayınla','published',String(rule.published),[['true','Evet'],['false','Hayır']])+
       field('Kaç gün önceden','horizon_days','number',rule.horizon_days,'required min="7" max="90"')+
-      '</div><div class="notice warning">Buradaki saat veya gün değişiklikleri yalnızca yeni oluşturulacak etkinlikleri etkiler. Mevcut etkinlikleri ayrıca Düzenle bölümünden değiştirebilirsin.</div>'+
+      '</div><div class="notice warning">Haftalık gün, saat ve mekân değişiklikleri yeni oluşacak etkinliklere uygulanır. Meet/harita bağlantısı değişirse, boş bağlantılı yaklaşan etkinliklere de aktarılır. Elle değiştirilen etkinlik tarihleri korunur.</div>'+
       '<div class="row-actions"><button class="btn primary" type="submit">Programı Kaydet</button><button type="button" class="btn secondary" id="escRuleClose">Vazgeç</button></div></form>');
     $('#escRuleClose').onclick=closeModal;
     $('#escRuleForm').onsubmit=async ev=>{
@@ -175,6 +178,9 @@
       const patch={title:String(f.get('title')).trim(),weekday:Number(f.get('weekday')),
         start_time:String(f.get('start_time')),duration_minutes:Number(f.get('duration_minutes')),
         venue:String(f.get('venue')).trim(),capacity:Number(f.get('capacity')),
+        meeting_url:String(f.get('meeting_url')||'').trim()||null,
+        map_url:String(f.get('map_url')||'').trim()||null,
+        published:f.get('published')==='true',
         active:f.get('active')==='true',horizon_days:Number(f.get('horizon_days'))};
       const b=ev.currentTarget.querySelector('[type=submit]');b.disabled=true;
       try{
