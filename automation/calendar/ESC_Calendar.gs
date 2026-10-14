@@ -52,6 +52,8 @@ function ESC_CALENDAR_preview() {
     ', ileri gün: ' + result.horizon +
     ', mevcut tarihler atlandı: ' + result.existing +
     ', kullanılabilir yuva: ' + result.freeSlots);
+  Logger.log('Zaten kayıtlı yaklaşan etkinlikler: ' +
+    JSON.stringify(result.existingUpcoming));
   Logger.log('Yeni oluşturulabilecek etkinlikler: ' +
     JSON.stringify(result.creations.map(function (v) {
       return { id: v.id, tarih: v.date, saat: v.rule.hours,
@@ -151,6 +153,7 @@ function escCalendarPlan_(ss) {
   const last = eventSheet.getRange(5, 13, ESC_CALENDAR.maxSlots, 3).getValues();
 
   const occupied = new Set();
+  const existingDates = [];
   const free = [];
   for (let i = 0; i < ESC_CALENDAR.maxSlots; i++) {
     const row = first[i];
@@ -180,6 +183,9 @@ function escCalendarPlan_(ss) {
       const dateKey = escCalendarDateKey_(row[1]);
       if (!dateKey) throw new Error('Etkinlik tarihi okunamıyor: ' + id);
       occupied.add(dateKey);
+      existingDates.push({ id: id, tarih: dateKey,
+        saat: String(row[2] || ''), tur: String(row[3] || ''),
+        durum: String(status[0] || '') });
     }
     const marker = String(status[1] || '').trim();
     if (marker.indexOf(ESC_CALENDAR.marker) === 0) {
@@ -241,7 +247,12 @@ function escCalendarPlan_(ss) {
     return { row: slot.row, id: slot.id, date: c.date, rule: c.rule };
   });
   return { enabled: config.enabled, horizon: config.horizon,
-    existing: occupied.size, freeSlots: free.length, creations: creations };
+    existing: occupied.size, freeSlots: free.length, creations: creations,
+    existingUpcoming: existingDates.filter(function (v) {
+      return v.tarih >= today;
+    }).sort(function (a, b) {
+      return a.tarih.localeCompare(b.tarih);
+    }).slice(0, 30) };
 }
 
 function escCalendarSettings_(ss) {
