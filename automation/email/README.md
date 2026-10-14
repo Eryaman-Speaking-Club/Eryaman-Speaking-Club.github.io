@@ -8,7 +8,7 @@ Bu modül, mevcut **Yönetim Paneli** Google Sheets dosyası üzerinde çalışa
 - **Kayıtlar**: A = üye no, C = ad, D = e-posta, P = iletişim onayı; satır 5'ten itibaren. Bu sayfa mevcut kayıt formundan formüllerle beslenir; formüller değiştirilmez.
 - **Etkinlikler**: A = etkinlik no, B = tarih, C = saat aralığı, D = tür, E = tema, F = mekân/platform, M = durum; satır 5'ten itibaren.
 - **Katılım Yüz Yüze / Katılım Online**: A = etkinlik no, B = üye no, E = listede, F = katıldı; satır 4'ten itibaren.
-- Yeni oluşan **E-posta Otomasyonu**: B2 = `KAPALI` (başlangıç durumu) veya `AÇIK`; B3 = yetkili Gmail adresi.
+- Yeni oluşan **E-posta Otomasyonu**: B2 = `KAPALI` (başlangıç durumu) veya `AÇIK`; B3 = yetkili Gmail adresi; **B4 = otomasyonun başlangıç tarihi**. Bu tarihten önce başlayan etkinlikler asla otomatik bildirim almaz. B4 `ESC_EMAIL_setup` sırasında yalnızca boşsa atanır.
 - Yeni oluşan **E-posta Günlüğü**: tekil gönderim kimliği, tür, durum ve hata kaydı.
 - Yeni oluşan **E-posta Engelleme**: A sütununda gönderim yapılmaması gereken adresler.
 
@@ -21,15 +21,18 @@ Bu modül, mevcut **Yönetim Paneli** Google Sheets dosyası üzerinde çalışa
 3. **Proje Ayarları → Saat dilimi:** `Europe/Istanbul` olarak ayarlayın.
 4. `ESC_EMAIL_setup` fonksiyonunu bir kez çalıştırın ve gerekli izinleri doğrulayın. Bu işlem üç yeni sekme ve iki tetikleyici oluşturur, fakat **hiçbir katılımcıya e-posta göndermez**.
 5. `E-posta Otomasyonu!B3` hücresinin Apps Script'i yetkilendiren **eryamanspeakingclub@gmail.com** hesabıyla eşleştiğini doğrulayın.
-6. `ESC_EMAIL_test` fonksiyonunu çalıştırın. **Yalnızca gönderici hesabına** bir test mesajı gider.
-7. `ESC_EMAIL_preview` fonksiyonunu çalıştırıp Apps Script çalışma günlüklerini kontrol edin. Bu fonksiyon gerçek e-posta göndermeden mevcut etkinliklere göre kaç bildirimin uygun olduğunu gösterir.
-8. Gerçek aktivasyon için önce formdaki iletişim onayını, katılımcı listesindeki e-postaları, etkinlik durumlarını ve tarihlerinin doğruluğunu kontrol edin. B2 değerini yalnızca hazırlıklar bittikten sonra **AÇIK** yapın.
+6. Kodun güncel sürümünü kullandığınızı kontrol edin; `ESC_EMAIL_setup` tekrar çalıştırıldığında B4 başlangıç tarihi mevcut değer korunarak hazırlanır.
+7. `ESC_EMAIL_test` fonksiyonunu çalıştırın. **Yalnızca gönderici hesabına** bir test mesajı gider.
+8. `ESC_EMAIL_preview` fonksiyonunu çalıştırıp Apps Script çalışma günlüklerini kontrol edin. Bu fonksiyon gerçek e-posta göndermeden mevcut etkinliklere göre kaç bildirimin uygun olduğunu gösterir.
+9. Gerçek aktivasyon için önce formdaki iletişim onayını, katılımcı listesindeki e-postaları, etkinlik durumlarını ve tarihlerinin doğruluğunu kontrol edin. B2 değerini yalnızca hazırlıklar bittikten sonra **AÇIK** yapın.
 
 ## Gönderim mantığı
 
 - **Yeni kayıt onayı**: Yalnızca aktivasyondan **sonraki** `Kayıt Formu` gönderimlerinde, geçerli e-posta ve açık iletişim onayı varsa. Her adrese en fazla bir otomatik hoş geldin e-postası.
 - **Etkinlik hatırlatması**: Durumu `Planlandı` olan bir etkinliğe ilgili katılım sayfasında **Listede = TRUE** olarak bağlanan üyelere, etkinlik başlamadan yaklaşık **2–24 saat** önce saatlik taramada gönderilir.
 - **Etkinlik sonrası teşekkür**: Durumu **Tamamlandı** olan etkinliğe **Katıldı = TRUE** işaretli üyeler için, etkinlik bitiminden en erken 1 saat sonra ve en geç 7 gün içinde. Geriye dönük eski katılımcılara gereksiz toplu gönderim yapılmasını önlemek için açılıştan önce günlük ve etkinlik durumları gözden geçirilmeli.
+- **Başlangıç tarihi kuralı:** `E-posta Otomasyonu!B4` tarihinden önce başlayan etkinliklere hiçbir etkinlik bildirimi gönderilmez. Bu alan boş veya geçersizse zamanlı gönderim güvenlik nedeniyle durdurulur. Örneğin 14.10.2026 tarihli yeni kurulum 11 Ekim'de tamamlanmış bir etkinlik için geriye dönük teşekkür göndermez.
+- `ESC_EMAIL_preview` yürütme günlüklerinde mesaj adayı sayısını **etkinlik ve bildirim türüne göre** listeler; kişisel e-posta adresleri loglanmaz.
 - İptal edilen, tarihi eksik veya mekân/platform bilgisi olmayan etkinlikler atlanır. Bir etkinlik için katılım kaydı bulunmuyorsa otomatik hatırlatma gönderilmez.
 - Tekil anahtarlar e-posta günlüğünde saklanır. Başarısız veya sonucu belirsiz gönderimler otomatik tekrar denenmez; yönetici inceler.
 - Her çalıştırma en fazla **35** katılımcı mesajı göndermeye çalışır. Gmail'in günlük gönderim kotaları ayrıca geçerlidir.
