@@ -17,6 +17,7 @@ const ESC_EMAIL = Object.freeze({
   settings: 'E-posta Otomasyonu',
   log: 'E-posta Günlüğü',
   blocked: 'E-posta Engelleme',
+  templates: 'E-posta Şablonları',
   maxPerRun: 35
 });
 
@@ -151,15 +152,10 @@ function ESC_EMAIL_onFormSubmit(e) {
     const ctx = escEmailContext_(ss);
     if (ctx.blocked.has(email)) return;
     const firstName = fullName.split(/\s+/)[0] || 'Merhaba';
-    const message = [
-      'Merhaba ' + firstName + ',',
-      'Eryaman Speaking Club katılım formunu aldık. İlgin için teşekkür ederiz!',
-      'Bu mesaj bir etkinlikte yerinin kesinleştiği anlamına gelmez. ' +
-        'Etkinlik ve katılım detaylarını ayrıca paylaşacağız.',
-      'Soruların için bu e-postayı yanıtlayabilirsin.'
-    ].join('\n\n');
+    const message = escEmailTemplate_(ss, 'welcome', { ad: firstName });
+    if (!message) return;
     escEmailSend_(ctx, 'welcome:' + email, 'Kayıt alındı', email,
-      '', '', 'Eryaman Speaking Club | Başvurunu aldık', message);
+      '', '', message.subject, message.body);
   } finally {
     lock.releaseLock();
   }
@@ -232,30 +228,19 @@ function escEmailProcessScheduled_(preview) {
         const eventKey = kind + ':' + eventId;
         byEvent[eventKey] = (byEvent[eventKey] || 0) + 1;
         if (preview) return;
-        const info = 'Tarih: ' + dateText + '\nSaat: ' + hoursText +
-          '\nTür: ' + format + '\nYer / platform: ' + venue +
-          (title ? '\nTema: ' + title : '');
-        let subject, text;
-        if (kind === 'reminder') {
-          subject = 'Eryaman Speaking Club | Buluşma hatırlatması';
-          text = [
-            'Merhaba ' + member.firstName + ',',
-            'Kaydının bulunduğu buluşmamız yaklaşıyor:',
-            info,
-            'Katılım durumunda değişiklik varsa lütfen bu e-postayı yanıtla.'
-          ].join('\n\n');
-        } else {
-          subject = 'Eryaman Speaking Club | Katılımın için teşekkürler';
-          text = [
-            'Merhaba ' + member.firstName + ',',
-            'Buluşmamıza katıldığın için teşekkür ederiz!',
-            info,
-            'Yeni buluşmalarda tekrar görüşmek üzere.'
-          ].join('\n\n');
-        }
+        const message = escEmailTemplate_(ss, kind, {
+          ad: member.firstName,
+          tarih: dateText,
+          saat: hoursText,
+          mekan: venue,
+          tur: format,
+          tema: title,
+          etkinlik: eventId
+        });
+        if (!message) return;
         attempted += 1;
         if (escEmailSend_(ctx, key, kind, member.email,
-            entry.memberId, eventId, subject, text)) delivered += 1;
+            entry.memberId, eventId, message.subject, message.body)) delivered += 1;
       });
     });
     Logger.log((preview ? 'Önizleme' : 'Gönderim') +
@@ -266,6 +251,34 @@ function escEmailProcessScheduled_(preview) {
   } finally {
     lock.releaseLock();
   }
+}
+
+/**
+ * Şablonlar özel Google Sheets dosyasında tutulur; banka bilgileri
+ * herkese açık GitHub deposuna yazılmaz.
+ */
+function escEmailTemplate_(ss, kind, replacements) {
+  const sheet = ss.getSheetByName(ESC_EMAIL.templates);
+  if (!sheet) throw new Error('E-posta Şablonları sekmesi bulunamadı. Gönderim durduruldu.');
+  const lastRow = Math.min(sheet.getLastRow(), 30);
+  if (lastRow < 2) throw new Error('E-posta Şablonları boş.');
+  const templates = sheet.getRange(2, 1, lastRow - 1, 4).getDisplayValues();
+  const match = templates.find(function (row) {
+    return String(row[0] || '').trim().toLowerCase() === kind;
+  });
+  if (!match || escEmailSimplify_(match[3]) !== 'aktif' ||
+      !String(match[1]).trim() || !String(match[2]).trim()) {
+    throw new Error('E-posta şablonu etkin veya eksiksiz değil: ' + kind);
+  }
+  const fill = function (value) {
+    return String(value).replace(/\{\{([a-z]+)\}\}/g, function (_, key) {
+      if (!Object.prototype.hasOwnProperty.call(replacements, key)) {
+        throw new Error('Bilinmeyen e-posta değişkeni: ' + key);
+      }
+      return String(replacements[key] || '');
+    });
+  };
+  return { subject: fill(match[1]), body: fill(match[2]) };
 }
 
 function escEmailFirstEventTime_(ss) {
