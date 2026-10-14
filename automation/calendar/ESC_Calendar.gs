@@ -354,7 +354,15 @@ function escCalendarStatus_(status) {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = ss.getSheetByName(ESC_CALENDAR.settings);
     if (!sheet) return;
-    sheet.getRange('B5:B6').setValues([[new Date()], [status]]);
+    const raw = String(status);
+    const segments = raw.split(' | ');
+    const label = raw.indexOf('HATA:') === 0 ? 'HATA' : segments[0];
+    const detail = raw.indexOf('HATA:') === 0 ?
+      raw.slice(5).trim() :
+      segments.length > 1 ? segments.slice(1).join(' | ') :
+      label === 'KAPALI' ? 'Etkinlikler otomatik oluşturulmuyor.' : '';
+    sheet.getRange('B5').setValue(new Date());
+    sheet.getRange('B6:C6').setValues([[label, detail]]);
   } catch (error) {
     Logger.log('Takvim durum alanı güncellenemedi: ' + String(error));
   }
