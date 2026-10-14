@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#113c70">
+<meta name="description" content="Eryaman Speaking Club yaklaşan yüz yüze ve online İngilizce buluşmalarına kaydolun.">
+<title>Yaklaşan Buluşmalar | Eryaman Speaking Club</title>
+<style>
+:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#133252;background:#f6f9fc}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh}button,input{font:inherit}
+a{color:inherit}
+header{border-bottom:1px solid #dde8ef;background:#fff}
+nav{width:min(1100px,calc(100% - 36px));margin:auto;min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{font-weight:900;text-decoration:none;color:#123c70;font-size:18px;letter-spacing:-.02em}.brand small{display:block;font-weight:600;font-size:11px;color:#778fa2}
+.back{border:1px solid #d9e4ee;padding:10px 13px;border-radius:12px;text-decoration:none;font-size:12px;font-weight:700}
+main{max-width:1100px;margin:auto;padding:42px 18px 90px}
+.hero{max-width:700px}
+.kicker{font-size:11px;letter-spacing:.17em;color:#be6b1e;text-transform:uppercase;font-weight:800}
+h1{font-size:clamp(32px,5vw,56px);line-height:1.1;letter-spacing:-.045em;color:#0d315b;margin:10px 0 15px}
+.hero p{color:#677e93;line-height:1.65}
+.stats{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}.stat{background:#e9f2fa;border-radius:99px;padding:9px 15px;font-weight:700;font-size:12px;color:#225683}
+.grid{margin-top:32px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px}
+.card{border:1px solid #e0e9f0;border-radius:22px;background:white;overflow:hidden;box-shadow:0 15px 40px #0a2a4b08;display:flex;flex-direction:column}
+.card-top{min-height:104px;background:#eaf2fa;padding:20px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.card.online .card-top{background:#ecf5f2}
+.date{display:grid;gap:3px}.date strong{font-size:26px;letter-spacing:-.03em}.date small{font-weight:700;color:#547d9f}
+.type{background:#fff;border:1px solid #e3e9ee;border-radius:99px;padding:9px 11px;font-weight:800;font-size:11px;white-space:nowrap}
+.card-body{padding:20px;flex:1;display:flex;flex-direction:column;gap:10px}
+.card h2{font-size:17px;line-height:1.3;margin:0;color:#173a66}.meta{color:#627f97;font-size:12px;line-height:1.6}.meta strong{color:#254c70}
+button.join{margin-top:auto;border:0;border-radius:12px;background:#134576;color:#fff;padding:14px 17px;font-weight:850;font-size:13px;cursor:pointer;text-align:center}
+button.join:hover{background:#0d335a}
+.notice{margin-top:26px;padding:18px 20px;border:1px solid #e3edf5;background:#fff;border-radius:16px;color:#5e778f;line-height:1.7;font-size:12px}
+.empty{text-align:center;border:1px dashed #c8d9e9;border-radius:20px;padding:70px 20px;color:#687f91;grid-column:1/-1}
+dialog{border:0;padding:0;border-radius:24px;width:min(540px,calc(100vw - 32px));max-height:90vh;box-shadow:0 36px 120px #0b27446e}dialog::backdrop{background:#061a2ebd}
+.modal{padding:27px;display:grid;gap:12px}.modal h2{margin:0;color:#163b65;font-size:23px}.modal p{font-size:13px;color:#627b91;line-height:1.55;margin:0}
+label{font-size:12px;font-weight:800;color:#446780;display:grid;gap:7px}
+input[type=text],input[type=email]{border:1px solid #c9d8e4;padding:13px;border-radius:11px;font-size:14px;width:100%}
+.consent{display:flex;align-items:start;gap:10px;line-height:1.5;font-weight:600}.consent input{margin-top:3px}
+.actions{display:flex;gap:9px;justify-content:flex-end;margin-top:8px}
+.actions button{border:0;border-radius:11px;padding:12px 16px;font-weight:800;cursor:pointer}
+.actions .cancel{background:#eef3f7;color:#2e587a}.actions .submit{background:#164a7e;color:#fff}.actions .submit:disabled{opacity:.55}
+.feedback{min-height:24px;color:#a32c32;font-weight:700;font-size:12px}
+.honeypot{position:absolute;left:-9999px;opacity:0;pointer-events:none}
+@media(max-width:850px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:580px){nav{min-height:68px}.brand{font-size:15px}.grid{grid-template-columns:1fr}main{padding-top:30px}.hero p{font-size:14px}}
+</style>
+</head>
+<body>
+<header><nav><a class="brand" href="/">Eryaman Speaking Club<small>English · Coffee · Community</small></a><a class="back" href="/">← Ana Sayfa</a></nav></header>
+<main>
+<div class="hero"><span class="kicker">Buluşmalarımız</span><h1>Sıradaki buluşmada görüşelim.</h1><p>Online veya yüz yüze İngilizce pratiği yapmak için yaklaşan buluşmalardan birini seç. Tarih ve mekân değişiklikleri burada otomatik güncellenir.</p><div class="stats"><span class="stat">İlk buluşma ücretsiz</span><span class="stat">18 yaş ve üzeri</span><span class="stat">A2–B2+</span></div></div>
+<section class="grid" id="eventGrid" aria-live="polite"><div class="empty">Etkinlikler yükleniyor…</div></section>
+<div class="notice">Etkinlik tarihini, saatini veya mekânını değiştirmemiz gerekirse bu sayfada güncel bilgi gösterilir. Kayıt olmak için iletişim izni gerekir. İptal edilmiş ve geçmiş etkinliklere kayıt alınmaz.</div>
+</main>
+<dialog id="signupDialog" aria-labelledby="signupTitle">
+<form class="modal" id="signupForm">
+<h2 id="signupTitle">Buluşmaya kayıt ol</h2>
+<p id="chosenEvent"></p>
+<input type="hidden" name="eventId">
+<label>Ad Soyad<input name="fullName" type="text" autocomplete="name" minlength="2" maxlength="100" required></label>
+<label>E-posta<input name="email" type="email" autocomplete="email" maxlength="254" required></label>
+<label class="honeypot" aria-hidden="true">Web adresi<input name="website" type="text" tabindex="-1" autocomplete="off"></label>
+<label class="consent"><input name="consent" type="checkbox" required>Etkinlik kaydımın işlenmesini ve seçtiğim etkinliğe ilişkin bilgilendirmelerin e-posta adresime gönderilmesini kabul ediyorum.</label>
+<div id="feedback" class="feedback" role="status" aria-live="polite"></div>
+<div class="actions"><button type="button" class="cancel" id="closeDialog">Vazgeç</button><button type="submit" class="submit" id="submitBtn">Kayıt Ol</button></div>
+</form>
+</dialog>
+<script src="/esc-supabase-config.js?v=20261006-seo1"></script>
+<script src="/esc-supabase.js?v=20261006-eventfix1"></script>
+<script>
+(() => {
+'use strict';
+const grid=document.getElementById('eventGrid'),dialog=document.getElementById('signupDialog');
+const form=document.getElementById('signupForm'),feedback=document.getElementById('feedback'),submitBtn=document.getElementById('submitBtn');
+let events=[];
+const when=dt=>new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',dateStyle:'long',timeStyle:'short'}).format(new Date(dt));
+const short=dt=>new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',day:'numeric',month:'long'}).format(new Date(dt));
+const hour=dt=>new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',hour:'2-digit',minute:'2-digit'}).format(new Date(dt));
+const node=(tag,className,text)=>{const element=document.createElement(tag);element.className=className||'';if(text!==undefined)element.textContent=String(text);return element};
+function render(){
+ grid.replaceChildren();
+ if(!events.length){grid.append(node('div','empty','Şu anda yeni kayıt alabilecek bir buluşma bulunmuyor. Etkinlikler güncellendikçe burada görünecek.'));return}
+ for(const event of events){
+   const card=node('article','card '+(event.kind==='online'?'online':'')),top=node('div','card-top'),date=node('div','date');
+   date.append(node('strong','',short(event.start_at)));date.append(node('small','',hour(event.start_at)+'–'+hour(event.end_at)));top.append(date);
+   top.append(node('span','type',event.kind==='online'?'💻 Online':'☕ Yüz yüze'));card.append(top);
+   const body=node('div','card-body');body.append(node('h2','',event.title));
+   const venue=node('div','meta');venue.append(node('strong','','Yer: '));venue.append(document.createTextNode(event.venue));body.append(venue);
+   body.append(node('div','meta',event.event_code+' · '+when(event.start_at)));
+   const btn=node('button','join',event.registration_enabled?'Bu buluşmaya katıl':'Kayıtlar kapalı');
+   btn.type='button';btn.disabled=!event.registration_enabled;btn.onclick=()=>openSignup(event);
+   body.append(btn);card.append(body);grid.append(card);
+ }
+}
+function openSignup(event){
+ feedback.textContent='';form.reset();form.elements.eventId.value=event.id;
+ document.getElementById('chosenEvent').textContent=event.event_code+' · '+when(event.start_at)+' · '+event.venue;
+ dialog.showModal();form.elements.fullName.focus();
+}
+document.getElementById('closeDialog').onclick=()=>dialog.close();
+form.onsubmit=async ev=>{
+ ev.preventDefault();if(!form.reportValidity())return;
+ const data=Object.fromEntries(new FormData(form));
+ const payload={eventId:String(data.eventId),fullName:String(data.fullName).trim(),email:String(data.email).trim(),consent:data.consent==='on',website:String(data.website||'')};
+ submitBtn.disabled=true;feedback.textContent='Kayıt gönderiliyor…';
+ try{
+   const config=window.ESC_SUPABASE_CONFIG;
+   const response=await fetch(config.url+'/functions/v1/esc-event-register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+   const result=await response.json();
+   if(!response.ok||!result.ok)throw new Error(result.error||'Kayıt tamamlanamadı.');
+   feedback.style.color='#166e52';
+   feedback.textContent='Kaydın alındı. Görüşmek üzere!';
+   form.querySelectorAll('input:not([type=hidden])').forEach(x=>x.disabled=true);
+   submitBtn.textContent='Kaydedildi';
+ }catch(error){feedback.style.color='#9a2b2d';feedback.textContent=error.message||'Kayıt sırasında sorun oluştu.';submitBtn.disabled=false}
+};
+dialog.addEventListener('close',()=>{
+ form.querySelectorAll('input').forEach(x=>x.disabled=false);
+ submitBtn.textContent='Kayıt Ol';submitBtn.disabled=false;feedback.style.color='#9a2b2d';
+});
+(async()=>{
+ try{
+   const db=await window.ESCSupabase.getClient();if(!db)throw Error('Veritabanı bağlantısı kurulamadı.');
+   const result=await db.from('esc_public_upcoming_events').select('id,event_code,title,kind,start_at,end_at,venue,capacity,registration_enabled')
+       .order('start_at',{ascending:true}).limit(40);
+   if(result.error)throw result.error;
+   events=(result.data||[]).filter(e=>new Date(e.end_at)>new Date());render();
+ }catch(error){grid.replaceChildren(node('div','empty','Etkinlikleri şu anda yükleyemedik. Lütfen sayfayı yenileyerek tekrar deneyin.'))}
+})();
+})();
+</script>
+</body>
+</html>
