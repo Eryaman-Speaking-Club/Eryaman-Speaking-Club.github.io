@@ -266,7 +266,7 @@ function escEmailProcessScheduled_(preview) {
       rosters.get(eventId).forEach(function (entry) {
         if (attempted >= ESC_EMAIL.maxPerRun) return;
         if (kind === 'reminder' && !entry.listed) return;
-        if (kind === 'thanks' && !entry.attended) return;
+        if (kind === 'thanks' && (!entry.attended || !entry.isNew)) return;
         const member = members.get(entry.memberId);
         if (!member || !member.email || !member.consent) return;
         if (ctx.blocked.has(member.email)) return;
@@ -428,7 +428,7 @@ function escEmailReadRosters_(ss, eventSpecs) {
     if (blockStart + ESC_EMAIL.rosterBlockSize - 1 > sheet.getMaxRows()) {
       throw new Error('Katılım sayfasında etkinlik bloğu bulunamadı: ' + spec.id);
     }
-    const rows = sheet.getRange(blockStart, 1, ESC_EMAIL.rosterBlockSize, 6).getValues();
+    const rows = sheet.getRange(blockStart, 1, ESC_EMAIL.rosterBlockSize, 7).getValues();
     const firstId = String(rows[0][0] || '').trim();
     if (firstId && firstId !== spec.id) {
       throw new Error('Katılım bloğu etkinlik numarasıyla uyuşmuyor: ' + spec.id);
@@ -444,7 +444,9 @@ function escEmailReadRosters_(ss, eventSpecs) {
       entries.push({
         memberId: memberId,
         listed: escEmailYes_(row[4]),
-        attended: escEmailYes_(row[5])
+        attended: escEmailYes_(row[5]),
+        // Katılım tablosunda G sütunu: Yeni / Tekrar. Boşsa gönderme.
+        isNew: escEmailSimplify_(row[6]) === 'yeni'
       });
     });
     rosters.set(spec.id, entries);
