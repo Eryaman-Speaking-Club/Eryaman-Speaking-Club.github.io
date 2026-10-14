@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-speaking-release="20261013-logo-fit">
+<html lang="en" data-speaking-release="20261014-logo-bottom-fit">
 <head>
   <link rel="icon" type="image/png" href="/favicon.png?v=20260922">
   <meta charset="UTF-8">
@@ -329,7 +329,7 @@
   </script>
   <script src="../esc-supabase-config.js?v=20261006-seofinal"></script>
   <script src="../esc-supabase.js?v=20261006-seofinal"></script>
-  <script src="./app.js?v=20261013-logo-fit"></script>
+  <script src="./app.js?v=20261014-logo-bottom-fit"></script>
   <script>
     (() => {
       const VOLUME_KEY = 'esc-truth-dare-volume-percent-v1';
@@ -371,6 +371,7 @@
         wheel.setAttribute('role', 'button');
         wheel.setAttribute('tabindex', '0');
         wheel.setAttribute('aria-label', 'Spin for a player');
+        wheel.removeAttribute('title'); // No native tooltip over the wheel.
 
         const triggerSpin = () => {
           if (spinButton.disabled || wheel.classList.contains('spinning') || wheel.classList.contains('winner')) return;
