@@ -689,8 +689,8 @@ function escEmailHealth_(status, error) {
       ['OTOMASYON_DURUMU', status,
         'Hata durumunda yöneticiye uyarı gönderilmeye çalışılır.']
     ]);
-    if (error) sheet.getRange('A10:C10').setValues([[
-      'SON_HATA', String(error).slice(0, 250),
+    sheet.getRange('A10:C10').setValues([[
+      'SON_HATA', error ? String(error).slice(0, 250) : 'YOK',
       'Ayrıntılar için Apps Script > Yürütmeler ve E-posta Günlüğü.'
     ]]);
   } catch (healthError) {
