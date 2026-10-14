@@ -49,3 +49,16 @@ Bu modül, mevcut **Yönetim Paneli** Google Sheets dosyası üzerinde çalışa
 - Üye mesaj istemezse **E-posta Engelleme** sekmesinin A sütununa e-posta adresini girin. Mevcut sistem otomatik abonelikten çıkış bağlantısı sunmaz; toplu promosyon gönderimi için ek izin ve abonelikten çıkma sistemi gerekir.
 - Etkinlik bitişi sonrası teşekkür için **Etkinlikler!M** durumunun güncel olması gerekir. Planlandı olarak kalırsa teşekkür gönderilmez.
 - Değişken etkinlik tarihleri ve veri temizliği nedeniyle ilk gerçek gönderimden önce küçük ölçekli, izinli kayıtlarla test edin.
+
+
+## Düzenlenebilir e-posta şablonları
+
+- Yönetim Paneli Google Sheets dosyasına **E-posta Şablonları** sekmesi eklendi.
+- A sütunu: `reminder`, `welcome`, `thanks` sabit şablon kimlikleri.
+- B sütunu: e-posta konusu, C sütunu: e-posta gövdesi, D sütunu: **AKTİF** durumu.
+- Kullanılabilen değişkenler: `{{ad}}`, `{{tarih}}`, `{{saat}}`, `{{mekan}}`, `{{tur}}`, `{{tema}}`, `{{etkinlik}}`. Bilinmeyen değişken kullanılması halinde gönderim iptal edilir.
+- Ödeme ve IBAN bilgileri **yalnızca erişim kontrollü Google Sheets şablonunda** bulunur; herkese açık GitHub kaynak koduna eklenmez.
+- Dekont katılımcıdan **e-postayı yanıtlayarak** istenir. E-posta üzerinde WhatsApp'taki gibi “buradan” ifadesi kullanılmaz.
+- Mevcut aktif Apps Script editörü GitHub'daki yeni kodu otomatik almaz. Yeni davranış için ESC yöneticisi `ESC_Email.gs` dosyasını son sürümle değiştirip kaydetmelidir.
+- Bu adım **hiçbir gönderim başlatmaz**. E-posta Otomasyonu!B2 **KAPALI** tutulur.
+- Etkinlik hatırlatmalarında mevcut, daha önceden ödeme yapmış veya paketi bulunan kişilerden tekrar ödeme istenmemesi gerektiği şablonda belirtilmiştir. Mevcut sistem otomatik ödeme durumu ayrımı yapmaz; gerekirse gönderimden önce katılımcılar yönetici tarafından kontrol edilmelidir.
