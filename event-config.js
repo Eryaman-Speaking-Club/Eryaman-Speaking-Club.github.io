@@ -26,6 +26,8 @@
   const isEnglish = document.documentElement.lang === 'en';
   const t = (tr,en) => isEnglish ? en : tr;
   const q = selector => document.querySelector(selector);
+  const safeText = value => String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const safeHttpsUrl = value => { try { const u=new URL(value,location.origin);return u.protocol==='https:' ? u.href : null; } catch(_) { return null; } };
   const qa = selector => [...document.querySelectorAll(selector)];
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const markManaged = (el, type='event') => {
@@ -117,8 +119,8 @@
     const heroStrip = markManaged(q('.hero-join-strip'));
     if (heroStrip && upcoming) {
       heroStrip.innerHTML = isEnglish
-        ? '<span class="hero-join-free">'+e.monthEn+' '+e.day+' · REGISTRATION OPEN</span><span class="hero-join-info"><strong>'+e.weekdayEn.charAt(0)+e.weekdayEn.slice(1).toLowerCase()+' · '+e.time+'</strong><i></i>'+e.venue+'</span>'
-        : '<span class="hero-join-free">'+e.day+' '+e.monthTr+' · KAYITLAR AÇIK</span><span class="hero-join-info"><strong>'+e.weekdayTr.charAt(0)+e.weekdayTr.slice(1).toLocaleLowerCase('tr-TR')+' · '+e.time+'</strong><i></i>'+e.venue+'</span>';
+        ? '<span class="hero-join-free">'+e.monthEn+' '+e.day+' · REGISTRATION OPEN</span><span class="hero-join-info"><strong>'+e.weekdayEn.charAt(0)+e.weekdayEn.slice(1).toLowerCase()+' · '+e.time+'</strong><i></i>'+safeText(e.venue)+'</span>'
+        : '<span class="hero-join-free">'+e.day+' '+e.monthTr+' · KAYITLAR AÇIK</span><span class="hero-join-info"><strong>'+e.weekdayTr.charAt(0)+e.weekdayTr.slice(1).toLocaleLowerCase('tr-TR')+' · '+e.time+'</strong><i></i>'+safeText(e.venue)+'</span>';
     }
 
     const heroJoin = markManaged(q('.hero-actions .join-primary'));
@@ -128,6 +130,7 @@
     }
 
     const heroProof = markManaged(q('.hero-proof p'));
+    if (heroProof && !upcoming) heroProof.innerHTML = isEnglish ? '<strong>First meetup is free · A2–B2+</strong> · Discover future meetups' : '<strong>İlk buluşma ücretsiz · A2–B2+</strong> · Yaklaşan buluşmaları keşfet';
     if (heroProof && upcoming) {
       heroProof.innerHTML = isEnglish
         ? '<strong>First meetup is free · Open to A2–B2+ levels</strong><br>'+e.monthEn+' '+e.day+' registration is open · '+(e.capacity==='limited'?'limited capacity':'registration open')+' · come on your own'
@@ -135,6 +138,7 @@
     }
 
     const scrollCue = markManaged(q('.scroll-cue span'));
+    if (scrollCue && !upcoming) scrollCue.textContent = isEnglish ? 'Discover upcoming meetups' : 'Yaklaşan buluşmaları keşfet';
     if (scrollCue && upcoming) {
       scrollCue.textContent = isEnglish
         ? 'See the '+titleCaseEn(e.monthEn)+' '+e.day+' meetup'
@@ -160,12 +164,12 @@
         : (e.capacity==='limited'?'KAYITLAR AÇIK · KONTENJAN SINIRLI':'KAYITLAR AÇIK');
       const details=markManaged(next.querySelector('.next-event-details'));
       if(details) details.innerHTML=(isEnglish
-        ? '<span>🕖 <strong>'+e.time+'</strong></span><span>📍 <strong>'+e.venue+'</strong></span><span>💬 <strong>Speaking · games · new people</strong></span>'
-        : '<span>🕖 <strong>'+e.time+'</strong></span><span>📍 <strong>'+e.venue+'</strong></span><span>💬 <strong>Speaking · oyunlar · yeni insanlar</strong></span>');
+        ? '<span>🕖 <strong>'+e.time+'</strong></span><span>📍 <strong>'+safeText(e.venue)+'</strong></span><span>💬 <strong>Speaking · games · new people</strong></span>'
+        : '<span>🕖 <strong>'+e.time+'</strong></span><span>📍 <strong>'+safeText(e.venue)+'</strong></span><span>💬 <strong>Speaking · oyunlar · yeni insanlar</strong></span>');
       const urgency=markManaged(next.querySelector('.next-event-urgency'));
       if(urgency) urgency.textContent=isEnglish?'Save your seat for '+e.monthEn+' '+e.day:e.day+' '+e.monthTr.charAt(0)+e.monthTr.slice(1).toLocaleLowerCase('tr-TR')+' için yerini ayırt';
       applyJoinMode(next.querySelector('.next-event-join'),'in_person');
-      const map=markManagedHref(next.querySelector('.next-event-location'));if(map)map.href=CONFIG.mapUrl;
+      const map=markManagedHref(next.querySelector('.next-event-location'));if(map){const safe=safeHttpsUrl(CONFIG.mapUrl);if(safe)map.href=safe;else map.removeAttribute('href');}
     }
 
     const galleryDate=markManaged(q('.gallery-join-cta small'));
@@ -250,7 +254,7 @@
           venue:event.venue,
           eventCode:event.event_code
         };
-        if(event.location_url)CONFIG.mapUrl=event.location_url;
+        if(event.location_url && safeHttpsUrl(event.location_url))CONFIG.mapUrl=event.location_url;
       }else if(!eventError){
         CONFIG.inPerson={...CONFIG.inPerson,start:'',end:'2000-01-01T00:00:00+03:00'};
       }else if(eventError){
