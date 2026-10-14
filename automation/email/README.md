@@ -1,0 +1,46 @@
+# ESC E-posta Otomasyonu (Gmail + Google Sheets)
+
+Bu modül, mevcut **Yönetim Paneli** Google Sheets dosyası üzerinde çalışacak bir Google Apps Script taslağıdır. Canlı site, Supabase ve WhatsApp hesapları değiştirilmez. Bu depo içindeki `ESC_Email.gs` dosyası tek başına çalışmaya başlamaz: **ilgili Google Sheets dosyasına Apps Script editörü üzerinden eklenmesi ve Gmail hesabıyla yetkilendirilmesi gerekir.**
+
+## Mevcut veri kaynakları
+
+- **Kayıt Formu**: A = zaman damgası, B = ad-soyad, E/O = e-posta, N = iletişim onayı. *Yeni Google Form cevabı* için `onFormSubmit` tetikleyicisi kullanılır.
+- **Kayıtlar**: A = üye no, C = ad, D = e-posta, P = iletişim onayı; satır 5'ten itibaren. Bu sayfa mevcut kayıt formundan formüllerle beslenir; formüller değiştirilmez.
+- **Etkinlikler**: A = etkinlik no, B = tarih, C = saat aralığı, D = tür, E = tema, F = mekân/platform, M = durum; satır 5'ten itibaren.
+- **Katılım Yüz Yüze / Katılım Online**: A = etkinlik no, B = üye no, E = listede, F = katıldı; satır 4'ten itibaren.
+- Yeni oluşan **E-posta Otomasyonu**: B2 = `KAPALI` (başlangıç durumu) veya `AÇIK`; B3 = yetkili Gmail adresi.
+- Yeni oluşan **E-posta Günlüğü**: tekil gönderim kimliği, tür, durum ve hata kaydı.
+- Yeni oluşan **E-posta Engelleme**: A sütununda gönderim yapılmaması gereken adresler.
+
+**Dikkat:** Sitedeki Google Form için halihazırda `Kayıt Formu` yanıt sayfasının güncellendiğini kontrol edin. Var olan Google Form bağlantısı farklı bir hesap/tabloya geçirilmişse önce form–tablo bağlantısını doğrulayın. `Form Yanıtları 7` ise katılım geri bildirim formudur ve bu otomasyonun kayıt kaynağı değildir.
+
+## Kurulum (yalnızca yetkili ESC yöneticisi)
+
+1. ESC Google hesabıyla **Yönetim Paneli** Google Sheets dosyasını açın ve **Uzantılar → Apps Script** yolunu izleyin.
+2. Mevcut kodları silmeden **+ → Komut Dosyası** ile `ESC_Email.gs` adlı yeni bir dosya oluşturup bu depodaki `automation/email/ESC_Email.gs` içeriğini yapıştırın.
+3. **Proje Ayarları → Saat dilimi:** `Europe/Istanbul` olarak ayarlayın.
+4. `ESC_EMAIL_setup` fonksiyonunu bir kez çalıştırın ve gerekli izinleri doğrulayın. Bu işlem üç yeni sekme ve iki tetikleyici oluşturur, fakat **hiçbir katılımcıya e-posta göndermez**.
+5. `E-posta Otomasyonu!B3` hücresinin Apps Script'i yetkilendiren **eryamanspeakingclub@gmail.com** hesabıyla eşleştiğini doğrulayın.
+6. `ESC_EMAIL_test` fonksiyonunu çalıştırın. **Yalnızca gönderici hesabına** bir test mesajı gider.
+7. `ESC_EMAIL_preview` fonksiyonunu çalıştırıp Apps Script çalışma günlüklerini kontrol edin. Bu fonksiyon gerçek e-posta göndermeden mevcut etkinliklere göre kaç bildirimin uygun olduğunu gösterir.
+8. Gerçek aktivasyon için önce formdaki iletişim onayını, katılımcı listesindeki e-postaları, etkinlik durumlarını ve tarihlerinin doğruluğunu kontrol edin. B2 değerini yalnızca hazırlıklar bittikten sonra **AÇIK** yapın.
+
+## Gönderim mantığı
+
+- **Yeni kayıt onayı**: Yalnızca aktivasyondan **sonraki** `Kayıt Formu` gönderimlerinde, geçerli e-posta ve açık iletişim onayı varsa. Her adrese en fazla bir otomatik hoş geldin e-postası.
+- **Etkinlik hatırlatması**: Durumu `Planlandı` olan bir etkinliğe ilgili katılım sayfasında **Listede = TRUE** olarak bağlanan üyelere, etkinlik başlamadan yaklaşık **2–24 saat** önce saatlik taramada gönderilir.
+- **Etkinlik sonrası teşekkür**: Durumu **Tamamlandı** olan etkinliğe **Katıldı = TRUE** işaretli üyeler için, etkinlik bitiminden en erken 1 saat sonra ve en geç 7 gün içinde. Geriye dönük eski katılımcılara gereksiz toplu gönderim yapılmasını önlemek için açılıştan önce günlük ve etkinlik durumları gözden geçirilmeli.
+- İptal edilen, tarihi eksik veya mekân/platform bilgisi olmayan etkinlikler atlanır. Bir etkinlik için katılım kaydı bulunmuyorsa otomatik hatırlatma gönderilmez.
+- Tekil anahtarlar e-posta günlüğünde saklanır. Başarısız veya sonucu belirsiz gönderimler otomatik tekrar denenmez; yönetici inceler.
+- Her çalıştırma en fazla **35** katılımcı mesajı göndermeye çalışır. Gmail'in günlük gönderim kotaları ayrıca geçerlidir.
+
+## Gereken kontrol ve sınırlamalar
+
+- Google Apps Script **çalıştırılıp yetkilendirilmeden otomasyon çalışmaz**. Bu depodaki kod geliştirici incelemesine sunulan bir hazırlıktır, aktif gönderim hizmeti değildir.
+- E-posta otomasyonunu mevcut WhatsApp fonksiyonlarıyla veya eski Apps Script kodlarıyla karıştırmayın. Ana kod dosyalarını değiştirmek gerekmez.
+- Yeni kayıt onayı, ödeme/katılım kesinleşmesi anlamına gelmez. Etkinlik hatırlatması için kayıtlı üye ile etkinlik bağlantısı gereklidir. Kayıt formundaki tercih alanı tek başına belirli bir etkinliğe kayıt oluşturmaz.
+- Gönderen adres, script'i yetkilendiren hesapla aynı olmalıdır. Yetkisiz veya yanlış hesapta gönderim durdurulur.
+- KVKK ve ticari elektronik ileti kuralları için etkinlik/kayıt bilgilendirmeleri ile pazarlama duyurularını ayırın. Açıkça pazarlama izni bulunmayan kişilere kampanya mesajı gönderilmemelidir.
+- Üye mesaj istemezse **E-posta Engelleme** sekmesinin A sütununa e-posta adresini girin. Mevcut sistem otomatik abonelikten çıkış bağlantısı sunmaz; toplu promosyon gönderimi için ek izin ve abonelikten çıkma sistemi gerekir.
+- Etkinlik bitişi sonrası teşekkür için **Etkinlikler!M** durumunun güncel olması gerekir. Planlandı olarak kalırsa teşekkür gönderilmez.
+- Değişken etkinlik tarihleri ve veri temizliği nedeniyle ilk gerçek gönderimden önce küçük ölçekli, izinli kayıtlarla test edin.
