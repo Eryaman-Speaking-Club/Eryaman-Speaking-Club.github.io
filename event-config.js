@@ -217,7 +217,7 @@
         CONFIG=mergeDeep(JSON.parse(JSON.stringify(DEFAULT)),data.published_data);
       }
       // One canonical event table: never rely on old manual CMS date again.
-      const {data:events,error:eventError}=await db.from('esc_events')
+      const {data:events,error:eventError}=await db.from('esc_public_upcoming_events')
         .select('event_code,start_at,end_at,venue,location_url,kind,status')
         .eq('status','planned').eq('published',true).eq('kind','in_person')
         .gt('end_at',new Date().toISOString())
