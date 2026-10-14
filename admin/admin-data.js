@@ -49,12 +49,12 @@
     const e=cfg.inPerson||{},p=cfg.pricing||{},o=cfg.online||{};
     const startInput=toDateTimeInput(e.start)||'2026-10-11T18:00';
     const endInput=toDateTimeInput(e.end)||addHoursInput(startInput,2);
-    $('#panel').innerHTML='<div class="card"><div class="card-head"><div><h2>Etkinlik & fiyatlar</h2><p class="muted">Burası etkinlik tarihinin, saatin, mekânın, kayıt linkinin ve fiyatların tek kaynağıdır. Tarihi burada bir kez değiştirmen yeterli; ana sayfadaki tüm tarih alanları otomatik güncellenir.</p></div><span class="pill '+(data?.has_unpublished_changes?'draft':'published')+'">'+(data?.has_unpublished_changes?'TASLAK':'YAYINDA · v'+(data?.version||0))+'</span></div>'+
+    $('#panel').innerHTML='<div class="card"><div class="card-head"><div><h2>Etkinlik & fiyatlar</h2><p class="muted">Burası fiyatlar ve eski site ayarları içindir. Gerçek etkinlik günlerini, saatlerini ve mekânlarını Canlı Etkinlik Yönetimi bölümünden değiştirin.</p></div><span class="pill '+(data?.has_unpublished_changes?'draft':'published')+'">'+(data?.has_unpublished_changes?'TASLAK':'YAYINDA · v'+(data?.version||0))+'</span></div>'+
       '<form id="eventConfigForm" class="stack">'+
-      '<div class="notice"><strong>Merkezi tarih sistemi</strong><br>Gün, ay, hafta günü ve saat başlangıç tarihinden otomatik hesaplanır. Canlı Site Editörü bu alanların üstüne yazamaz.</div>'+
-      '<div class="grid-2"><label>Etkinlik başlangıcı<input name="start" type="datetime-local" required value="'+esc(startInput)+'"></label><label>Etkinlik bitişi<input name="end" type="datetime-local" required value="'+esc(endInput)+'"></label></div>'+
+      '<div class="notice warning"><strong>Canlı etkinliklerin asıl kaynağı Supabase takvimidir.</strong> Bu bölümdeki eski tarih ve mekân alanları bilgi amaçlıdır; buradan değiştirilmez. <button type="button" class="btn secondary" id="openDynamicFromPricing">Canlı Etkinlik Yönetimini Aç →</button></div>'+
+      '<div class="grid-2"><label>Eski etkinlik başlangıcı<input name="start" type="datetime-local" readonly aria-readonly="true" required value="'+esc(startInput)+'"></label><label>Eski etkinlik bitişi<input name="end" type="datetime-local" readonly aria-readonly="true" required value="'+esc(endInput)+'"></label></div>'+
       '<div id="eventDerivedPreview" class="notice"></div>'+
-      '<label>Mekân<input name="venue" value="'+esc(e.venue||'')+'"></label>'+
+      '<label>Eski etkinlik mekânı<input name="venue" readonly aria-readonly="true" value="'+esc(e.venue||'')+'"></label>'+
       '<div class="grid-2"><label>Kayıt formu URL<input name="registrationUrl" value="'+esc(cfg.registrationUrl||'')+'"></label><label>Harita URL<input name="mapUrl" value="'+esc(cfg.mapUrl||'')+'"></label></div>'+
       '<div class="grid-2"><label>Kontenjan<select name="capacity"><option value="limited" '+(e.capacity==='limited'?'selected':'')+'>Sınırlı</option><option value="open" '+(e.capacity!=='limited'?'selected':'')+'>Açık</option></select></label><label>Online ilk buluşma ücretsiz <select name="onlineFree"><option value="true" '+(o.firstMeetupFree!==false?'selected':'')+'>Evet</option><option value="false" '+(o.firstMeetupFree===false?'selected':'')+'>Hayır</option></select></label></div>'+
       '<div class="grid-3"><label>Tek yüz yüze buluşma<input name="single" type="number" min="0" value="'+esc(p.single??400)+'"></label><label>4 yüz yüze buluşma<input name="oneMonth" type="number" min="0" value="'+esc(p.oneMonth??1400)+'"></label><label>12 yüz yüze buluşma<input name="threeMonth" type="number" min="0" value="'+esc(p.threeMonth??3900)+'"></label></div>'+
@@ -70,6 +70,7 @@
         $('#eventDerivedPreview').innerHTML='<strong>Tarih kontrolü:</strong> '+esc(err.message||err);
       }
     };
+    $('#openDynamicFromPricing').onclick=()=>A.go('dynamicEvents');
     $('#eventConfigForm').elements.start.addEventListener('input',()=>{
       const start=$('#eventConfigForm').elements.start.value;
       const end=$('#eventConfigForm').elements.end;
