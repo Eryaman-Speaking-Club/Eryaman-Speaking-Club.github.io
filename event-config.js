@@ -2,7 +2,7 @@
   'use strict';
 
   const DEFAULT = {
-    registrationUrl: 'https://forms.gle/qjYk7dYtV8Vhpud29',
+    registrationUrl: '/events/',
     mapUrl: 'https://maps.app.goo.gl/7y8SdsCRGYzuSXnr6',
     inPerson: {
       start: '2026-10-11T18:00:00+03:00',
@@ -115,7 +115,7 @@
     if(strip) strip.style.display = upcoming ? '' : 'none';
 
     const heroStrip = markManaged(q('.hero-join-strip'));
-    if (heroStrip) {
+    if (heroStrip && upcoming) {
       heroStrip.innerHTML = isEnglish
         ? '<span class="hero-join-free">'+e.monthEn+' '+e.day+' · REGISTRATION OPEN</span><span class="hero-join-info"><strong>'+e.weekdayEn.charAt(0)+e.weekdayEn.slice(1).toLowerCase()+' · '+e.time+'</strong><i></i>'+e.venue+'</span>'
         : '<span class="hero-join-free">'+e.day+' '+e.monthTr+' · KAYITLAR AÇIK</span><span class="hero-join-info"><strong>'+e.weekdayTr.charAt(0)+e.weekdayTr.slice(1).toLocaleLowerCase('tr-TR')+' · '+e.time+'</strong><i></i>'+e.venue+'</span>';
@@ -128,14 +128,14 @@
     }
 
     const heroProof = markManaged(q('.hero-proof p'));
-    if (heroProof) {
+    if (heroProof && upcoming) {
       heroProof.innerHTML = isEnglish
         ? '<strong>First meetup is free · Open to A2–B2+ levels</strong><br>'+e.monthEn+' '+e.day+' registration is open · '+(e.capacity==='limited'?'limited capacity':'registration open')+' · come on your own'
         : '<strong>İlk buluşma ücretsiz · A2–B2+ seviyelerine açık</strong><br>'+e.day+' '+e.monthTr.charAt(0)+e.monthTr.slice(1).toLocaleLowerCase('tr-TR')+' kayıtları açık · '+(e.capacity==='limited'?'kontenjan sınırlı':'kayıt açık')+' · tek başına gelebilirsin';
     }
 
     const scrollCue = markManaged(q('.scroll-cue span'));
-    if (scrollCue) {
+    if (scrollCue && upcoming) {
       scrollCue.textContent = isEnglish
         ? 'See the '+titleCaseEn(e.monthEn)+' '+e.day+' meetup'
         : e.day+' '+titleCaseTr(e.monthTr)+' etkinliğini gör';
@@ -169,10 +169,10 @@
     }
 
     const galleryDate=markManaged(q('.gallery-join-cta small'));
-    if(galleryDate)galleryDate.textContent=isEnglish?'NEXT MEETUP · '+e.weekdayEn+', '+e.monthEn+' '+e.day+' · '+e.time:'SIRADAKİ BULUŞMA · '+e.day+' '+e.monthTr+' '+e.weekdayTr+' · '+e.time;
+    if(galleryDate)galleryDate.textContent=!upcoming ? (isEnglish?'UPCOMING MEETUPS':'YAKLAŞAN BULUŞMALAR') : isEnglish?'NEXT MEETUP · '+e.weekdayEn+', '+e.monthEn+' '+e.day+' · '+e.time:'SIRADAKİ BULUŞMA · '+e.day+' '+e.monthTr+' '+e.weekdayTr+' · '+e.time;
     applyJoinMode(q('.gallery-join-cta a'),'in_person');
 
-    const feedbackDate=markManaged(q('.feedback-intro-cta span'));if(feedbackDate)feedbackDate.textContent=dateLabel(true);
+    const feedbackDate=markManaged(q('.feedback-intro-cta span'));if(feedbackDate)feedbackDate.textContent=upcoming?dateLabel(true):(isEnglish?'Upcoming events':'Yaklaşan etkinlikler');
     applyJoinMode(q('.feedback-intro-cta a'),'in_person');
 
     qa('.online-meetup-cta, .online-plan .meetup-price-cta').forEach(link=>applyJoinMode(link,'online'));
@@ -217,13 +217,14 @@
       if(!error&&data?.published_data){
         CONFIG=mergeDeep(JSON.parse(JSON.stringify(DEFAULT)),data.published_data);
       }
+      // Registration is tied to a specific live event.
+      CONFIG.registrationUrl='/events/';
       // One canonical event table: never rely on old manual CMS date again.
       const {data:events,error:eventError}=await db.from('esc_public_upcoming_events')
         .select('event_code,start_at,end_at,venue,location_url,kind,status')
-        .eq('status','planned').eq('published',true).eq('kind','in_person')
+        .eq('status','planned').eq('kind','in_person')
         .gt('end_at',new Date().toISOString())
         .order('start_at',{ascending:true}).limit(1);
-      if(!eventError) CONFIG.registrationUrl='/events/';
       if(!eventError&&events?.length){
         const event=events[0];
         const start=new Date(event.start_at),end=new Date(event.end_at);
@@ -252,10 +253,18 @@
         if(event.location_url)CONFIG.mapUrl=event.location_url;
       }else if(!eventError){
         CONFIG.inPerson={...CONFIG.inPerson,start:'',end:'2000-01-01T00:00:00+03:00'};
+      }else if(eventError){
+        console.warn('ESC upcoming event lookup failed',eventError.code||eventError.message||'unknown');
+        CONFIG.inPerson={...CONFIG.inPerson,start:'',end:'2000-01-01T00:00:00+03:00'};
       }
       window.ESC_EVENT_CONFIG=CONFIG;
       apply('remote');
-    }catch(error){console.warn('ESC event config temporarily unavailable',error)}
+    }catch(error){
+      console.warn('ESC event config temporarily unavailable',error);
+      CONFIG.registrationUrl='/events/';
+      CONFIG.inPerson={...CONFIG.inPerson,start:'',end:'2000-01-01T00:00:00+03:00'};
+      apply('unavailable');
+    }
   }
 
   window.ESCApplyEventConfig = () => apply('manual');
