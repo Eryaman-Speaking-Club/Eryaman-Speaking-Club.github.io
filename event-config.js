@@ -107,6 +107,11 @@
 
   function apply(source='local') {
     const e = CONFIG.inPerson;
+    const upcoming = Number.isFinite(Date.parse(e.end||'')) && Date.parse(e.end)>Date.now();
+    const featured = q('.next-event-card');
+    if(featured) featured.style.display = upcoming ? '' : 'none';
+    const strip = q('.hero-join-strip');
+    if(strip) strip.style.display = upcoming ? '' : 'none';
 
     const heroStrip = markManaged(q('.hero-join-strip'));
     if (heroStrip) {
@@ -208,8 +213,47 @@
     try{
       const db=await window.ESCSupabase.getClient();if(!db)return;
       const {data,error}=await db.from('esc_cms_public_settings').select('published_data').eq('key','event_config').maybeSingle();
-      if(!error&&data?.published_data){CONFIG=mergeDeep(JSON.parse(JSON.stringify(DEFAULT)),data.published_data);window.ESC_EVENT_CONFIG=CONFIG;apply('remote')}
-    }catch(_){}
+      if(!error&&data?.published_data){
+        CONFIG=mergeDeep(JSON.parse(JSON.stringify(DEFAULT)),data.published_data);
+      }
+      // One canonical event table: never rely on old manual CMS date again.
+      const {data:events,error:eventError}=await db.from('esc_events')
+        .select('event_code,start_at,end_at,venue,location_url,kind,status')
+        .eq('status','planned').eq('published',true).eq('kind','in_person')
+        .gt('end_at',new Date().toISOString())
+        .order('start_at',{ascending:true}).limit(1);
+      if(!eventError&&events?.length){
+        const event=events[0];
+        const start=new Date(event.start_at),end=new Date(event.end_at);
+        const parts=new Intl.DateTimeFormat('en-CA',{
+          timeZone:'Europe/Istanbul',year:'numeric',month:'numeric',day:'numeric',
+          weekday:'long',hour:'2-digit',minute:'2-digit',hour12:false
+        }).formatToParts(start);
+        const part=t=>parts.find(x=>x.type===t)?.value||'';
+        const weekdays=['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
+        const weekdayNum=new Date(Date.UTC(Number(part('year')),Number(part('month'))-1,Number(part('day')))).getUTCDay();
+        const trMonths=['OCAK','ŞUBAT','MART','NİSAN','MAYIS','HAZİRAN','TEMMUZ','AĞUSTOS','EYLÜL','EKİM','KASIM','ARALIK'];
+        const enMonths=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+        const trDays=['PAZAR','PAZARTESİ','SALI','ÇARŞAMBA','PERŞEMBE','CUMA','CUMARTESİ'];
+        CONFIG.inPerson={
+          ...CONFIG.inPerson,
+          start:event.start_at,end:event.end_at,
+          day:String(Number(part('day'))),
+          monthTr:trMonths[Number(part('month'))-1],
+          monthEn:enMonths[Number(part('month'))-1],
+          weekdayTr:trDays[weekdayNum],
+          weekdayEn:weekdays[weekdayNum],
+          time:part('hour')+':'+part('minute'),
+          venue:event.venue,
+          eventCode:event.event_code
+        };
+        if(event.location_url)CONFIG.mapUrl=event.location_url;
+      }else if(!eventError){
+        CONFIG.inPerson={...CONFIG.inPerson,start:'',end:'2000-01-01T00:00:00+03:00'};
+      }
+      window.ESC_EVENT_CONFIG=CONFIG;
+      apply('remote');
+    }catch(error){console.warn('ESC event config temporarily unavailable',error)}
   }
 
   window.ESCApplyEventConfig = () => apply('manual');
