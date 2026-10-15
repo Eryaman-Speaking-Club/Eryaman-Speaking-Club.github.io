@@ -22,10 +22,16 @@
   const kinds={in_person:'Yüz yüze',online:'Online'};
   const field=(title,key,type,value,attrs='')=>'<label class="esc-event-field">'+esc(title)+'<input name="'+esc(key)+'" type="'+type+'" '+attrs+' value="'+esc(value??'')+'"></label>';
   const select=(title,key,value,values)=>'<label class="esc-event-field">'+esc(title)+'<select name="'+esc(key)+'">'+values.map(([k,v])=>'<option value="'+esc(k)+'" '+(String(value)===k?'selected':'')+'>'+esc(v)+'</option>').join('')+'</select></label>';
-  const status=(r)=>'<span class="pill '+(r.status==='planned'?'published':r.status==='cancelled'?'draft':'')+'">'+esc(labels[r.status]||r.status)+'</span>';
+  const status=(r)=>{
+    const label=r.status==='planned'?(r.published?'YAYINDA':'YAYIN DIŞI'):(labels[r.status]||r.status);
+    return '<span class="pill '+(r.status==='planned'&&r.published?'published':'draft')+'">'+esc(label)+'</span>'+
+      (r.status==='planned'&&r.published
+        ? '<br><small>'+(r.registration_enabled?'Kayıt açık':'Kayıt kapalı')+'</small>' : '');
+  };
+  const isPublished=e=>e.status==='planned' && e.published===true;
 
   async function read(){
-    const now=new Date(Date.now()-7*86400000).toISOString();
+    const now=new Date(Date.now()-60*86400000).toISOString();
     const [events,rules]=await Promise.all([
       A.state.db.from('esc_events').select('id,event_code,title,kind,start_at,end_at,venue,location_url,meeting_url,capacity,status,published,registration_enabled,theme,note,revision,manual_override,recurrence_id').gte('start_at',now).order('start_at',{ascending:true}).limit(180),
       A.state.db.from('esc_event_rules').select('*').order('weekday',{ascending:true})
@@ -39,20 +45,22 @@
     const {events,rules}=await read();
     const upcoming=events.filter(e=>e.status==='planned'&&new Date(e.end_at)>new Date());
     const cancelled=events.filter(e=>e.status==='cancelled').length;
-    const members=await A.state.db.from('esc_event_registrations')
-      .select('event_id,status').in('event_id',events.map(e=>e.id).slice(0,180));
+    const members=events.length
+      ? await A.state.db.from('esc_event_registrations')
+          .select('event_id,status').in('event_id',events.map(e=>e.id).slice(0,180))
+      : {data:[],error:null};
     if(members.error && events.length)throw members.error;
     const counts={};
     (members.data||[]).forEach(r=>{if(r.status==='registered')counts[r.event_id]=(counts[r.event_id]||0)+1});
     $('#panel').innerHTML=
-      '<div class="notice"><strong>Canlı etkinlik kaynağı: Supabase</strong> — Bu sayfadan tarih, saat, mekân ve durumu değiştirince tüm yeni entegrasyonlar aynı etkinlik kaydını kullanır. Geçmiş katılımcılara e-posta gönderimi hâlâ kapalıdır. Eski Google Sheets e-posta otomasyonu bu kayıtlarla henüz senkronize değildir.</div>'+
+      '<div class="notice"><strong>TEK KAYNAK: Supabase → Canlı Etkinlik Yönetimi.</strong> Burada düzenlediğin ve yayınladığın etkinlikler web sitesinde ve /events/ kayıt sayfasında güncellenir. Google Sheets yalnızca eski operasyon kayıtlarıdır ve bu takvimi değiştirmez. E-posta gönderimi ayrı ve şu anda KAPALI.</div>'+
       '<div class="stats esc-event-stats">'+
         '<div class="stat"><span>YAKLAŞAN</span><strong>'+upcoming.length+'</strong><small>Aktif ve gelecekteki etkinlik</small></div>'+
         '<div class="stat"><span>BU ARALIKTA İPTAL</span><strong>'+cancelled+'</strong><small>Geri dönüşümlü</small></div>'+
         '<div class="stat"><span>TEKRARLAYAN PROGRAM</span><strong>'+rules.filter(x=>x.active).length+'</strong><small>Arka planda günlük üretilir</small></div>'+
         '<div class="stat"><span>BİLDİRİMLER</span><strong>Kapalı</strong><small>Eski üyelere izinsiz gönderim yok</small></div>'+
       '</div>'+
-      '<div class="card"><div class="card-head"><div><h2>Etkinlik Yönetimi</h2><p class="muted">Gün, saat veya mekân değişirse ETK numarası ve kayıtlar korunur. Önce etkinliği düzenleyin, sonra yayınlayın.</p></div><div class="row-actions"><button id="escEventNew" class="btn primary" '+(!A.canEdit()?'disabled':'')+'>+ Yeni Etkinlik</button><button id="escEventReload" class="btn secondary">Yenile</button></div></div>'+
+      '<div class="card"><div class="card-head"><div><h2>Etkinlikleri Düzenle ve Yayınla</h2><p class="muted">Düzenle = etkinliğin bilgilerini değiştir. Yayınla = etkinliği sitede görünür yap ve kayıtları aç. Yayından kaldır = etkinliği siteden gizle; kayıtları kapat. Değişen tarih ve mekân mevcut ETK numarası ile katılımcıları korur.</p></div><div class="row-actions"><button id="escEventNew" class="btn primary" '+(!A.canEdit()?'disabled':'')+'>+ Yeni Etkinlik</button><button id="escEventReload" class="btn secondary">Yenile</button><a href="../events/" target="_blank" rel="noopener" class="btn secondary">Kayıt Sayfası ↗</a></div></div>'+
       '<div class="table-wrap"><table><thead><tr><th>Etkinlik</th><th>Tarih & saat</th><th>Tür / yer</th><th>Durum</th><th>Katılımcı</th><th>İşlemler</th></tr></thead><tbody>'+
       (events.length?events.map(e=>
         '<tr><td><strong>'+esc(e.event_code)+'</strong><br>'+esc(e.title)+'</td>'+
@@ -60,7 +68,11 @@
         '<td>'+esc(kinds[e.kind]||e.kind)+'<br><small>'+esc(e.venue)+'</small></td>'+
         '<td>'+status(e)+'<br><small>Sürüm '+e.revision+(e.manual_override?' · Elle düzenlendi':'')+'</small></td>'+
         '<td><strong>'+Number(counts[e.id]||0)+'</strong> / '+e.capacity+'</td>'+
-        '<td><div class="row-actions"><button class="icon-btn" data-edit="'+esc(e.id)+'" '+(!A.canEdit()?'disabled':'')+'>Düzenle</button><button class="icon-btn" data-attendees="'+esc(e.id)+'">Katılımcılar</button></div></td></tr>').join('')
+        '<td><div class="row-actions"><button type="button" class="icon-btn" data-edit="'+esc(e.id)+'" '+(!A.canEdit()?'disabled':'')+'>Düzenle</button>'+
+        '<button type="button" class="icon-btn '+(isPublished(e)?'danger-text':'')+'" data-publish="'+esc(e.id)+'" '+
+        (!A.canEdit()||e.status==='cancelled'||e.status==='completed'||(!isPublished(e)&&Date.parse(e.end_at)<=Date.now())?'disabled':'')+'>'+
+        (isPublished(e)?'Yayından kaldır':'Yayınla')+'</button>'+
+        '<button type="button" class="icon-btn" data-attendees="'+esc(e.id)+'">Katılımcılar</button></div></td></tr>').join('')
         :'<tr><td colspan="6">Etkinlik bulunamadı.</td></tr>')+
       '</tbody></table></div></div>'+
       '<div class="card"><div class="card-head"><div><h2>Tekrarlayan Etkinlikler</h2><p class="muted">Bunlar başlangıç şablonlarıdır. Önceden açılmış etkinlikleri veya elle değiştirilmiş tarihleri geri almaz.</p></div></div>'+
@@ -69,8 +81,50 @@
     $('#escEventNew').onclick=()=>editor(null);
     $('#escEventReload').onclick=()=>view();
     $('#panel').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editor(events.find(x=>x.id===b.dataset.edit)));
+    $('#panel').querySelectorAll('[data-publish]').forEach(b=>b.onclick=()=>togglePublish(events.find(x=>x.id===b.dataset.publish),b));
     $('#panel').querySelectorAll('[data-attendees]').forEach(b=>b.onclick=()=>attendees(events.find(x=>x.id===b.dataset.attendees)));
     $('#panel').querySelectorAll('[data-rule]').forEach(b=>b.onclick=()=>ruleEditor(rules.find(x=>x.id===b.dataset.rule)));
+  }
+
+  async function togglePublish(event,button){
+    if(!event||!A.canEdit())return;
+    const currentlyLive=isPublished(event);
+    if(event.status==='cancelled'||event.status==='completed'){
+      alert('İptal edilmiş veya tamamlanmış etkinliği bu düğmeyle yayınlayamazsın. Önce Düzenle bölümünü kullan.');
+      return;
+    }
+    if(!currentlyLive&&Date.parse(event.end_at)<=Date.now()){
+      alert('Geçmiş etkinlik yayınlanamaz. Önce etkinliğin yeni tarihini Düzenle bölümünden belirle.');
+      return;
+    }
+    const question=currentlyLive
+      ? event.event_code+' web sitesinden kaldırılacak ve yeni kayıtlar kapanacak. Mevcut katılımcılar silinmeyecek. Onaylıyor musun?'
+      : event.event_code+' web sitesinde yayınlanacak ve etkinlik kayıtları açılacak. Onaylıyor musun?';
+    if(!confirm(question))return;
+    button.disabled=true;
+    const before=button.textContent;
+    button.textContent='Kaydediliyor…';
+    try{
+      const patch=currentlyLive
+        ? {published:false,registration_enabled:false}
+        : {status:'planned',published:true,registration_enabled:true};
+      const out=await A.state.db.from('esc_events').update(patch)
+        .eq('id',event.id).eq('revision',event.revision)
+        .select('id,event_code,status,published,registration_enabled,revision').maybeSingle();
+      if(out.error)throw out.error;
+      if(!out.data)throw new Error('Etkinlik başka bir yerde değiştirilmiş olabilir. Yenileyip tekrar dene.');
+      if(out.data.published!==!currentlyLive)
+        throw new Error('Beklenen yayın durumu kaydedilmedi. Sayfayı yeniden kontrol et.');
+      toast(currentlyLive
+        ? event.event_code+' yayından kaldırıldı; kayıtları kapandı.'
+        : event.event_code+' yayınlandı; kayıtlar açıldı.');
+      await view();
+    }catch(error){
+      alert('Etkinliğin yayın durumu değiştirilemedi: '+(error.message||String(error)));
+    }finally{
+      button.disabled=false;
+      button.textContent=before;
+    }
   }
 
   function editor(event){
@@ -92,49 +146,93 @@
         field('Konum bağlantısı','location_url','url',e.location_url||'')+
         field('Toplantı bağlantısı (isteğe bağlı)','meeting_url','url',e.meeting_url||'')+
       '</div><label>Not<textarea name="note" rows="2" maxlength="1000">'+esc(e.note||'')+'</textarea></label>'+
-      '<div class="grid-2">'+select('Sitede yayınla','published',String(e.published===true),[['true','Evet'],['false','Hayır']])+
+      '<div class="grid-2">'+select('Web sitesinde görünür','published',String(e.published===true),[['true','Evet'],['false','Hayır']])+
       select('Yeni kayıt al','registration_enabled',String(e.registration_enabled===true),[['true','Açık'],['false','Kapalı']])+
-      '</div><div class="notice warning" id="escEditWarning">Etkinliği ertelemek veya iptal etmek eski katılımcılara burada otomatik e-posta GÖNDERMEZ.</div>'+
-      '<div class="row-actions"><button type="submit" class="btn primary">Kaydet</button><button type="button" class="btn secondary" id="escEventCancel">Vazgeç</button></div></form>');
+      '</div><div class="notice warning" id="escEditWarning"><strong>Durum ve yayınlama farklıdır.</strong> Planlandı + Sitede yayınla=Evet olursa etkinlik web sitesinde görünür. Kaydet ve Yayınla her ikisini de açar. İptal/Tamamlandı/Taslak durumlarında etkinlik yayın dışıdır. Katılımcılara değişiklik e-postası henüz GÖNDERİLMİYOR.</div>'+
+      '<div class="row-actions"><button type="submit" data-submit-action="save" class="btn secondary">'+(fresh?'Taslak kaydet':'Değişiklikleri kaydet')+'</button>'+
+      '<button type="submit" data-submit-action="publish" class="btn primary">Kaydet ve Yayınla</button>'+
+      '<button type="button" class="btn secondary" id="escEventCancel">Vazgeç</button></div>'+
+      '<p id="escEventFeedback" role="status" aria-live="polite" class="muted"></p></form>');
     $('#escEventCancel').onclick=closeModal;
     $('#escEventForm').onsubmit=async(ev)=>{
-      ev.preventDefault();if(!A.canEdit())return;
-      const form=ev.currentTarget,f=new FormData(form);
-      const startAt=parse(String(f.get('start')||'')),endAt=parse(String(f.get('end')||''));
-      if(Date.parse(endAt)<=Date.parse(startAt))return alert('Bitiş saati başlangıçtan sonra olmalı.');
-      if(!event&&Date.parse(startAt)<=Date.now())return alert('Geçmiş tarihli yeni etkinlik oluşturulamaz.');
-      const newStatus=String(f.get('status'));
-      if(event&&newStatus==='planned'&&Date.parse(endAt)<Date.now())return alert('Geçmiş etkinlik Planlandı olamaz.');
-      const patch={
-        title:String(f.get('title')||'').trim(),kind:String(f.get('kind')),
-        start_at:startAt,end_at:endAt,venue:String(f.get('venue')||'').trim(),
-        capacity:Number(f.get('capacity')||0),status:newStatus,
-        location_url:String(f.get('location_url')||'').trim()||null,
-        meeting_url:String(f.get('meeting_url')||'').trim()||null,
-        theme:String(f.get('theme')||'').trim(),note:String(f.get('note')||'').trim(),
-        published:f.get('published')==='true',
-        registration_enabled:f.get('registration_enabled')==='true'
-      };
-      if(!patch.title||!patch.venue||!(patch.capacity>=1&&patch.capacity<=500))return alert('İsim, mekân ve kapasite zorunludur.');
-      const changed=event&&(
-        new Date(event.start_at).getTime()!==Date.parse(startAt)||
-        new Date(event.end_at).getTime()!==Date.parse(endAt)||
-        event.venue!==patch.venue||event.status!==patch.status);
-      const btn=form.querySelector('[type=submit]');btn.disabled=true;btn.textContent='Kaydediliyor…';
+      ev.preventDefault();
+      if(!A.canEdit())return;
+      const form=ev.currentTarget;
+      const action=ev.submitter?.dataset.submitAction||'save';
+      const btn=ev.submitter||form.querySelector('[type="submit"]');
+      const feedback=$('#escEventFeedback');
+      const f=new FormData(form);
+      let patch;
       try{
-        if(changed && event.status==='planned' && !confirm('Bu değişiklik mevcut kayıtları koruyacak. Katılımcılara otomatik değişiklik e-postası henüz etkin değil. Devam edilsin mi?'))return;
-        let result;
-        if(event){
-          // Optimistic version check prevents silently overwriting edits from another admin.
-          result=await A.state.db.from('esc_events').update(patch)
-            .eq('id',event.id).eq('revision',event.revision).select('id,event_code').maybeSingle();
-        }else{
-          result=await A.state.db.from('esc_events').insert(patch).select('id,event_code').single();
+        const startAt=parse(String(f.get('start')||'')),endAt=parse(String(f.get('end')||''));
+        if(Date.parse(endAt)<=Date.parse(startAt))
+          throw new Error('Bitiş saati başlangıçtan sonra olmalı.');
+        let eventStatus=String(f.get('status')||'draft');
+        let published=f.get('published')==='true';
+        let registrations=f.get('registration_enabled')==='true';
+        if(action==='publish'){
+          if(Date.parse(endAt)<=Date.now())
+            throw new Error('Geçmiş etkinliği yayınlayamazsın. Lütfen gelecekteki bir tarih seç.');
+          if(eventStatus==='cancelled'||eventStatus==='completed'){
+            if(!confirm('Etkinliği yeniden PLANLANDI yapıp siteye yayınlamak istiyor musun?'))return;
+          }
+          eventStatus='planned';published=true;registrations=true;
         }
+        if(eventStatus!=='planned'){published=false;registrations=false;}
+        if(eventStatus==='planned'&&Date.parse(endAt)<=Date.now())
+          throw new Error('Geçmiş etkinlik Planlandı olarak tutulamaz. Tamamlandı veya İptal durumuna geçir.');
+        if(!published)registrations=false;
+        patch={
+          title:String(f.get('title')||'').trim(),kind:String(f.get('kind')||''),
+          start_at:startAt,end_at:endAt,venue:String(f.get('venue')||'').trim(),
+          capacity:Number(f.get('capacity')||0),status:eventStatus,
+          location_url:String(f.get('location_url')||'').trim()||null,
+          meeting_url:String(f.get('meeting_url')||'').trim()||null,
+          theme:String(f.get('theme')||'').trim(),note:String(f.get('note')||'').trim(),
+          published,registration_enabled:registrations
+        };
+        if(!patch.title||patch.title.length>160||!patch.venue||patch.venue.length>160||
+           !Number.isInteger(patch.capacity)||patch.capacity<1||patch.capacity>500)
+          throw new Error('Etkinlik adı, mekân ve 1–500 arası kapasite gerekli.');
+        for(const url of [patch.location_url,patch.meeting_url]){
+          if(url&&!/^https:\/\/\S+$/i.test(url))throw new Error('Linkler https:// ile başlamalı.');
+        }
+        if(!event&&Date.parse(startAt)<=Date.now())
+          throw new Error('Geçmiş tarihe yeni etkinlik açamazsın.');
+        const changed=event&&(
+          new Date(event.start_at).getTime()!==Date.parse(startAt)||
+          new Date(event.end_at).getTime()!==Date.parse(endAt)||
+          event.venue!==patch.venue||event.status!==patch.status||
+          event.published!==patch.published);
+        if(changed&&event.status==='planned'&&
+           !confirm('Bu değişiklik mevcut kayıtları koruyacak. Eski Gmail otomasyonu kapalı olduğu için katılımcılara otomatik değişiklik e-postası gitmeyecek. Devam edilsin mi?'))return;
+      }catch(error){
+        feedback.textContent='Kontrol: '+(error.message||String(error));
+        return;
+      }
+      btn.disabled=true;btn.textContent='Kaydediliyor…';feedback.textContent='Supabase kaydı güncelleniyor…';
+      try{
+        const q=A.state.db.from('esc_events');
+        const result=event
+          ? await q.update(patch).eq('id',event.id).eq('revision',event.revision)
+              .select('id,event_code,status,published,registration_enabled,revision').maybeSingle()
+          : await q.insert(patch)
+              .select('id,event_code,status,published,registration_enabled,revision').single();
         if(result.error)throw result.error;
-        if(!result.data)throw new Error('Etkinlik başka bir yönetici tarafından değiştirildi. Sayfayı yenileyip tekrar deneyin.');
-        closeModal();toast(esc(result.data.event_code)+' güncellendi');await view();
-      }catch(err){alert(err.message||String(err))}finally{btn.disabled=false;btn.textContent='Kaydet'}
+        if(!result.data)throw new Error('Etkinlik güncellenemedi. Başka bir yönetici aynı kaydı değiştirmiş olabilir; yenileyip tekrar dene.');
+        const saved=result.data;
+        if(saved.published!==patch.published||saved.status!==patch.status)
+          throw new Error('Veritabanında beklenen yayın durumu oluşmadı. Yeniden kontrol et.');
+        closeModal();
+        toast(saved.event_code+(saved.published?' yayınlandı ve kaydedildi.':' kaydedildi (yayın dışı).'));
+        await view();
+      }catch(error){
+        const msg=error.message||String(error);
+        feedback.textContent='Kaydetme hatası: '+msg;
+        alert('Etkinlik kaydedilemedi: '+msg);
+      }finally{
+        btn.disabled=false;btn.textContent=action==='publish'?'Kaydet ve Yayınla':(event?'Değişiklikleri kaydet':'Taslak kaydet');
+      }
     };
   }
 
