@@ -59,3 +59,35 @@
 ## Önemli sınır
 
 **Sitenin statik kod yayını ve veritabanı testleri tamamlanmış olsa da**, oturum açılmış gerçek kullanıcı ile görsel tıklama testi ve gerçek Gmail teslimat testi yapılmadı. Bu iki kontrol olmadan “tam otomatik e-posta çalışıyor” demeyin. Kullanıcının bilgisayarı kapalıyken Supabase zamanlayıcıları çalışır; Gmail gönderimi ancak bir defalık yetkilendirmeden sonra etkinleşebilir.
+
+
+## 15 Ekim 2026 — Yönetim paneli butonları ve veri kaynakları düzeltmesi
+
+**Canlı yayına alındı:** GitHub Pages yayın işlemi `eec254c7a9` sürümünde başarılı.
+
+### Tek yetkili veri kaynağı haritası
+- **Canlı Etkinlik Yönetimi (`/admin/#dynamicEvents`) → Supabase `esc_events`.** Etkinliğin gününü, saatini, yerini, durumunu, yayını ve kayıtların açık/kapalı olmasını değiştirir.
+- **Tekrarlayan Etkinlikler → Supabase `esc_event_rules`.** Yeni haftaların programını belirler. Daha önce açılmış/elle düzenlenmiş etkinlikler kendiliğinden başka güne taşınmaz.
+- **Fiyatlar & Site Ayarları (`/admin/#events`) → Supabase CMS `event_config` fiyat alanları.** Yalnızca fiyatları yayınlar; tarih, mekân, katılımcı alanlarını değiştirmez. Eski etkinlik formu gizlendi.
+- **Canlı Site Editörü (`/admin/#siteEditor`) → Supabase CMS sayfa içeriği.** Site metni/görsel/SEO; etkinlik programı değil.
+- **Google Sheets → Eski finans ve katılım arşivi.** `Etkinlikler!A1:A2` açıklamaları güncellendi. Eski takvim ve e-posta anahtarları `KAPALI`.
+- **E-posta Otomasyonu → Supabase bildirim kuyruğu/Gmail köprüsü.** Gerçek otomatik gönderim şimdilik `KAPALI`.
+
+### Onarılan işlemler
+1. **Taslak kaydet** ile **Kaydet ve Yayınla** birbirinden ayrıldı.
+2. Her etkinlikte **Yayınla / Yayından kaldır** düğmesi var. Yayından kaldırmak kayıt alımını kapatır ama eski kişileri silmez.
+3. **Düzenle** aynı ETK numarasını koruyarak tarih, saat ve mekânı değiştirir; sürüm çatışmaları kontrol edilir.
+4. Hatalı tarih/saat/link ve kaydetme hataları formda gösterilir.
+5. Haftalık kural değişikliği anında güvenli `esc_admin_refresh_schedule()` kontrolünü çalıştırır.
+6. Yönetim panelindeki sekme URL adresinde korunur.
+7. Dashboard ana veri kaynaklarını açıklar, Site Editörü etkinlik yönetimine yönlendirir.
+8. Tarayıcı önbelleğini engellemek için `admin/index.html` JS sürümleri `20261015-buttons1` olarak değiştirildi.
+
+### Testler ve güvenlik
+- 7 örnek veri UI testi geçti: liste, yayından kaldırma, yeniden yayınlama, yerinde düzenleme, yeni etkinliği yayınlama, ayrı fiyat ekranı ve fiyat yayınlarken etkinlik bilgisini koruma.
+- Gerçek yönetici rolüyle Supabase düzenleme/yayınlama ve CMS sayfa yayınlama RPC testleri **ROLLBACK** içinde başarılı. Üretimdeki test kayıtları kalıcı bırakılmadı.
+- GitHub Pages yayın iş akışı `eec254c7a9` için başarılı.
+- Üretimde Gmail köprüsü kapalı; e-posta teslim sayısı sıfır.
+
+### Henüz gerçek tarayıcıda doğrulanmayanlar
+Yönetici oturumu ile bütün butonların gerçek tıklama testi yapılmadı. Kullanıcı Mac'te Cmd+Shift+R ile sert yenileme yaptıktan sonra Düzenle, Yayınla, Fiyatları yayınla ve haftalık kural kaydını denemeli. Devam eden hata varsa ekran görüntüsü veya tam hata metni gerekli.
