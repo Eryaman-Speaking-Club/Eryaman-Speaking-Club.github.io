@@ -96,7 +96,16 @@
     }
   }
   function go(view){
-    $$('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
+    if(view!=='dashboard'&&!modules[view]){
+      toast('Bu yönetim bölümü henüz yüklenemedi; sayfayı yenileyip tekrar deneyin.');
+      return;
+    }
+    // Preserve the selected admin module after page refresh and link sharing.
+    try{
+      if(location.hash!=='#'+view)
+        window.history.replaceState(null,'','#'+view);
+    }catch(error){ console.warn('Admin address update failed',error); }
+    $('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
     render(view);
   }
 
@@ -104,7 +113,11 @@
     const ok=await window.ESCSupabase.isAdmin();
     if(!ok){ await window.ESCSupabase.signOut(); $('#authMessage').textContent='Bu hesap ESC yönetim yetkisine sahip değil.'; return; }
     const {data:profile}=await state.db.from('esc_admin_profiles').select('*').eq('user_id',state.session.user.id).maybeSingle();
-    state.profile=profile||{user_id:state.session.user.id,email:state.session.user.email,role:'editor',active:true};
+    if(!profile){
+      $('#authMessage').textContent='Yönetici profili bulunamadı. Yanlış hesapla giriş yapmış olabilirsin.';
+      return;
+    }
+    state.profile=profile;
     if(!state.profile.active){ $('#authMessage').textContent='Bu yönetici hesabı pasif durumda.'; return; }
     $('#authView').hidden=true; $('#appView').hidden=false;
     $('#userEmail').textContent=state.profile.email||state.session.user.email||'';
