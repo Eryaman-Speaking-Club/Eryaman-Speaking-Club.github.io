@@ -29,6 +29,7 @@
         ? '<br><small>'+(r.registration_enabled?'Kayıt açık':'Kayıt kapalı')+'</small>' : '');
   };
   const isPublished=e=>e.status==='planned' && e.published===true;
+  let lastRuleResult=null;
 
   async function read(){
     const now=new Date(Date.now()-60*86400000).toISOString();
@@ -77,7 +78,8 @@
       '</tbody></table></div></div>'+
       '<div class="card"><div class="card-head"><div><h2>Tekrarlayan Etkinlikler</h2><p class="muted">Bunlar başlangıç şablonlarıdır. Önceden açılmış etkinlikleri veya elle değiştirilmiş tarihleri geri almaz.</p></div></div>'+
       '<div class="grid-3">'+rules.map(r=>'<div class="mini-card"><span class="pill '+(r.active?'published':'draft')+'">'+(r.active?'Aktif':'Kapalı')+'</span><h3>'+esc(r.title)+'</h3><p>'+['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'][r.weekday]+' · '+esc(String(r.start_time).slice(0,5))+' · '+esc(r.venue)+'</p><div class="row-actions" style="margin-top:12px"><button class="btn secondary" data-rule="'+esc(r.id)+'" '+(!A.canEdit()?'disabled':'')+'>Düzenle</button></div></div>').join('')+'</div></div>'+
-      '<div class="notice warning">İletişim notu: Tarih değişikliği için kişiye özel bilgilendirme, Google Sheets\'teki mevcut hatırlatma kodundan ayrı bir modül olarak güvenle kurulacaktır. Bu ekranda yapılan değişiklik henüz otomatik e-posta göndermiyor.</div>';
+      (lastRuleResult?'<div class="notice"><strong>Haftalık program sonucu:</strong> '+esc(lastRuleResult)+'</div>':'')+
+      '<div class="notice warning">Katılımcısı olan veya özel olarak düzenlenmiş mevcut etkinlikler haftalık değişiklikle sessizce taşınmaz. Bunları yukarıdaki listeden ayrıca düzenle. Otomatik e-posta gönderimi henüz KAPALI.</div>';
     $('#escEventNew').onclick=()=>editor(null);
     $('#escEventReload').onclick=()=>view();
     $('#panel').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editor(events.find(x=>x.id===b.dataset.edit)));
@@ -267,7 +269,8 @@
       select('Otomatik oluştur','active',String(rule.active),[['true','AÇIK'],['false','KAPALI']])+
       select('Sitede yayınla','published',String(rule.published),[['true','Evet'],['false','Hayır']])+
       field('Kaç gün önceden','horizon_days','number',rule.horizon_days,'required min="7" max="90"')+
-      '</div><div class="notice warning">Haftalık gün, saat ve mekân değişiklikleri yeni oluşacak etkinliklere uygulanır. Meet/harita bağlantısı değişirse, boş bağlantılı yaklaşan etkinliklere de aktarılır. Elle değiştirilen etkinlik tarihleri korunur.</div>'+
+      '</div><label class="esc-rule-sync-option" style="display:flex;align-items:flex-start;gap:10px;font-weight:700"><input name="apply_future" type="checkbox" checked style="width:18px;min-width:18px;margin-top:3px">Katılımcısı ve özel düzenlemesi olmayan mevcut gelecek etkinlikleri de bu programa göre güncelle.</label>'+ 
+      '<div class="notice warning">Haftalık değişikliklerin mevcut buluşmalara uygulanması güvenlik kontrollüdür. Katılımcısı veya elle yapılmış değişikliği olan etkinlikler korunur; aynı haftaya ikinci etkinlik açılmaz.</div>'+
       '<div class="row-actions"><button class="btn primary" type="submit">Programı Kaydet</button><button type="button" class="btn secondary" id="escRuleClose">Vazgeç</button></div>'+
       '<p id="escRuleFeedback" class="muted" role="status" aria-live="polite"></p></form>');
     $('#escRuleClose').onclick=closeModal;
@@ -287,6 +290,7 @@
         active:f.get('active')==='true',
         horizon_days:Number(f.get('horizon_days'))
       };
+      const applyFuture=f.get('apply_future')==='on';
       const feedback=$('#escRuleFeedback');
       if(!patch.title||patch.title.length>160||!patch.venue||
          !Number.isInteger(patch.weekday)||patch.weekday<0||patch.weekday>6||
@@ -304,25 +308,26 @@
       }
       const btn=form.querySelector('[type="submit"]');
       btn.disabled=true;btn.textContent='Kaydediliyor…';
-      feedback.textContent='Haftalık program Supabase sistemine kaydediliyor…';
+      feedback.textContent='Haftalık program ve uygun gelecek etkinlikler kaydediliyor…';
       try{
-        const out=await A.state.db.from('esc_event_rules')
-          .update(patch).eq('id',rule.id).select('id,active').single();
+        // Atomic backend operation: saved rule, protected future occurrences
+        // and generation either succeed together or not at all.
+        const out=await A.state.db.rpc('esc_admin_save_weekly_rule',{
+          p_rule_id:rule.id,p_patch:patch,p_apply_future:applyFuture
+        });
         if(out.error)throw out.error;
-        if(!out.data)throw new Error('Program kaydı doğrulanamadı.');
-        let count=0;
-        if(patch.active){
-          const refresh=await A.state.db.rpc('esc_admin_refresh_schedule');
-          if(refresh.error){
-            throw new Error('Haftalık kural kaydedildi ancak anlık takvim oluşturulamadı: '+
-              (refresh.error.message||'Bilinmeyen hata')+
-              '. Günlük zamanlayıcı sonraki kontrolde yeniden deneyecek.');
-          }
-          count=Number(refresh.data||0);
-        }
+        if(!out.data?.saved)throw new Error('Program kaydı doğrulanamadı.');
+        const r=out.data;
+        const protectedCount=Number(r.protected_manual||0)+Number(r.protected_registered||0);
+        lastRuleResult='Güncellenen mevcut: '+Number(r.updated||0)+
+          ' · Yeni: '+Number(r.created||0)+
+          ' · Korunan: '+protectedCount+
+          ' · Geçmiş/çakışma yüzünden değişmeyen: '+
+          (Number(r.skipped_past||0)+Number(r.skipped_collision||0))+
+          '. Korunanları etkinlik listesinden gerekirse tek tek düzenle.';
         closeModal();
-        toast('Program kaydedildi.'+(count?' '+count+' yeni etkinlik oluşturuldu.':''));
         await view();
+        toast('Haftalık program ve uygun gelecek etkinlikler kaydedildi.');
       }catch(error){
         const msg=error.message||String(error);
         feedback.textContent='Program: '+msg;
