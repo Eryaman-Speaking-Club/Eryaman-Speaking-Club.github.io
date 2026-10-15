@@ -43,79 +43,90 @@
   };
 
 
+  /** Prices only. The canonical event schedule lives in public.esc_events. */
   async function eventsView(){
-    const {data,error}=await A.state.db.from('esc_cms_settings').select('*').eq('key','event_config').maybeSingle();if(error)throw error;
-    const cfg=A.clone(data?.draft_data||data?.published_data||{});
-    const e=cfg.inPerson||{},p=cfg.pricing||{},o=cfg.online||{};
-    const startInput=toDateTimeInput(e.start)||'2026-10-11T18:00';
-    const endInput=toDateTimeInput(e.end)||addHoursInput(startInput,2);
-    $('#panel').innerHTML='<div class="card"><div class="card-head"><div><h2>Etkinlik & fiyatlar</h2><p class="muted">Burası fiyatlar ve eski site ayarları içindir. Gerçek etkinlik günlerini, saatlerini ve mekânlarını Canlı Etkinlik Yönetimi bölümünden değiştirin.</p></div><span class="pill '+(data?.has_unpublished_changes?'draft':'published')+'">'+(data?.has_unpublished_changes?'TASLAK':'YAYINDA · v'+(data?.version||0))+'</span></div>'+
-      '<form id="eventConfigForm" class="stack">'+
-      '<div class="notice warning"><strong>Canlı etkinliklerin asıl kaynağı Supabase takvimidir.</strong> Bu bölümdeki eski tarih ve mekân alanları bilgi amaçlıdır; buradan değiştirilmez. <button type="button" class="btn secondary" id="openDynamicFromPricing">Canlı Etkinlik Yönetimini Aç →</button></div>'+
-      '<div class="grid-2"><label>Eski etkinlik başlangıcı<input name="start" type="datetime-local" readonly aria-readonly="true" required value="'+esc(startInput)+'"></label><label>Eski etkinlik bitişi<input name="end" type="datetime-local" readonly aria-readonly="true" required value="'+esc(endInput)+'"></label></div>'+
-      '<div id="eventDerivedPreview" class="notice"></div>'+
-      '<label>Eski etkinlik mekânı<input name="venue" readonly aria-readonly="true" value="'+esc(e.venue||'')+'"></label>'+
-      '<div class="grid-2"><label>Kayıt formu URL<input name="registrationUrl" value="'+esc(cfg.registrationUrl||'')+'"></label><label>Harita URL<input name="mapUrl" value="'+esc(cfg.mapUrl||'')+'"></label></div>'+
-      '<div class="grid-2"><label>Kontenjan<select name="capacity"><option value="limited" '+(e.capacity==='limited'?'selected':'')+'>Sınırlı</option><option value="open" '+(e.capacity!=='limited'?'selected':'')+'>Açık</option></select></label><label>Online ilk buluşma ücretsiz <select name="onlineFree"><option value="true" '+(o.firstMeetupFree!==false?'selected':'')+'>Evet</option><option value="false" '+(o.firstMeetupFree===false?'selected':'')+'>Hayır</option></select></label></div>'+
-      '<div class="grid-3"><label>Tek yüz yüze buluşma<input name="single" type="number" min="0" value="'+esc(p.single??400)+'"></label><label>4 yüz yüze buluşma<input name="oneMonth" type="number" min="0" value="'+esc(p.oneMonth??1400)+'"></label><label>12 yüz yüze buluşma<input name="threeMonth" type="number" min="0" value="'+esc(p.threeMonth??3900)+'"></label></div>'+
-      '<div class="grid-3"><label>Tek online buluşma<input name="onlinePrice" type="number" min="0" value="'+esc(o.price??300)+'"></label><label>4 online buluşma<input name="onlineFourPack" type="number" min="0" value="'+esc(o.fourPack??1100)+'"></label><label>12 online buluşma<input name="onlineTwelvePack" type="number" min="0" value="'+esc(o.twelvePack??3000)+'"></label></div>'+
-      '<div class="row-actions"><button type="button" id="saveEventDraft" class="btn secondary" '+(!A.canEdit()?'disabled':'')+'>Taslak kaydet</button><button class="btn primary" '+(!A.canEdit()?'disabled':'')+'>Kaydet & yayınla</button><a class="btn secondary" href="../#next-event" target="_blank">Canlı bölümü aç ↗</a></div></form></div>';
-
-    const preview=()=>{
-      try{
-        const form=$('#eventConfigForm');
-        const derived=deriveEventDate(form.elements.start.value,form.elements.end.value);
-        $('#eventDerivedPreview').innerHTML='<strong>Canlı sitede kullanılacak tarih:</strong> '+esc(derived.day+' '+derived.monthTr+' · '+derived.weekdayTr+' · '+derived.time)+' <span class="muted">('+esc(derived.day+' '+derived.monthEn+' · '+derived.weekdayEn)+')</span>';
-      }catch(err){
-        $('#eventDerivedPreview').innerHTML='<strong>Tarih kontrolü:</strong> '+esc(err.message||err);
-      }
-    };
+    const {data,error}=await A.state.db.from('esc_cms_settings')
+      .select('key,draft_data,published_data,has_unpublished_changes,version')
+      .eq('key','event_config').maybeSingle();
+    if(error)throw error;
+    if(!data)throw new Error('Fiyat ayarları kaydı bulunamadı. Etkinlikleri Canlı Etkinlik Yönetimi üzerinden düzenleyebilirsin.');
+    const cfg=A.clone(data.draft_data||data.published_data||{});
+    const p=cfg.pricing||{},o=cfg.online||{};
+    const n=(value,fallback)=>Number.isFinite(Number(value))?Number(value):fallback;
+    $('#panel').innerHTML=
+      '<div class="notice"><strong>Bu sayfa yalnızca fiyatlar ve paketler içindir.</strong> Etkinlik tarihi, saati, mekânı, kayıt durumu ve iptaller burada DEĞİŞTİRİLMEZ. Google Sheets değil, Supabase CMS fiyat verileri kullanılır.</div>'+
+      '<div class="card"><div class="card-head"><div><h2>Buluşma Fiyatları</h2><p class="muted">Buradaki Kaydet & yayınla yalnızca fiyatları web sitesinde günceller. Etkinlikleri yayınlamak için aşağıdaki bağlantıyı kullan.</p></div>'+
+      '<span class="pill '+(data.has_unpublished_changes?'draft':'published')+'">'+(data.has_unpublished_changes?'FİYAT TASLAĞI VAR':'FİYATLAR YAYINDA · v'+esc(data.version||0))+'</span></div>'+
+      '<div class="notice" style="margin-bottom:18px"><button id="openDynamicFromPricing" type="button" class="btn primary">Etkinlikleri Düzenle ve Yayınla →</button><span class="muted" style="margin-left:10px">Canlı Etkinlik Yönetimi / Supabase</span></div>'+
+      '<form id="escPricesForm" class="stack">'+
+      '<div class="card"><h3>Yüz Yüze Buluşmalar</h3><div class="grid-3">'+
+      '<label>Tek buluşma (TL)<input name="single" type="number" min="0" max="100000" step="1" required value="'+esc(n(p.single,400))+'"></label>'+
+      '<label>4 buluşma paketi (TL)<input name="oneMonth" type="number" min="0" max="100000" step="1" required value="'+esc(n(p.oneMonth,1400))+'"></label>'+
+      '<label>12 buluşma paketi (TL)<input name="threeMonth" type="number" min="0" max="100000" step="1" required value="'+esc(n(p.threeMonth,3900))+'"></label>'+
+      '</div></div>'+
+      '<div class="card"><h3>Online Buluşmalar</h3><div class="grid-3">'+
+      '<label>Tek buluşma (TL)<input name="onlinePrice" type="number" min="0" max="100000" step="1" required value="'+esc(n(o.price,300))+'"></label>'+
+      '<label>4 buluşma paketi (TL)<input name="onlineFourPack" type="number" min="0" max="100000" step="1" required value="'+esc(n(o.fourPack,1100))+'"></label>'+
+      '<label>12 buluşma paketi (TL)<input name="onlineTwelvePack" type="number" min="0" max="100000" step="1" required value="'+esc(n(o.twelvePack,3000))+'"></label>'+
+      '</div><label>Online ilk buluşma ücretsiz <select name="onlineFree"><option value="true" '+(o.firstMeetupFree!==false?'selected':'')+'>Evet</option><option value="false" '+(o.firstMeetupFree===false?'selected':'')+'>Hayır</option></select></label></div>'+
+      '<div class="row-actions"><button type="submit" data-action="draft" class="btn secondary" '+(!A.canEdit()?'disabled':'')+'>Fiyat taslağını kaydet</button>'+
+      '<button type="submit" data-action="publish" class="btn primary" '+(!A.canEdit()?'disabled':'')+'>Fiyatları yayınla</button>'+
+      '<a class="btn secondary" href="../" target="_blank" rel="noopener">Siteyi aç ↗</a></div>'+
+      '<p id="escPriceFeedback" role="status" aria-live="polite" class="muted"></p>'+
+      '</form></div>';
     $('#openDynamicFromPricing').onclick=()=>A.go('dynamicEvents');
-    $('#eventConfigForm').elements.start.addEventListener('input',()=>{
-      const start=$('#eventConfigForm').elements.start.value;
-      const end=$('#eventConfigForm').elements.end;
-      if(!end.value||Date.parse(end.value+':00+03:00')<=Date.parse(start+':00+03:00'))end.value=addHoursInput(start,2);
-      preview();
-    });
-    $('#eventConfigForm').elements.end.addEventListener('input',preview);
-    preview();
-
-    const collect=()=>{
-      const f=new FormData($('#eventConfigForm'));
-      const derived=deriveEventDate(String(f.get('start')||''),String(f.get('end')||''));
-      return {
-        registrationUrl:String(f.get('registrationUrl')||'').trim(),mapUrl:String(f.get('mapUrl')||'').trim(),
-        inPerson:{...derived,venue:String(f.get('venue')||'').trim(),capacity:f.get('capacity')},
-        pricing:{single:Number(f.get('single')||0),oneMonth:Number(f.get('oneMonth')||0),threeMonth:Number(f.get('threeMonth')||0),currency:'TL'},
-        online:{firstMeetupFree:f.get('onlineFree')==='true',price:Number(f.get('onlinePrice')||0),fourPack:Number(f.get('onlineFourPack')||0),twelvePack:Number(f.get('onlineTwelvePack')||0),currency:'TL',unitTr:'buluşma',unitEn:'meetup'}
-      };
-    };
-    let saving=false;
-    const save=async publish=>{
-      if(saving)return;
-      saving=true;
-      const form=$('#eventConfigForm');
-      const buttons=[...form.querySelectorAll('button')];
-      buttons.forEach(b=>b.disabled=true);
-      try{
-        const payload=collect();
-        let r=await A.state.db.from('esc_cms_settings').update({draft_data:payload,has_unpublished_changes:true,updated_by:A.state.session.user.id,updated_at:new Date().toISOString()}).eq('key','event_config').select('key,draft_data,version,has_unpublished_changes').single();
-        if(r.error)throw r.error;
-        if(!r.data?.key)throw new Error('Etkinlik ayarı kaydedilemedi. Lütfen tekrar giriş yapıp yeniden dene.');
-        if(publish){
-          r=await A.state.db.rpc('esc_cms_publish_setting',{p_key:'event_config'});
-          if(r.error)throw r.error;
-          if(!r.data?.key)throw new Error('Yayınlama tamamlanamadı.');
+    const form=$('#escPricesForm');
+    let busy=false;
+    form.onsubmit=async e=>{
+      e.preventDefault();
+      if(busy||!A.canEdit())return;
+      const publish=e.submitter?.dataset.action==='publish';
+      const f=new FormData(form);
+      const fields=['single','oneMonth','threeMonth','onlinePrice','onlineFourPack','onlineTwelvePack'];
+      const values={};
+      for(const field of fields){
+        const val=Number(f.get(field));
+        if(!Number.isInteger(val)||val<0||val>100000){
+          alert('Fiyatlar 0 ile 100.000 TL arasında tam sayı olmalı.');return;
         }
-        if(publish)A.notifyIndexNow?.('/');
-        toast(publish?'Etkinlik bilgileri her yerde güncellendi ve canlıya yayınlandı':'Etkinlik taslağı kaydedildi');
-      } finally {
-        saving=false;
-        buttons.forEach(b=>b.disabled=!A.canEdit());
+        values[field]=val;
+      }
+      // Preserve all non-price CMS fields; never rewrite event date, venue or form URL.
+      const patch={
+        ...cfg,
+        pricing:{...p,single:values.single,oneMonth:values.oneMonth,
+          threeMonth:values.threeMonth,currency:'TL'},
+        online:{...o,price:values.onlinePrice,fourPack:values.onlineFourPack,
+          twelvePack:values.onlineTwelvePack,
+          firstMeetupFree:f.get('onlineFree')==='true',
+          currency:'TL',unitTr:'buluşma',unitEn:'meetup'}
+      };
+      const buttons=[...form.querySelectorAll('button')];
+      busy=true;buttons.forEach(b=>b.disabled=true);
+      $('#escPriceFeedback').textContent=publish?'Fiyatlar yayınlanıyor…':'Fiyat taslağı kaydediliyor…';
+      try{
+        let result=await A.state.db.from('esc_cms_settings').update({
+          draft_data:patch,has_unpublished_changes:true,
+          updated_by:A.state.session.user.id,updated_at:new Date().toISOString()
+        }).eq('key','event_config').select('key').single();
+        if(result.error)throw result.error;
+        if(!result.data)throw new Error('Fiyat ayarları kaydedilemedi.');
+        if(publish){
+          result=await A.state.db.rpc('esc_cms_publish_setting',{p_key:'event_config'});
+          if(result.error)throw result.error;
+          if(!result.data)throw new Error('Fiyatlar yayınlanamadı.');
+          A.notifyIndexNow?.('/');
+        }
+        toast(publish?'Fiyatlar canlı siteye yayınlandı. Etkinlik tarihleri değişmedi.':'Fiyat taslağı kaydedildi.');
+        await eventsView();
+      }catch(err){
+        const msg=err.message||String(err);
+        $('#escPriceFeedback').textContent='Hata: '+msg;
+        alert('Fiyatlar kaydedilemedi: '+msg);
+      }finally{
+        busy=false;buttons.forEach(b=>b.disabled=!A.canEdit());
       }
     };
-    $('#saveEventDraft').onclick=async()=>{try{await save(false);await eventsView()}catch(err){alert(err.message||err)}};
-    $('#eventConfigForm').onsubmit=async e=>{e.preventDefault();try{await save(true);await eventsView()}catch(err){alert(err.message||err)}};
   }
 
   function gameContentStats(slug,config){
