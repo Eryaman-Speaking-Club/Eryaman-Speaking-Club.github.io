@@ -30,7 +30,8 @@ h1{font-size:clamp(32px,5vw,56px);line-height:1.1;letter-spacing:-.045em;color:#
 .card-body{padding:20px;flex:1;display:flex;flex-direction:column;gap:10px}
 .card h2{font-size:17px;line-height:1.3;margin:0;color:#173a66}.meta{color:#627f97;font-size:12px;line-height:1.6}.meta strong{color:#254c70}
 button.join{margin-top:auto;border:0;border-radius:12px;background:#134576;color:#fff;padding:14px 17px;font-weight:850;font-size:13px;cursor:pointer;text-align:center}
-button.join:hover{background:#0d335a}
+button.join:hover:not(:disabled){background:#0d335a}
+button.join:disabled{opacity:.54;cursor:not-allowed}
 .notice{margin-top:26px;padding:18px 20px;border:1px solid #e3edf5;background:#fff;border-radius:16px;color:#5e778f;line-height:1.7;font-size:12px}
 .empty{text-align:center;border:1px dashed #c8d9e9;border-radius:20px;padding:70px 20px;color:#687f91;grid-column:1/-1}
 dialog{border:0;padding:0;border-radius:24px;width:min(540px,calc(100vw - 32px));max-height:90vh;box-shadow:0 36px 120px #0b27446e}dialog::backdrop{background:#061a2ebd}
@@ -89,8 +90,13 @@ function render(){
    const body=node('div','card-body');body.append(node('h2','',event.title));
    const venue=node('div','meta');venue.append(node('strong','','Yer: '));venue.append(document.createTextNode(event.venue));body.append(venue);
    body.append(node('div','meta',event.event_code+' · '+when(event.start_at)));
-   const btn=node('button','join',event.registration_enabled?'Bu buluşmaya katıl':'Kayıtlar kapalı');
-   btn.type='button';btn.disabled=!event.registration_enabled;btn.onclick=()=>openSignup(event);
+   const remaining=Number(event.available_seats);
+   const seats=Number.isFinite(remaining)?Math.max(0,remaining):Math.max(0,Number(event.capacity)||0);
+   const accepting=event.registration_enabled===true && seats>0 && new Date(event.start_at)>new Date();
+   body.append(node('div','meta',seats>0?seats+' kişilik yer kaldı':'Kontenjan dolu'));
+   const label=!event.registration_enabled?'Kayıtlar kapalı':seats<=0?'Kontenjan dolu':accepting?'Bu buluşmaya katıl':'Kayıt süresi sona erdi';
+   const btn=node('button','join',label);
+   btn.type='button';btn.disabled=!accepting;btn.onclick=()=>openSignup(event);
    body.append(btn);card.append(body);grid.append(card);
  }
 }
@@ -123,10 +129,10 @@ dialog.addEventListener('close',()=>{
 (async()=>{
  try{
    const db=await window.ESCSupabase.getClient();if(!db)throw Error('Veritabanı bağlantısı kurulamadı.');
-   const result=await db.from('esc_public_upcoming_events').select('id,event_code,title,kind,start_at,end_at,venue,capacity,registration_enabled')
+   const result=await db.from('esc_public_upcoming_events').select('id,event_code,title,kind,start_at,end_at,venue,capacity,registration_enabled,available_seats,registered_count')
        .order('start_at',{ascending:true}).limit(40);
    if(result.error)throw result.error;
-   events=(result.data||[]).filter(e=>new Date(e.end_at)>new Date());render();
+   events=(result.data||[]).filter(e=>new Date(e.start_at)>new Date());render();
  }catch(error){grid.replaceChildren(node('div','empty','Etkinlikleri şu anda yükleyemedik. Lütfen sayfayı yenileyerek tekrar deneyin.'))}
 })();
 })();
