@@ -268,24 +268,68 @@
       select('Sitede yayınla','published',String(rule.published),[['true','Evet'],['false','Hayır']])+
       field('Kaç gün önceden','horizon_days','number',rule.horizon_days,'required min="7" max="90"')+
       '</div><div class="notice warning">Haftalık gün, saat ve mekân değişiklikleri yeni oluşacak etkinliklere uygulanır. Meet/harita bağlantısı değişirse, boş bağlantılı yaklaşan etkinliklere de aktarılır. Elle değiştirilen etkinlik tarihleri korunur.</div>'+
-      '<div class="row-actions"><button class="btn primary" type="submit">Programı Kaydet</button><button type="button" class="btn secondary" id="escRuleClose">Vazgeç</button></div></form>');
+      '<div class="row-actions"><button class="btn primary" type="submit">Programı Kaydet</button><button type="button" class="btn secondary" id="escRuleClose">Vazgeç</button></div>'+
+      '<p id="escRuleFeedback" class="muted" role="status" aria-live="polite"></p></form>');
     $('#escRuleClose').onclick=closeModal;
     $('#escRuleForm').onsubmit=async ev=>{
       ev.preventDefault();
-      const f=new FormData(ev.currentTarget);
-      const patch={title:String(f.get('title')).trim(),weekday:Number(f.get('weekday')),
-        start_time:String(f.get('start_time')),duration_minutes:Number(f.get('duration_minutes')),
-        venue:String(f.get('venue')).trim(),capacity:Number(f.get('capacity')),
+      if(!A.canEdit())return;
+      const form=ev.currentTarget;
+      const f=new FormData(form);
+      const patch={
+        title:String(f.get('title')||'').trim(),weekday:Number(f.get('weekday')),
+        start_time:String(f.get('start_time')||''),
+        duration_minutes:Number(f.get('duration_minutes')),
+        venue:String(f.get('venue')||'').trim(),capacity:Number(f.get('capacity')),
         meeting_url:String(f.get('meeting_url')||'').trim()||null,
         map_url:String(f.get('map_url')||'').trim()||null,
         published:f.get('published')==='true',
-        active:f.get('active')==='true',horizon_days:Number(f.get('horizon_days'))};
-      const b=ev.currentTarget.querySelector('[type=submit]');b.disabled=true;
+        active:f.get('active')==='true',
+        horizon_days:Number(f.get('horizon_days'))
+      };
+      const feedback=$('#escRuleFeedback');
+      if(!patch.title||patch.title.length>160||!patch.venue||
+         !Number.isInteger(patch.weekday)||patch.weekday<0||patch.weekday>6||
+         !Number.isInteger(patch.duration_minutes)||patch.duration_minutes<30||patch.duration_minutes>480||
+         !Number.isInteger(patch.capacity)||patch.capacity<1||patch.capacity>500||
+         !Number.isInteger(patch.horizon_days)||patch.horizon_days<7||patch.horizon_days>90){
+        feedback.textContent='Program adı, gün, mekân, süre, kontenjan ve önceden oluşturma sayısını kontrol et.';
+        return;
+      }
+      for(const link of [patch.meeting_url,patch.map_url]){
+        if(link&&!/^https:\/\/\S+$/i.test(link)){
+          feedback.textContent='Meet ve harita bağlantıları https:// ile başlamalı.';
+          return;
+        }
+      }
+      const btn=form.querySelector('[type="submit"]');
+      btn.disabled=true;btn.textContent='Kaydediliyor…';
+      feedback.textContent='Haftalık program Supabase sistemine kaydediliyor…';
       try{
-        const out=await A.state.db.from('esc_event_rules').update(patch).eq('id',rule.id).select('id').single();
+        const out=await A.state.db.from('esc_event_rules')
+          .update(patch).eq('id',rule.id).select('id,active').single();
         if(out.error)throw out.error;
-        closeModal();toast('Haftalık program güncellendi');await view();
-      }catch(err){alert(err.message||String(err))}finally{b.disabled=false}
+        if(!out.data)throw new Error('Program kaydı doğrulanamadı.');
+        let count=0;
+        if(patch.active){
+          const refresh=await A.state.db.rpc('esc_admin_refresh_schedule');
+          if(refresh.error){
+            throw new Error('Haftalık kural kaydedildi ancak anlık takvim oluşturulamadı: '+
+              (refresh.error.message||'Bilinmeyen hata')+
+              '. Günlük zamanlayıcı sonraki kontrolde yeniden deneyecek.');
+          }
+          count=Number(refresh.data||0);
+        }
+        closeModal();
+        toast('Program kaydedildi.'+(count?' '+count+' yeni etkinlik oluşturuldu.':''));
+        await view();
+      }catch(error){
+        const msg=error.message||String(error);
+        feedback.textContent='Program: '+msg;
+        alert(msg);
+      }finally{
+        btn.disabled=false;btn.textContent='Programı Kaydet';
+      }
     };
   }
   A.register('dynamicEvents',view);
