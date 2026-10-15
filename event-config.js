@@ -227,9 +227,9 @@
       CONFIG.registrationUrl='/events/';
       // One canonical event table: never rely on old manual CMS date again.
       const {data:events,error:eventError}=await db.from('esc_public_upcoming_events')
-        .select('event_code,start_at,end_at,venue,location_url,kind,status,registration_enabled')
+        .select('event_code,start_at,end_at,venue,location_url,kind,status,registration_enabled,available_seats')
         .eq('status','planned')
-        .gt('end_at',new Date().toISOString())
+        .gt('start_at',new Date().toISOString())
         .order('start_at',{ascending:true}).limit(1);
       if(!eventError&&events?.length){
         const event=events[0];
@@ -256,7 +256,7 @@
           venue:event.venue,
           eventCode:event.event_code,
           eventKind:event.kind,
-          registrationEnabled:event.registration_enabled===true
+          registrationEnabled:event.registration_enabled===true && Number(event.available_seats)>0
         };
         if(event.location_url && safeHttpsUrl(event.location_url))CONFIG.mapUrl=event.location_url;
       }else if(!eventError){
