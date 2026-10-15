@@ -371,14 +371,16 @@
     if(error)throw error;pages=data||[];
     current=pages.find(p=>p.id===preselect)||pages.find(p=>p.path==='/')||pages[0];
     workingData=normalizeData(current?.draft_data);workingSeo=clone(current?.draft_seo||{});
-    $('#panel').innerHTML='<div class="card"><div class="card-head"><div><h2>Canlı siteyi tıklayarak düzenle</h2><p class="muted">Turuncu çerçeve metin, mavi çerçeve görsel düzenleme alanıdır. Metin, görsel ve SEO değişiklikleri kaydedildiği anda canlı siteye yayınlanır.</p></div><span id="editorState" class="pill '+(current.has_unpublished_changes?'draft':'published')+'">'+(current.has_unpublished_changes?'TASLAK DEĞİŞİKLİK':'YAYINDA · v'+current.version)+'</span></div>'+
+    $('#panel').innerHTML='<div class="card"><div class="card-head"><div><h2>Site metinlerini ve görsellerini düzenle</h2><p class="muted">Bu editör yalnızca metin, görsel, bölüm düzeni ve SEO içindir. <strong>Etkinlik tarih/saat/mekânı burada düzenlenmez.</strong> Bunlar Canlı Etkinlik Yönetimi bölümünden değiştirilir.</p></div><span id="editorState" class="pill '+(current.has_unpublished_changes?'draft':'published')+'">'+(current.has_unpublished_changes?'TASLAK DEĞİŞİKLİK':'YAYINDA · v'+current.version)+'</span></div>'+
       '<div class="editor-toolbar"><label>Sayfa<select id="editorPage">'+pages.map(p=>'<option value="'+p.id+'" '+(p.id===current.id?'selected':'')+'>'+esc(p.name)+' · '+esc(p.path)+'</option>').join('')+'</select></label>'+
       '<button class="btn secondary" id="reloadEditor">Önizlemeyi yenile</button><button class="btn secondary" id="sectionsBtn">Bölümler</button><button class="btn secondary" id="seoBtn">SEO / GEO</button>'+
-      '<button class="btn primary" id="publishBtn" '+(!A.canEdit()?'disabled':'')+'>Kaydet & yayınla</button><span id="editorStatus" class="editor-status"></span></div>'+
+      '<button class="btn primary" id="publishBtn" '+(!A.canEdit()?'disabled':'')+'>Site içeriğini yayınla</button>'+
+      '<button class="btn secondary" id="eventsFromSiteEditor">Etkinlikleri yönet →</button><span id="editorStatus" class="editor-status"></span></div>'+
       '<div class="live-editor-shell"><iframe id="liveEditorFrame" class="live-editor-frame" title="Canlı site editörü"></iframe></div>'+
       '<div class="editor-guide"><span class="text">Metne tıkla → düzenle ve kaydet</span><span class="image">Görsele tıkla → değiştir ve kaydet</span><span>Bölümler → sırala/gizle → kaydet</span><span>Kaydedilen değişiklik → canlı sitede kalıcı</span></div></div>';
     $('#editorPage').onchange=()=>renderEditor($('#editorPage').value);
     $('#reloadEditor').onclick=loadFrame;$('#sectionsBtn').onclick=sectionsModal;$('#seoBtn').onclick=seoModal;
+    $('#eventsFromSiteEditor').onclick=()=>A.go('dynamicEvents');
     $('#publishBtn').onclick=async e=>{
       const btn=e.currentTarget;
       btn.disabled=true;
@@ -389,7 +391,7 @@
       }catch(x){
         alert(x.message||x);
         btn.disabled=false;
-        btn.textContent='Yayınla';
+        btn.textContent='Site içeriğini yayınla';
       }
     };
     loadFrame();
@@ -401,7 +403,13 @@
       (data||[]).map(p=>'<tr><td><strong>'+esc(p.name)+'</strong><br><small>'+esc(p.path)+'</small></td><td>'+esc(p.category)+'</td><td><span class="pill '+(p.has_unpublished_changes?'draft':'published')+'">'+(p.has_unpublished_changes?'taslak değişiklik':'yayında')+'</span></td><td>v'+esc(p.version)+'</td><td>'+esc(A.fmt(p.updated_at))+'</td><td><div class="row-actions"><button class="icon-btn" data-edit="'+p.id+'">Düzenle</button><a class="icon-btn" href="'+esc(p.path)+'" target="_blank">Aç ↗</a></div></td></tr>').join('')+
       '</tbody></table></div></div>';
     $('#openHomeEditor').onclick=()=>{A.go('siteEditor')};
-    $('#panel').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{A.state.currentView='siteEditor';$('#viewTitle').textContent='Canlı Site Editörü';renderEditor(b.dataset.edit)});
+    $('#panel').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{
+      A.state.currentView='siteEditor';
+      try{window.history.replaceState(null,'','#siteEditor')}catch(err){console.warn(err)}
+      A.$('#nav button').forEach(node=>node.classList.toggle('active',node.dataset.view==='siteEditor'));
+      $('#viewTitle').textContent='Canlı Site Editörü';
+      renderEditor(b.dataset.edit);
+    });
   }
 
   function geoAuditFromDoc(doc,page,canonical,indexable,title,description){
