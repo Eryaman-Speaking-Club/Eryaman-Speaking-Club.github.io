@@ -70,8 +70,10 @@
         '<div class="stat"><span>EDUCATORS</span><strong>'+esc(teachers.count||0)+'</strong><small>Kayıtlı eğitimci profili</small></div>'+
         '<div class="stat"><span>7 GÜN GÖRÜNTÜLEME</span><strong>'+esc(views.count||0)+'</strong><small>'+esc(revs.count||0)+' yayın sürümü</small></div>'+
       '</div>'+
-      '<div class="card"><div class="card-head"><div><h2>Site yönetim merkezi</h2><p class="muted">Panelde Publish dediğinde değişiklik Supabase üzerinden gerçek siteye uygulanır.</p></div></div>'+
+      '<div class="card"><div class="card-head"><div><h2>Site yönetim merkezi</h2><p class="muted"><strong>Etkinlik = Supabase takvimi.</strong> Fiyat = Supabase CMS. Site metni/görseli = Site Editörü. Google Sheets = eski kayıt ve raporlama; canlı etkinlikleri değiştirmez.</p></div></div>'+
       '<div class="grid-3">'+
+        '<button class="mini-card quick-card" data-go="dynamicEvents"><span class="pill published">ETKİNLİK · CANLI</span><h3>Canlı Etkinlik Yönetimi</h3><p>Etkinlik oluştur, tarih/mekân değiştir, yayınla, iptal et ve katılımcıları yönet. <strong>Tek kaynak: Supabase.</strong></p></button>'+
+        '<button class="mini-card quick-card" data-go="events"><span class="pill">FİYATLAR</span><h3>Fiyatlar & Paketler</h3><p>Yüz yüze ve online paketleri kaydet veya yayınla. Etkinlik tarihlerini değiştirmez.</p></button>'+
         '<button class="mini-card quick-card" data-go="siteEditor"><span class="pill live">CANLI</span><h3>Canlı Site Editörü</h3><p>Sayfayı aç, metne veya görsele tıkla ve doğrudan düzenle.</p></button>'+
         '<button class="mini-card quick-card" data-go="seo"><span class="pill">SEO</span><h3>SEO & GEO Merkezi</h3><p>SEO, AI görünürlüğü, canonical, sosyal paylaşım ve index durumunu tek ekranda denetle.</p></button>'+
         '<button class="mini-card quick-card" data-go="games"><span class="pill">OYUNLAR</span><h3>Game Hub</h3><p>Oyunları aç/kapat, ayarları ve merkezi içerikleri yönet.</p></button>'+
