@@ -1,4 +1,4 @@
-/* ESC unified event operations: calendar in Supabase, attendance verified against Sheets. */
+/* ESC website administration mirrors the authoritative Google Sheets calendar. */
 (() => {
   'use strict';
   const A=window.ESCAdmin;
@@ -58,14 +58,14 @@
       if(r.listed){counts[r.event_id].listed++;if(r.attended)counts[r.event_id].attended++;}
     });
     $('#panel').innerHTML=
-      '<div class="notice"><strong>ETKİNLİK VE KATILIM MERKEZİ.</strong> Etkinlik tarih, saat, mekân ve iptal işlemlerini burada yönet. Katılımın esas kaynağı <strong>Google Sheets</strong>; “Katılımcılar” ekranında Listede, Katıldı ve Gelmedi işlemleri güvenli senkronizasyon kuyruğuna alınır. İki yerde farklı değişiklik olursa otomatik üzerine yazılmaz. E-posta gönderimi ayrıca onaylanana kadar KAPALI.</div>'+
+      '<div class="notice"><strong>ANA MERKEZ: GOOGLE SHEETS.</strong> Etkinlik tarihini, saatini, mekânını, iptalini ve tüm katılım işaretlerini Sheets üzerinden değiştir. Site ve bu panel senkronize edilmiş bilgileri gösterir; iki ayrı yerde düzenleme yapmana gerek yok. Gmail hatırlatmaları da Sheets ayarından yönetilir.</div>'+
       '<div class="stats esc-event-stats">'+
         '<div class="stat"><span>YAKLAŞAN</span><strong>'+upcoming.length+'</strong><small>Aktif ve gelecekteki etkinlik</small></div>'+
         '<div class="stat"><span>BU ARALIKTA İPTAL</span><strong>'+cancelled+'</strong><small>Geri dönüşümlü</small></div>'+
         '<div class="stat"><span>TEKRARLAYAN PROGRAM</span><strong>'+rules.filter(x=>x.active).length+'</strong><small>Arka planda günlük üretilir</small></div>'+
         '<div class="stat"><span>BİLDİRİMLER</span><strong>Kapalı</strong><small>Eski üyelere izinsiz gönderim yok</small></div>'+
       '</div>'+
-      '<div class="card"><div class="card-head"><div><h2>Etkinlikleri Düzenle ve Yayınla</h2><p class="muted">Düzenle = etkinliğin bilgilerini değiştir. Yayınla = etkinliği sitede görünür yap ve kayıtları aç. Yayından kaldır = etkinliği siteden gizle; kayıtları kapat. Değişen tarih ve mekân mevcut ETK numarası ile katılımcıları korur.</p></div><div class="row-actions"><button id="escEventNew" class="btn primary" '+(!A.canEdit()?'disabled':'')+'>+ Yeni Etkinlik</button><button id="escEventReload" class="btn secondary">Yenile</button><button type="button" id="escEventExports" class="btn secondary">Excel’e Aktar</button><a href="../events/" target="_blank" rel="noopener" class="btn secondary">Kayıt Sayfası ↗</a></div></div>'+
+      '<div class="card"><div class="card-head"><div><h2>Sheets’ten Yönetilen Etkinlikler</h2><p class="muted">Etkinlikler sekmesinden tarihi, saati ve mekânı değiştir. M sütunundan Planlandı, İptal veya Tamamlandı seç; site bu verilerle eşitlenir. Yeni kayıtlar Google Form üzerinden gelir.</p></div><div class="row-actions"><a href="'+sheetUrl+'#gid=667476543" target="_blank" rel="noopener" class="btn primary">Etkinlikler • Sheets’te Aç ↗</a><button id="escEventReload" class="btn secondary">Yenile</button><button type="button" id="escEventExports" class="btn secondary">Excel’e Aktar</button><a href="../events/" target="_blank" rel="noopener" class="btn secondary">Kayıt Sayfası ↗</a></div></div>'+
       '<div class="table-wrap"><table><thead><tr><th>Etkinlik</th><th>Tarih & saat</th><th>Tür / yer</th><th>Durum</th><th>Katılımcı</th><th>İşlemler</th></tr></thead><tbody>'+
       (events.length?events.map(e=>
         '<tr><td><strong>'+esc(e.event_code)+'</strong><br>'+esc(e.title)+'</td>'+
@@ -73,26 +73,17 @@
         '<td>'+esc(kinds[e.kind]||e.kind)+'<br><small>'+esc(e.venue)+'</small></td>'+
         '<td>'+status(e)+'<br><small>Sürüm '+e.revision+(e.manual_override?' · Elle düzenlendi':'')+'</small></td>'+
         '<td><strong>'+Number(counts[e.id]?.listed||0)+'</strong> / '+e.capacity+'<br><small>Katıldı: '+Number(counts[e.id]?.attended||0)+'</small></td>'+
-        '<td><div class="row-actions"><button type="button" class="icon-btn" data-edit="'+esc(e.id)+'" '+(!A.canEdit()?'disabled':'')+'>Düzenle</button>'+
-        '<button type="button" class="icon-btn '+(isPublished(e)?'danger-text':'')+'" data-publish="'+esc(e.id)+'" '+
-        (!A.canEdit()||e.status==='cancelled'||e.status==='completed'||(!isPublished(e)&&Date.parse(e.end_at)<=Date.now())?'disabled':'')+'>'+
-        (isPublished(e)?'Yayından kaldır':'Yayınla')+'</button>'+
-        '<button type="button" class="icon-btn" data-attendees="'+esc(e.id)+'">Katılımı Yönet</button>'+
-        '<button type="button" class="icon-btn danger-text" data-cancel-event="'+esc(e.id)+'" '+
-        (e.status!=='planned'||!A.canEdit()?'disabled':'')+'>Etkinliği İptal Et</button></div></td></tr>').join('')
+        '<td><div class="row-actions"><a class="icon-btn" href="'+sheetUrl+'#gid=667476543&range=A'+(4+Number(String(e.event_code).replace(/^ETK-/,'')))+':M'+(4+Number(String(e.event_code).replace(/^ETK-/,'')))+'" target="_blank" rel="noopener">Sheets’te Düzenle ↗</a>'+
+        '<button type="button" class="icon-btn" data-attendees="'+esc(e.id)+'">Katılımı Gör</button></div></td></tr>').join('')
         :'<tr><td colspan="6">Etkinlik bulunamadı.</td></tr>')+
       '</tbody></table></div></div>'+
       '<div class="card"><div class="card-head"><div><h2>Tekrarlayan Etkinlikler</h2><p class="muted">Bunlar başlangıç şablonlarıdır. Önceden açılmış etkinlikleri veya elle değiştirilmiş tarihleri geri almaz.</p></div></div>'+
       '<div class="grid-3">'+rules.map(r=>'<div class="mini-card"><span class="pill '+(r.active?'published':'draft')+'">'+(r.active?'Aktif':'Kapalı')+'</span><h3>'+esc(r.title)+'</h3><p>'+['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'][r.weekday]+' · '+esc(String(r.start_time).slice(0,5))+' · '+esc(r.venue)+'</p><div class="row-actions" style="margin-top:12px"><button class="btn secondary" data-rule="'+esc(r.id)+'" '+(!A.canEdit()?'disabled':'')+'>Düzenle</button></div></div>').join('')+'</div></div>'+
       (lastRuleResult?'<div class="notice"><strong>Haftalık program sonucu:</strong> '+esc(lastRuleResult)+'</div>':'')+
       '<div class="notice warning">Katılımcısı olan veya özel olarak düzenlenmiş mevcut etkinlikler haftalık değişiklikle sessizce taşınmaz. Bunları yukarıdaki listeden ayrıca düzenle. Otomatik e-posta gönderimi henüz KAPALI.</div>';
-    $('#escEventNew').onclick=()=>editor(null);
     $('#escEventReload').onclick=()=>view();
     $('#escEventExports').onclick=()=>A.go('exports');
-    $('#panel').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editor(events.find(x=>x.id===b.dataset.edit)));
-    $('#panel').querySelectorAll('[data-publish]').forEach(b=>b.onclick=()=>togglePublish(events.find(x=>x.id===b.dataset.publish),b));
     $('#panel').querySelectorAll('[data-attendees]').forEach(b=>b.onclick=()=>attendees(events.find(x=>x.id===b.dataset.attendees)));
-    $('#panel').querySelectorAll('[data-cancel-event]').forEach(b=>b.onclick=()=>cancelEvent(events.find(x=>x.id===b.dataset.cancelEvent),b));
     $('#panel').querySelectorAll('[data-rule]').forEach(b=>b.onclick=()=>ruleEditor(rules.find(x=>x.id===b.dataset.rule)));
   }
 
@@ -267,111 +258,33 @@
 
   async function attendees(event){
     if(!event)return;
-    const [roster,members,requests,health,web]=await Promise.all([
-      A.state.db.from('esc_sheet_roster')
-        .select('member_code,full_name,email,consent,listed,attended,first_visit,sheet_row,synced_at')
-        .eq('event_id',event.id).order('member_code',{ascending:true}),
-      A.state.db.from('esc_sheet_members')
-        .select('member_code,full_name,eligible,consent')
-        .order('member_code',{ascending:true}).limit(500),
-      A.state.db.from('esc_sheet_attendance_actions')
-        .select('id,member_code,operation,status,error,created_at')
-        .eq('event_id',event.id).order('created_at',{ascending:false}).limit(100),
-      A.state.db.rpc('esc_admin_attendance_bridge_status'),
-      A.state.db.from('esc_event_registrations')
-        .select('id,status,source,email').eq('event_id',event.id)
-    ]);
-    for(const r of [roster,members,requests,health,web])
-      if(r.error){alert('Katılım listesi açılamadı: '+r.error.message);return;}
-    const ready=health.data?.ready===true && A.canEdit()
-      && event.status!=='cancelled' && Date.parse(event.end_at)>Date.now()-30*86400000;
-    const isPast=Date.parse(event.end_at)<=Date.now()&&event.status!=='cancelled';
-    const all=(roster.data||[]),visible=all.filter(r=>r.listed);
-    const memberList=(members.data||[]).filter(m=>m.eligible);
-    const recent=requests.data||[],pending=new Map();
-    for(const r of recent)if(r.status==='pending'&&!pending.has(r.member_code))
-      pending.set(r.member_code,r);
-    const activeCodes=new Set(visible.map(r=>r.member_code));
-    const pendingAdds=recent.filter(r=>r.status==='pending'&&r.operation==='add').map(r=>r.member_code);
-    const outside=(web.data||[]).filter(r=>
-      r.source==='website'&&r.status==='registered'&&!all.some(m=>
-        m.listed&&m.email&&String(m.email).toLowerCase()===String(r.email).toLowerCase())
-    ).length;
-    const attended=visible.filter(r=>r.attended).length;
-    const absent=isPast?visible.filter(r=>!r.attended).length:0;
-    const rowHTML=(r)=>{
-      const p=pending.get(r.member_code);
-      const statusText=p?'Beklemede':r.attended?'Katıldı':isPast?'Gelmedi':'Listede';
-      const canTouch=ready&&!p;
-      return '<tr><td><strong>'+esc(r.full_name)+'</strong><br><small>'+esc(r.member_code)+'</small></td>'+
-        '<td>'+esc(statusText)+(r.first_visit?' · İlk kez':'')+'</td>'+
-        '<td>'+(r.consent?'İzin var':'İzin yok')+'</td>'+
-        '<td><div class="row-actions">'+
-          (!r.attended?'<button type="button" class="icon-btn" data-att-operation="attended" data-att-member="'+esc(r.member_code)+'" '+(!canTouch?'disabled':'')+'>Katıldı</button>':
-            '<button type="button" class="icon-btn" data-att-operation="absent" data-att-member="'+esc(r.member_code)+'" '+(!canTouch?'disabled':'')+'>'+(isPast?'Gelmedi':'Katılımı Geri Al')+'</button>')+
-          '<button type="button" class="icon-btn danger-text" data-att-operation="remove" data-att-member="'+esc(r.member_code)+'" '+(!canTouch?'disabled':'')+'>Listeden Çıkar</button>'+
-        '</div></td></tr>';
-    };
-    openModal('<h2>'+esc(event.event_code)+' · Etkinlik ve Katılım Merkezi</h2>'+
+    const out=await A.state.db.from('esc_sheet_roster')
+      .select('member_code,full_name,consent,listed,attended,first_visit,synced_at')
+      .eq('event_id',event.id).order('member_code',{ascending:true});
+    if(out.error){alert('Sheets katılım yansıması alınamadı: '+out.error.message);return;}
+    const records=(out.data||[]).filter(x=>x.listed);
+    const ended=Date.parse(event.end_at)<=Date.now();
+    const arrived=records.filter(x=>x.attended).length;
+    const absent=ended&&event.status!=='cancelled'?records.length-arrived:0;
+    const code=Number(String(event.event_code||'').replace(/^ETK-/,''));
+    const first=4+(code-1)*500;
+    const gid=event.kind==='online'?377584050:904831467;
+    const url=sheetUrl+'#gid='+gid+'&range=A'+first+':G'+(first+499);
+    openModal('<h2>'+esc(event.event_code)+' · Katılım Durumu</h2>'+
       '<p class="muted">'+esc(kinds[event.kind]||event.kind)+' · '+esc(fmt(event.start_at))+' · '+esc(event.venue)+'</p>'+
-      '<div class="notice"><strong>Katılım Google Sheets\'e bağlıdır.</strong> Listede, Katıldı ve Gelmedi işlemleri önce güvenli kuyruğa alınır, Sheets\'e uygulandıktan sonra Supabase kaydı güncellenir. E-posta bu işlemle gönderilmez.</div>'+
-      (!ready?'<div class="notice warning"><strong>Panelden katılım değiştirme henüz hazır değil.</strong> Güncel Apps Script v2 kurularak 5 dakikalık senkronizasyon doğrulanmalıdır. O zamana kadar <a href="'+sheetUrl+'" target="_blank" rel="noopener">Google Sheets üzerinden düzenleyebilirsin ↗</a>.</div>':'')+
-      '<div class="stats">'+
-        '<div class="stat"><span>LİSTEDE</span><strong>'+visible.length+'</strong></div>'+
-        '<div class="stat"><span>KATILDI</span><strong>'+attended+'</strong></div>'+
-        '<div class="stat"><span>GELMEDİ</span><strong>'+absent+'</strong><small>'+(!isPast?'Etkinlik henüz bitmedi':'Etkinlik tamamlandı')+'</small></div>'+
-        '<div class="stat"><span>BEKLEYEN</span><strong>'+pending.size+'</strong></div>'+
-      '</div>'+
-      '<div class="table-wrap"><table><thead><tr><th>Üye</th><th>Durum</th><th>İletişim izni</th><th>İşlemler</th></tr></thead><tbody>'+
-      (visible.length?visible.map(rowHTML).join(''):'<tr><td colspan="4">Bu etkinlik için Listede işaretli üye yok.</td></tr>')+
-      '</tbody></table></div>'+
-      (memberList.length?'<div class="card"><h3>Listeden yeni kişi seç</h3>'+
-        '<p class="muted">Google Sheets ana üye listesinde bulunan kişileri seçebilirsin.</p>'+
-        '<div class="row-actions"><select id="escAttendanceNewMember" aria-label="Üye seç" '+(!ready?'disabled':'')+'>'+
-        '<option value="">Üye seç…</option>'+
-        memberList.filter(m=>!activeCodes.has(m.member_code)&&!pending.has(m.member_code)).map(m=>
-          '<option value="'+esc(m.member_code)+'">'+esc(m.full_name)+' · '+esc(m.member_code)+'</option>').join('')+
-        '</select><button type="button" id="escAttendanceAdd" class="btn primary" '+(!ready?'disabled':'')+'>Listeye Ekle</button></div></div>':
-        '<div class="notice">Üye seçme listesi henüz senkronize edilmedi. Apps Script v2 ilk çalıştırmada üye rehberini aktaracak.</div>')+
-      (outside?'<div class="notice warning">Web sitesi üzerinden '+outside+' kayıtlı kişi Sheets\'te “Listede” değil. Mesaj göndermek için önce üye rehberinden seçilmeli veya Sheets listesinde işaretlenmeli.</div>':'')+
-      (recent.some(x=>x.status==='conflict')?'<div class="notice warning"><strong>Çakışma:</strong> '+recent.filter(x=>x.status==='conflict').slice(0,3).map(x=>
-        esc(x.member_code+': '+(x.error||'İki tarafta farklı değişiklik'))).join(' | ')+'</div>':'')+
-      (pendingAdds.length?'<p class="muted">Listeye eklenmeyi bekleyen: '+pendingAdds.map(x=>esc(x)).join(', ')+'</p>':'')+
-      '<p class="muted">Gelmedi = etkinlik bittikten sonra Listede seçili ama Katıldı işaretli olmayan kişi. Gelecek etkinliklerde henüz “Gelmedi” sayılmaz. İptal edilen etkinlikte yoklama düzenlenmez.</p>'+
-      '<div class="row-actions"><button type="button" id="escAttendanceRefresh" class="btn secondary">Durumu Yenile</button>'+
-      '<a href="'+sheetUrl+'" target="_blank" rel="noopener" class="btn secondary">Google Sheets\'i Aç ↗</a>'+
-      '<button type="button" id="escAttendanceMail" class="btn secondary">Mesaj Ayarları</button></div>'+
-      '<p id="escAttendanceFeedback" role="status" aria-live="polite" class="muted"></p>');
-    $('#escAttendanceRefresh').onclick=()=>attendees(event);
-    $('#escAttendanceMail').onclick=()=>{closeModal();A.go('sheetsSync')};
-    async function queue(memberCode,operation){
-      if(!ready)return;
-      const fb=$('#escAttendanceFeedback');
-      fb.textContent='Google Sheets işlem kuyruğuna ekleniyor…';
-      try{
-        const out=await A.state.db.rpc('esc_admin_request_attendance',{
-          p_event:event.id,p_member_code:memberCode,p_operation:operation
-        });
-        if(out.error)throw out.error;
-        if(!out.data?.queued && !out.data?.already_current)
-          throw new Error('İşlem isteği doğrulanamadı.');
-        if(out.data.queued)toast('Katılım değişikliği güvenli senkronizasyon sırasına alındı.');
-        await attendees(event);
-      }catch(e){fb.textContent='İşlem yapılamadı: '+(e.message||String(e));}
-    }
-    $('#modalBody').querySelectorAll('[data-att-operation]').forEach(btn=>{
-      btn.onclick=async()=>{
-        const op=btn.dataset.attOperation;
-        if(op==='remove'&&!confirm('Bu kişiyi '+event.event_code+' Listede durumundan çıkarıyor musun? Katılım geçmişi silinmez.'))return;
-        await queue(btn.dataset.attMember,op);
-      };
-    });
-    const add=$('#escAttendanceAdd');
-    if(add)add.onclick=()=>{
-      const code=$('#escAttendanceNewMember')?.value;
-      if(!code)return alert('Önce bir üye seç.');
-      queue(code,'add');
-    };
+      '<div class="notice"><strong>Asıl kayıt Google Sheets’tedir.</strong> Listede ve Katıldı kutucuklarını orada düzenle. Bu ekran yalnızca Sheet’ten senkronize edilen sonuçları gösterir; kullanıcı bilgilerini değiştirmez.</div>'+
+      '<div class="stats"><div class="stat"><span>LİSTEDE</span><strong>'+records.length+'</strong></div>'+
+      '<div class="stat"><span>KATILDI</span><strong>'+arrived+'</strong></div>'+
+      '<div class="stat"><span>GELMEDİ</span><strong>'+absent+'</strong><small>Yalnızca tamamlanan etkinlik</small></div></div>'+
+      '<div class="table-wrap"><table><thead><tr><th>Üye</th><th>Durum</th><th>İlk Katılım</th><th>İletişim</th></tr></thead><tbody>'+
+      (records.length?records.map(r=>'<tr><td><strong>'+esc(r.full_name)+'</strong><br><small>'+esc(r.member_code)+'</small></td>'+
+        '<td>'+(r.attended?'Katıldı':ended&&event.status!=='cancelled'?'Gelmedi':'Listede')+'</td>'+
+        '<td>'+(r.first_visit?'Yeni':'Tekrar')+'</td>'+
+        '<td>'+(r.consent?'İzin var':'İzin yok')+'</td></tr>').join(''):'<tr><td colspan="4">Henüz listede kişi yok.</td></tr>')+
+      '</tbody></table></div><div class="row-actions">'+
+      '<a class="btn primary" href="'+url+'" target="_blank" rel="noopener">Katılımı Sheets’te Düzenle ↗</a>'+
+      '<button type="button" class="btn secondary" id="escAttendReload">Yenile</button></div>');
+    $('#escAttendReload').onclick=()=>attendees(event);
   }
 
   function ruleEditor(rule){
