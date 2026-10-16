@@ -101,3 +101,15 @@ Yönetici oturumu ile bütün butonların gerçek tıklama testi yapılmadı. Ku
 - İkinci geri alınan testte ETK-016 etkinliğinin `manual_override` işareti geçici kaldırıldı; saat 20:30 ve yeni mekân bilgisi doğru güncellendi. Transaction ROLLBACK ile üretim verileri korunmuştur.
 - Kullanıcı e-posta sistemini etkinleştirmedi; gerçek e-posta gönderimi halen KAPALI. Son tarih/saat değişiklikleri test dışında yapılmadı.
 - Önemli ürün tercihi: Mevcut manuel düzenlemeli etkinlikleri otomatik güncellemiyoruz. Yönetici isterse tekil etkinliği düzenlemeli ya da ileride açık onayla toplu güncelleme ekranı hazırlanmalı.
+
+## 16 Ekim 2026 — Yönetici girişi (HTTP 200 sonrasında SQLSTATE 25006) düzeltmesi
+
+- Kullanıcının 09.19 TRT ekran görüntüsünde yönetici girişinde `cannot execute INSERT in a read-only transaction` hatası görüldü.
+- Supabase `auth_logs` girişin gerçekten başarılı olduğunu (POST /token HTTP 200) gösterdi. Giriş şifresinde sorun yok.
+- Supabase `postgres_logs` hata kaynağını doğrudan gösterdi: `esc_internal.check_api_request()` fonksiyonu PostgREST'in salt okunur RPC/SELECT işleminde `private.api_rate_limits` tablosuna INSERT yapmaya çalışıyordu (SQLSTATE 25006).
+- Hata aynı salt okunur işlemle kontrollü biçimde yeniden üretildi.
+- Veritabanı güvenlik fonksiyonu düzeltildi: `transaction_read_only=on` durumunda SQL'e yazan hız-limit kaydı atlanıyor; yazılabilir POST/PUT/PATCH/DELETE isteklerinde limit kodu çalışmaya devam ediyor.
+- Düzeltmeden sonra gerçek `authenticated` rolü simülasyonunda `is_esc_admin()=true`, `esc_can_manage_events()=true` ve yönetici profilinin erişilebilir olduğu doğrulandı.
+- Hız limiti yazma testi transaction içinde 1 geçici kayıt oluşturdu; ROLLBACK ile silindi. Şifre ve kullanıcı profilleri değiştirilmedi.
+- Kalıcı migration: `supabase/migrations/20261016_esc_auth_readonly_rpc_guard.sql`.
+- **Gerçek kullanıcının tarayıcısından yeniden giriş yapması henüz doğrulanmadı.** Önerilen doğrulama: `https://eryamanspeakingclub.com/admin/#dynamicEvents` adresinde Cmd+Shift+R ve tekrar giriş.
