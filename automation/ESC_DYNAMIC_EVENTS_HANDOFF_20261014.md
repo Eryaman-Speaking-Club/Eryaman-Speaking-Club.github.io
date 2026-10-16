@@ -130,3 +130,20 @@ Yönetici oturumu ile bütün butonların gerçek tıklama testi yapılmadı. Ku
 - Gerçek kullanıcının kimlik doğrulanmış Safari oturumundaki son tıklama testi henüz kullanıcı tarafından teyit edilmedi.
 
 **Kullanıcı kontrolü:** `https://eryamanspeakingclub.com/admin/#dynamicEvents` adresini aç, Mac'te Cmd+Shift+R ile yenile ve soldan farklı sekmelere tıkla.
+
+
+## 16 Ekim 2026 — Excel Raporlama ve Google Sheets'in arşive alınması
+
+- Yönetim panelinde yeni **Excel Raporları** sekmesi oluşturuldu: \`/admin/#exports\`.
+- **Canlı Etkinlik Yönetimi** ekranına **Excel’e Aktar** bağlantısı ve dashboard'a rapor kısayolu eklendi.
+- Raporlar Supabase'den doğrudan okunur; Google Sheets'e bağlı değildir. Kullanıcının bilgisayarına .xlsx olarak kaydedilir.
+- **Tam rapor**: Etkinlikler, Katılımcılar, Haftalık Program, Paket Fiyatları ve Rapor Hakkında sekmeleri.
+- **Ayrı raporlar**: Etkinlikler, Katılımcılar, Fiyatlar. Fiyat raporu özel katılımcı verilerini okumaz.
+- Dosya üretimi tarayıcı içinde, harici CDN veya ücretli servis olmadan ZIP/Office Open XML biçiminde gerçekleştirilir. Başlıklar biçimlendirilmiş, sütun genişlikleri düzenli, satır 1 sabitlenmiş ve filtre eklenmiştir.
+- Katılımcı bilgisi içeren raporlarda indirme öncesi mahremiyet onayı alınır; yalnızca düzenleme yetkili yönetici raporları kullanabilir.
+- Eksik fiyatlar "0 TL" olarak gösterilmez; boş bırakılır. Tahsilat/ödeme geçmişi yeni sistemde henüz olmadığı için bu veriler uydurulmaz.
+- İndirilen Excel **salt okunur bir dışa aktarma** niteliğindedir. Excel'de yapılan değişiklikler yönetim paneline veya Supabase'e geri yazılmaz.
+- Eski Sheets dosyalarını silme. Özellikle ödeme geçmişi ve eski katılım verileri aktarılıp doğrulanıncaya kadar arşivde tut; aktif olmayan sekmeleri gizlemek güvenlidir.
+- Teknik QA: Dört indirme seçeneği, beş sayfalı tam XLSX, ZIP merkezi dizini ve CRC bütünlüğü, yetki kontrolleri, özel verileri okumadan fiyat indirme sınaması geçti. **Gerçek Safari/Excel 2024 kullanıcı cihazı testi henüz tamamlanmadı.**
+- Kaynak: \`admin/admin-exports.js\`; sayfa navigasyonu \`admin/index.html\`, \`admin/admin.js\`, \`admin/admin-dynamic-events.js\`.
+- Etkinlik otomasyonu **Canlı Etkinlik Yönetimi > Tekrarlayan Etkinlikler > Düzenle > Otomatik Oluştur** ile yönetilir. E-posta otomasyonu ayrı \`/admin/#emailAutomation\` alanında görülür; gerçek gönderim hâlâ kapalı, Gmail Apps Script bağlantısı ve kontrollü teslimat testi bekliyor.
