@@ -15,12 +15,18 @@
  const count=x=>Number(x||0).toLocaleString('tr-TR');
  const mark=x=>x?'<span class="pill published">AÇIK</span>':'<span class="pill draft">KAPALI</span>';
  async function view(){
-  const out=await A.state.db.rpc('esc_sheets_bridge_status');
+  const [out,bridge]=await Promise.all([
+    A.state.db.rpc('esc_sheets_bridge_status'),
+    A.state.db.rpc('esc_admin_attendance_bridge_status')
+  ]);
   if(out.error)throw out.error;
-  const h=out.data||{};
+  if(bridge.error)throw bridge.error;
+  const h=out.data||{},v2=bridge.data||{},ready=v2.ready===true;
   $('#panel').innerHTML=
    '<div class="notice"><strong>Tek düzen: Katılım Google Sheets\'te, etkinlik takvimi Supabase ile eşitlenir.</strong><br>'+
     'Google Sheets\'te <strong>Katılım Yüz Yüze</strong> veya <strong>Katılım Online</strong> → <strong>Listede?</strong> işaretlediğin katılımcılar, kurulumdan sonra aynı ETK numarasıyla sisteme yansır. Panelden değiştirilen etkinlik tarih/saatleri de Sheets\'teki Etkinlikler tablosuna döner. Aynı kayıt iki yerde değişirse son değişikliği körü körüne ezmez; kontrol gerektirir.</div>'+
+   (!ready?'<div class="notice warning"><strong>Panelden katılım düzenlemek için Apps Script güncellemesi gerekiyor.</strong> Mevcut ESC_Sheets_Supabase_Sync.gs dosyasının içeriğini yeni sürümle değiştir. Sonra ESC_SYNC_SETUP, ESC_SYNC_PREVIEW ve ESC_SYNC_run çalıştır. Kod.gs ve ESC_Email.gs dosyalarına dokunma.</div>':
+    '<div class="notice"><strong>Panelden katılım kontrolü hazır.</strong> Güncel Apps Script v'+Number(v2.client_version||0)+' bağlı. Değişiklikler Google Sheets üzerinde doğrulanıyor.</div>')+
    '<div class="stats">'+
     '<div class="stat"><span>BAĞLANTI</span><strong>'+(h.configured?(h.enabled?'AÇIK':'DURDURULDU'):'KURULMADI')+'</strong><small>Güvenli sunucu köprüsü</small></div>'+
     '<div class="stat"><span>LISTEDE SEÇİLEN</span><strong>'+count(h.selected)+'</strong><small>Supabase\'e aktarılmış</small></div>'+
@@ -41,8 +47,8 @@
    '<div class="card"><div class="card-head"><div><h2>Bir defalık kurulum</h2><p class="muted">Mevcut formüllerin, finans kayıtlarının ve eski <code>Kod.gs</code> dosyasının üzerine yazılmaz.</p></div></div>'+
      '<div class="stack">'+
       '<p><strong>1.</strong> Yukarıdan bağlantı anahtarı oluştur. Anahtarı sohbet içinde paylaşma.</p>'+
-      '<p><strong>2.</strong> <a href="'+codeUrl+'" target="_blank" rel="noopener">ESC_Sheets_Supabase_Sync.gs kodunu</a> aç. Apps Script\'e <strong>ayrı bir dosya</strong> olarak ekle.</p>'+
-      '<p><strong>3.</strong> <a href="'+scriptUrl+'" target="_blank" rel="noopener">Apps Script\'i aç</a> → Proje Ayarları → Komut Dosyası Özellikleri: <code>ESC_SHEETS_BRIDGE_TOKEN</code> değerini ekle.</p>'+
+      '<p><strong>2.</strong> <a href="'+codeUrl+'" target="_blank" rel="noopener">En güncel ESC_Sheets_Supabase_Sync.gs kodunu</a> aç. Bu dosya Apps Script\'te zaten varsa <strong>yalnızca onun içeriğini değiştir</strong>; yoksa ayrı dosya oluştur.</p>'+
+      '<p><strong>3.</strong> <a href="'+scriptUrl+'" target="_blank" rel="noopener">Apps Script\'i aç</a> → Proje Ayarları → Komut Dosyası Özellikleri bölümünde <code>ESC_SHEETS_BRIDGE_TOKEN</code> zaten kayıtlıysa <strong>yenisini oluşturma</strong>.</p>'+
       '<p><strong>4.</strong> Apps Script\'te bir kez <code>ESC_SYNC_SETUP</code>, sonra güvenli <code>ESC_SYNC_PREVIEW</code> ve <code>ESC_SYNC_run</code> çalıştır.</p>'+
       '<p><strong>5.</strong> <a href="'+sheetUrl+'" target="_blank" rel="noopener">Google Sheets → ESC Senkronizasyon</a> sekmesinde <strong>BAĞLANDI</strong>, son kontrol ve hata durumunu incele.</p>'+
      '</div>'+
