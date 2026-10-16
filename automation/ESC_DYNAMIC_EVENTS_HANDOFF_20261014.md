@@ -147,3 +147,15 @@ Yönetici oturumu ile bütün butonların gerçek tıklama testi yapılmadı. Ku
 - Teknik QA: Dört indirme seçeneği, beş sayfalı tam XLSX, ZIP merkezi dizini ve CRC bütünlüğü, yetki kontrolleri, özel verileri okumadan fiyat indirme sınaması geçti. **Gerçek Safari/Excel 2024 kullanıcı cihazı testi henüz tamamlanmadı.**
 - Kaynak: \`admin/admin-exports.js\`; sayfa navigasyonu \`admin/index.html\`, \`admin/admin.js\`, \`admin/admin-dynamic-events.js\`.
 - Etkinlik otomasyonu **Canlı Etkinlik Yönetimi > Tekrarlayan Etkinlikler > Düzenle > Otomatik Oluştur** ile yönetilir. E-posta otomasyonu ayrı \`/admin/#emailAutomation\` alanında görülür; gerçek gönderim hâlâ kapalı, Gmail Apps Script bağlantısı ve kontrollü teslimat testi bekliyor.
+
+
+## 16 Ekim 2026 — Google Sheets katılım otoritesi ve çift yönlü köprü
+- Kullanıcı tercihi: Katılım Yüz Yüze ve Katılım Online sekmelerindeki Listede?, Katıldı?, Yeni/Tekrar işaretleri Google Sheets'ten yönetilir. Supabase, canlı etkinlik takvimini ve site görünümünü tutar.
+- Önceden hazırlanmış Apps Script: automation/sheets/ESC_Sheets_Supabase_Sync.gs. 5 dakika ve onEdit tetikleyicisi, ETK numaralarıyla eşleme, ilk senkronizasyonda Supabase takvimini esas alıp devamında iki taraf değişikliklerini çakışma denetimiyle yürütme. Kod e-posta göndermez.
+- Önceden dağıtılmış sunucu köprüsü: supabase/functions/esc-sheets-bridge/index.ts.
+- Yeni admin modülü: admin/admin-sheets-sync.js. Menü: Google Sheets Bağlantısı, güvenli anahtar oluşturma, durum kontrolü ve kurulum talimatları. GitHub Pages yayını 9e58a075ae5f sürümünde başarılı.
+- Siteye göre online fiyatlar 300 / 1.100 / 3.000 TL; yüz yüze 400 / 1.400 / 3.900 TL. E-posta Şablonları sekmesinde ReminderOnline ve ReminderFaceToFace ayrıdır.
+- Son canlı durum: configured=false, enabled=false, selected=0, eligible=0, last_pull=null, last_push=null, mail_approved=false. Yani kullanıcı Apps Script yetkilendirmesi yapana kadar üç yönlü bağlantı etkin değildir.
+- Kurulum: Admin #sheetsSync içinden gizli token üret, Gmail hesabının Apps Script proje özelliklerinde ESC_SHEETS_BRIDGE_TOKEN olarak sakla, ayrı ESC_Sheets_Supabase_Sync.gs dosyasını ekle; ESC_SYNC_SETUP, ESC_SYNC_PREVIEW ve ESC_SYNC_run çalıştır. Anahtarı sohbet veya Sheet hücrelerinde paylaşma.
+- E-posta Otomasyonu!B2 KAPALI kalır. SMS/e-posta gönderilmedi. Kullanıcının etkinlik ve katılım bilgileri değiştirilmedi.
+- Canlı tarayıcı uçtan uca testi ve Apps Script yetki kurulumunu kullanıcı tamamlamadan senkronizasyon aktif iddiasında bulunma.
