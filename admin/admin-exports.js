@@ -95,13 +95,14 @@ function sheets(data,mode){
   yes(r.active),yes(r.published),Number(r.horizon_days||0)])
  );
  const p=pricing.pricing||{},o=pricing.online||{};
+ const priceValue=x=>(x===null||x===undefined||x==='')?'':(Number.isFinite(Number(x))?Number(x):'');
  const ps=tab('Paket Fiyatları',['Tür','Paket','Fiyat (TL)','Kaynak'],[
- ['Yüz yüze','Tek buluşma',Number(p.single||0),'Yayınlanmış fiyat'],
- ['Yüz yüze','4 buluşma',Number(p.oneMonth||0),'Yayınlanmış fiyat'],
- ['Yüz yüze','12 buluşma',Number(p.threeMonth||0),'Yayınlanmış fiyat'],
- ['Online','Tek buluşma',Number(o.price||0),'Yayınlanmış fiyat'],
- ['Online','4 buluşma',Number(o.fourPack||0),'Yayınlanmış fiyat'],
- ['Online','12 buluşma',Number(o.twelvePack||0),'Yayınlanmış fiyat']]);
+ ['Yüz yüze','Tek buluşma',priceValue(p.single),'Yayınlanmış fiyat'],
+ ['Yüz yüze','4 buluşma',priceValue(p.oneMonth),'Yayınlanmış fiyat'],
+ ['Yüz yüze','12 buluşma',priceValue(p.threeMonth),'Yayınlanmış fiyat'],
+ ['Online','Tek buluşma',priceValue(o.price),'Yayınlanmış fiyat'],
+ ['Online','4 buluşma',priceValue(o.fourPack),'Yayınlanmış fiyat'],
+ ['Online','12 buluşma',priceValue(o.twelvePack),'Yayınlanmış fiyat']]);
  const info=tab('Rapor Hakkında',['Bilgi','Açıklama'],[
  ['Kaynak','Eryaman Speaking Club / Supabase'],
  ['Oluşturulma tarihi',trDate(new Date())],
