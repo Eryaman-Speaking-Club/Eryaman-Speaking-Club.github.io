@@ -107,7 +107,7 @@
       if(location.hash!=='#'+view)
         window.history.replaceState(null,'','#'+view);
     }catch(error){ console.warn('Admin address update failed',error); }
-    $('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
+    document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
     render(view);
   }
 
