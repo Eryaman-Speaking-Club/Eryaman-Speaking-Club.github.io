@@ -118,7 +118,9 @@ function ESC_SYNC_run(){
         const people=escSyncRoster_(ss,event,members);
         // Empty rosters never erase prior selected members during a scheduled check.
         const outcome=escSyncRequest_('push_roster',{
-          event_code:event.event_code,kind:event.kind,members:people,confirm_empty:false
+          event_code:event.event_code,kind:event.kind,members:people,
+          confirm_empty:people.length===0&&operations.ready.some(x=>
+            x.event_code===event.event_code&&x.desired_listed===false)
         });
         if(outcome.ok===false){
           if(outcome.reason==='empty_snapshot_requires_confirmation'){
@@ -275,7 +277,7 @@ function escSyncApplyPendingAttendance_(ss,requests,members){
         newAttended=item.desired_attended===true;
       if(newAttended&&!newListed){reject('Katılan kişi Listede olmalı');continue;}
       if(actualListed===newListed&&actualAttended===newAttended){
-        output.ready.push({id,event_code});continue; // already applied after retry
+        output.ready.push({id,event_code,desired_listed:newListed});continue; // already applied after retry
       }
       if(actualListed!==oldListed||actualAttended!==oldAttended){
         reject('Sheets sonradan değişmiş: manuel kontrol gerekli');continue;
@@ -283,7 +285,7 @@ function escSyncApplyPendingAttendance_(ss,requests,members){
       // E = Listede, F = Katıldı. No other formula/field is touched.
       block.sheet.getRange(block.first+index,5,1,2).setValues([[newListed,newAttended]]);
       row[3]=newListed;row[4]=newAttended;
-      output.ready.push({id,event_code});
+      output.ready.push({id,event_code,desired_listed:newListed});
     }catch(err){
       reject('Sheet üzerinde değişiklik yapılamadı: '+String(err.message||err).slice(0,100));
     }
