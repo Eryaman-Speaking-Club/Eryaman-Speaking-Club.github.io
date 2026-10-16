@@ -285,7 +285,7 @@
       if(r.error){alert('Katılım listesi açılamadı: '+r.error.message);return;}
     const ready=health.data?.ready===true && A.canEdit()
       && event.status!=='cancelled' && Date.parse(event.end_at)>Date.now()-30*86400000;
-    const isPast=Date.parse(event.end_at)<=Date.now();
+    const isPast=Date.parse(event.end_at)<=Date.now()&&event.status!=='cancelled';
     const all=(roster.data||[]),visible=all.filter(r=>r.listed);
     const memberList=(members.data||[]).filter(m=>m.eligible);
     const recent=requests.data||[],pending=new Map();
@@ -308,7 +308,7 @@
         '<td>'+(r.consent?'İzin var':'İzin yok')+'</td>'+
         '<td><div class="row-actions">'+
           (!r.attended?'<button type="button" class="icon-btn" data-att-operation="attended" data-att-member="'+esc(r.member_code)+'" '+(!canTouch?'disabled':'')+'>Katıldı</button>':
-            '<button type="button" class="icon-btn" data-att-operation="absent" data-att-member="'+esc(r.member_code)+'" '+(!canTouch||!isPast?'disabled':'')+'>Gelmedi</button>')+
+            '<button type="button" class="icon-btn" data-att-operation="absent" data-att-member="'+esc(r.member_code)+'" '+(!canTouch?'disabled':'')+'>'+(isPast?'Gelmedi':'Katılımı Geri Al')+'</button>')+
           '<button type="button" class="icon-btn danger-text" data-att-operation="remove" data-att-member="'+esc(r.member_code)+'" '+(!canTouch?'disabled':'')+'>Listeden Çıkar</button>'+
         '</div></td></tr>';
     };
