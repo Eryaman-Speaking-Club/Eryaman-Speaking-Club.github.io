@@ -113,3 +113,20 @@ Yönetici oturumu ile bütün butonların gerçek tıklama testi yapılmadı. Ku
 - Hız limiti yazma testi transaction içinde 1 geçici kayıt oluşturdu; ROLLBACK ile silindi. Şifre ve kullanıcı profilleri değiştirilmedi.
 - Kalıcı migration: `supabase/migrations/20261016_esc_auth_readonly_rpc_guard.sql`.
 - **Gerçek kullanıcının tarayıcısından yeniden giriş yapması henüz doğrulanmadı.** Önerilen doğrulama: `https://eryamanspeakingclub.com/admin/#dynamicEvents` adresinde Cmd+Shift+R ve tekrar giriş.
+
+
+## 16 Ekim 2026 — Sol yönetim sekmeleri açılamıyor hatası düzeltildi
+
+**Bulunan iki teknik neden:**
+1. `admin/admin.js`, `go(view)` fonksiyonunda `$('#nav button').forEach(...)` çağırıyordu; `$` tek HTML elementi döndürdüğünden `forEach` bir JavaScript hatası veriyor ve menü değişimi duruyordu. Kod `document.querySelectorAll('#nav button').forEach(...)` ile düzeltildi. GitHub commit: `8e19da2e8ddcaeff026b0801c747535f8301e61b`.
+2. `admin/admin.css` içinde `.auth-shell{display:grid}` ve `.app-shell{display:grid}` tarayıcının HTML `hidden` özniteliğini etkisiz bırakıyordu. Böylece giriş formu ile panel aynı anda görünüyordu. Genel `[hidden]{display:none!important}` kuralı eklendi. Commit: `4c490913adc4c03e683a620ec753e7c5406eeaf0`.
+
+**Yayın:** `admin/index.html` dosyasında CSS/JS versiyonları yenilendi (`navfix1` / `navfix2`). GitHub Pages yayını `2520256ea13d9ca5b3e96b9375cee6162ca8d3a3` için başarılı.
+
+**Test:**
+- `admin.js` modül navigasyonu 9 sekme için çalıştı: içerik, URL hash ve aktif menü tam eşleşti.
+- Chromium tarayıcı testi: girişten önce yalnızca giriş formu göründü, giriş sonrası yalnızca panel göründü; iki ayrı menü düğmesi tıklandı ve içerik değişti.
+- Bu değişikliklerde veritabanı, mevcut etkinlik/katılımcı kayıtları ve e-posta gönderim ayarları değiştirilmedi.
+- Gerçek kullanıcının kimlik doğrulanmış Safari oturumundaki son tıklama testi henüz kullanıcı tarafından teyit edilmedi.
+
+**Kullanıcı kontrolü:** `https://eryamanspeakingclub.com/admin/#dynamicEvents` adresini aç, Mac'te Cmd+Shift+R ile yenile ve soldan farklı sekmelere tıkla.
