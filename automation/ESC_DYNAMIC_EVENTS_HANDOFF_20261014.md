@@ -91,3 +91,13 @@
 
 ### Henüz gerçek tarayıcıda doğrulanmayanlar
 Yönetici oturumu ile bütün butonların gerçek tıklama testi yapılmadı. Kullanıcı Mac'te Cmd+Shift+R ile sert yenileme yaptıktan sonra Düzenle, Yayınla, Fiyatları yayınla ve haftalık kural kaydını denemeli. Devam eden hata varsa ekran görüntüsü veya tam hata metni gerekli.
+
+## 16 Ekim 2026 — Haftalık program kayıt hatası düzeltildi
+
+- Yönetim paneli `esc_admin_save_weekly_rule` RPC'sini çağırıyordu ancak işlev Supabase'de eksikti. Güvenli yeni fonksiyon migration `esc_weekly_rule_atomic_admin_save_20261016` ile veritabanına eklendi.
+- İşlev yalnızca yetkili etkinlik yöneticileri için kullanılabilir. Haftalık kuralı atomik kaydeder, kullanıcı işaretlerse gelecekteki uygun etkinlikleri tarih ve saat bakımından günceller ve yinelenen etkinlik oluşturucusunu çalıştırır.
+- `manual_override=true` olan, katılımcı kaydı olan, iptal edilmiş ya da tamamlanmış etkinlikler koruma altındadır. Geçmiş tarih ve aynı saat/tür çakışması kontrolleri vardır.
+- RPC gerçek yönetici JWT bağlamında bir transaction ile test edildi; `saved=true` ve `protected_manual=5` döndü. Bu, beş online etkinliğin manuel korumalı olduğunu gösterir.
+- İkinci geri alınan testte ETK-016 etkinliğinin `manual_override` işareti geçici kaldırıldı; saat 20:30 ve yeni mekân bilgisi doğru güncellendi. Transaction ROLLBACK ile üretim verileri korunmuştur.
+- Kullanıcı e-posta sistemini etkinleştirmedi; gerçek e-posta gönderimi halen KAPALI. Son tarih/saat değişiklikleri test dışında yapılmadı.
+- Önemli ürün tercihi: Mevcut manuel düzenlemeli etkinlikleri otomatik güncellemiyoruz. Yönetici isterse tekil etkinliği düzenlemeli ya da ileride açık onayla toplu güncelleme ekranı hazırlanmalı.
