@@ -23,7 +23,7 @@ const ESC_SYNC = Object.freeze({
   owner: 'eryamanspeakingclub@gmail.com',
   control: 'ESC Senkronizasyon',
   futureDays: 35,
-  historyDays: 7
+  historyDays: 30
 });
 
 function ESC_SYNC_SETUP(){
@@ -36,6 +36,7 @@ function ESC_SYNC_SETUP(){
   if(!legacy || legacy.getRange('B2').getDisplayValue().trim()!=='KAPALI')
     throw Error('Eski e-posta otomasyonu KAPALI olmalıdır. B2 hücresini kontrol edin.');
   const health=escSyncRequest_('pull_events',{});
+  escSyncRequest_('client_checkin',{version:2,attendance_enabled:ss.getSheetByName(ESC_SYNC.control)?.getRange('B6').getDisplayValue()==='AÇIK'});
   if(!Array.isArray(health.events))throw Error('Supabase canlı takviminden sonuç gelmedi.');
   const functions=['ESC_SYNC_onEdit','ESC_SYNC_onFormSubmit','ESC_SYNC_run'];
   ScriptApp.getProjectTriggers().filter(t=>functions.indexOf(t.getHandlerFunction())>=0)
@@ -78,6 +79,12 @@ function ESC_SYNC_run(){
     config=ss.getSheetByName(ESC_SYNC.control);
     if(!config)throw Error('ESC Senkronizasyon sekmesi yok.');
     escSyncEnsureLegacyOff_(ss);
+    const attendanceActive=config.getRange('B6').getDisplayValue()==='AÇIK';
+    // A client handshake is required before accepting operations from the
+    // website. The server refuses requests while this client is outdated.
+    escSyncRequest_('client_checkin',{
+      version:2,attendance_enabled:attendanceActive
+    });
     const data=escSyncRequest_('pull_events',{});
     if(!Array.isArray(data.events))throw Error('Etkinlik listesi alınamadı.');
     let changed=0,lists=0,conflicts=[];
@@ -85,8 +92,23 @@ function ESC_SYNC_run(){
       const status=escSyncCalendar_(ss,data.events);
       changed=status.changed;conflicts=status.conflicts;
     }
-    if(config.getRange('B6').getDisplayValue()==='AÇIK'){
+    if(attendanceActive){
       const members=escSyncMembers_(ss);
+      // The directory lets one management screen select even currently
+      // unlisted members. Only eligible active members are selectable.
+      const validMembers=[...members].filter(([id,m])=>
+        /^UYE-[0-9]{3,5}$/.test(id)&&String(m.name||'').trim().length>=2&&
+        String(m.name||'').trim().length<=120);
+      if(!validMembers.length)throw Error('Üye rehberi boş veya geçersiz; katılım aktarımı durduruldu.');
+      escSyncRequest_('push_members',{members:validMembers.map(([member_code,m])=>({
+        member_code,full_name:m.name,email:m.email,consent:m.consent,
+        eligible:m.eligible
+      }))});
+      const remote=escSyncRequest_('pull_attendance',{});
+      const requests=Array.isArray(remote.items)?remote.items:[];
+      const operations=escSyncApplyPendingAttendance_(ss,requests,members);
+      SpreadsheetApp.flush();
+      const acknowledged=[],successfulEvents=new Set();
       const live=data.events.filter(e=>{
         const n=new Date(e.end_at).getTime();
         return n>=Date.now()-ESC_SYNC.historyDays*86400000
@@ -96,17 +118,35 @@ function ESC_SYNC_run(){
         const people=escSyncRoster_(ss,event,members);
         // Empty rosters never erase prior selected members during a scheduled check.
         const outcome=escSyncRequest_('push_roster',{
-          event_code:event.event_code,kind:event.kind,members:people,confirm_empty:false
+          event_code:event.event_code,kind:event.kind,members:people,
+          confirm_empty:people.length===0&&operations.ready.some(x=>
+            x.event_code===event.event_code&&x.desired_listed===false)
         });
         if(outcome.ok===false){
           if(outcome.reason==='empty_snapshot_requires_confirmation'){
             conflicts.push(event.event_code+': 0 kişilik liste mevcut verileri kaldırmadı');
-          }else if(outcome.reason!=='event_not_found')conflicts.push(event.event_code+': '+outcome.reason);
-        }else lists++;
+          }else if(outcome.reason!=='event_not_found'){
+            conflicts.push(event.event_code+': '+outcome.reason);
+          }
+        }else{
+          lists++;
+          successfulEvents.add(event.event_code);
+        }
       }
+      // Acknowledge only after the matching Sheets snapshot has been accepted
+      // by Supabase. If a later API request fails, pending commands retry.
+      acknowledged.push(...operations.conflicts);
+      acknowledged.push(...operations.ready.filter(x=>successfulEvents.has(x.event_code))
+        .map(x=>({id:x.id,status:'applied'})));
+      if(acknowledged.length){
+        const ack=escSyncRequest_('ack_attendance',{results:acknowledged});
+        if(!ack.ok)throw Error('Katılım onayları kaydedilemedi.');
+      }
+      operations.conflicts.forEach(x=>conflicts.push(x.event_code+': '+x.reason));
+      const deferred=operations.ready.filter(x=>!successfulEvents.has(x.event_code)).length;
+      if(deferred)conflicts.push(deferred+' katılım değişikliği bekliyor');
     }
     escSyncTemplates_(ss,data.prices||{});
-    // Only server can turn on mail approval. Display its current status.
     config.getRange('B7').setValue(data.mail_approved===true?'AÇIK':'KAPALI');
     config.getRange('B3').setValue(new Date()).setNumberFormat('dd.MM.yyyy HH:mm');
     config.getRange('B2').setValue(conflicts.length?'KONTROL GEREKİYOR':'BAĞLANDI');
@@ -134,6 +174,10 @@ function ESC_SYNC_onEdit(e){
     const row=e.range.getRow(),col=e.range.getColumn();
     const bottom=row+e.range.getNumRows()-1;
     const right=col+e.range.getNumColumns()-1;
+    if(tab===ESC_SYNC.control && row<=6 && bottom>=6 && col<=2 && right>=2){
+      const attendanceEnabled=ss.getSheetByName(tab).getRange('B6').getDisplayValue().trim()==='AÇIK';
+      escSyncRequest_('client_checkin',{version:2,attendance_enabled:attendanceEnabled});
+    }
     if(tab===ESC_SYNC.control && row<=7 && bottom>=7 && col<=2 && right>=2){
       const val=ss.getSheetByName(tab).getRange('B7').getDisplayValue().trim();
       const accepted=escSyncRequest_('mail_approval',{enabled:val==='AÇIK'});
@@ -180,6 +224,73 @@ function ESC_SYNC_onFormSubmit(){
   // A new member may appear in Kayıtlar formulas: the scheduled run reconciles
   // the roster without touching any old automatic welcome sender.
   ESC_SYNC_run();
+}
+
+// Safely apply admin attendance requests to the authoritative Sheet.
+function escSyncApplyPendingAttendance_(ss,requests,members){
+  const output={ready:[],conflicts:[]},cache=new Map();
+  if(requests.length>100)throw Error('Too many attendance updates from server');
+  for(const item of requests){
+    const event_code=String(item.event_code||'');
+    const member_code=String(item.member_code||'');
+    const id=String(item.id||'');
+    const codeNumber=Number(event_code.replace(/^ETK-/,''));
+    const kind=String(item.kind||'');
+    const reject=reason=>output.conflicts.push({
+      id,event_code,status:'conflict',reason:String(reason).slice(0,160)
+    });
+    if(!/^[0-9a-fA-F-]{36}$/.test(id) || !/^ETK-[0-9]{3,5}$/.test(event_code)
+       || !/^UYE-[0-9]{3,5}$/.test(member_code)
+       || !Number.isInteger(codeNumber)||codeNumber<1||codeNumber>200
+       || !['online','in_person'].includes(kind)
+       || !members.has(member_code)){
+      reject('Etkinlik veya üye bilgisi geçersiz');continue;
+    }
+    try{
+      const tab=kind==='online'?'Katılım Online':'Katılım Yüz Yüze';
+      const sheet=ss.getSheetByName(tab);
+      if(!sheet){reject('Katılım sekmesi bulunamadı');continue;}
+      const first=4+(codeNumber-1)*500;
+      const key=tab+':'+event_code;
+      if(!cache.has(key)){
+        const cells=sheet.getRange(first,2,500,5).getValues();
+        const lookup=new Map();
+        cells.forEach((r,index)=>{
+          const code=String(r[0]||'').trim();
+          if(/^UYE-[0-9]{3,5}$/.test(code)){
+            if(lookup.has(code))lookup.set(code,-1); // duplicate = unsafe
+            else lookup.set(code,index);
+          }
+        });
+        cache.set(key,{cells,lookup,sheet,first});
+      }
+      const block=cache.get(key);
+      const index=block.lookup.get(member_code);
+      if(index===undefined || index<0){
+        reject('Üye bu etkinliğin 500 satırlık Sheet bloğunda bulunamadı');continue;
+      }
+      const row=block.cells[index],actualListed=row[3]===true,
+        actualAttended=row[4]===true;
+      const oldListed=item.expected_listed===true,
+        oldAttended=item.expected_attended===true,
+        newListed=item.desired_listed===true,
+        newAttended=item.desired_attended===true;
+      if(newAttended&&!newListed){reject('Katılan kişi Listede olmalı');continue;}
+      if(actualListed===newListed&&actualAttended===newAttended){
+        output.ready.push({id,event_code,desired_listed:newListed});continue; // already applied after retry
+      }
+      if(actualListed!==oldListed||actualAttended!==oldAttended){
+        reject('Sheets sonradan değişmiş: manuel kontrol gerekli');continue;
+      }
+      // E = Listede, F = Katıldı. No other formula/field is touched.
+      block.sheet.getRange(block.first+index,5,1,2).setValues([[newListed,newAttended]]);
+      row[3]=newListed;row[4]=newAttended;
+      output.ready.push({id,event_code,desired_listed:newListed});
+    }catch(err){
+      reject('Sheet üzerinde değişiklik yapılamadı: '+String(err.message||err).slice(0,100));
+    }
+  }
+  return output;
 }
 
 function escSyncCalendar_(ss,events,options){

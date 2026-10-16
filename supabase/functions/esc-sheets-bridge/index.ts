@@ -17,7 +17,7 @@ Deno.serve(async (request:Request)=>{
   if(raw.length>180000)return reply(413,{ok:false,error:'Payload exceeds limit'});
   const input=JSON.parse(raw) as Record<string,unknown>;
   const action=String(input.action||'');
-  const actions=['pull_events','push_event','push_roster','push_templates','mail_approval'];
+  const actions=['pull_events','push_event','push_roster','push_templates','mail_approval','push_members','client_checkin','pull_attendance','ack_attendance'];
   if(!actions.includes(action))return reply(400,{ok:false,error:'Unknown operation'});
   const url=Deno.env.get('SUPABASE_URL'),secret=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   if(!url||!secret)return reply(503,{ok:false,error:'Bridge unavailable'});
@@ -44,7 +44,28 @@ Deno.serve(async (request:Request)=>{
     p_token:token,p_code:code,p_kind:kind,p_members:input.members,
     p_confirm_empty:input.confirm_empty===true
    });
-  }else if(action==='push_templates'){
+  }else if(action==='push_members'){
+    if(!Array.isArray(input.members)||input.members.length>500)
+      return reply(400,{ok:false,error:'Invalid member directory snapshot'});
+    result=await db.rpc('esc_sheets_push_members',{
+      p_token:token,p_members:input.members
+    });
+   }else if(action==='client_checkin'){
+    const version=Number(input.version);
+    if(!Number.isInteger(version)||version<2||version>50)
+      return reply(400,{ok:false,error:'Unsupported sync client version'});
+    result=await db.rpc('esc_sheets_client_checkin',{
+      p_token:token,p_version:version,p_attendance_enabled:input.attendance_enabled===true
+    });
+   }else if(action==='pull_attendance'){
+    result=await db.rpc('esc_sheets_pull_attendance',{p_token:token});
+   }else if(action==='ack_attendance'){
+    if(!Array.isArray(input.results)||input.results.length>100)
+      return reply(400,{ok:false,error:'Invalid attendance acknowledgement'});
+    result=await db.rpc('esc_sheets_ack_attendance',{
+      p_token:token,p_results:input.results
+    });
+   }else if(action==='push_templates'){
    if(!Array.isArray(input.templates)||input.templates.length>6)
      return reply(400,{ok:false,error:'Invalid templates'});
    result=await db.rpc('esc_sheets_push_templates',{
