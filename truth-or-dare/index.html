@@ -108,7 +108,7 @@
           <div id="playerWheel" class="player-wheel" aria-live="polite">
             <div class="wheel-ring ring-one"></div>
             <div class="wheel-ring ring-two"></div>
-            <div class="wheel-center">
+            <div class="wheel-center" aria-hidden="true" style="display:none!important">
               <span id="wheelLabel">READY</span>
               <strong id="wheelName">?</strong>
             </div>
@@ -330,7 +330,7 @@
   </script>
   <script src="../esc-supabase-config.js?v=20261006-seofinal"></script>
   <script src="../esc-supabase.js?v=20261006-seofinal"></script>
-  <script src="./app.js?v=20261015-round-logo-v4"></script>
+  <script src="./app.js?v=20261015-remove-center-v3"></script>
   <script>
     (() => {
       const VOLUME_KEY = 'esc-truth-dare-volume-percent-v1';
