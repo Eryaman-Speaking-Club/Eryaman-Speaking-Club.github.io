@@ -61,7 +61,7 @@
         '<div class="stat"><span>TEKRARLAYAN PROGRAM</span><strong>'+rules.filter(x=>x.active).length+'</strong><small>Arka planda günlük üretilir</small></div>'+
         '<div class="stat"><span>BİLDİRİMLER</span><strong>Kapalı</strong><small>Eski üyelere izinsiz gönderim yok</small></div>'+
       '</div>'+
-      '<div class="card"><div class="card-head"><div><h2>Etkinlikleri Düzenle ve Yayınla</h2><p class="muted">Düzenle = etkinliğin bilgilerini değiştir. Yayınla = etkinliği sitede görünür yap ve kayıtları aç. Yayından kaldır = etkinliği siteden gizle; kayıtları kapat. Değişen tarih ve mekân mevcut ETK numarası ile katılımcıları korur.</p></div><div class="row-actions"><button id="escEventNew" class="btn primary" '+(!A.canEdit()?'disabled':'')+'>+ Yeni Etkinlik</button><button id="escEventReload" class="btn secondary">Yenile</button><a href="../events/" target="_blank" rel="noopener" class="btn secondary">Kayıt Sayfası ↗</a></div></div>'+
+      '<div class="card"><div class="card-head"><div><h2>Etkinlikleri Düzenle ve Yayınla</h2><p class="muted">Düzenle = etkinliğin bilgilerini değiştir. Yayınla = etkinliği sitede görünür yap ve kayıtları aç. Yayından kaldır = etkinliği siteden gizle; kayıtları kapat. Değişen tarih ve mekân mevcut ETK numarası ile katılımcıları korur.</p></div><div class="row-actions"><button id="escEventNew" class="btn primary" '+(!A.canEdit()?'disabled':'')+'>+ Yeni Etkinlik</button><button id="escEventReload" class="btn secondary">Yenile</button><button type="button" id="escEventExports" class="btn secondary">Excel’e Aktar</button><a href="../events/" target="_blank" rel="noopener" class="btn secondary">Kayıt Sayfası ↗</a></div></div>'+
       '<div class="table-wrap"><table><thead><tr><th>Etkinlik</th><th>Tarih & saat</th><th>Tür / yer</th><th>Durum</th><th>Katılımcı</th><th>İşlemler</th></tr></thead><tbody>'+
       (events.length?events.map(e=>
         '<tr><td><strong>'+esc(e.event_code)+'</strong><br>'+esc(e.title)+'</td>'+
@@ -82,6 +82,7 @@
       '<div class="notice warning">Katılımcısı olan veya özel olarak düzenlenmiş mevcut etkinlikler haftalık değişiklikle sessizce taşınmaz. Bunları yukarıdaki listeden ayrıca düzenle. Otomatik e-posta gönderimi henüz KAPALI.</div>';
     $('#escEventNew').onclick=()=>editor(null);
     $('#escEventReload').onclick=()=>view();
+    $('#escEventExports').onclick=()=>A.go('exports');
     $('#panel').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editor(events.find(x=>x.id===b.dataset.edit)));
     $('#panel').querySelectorAll('[data-publish]').forEach(b=>b.onclick=()=>togglePublish(events.find(x=>x.id===b.dataset.publish),b));
     $('#panel').querySelectorAll('[data-attendees]').forEach(b=>b.onclick=()=>attendees(events.find(x=>x.id===b.dataset.attendees)));
