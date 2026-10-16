@@ -55,7 +55,7 @@ Deno.serve(async (request:Request)=>{
     if(!Number.isInteger(version)||version<2||version>50)
       return reply(400,{ok:false,error:'Unsupported sync client version'});
     result=await db.rpc('esc_sheets_client_checkin',{
-      p_token:token,p_version:version
+      p_token:token,p_version:version,p_attendance_enabled:input.attendance_enabled===true
     });
    }else if(action==='pull_attendance'){
     result=await db.rpc('esc_sheets_pull_attendance',{p_token:token});
