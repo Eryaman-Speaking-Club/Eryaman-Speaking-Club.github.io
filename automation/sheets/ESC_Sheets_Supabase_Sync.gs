@@ -96,7 +96,11 @@ function ESC_SYNC_run(){
       const members=escSyncMembers_(ss);
       // The directory lets one management screen select even currently
       // unlisted members. Only eligible active members are selectable.
-      escSyncRequest_('push_members',{members:[...members].map(([member_code,m])=>({
+      const validMembers=[...members].filter(([id,m])=>
+        /^UYE-[0-9]{3,5}$/.test(id)&&String(m.name||'').trim().length>=2&&
+        String(m.name||'').trim().length<=120);
+      if(!validMembers.length)throw Error('Üye rehberi boş veya geçersiz; katılım aktarımı durduruldu.');
+      escSyncRequest_('push_members',{members:validMembers.map(([member_code,m])=>({
         member_code,full_name:m.name,email:m.email,consent:m.consent,
         eligible:m.eligible
       }))});
