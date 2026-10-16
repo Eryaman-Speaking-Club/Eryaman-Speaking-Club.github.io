@@ -172,6 +172,10 @@ function ESC_SYNC_onEdit(e){
     const row=e.range.getRow(),col=e.range.getColumn();
     const bottom=row+e.range.getNumRows()-1;
     const right=col+e.range.getNumColumns()-1;
+    if(tab===ESC_SYNC.control && row<=6 && bottom>=6 && col<=2 && right>=2){
+      const attendanceEnabled=ss.getSheetByName(tab).getRange('B6').getDisplayValue().trim()==='AÇIK';
+      escSyncRequest_('client_checkin',{version:2,attendance_enabled:attendanceEnabled});
+    }
     if(tab===ESC_SYNC.control && row<=7 && bottom>=7 && col<=2 && right>=2){
       const val=ss.getSheetByName(tab).getRange('B7').getDisplayValue().trim();
       const accepted=escSyncRequest_('mail_approval',{enabled:val==='AÇIK'});
