@@ -74,7 +74,8 @@
       '<div class="grid-3">'+
         '<button class="mini-card quick-card" data-go="dynamicEvents"><span class="pill published">ETKİNLİK · CANLI</span><h3>Canlı Etkinlik Yönetimi</h3><p>Etkinlik oluştur, tarih/mekân değiştir, yayınla, iptal et ve katılımcıları yönet. <strong>Tek kaynak: Supabase.</strong></p></button>'+
         '<button class="mini-card quick-card" data-go="events"><span class="pill">FİYATLAR</span><h3>Fiyatlar & Paketler</h3><p>Yüz yüze ve online paketleri kaydet veya yayınla. Etkinlik tarihlerini değiştirmez.</p></button>'+
-        '<button class="mini-card quick-card" data-go="exports"><span class="pill live">EXCEL</span><h3>Excel Raporları</h3><p>Supabase etkinlik ve katılımcılarını güncel Excel dosyası olarak indir. Eski Google Sheets dosyasına gerek yok.</p></button>'+
+        '<button class="mini-card quick-card" data-go="exports"><span class="pill live">EXCEL</span><h3>Excel Raporları</h3><p>Supabase etkinlik ve katılımcılarını güncel Excel dosyası olarak indir.</p></button>'+
+        '<button class="mini-card quick-card" data-go="sheetsSync"><span class="pill">KATILIM</span><h3>Google Sheets Bağlantısı</h3><p>Listede, katılım ve etkinlik senkronizasyonunu kur. Katılımın ana kaynağı Sheets.</p></button>'+
         '<button class="mini-card quick-card" data-go="siteEditor"><span class="pill live">CANLI</span><h3>Canlı Site Editörü</h3><p>Sayfayı aç, metne veya görsele tıkla ve doğrudan düzenle.</p></button>'+
         '<button class="mini-card quick-card" data-go="seo"><span class="pill">SEO</span><h3>SEO & GEO Merkezi</h3><p>SEO, AI görünürlüğü, canonical, sosyal paylaşım ve index durumunu tek ekranda denetle.</p></button>'+
         '<button class="mini-card quick-card" data-go="games"><span class="pill">OYUNLAR</span><h3>Game Hub</h3><p>Oyunları aç/kapat, ayarları ve merkezi içerikleri yönet.</p></button>'+
@@ -86,7 +87,7 @@
 
   async function render(view){
     state.currentView=view;
-    const titles={dashboard:'Genel Bakış',siteEditor:'Canlı Site Editörü',seo:'SEO & GEO Merkezi',pages:'Sayfalar & Bölümler',navigation:'Navigasyon & Footer',pageBuilder:'Page Builder',events:'Fiyatlar & Site Ayarları',dynamicEvents:'Canlı Etkinlik Yönetimi',emailAutomation:'E-posta Otomasyonu',exports:'Excel Raporları',games:'Oyunlar',educators:'Educators',media:'Medya Kütüphanesi',analytics:'Site İstatistikleri',history:'Sürüm Geçmişi',team:'Yönetici Ekibi',settings:'Ayarlar'};
+    const titles={dashboard:'Genel Bakış',siteEditor:'Canlı Site Editörü',seo:'SEO & GEO Merkezi',pages:'Sayfalar & Bölümler',navigation:'Navigasyon & Footer',pageBuilder:'Page Builder',events:'Fiyatlar & Site Ayarları',dynamicEvents:'Canlı Etkinlik Yönetimi',emailAutomation:'E-posta Otomasyonu',sheetsSync:'Google Sheets Bağlantısı',exports:'Excel Raporları',games:'Oyunlar',educators:'Educators',media:'Medya Kütüphanesi',analytics:'Site İstatistikleri',history:'Sürüm Geçmişi',team:'Yönetici Ekibi',settings:'Ayarlar'};
     $('#viewTitle').textContent=titles[view]||view;
     $('#panel').innerHTML='<div class="card"><div class="empty">Yükleniyor…</div></div>';
     try{
