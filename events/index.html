@@ -53,7 +53,7 @@ input[type=text],input[type=email]{border:1px solid #c9d8e4;padding:13px;border-
 <main>
 <div class="hero"><span class="kicker">Buluşmalarımız</span><h1>Sıradaki buluşmada görüşelim.</h1><p>Online veya yüz yüze İngilizce pratiği yapmak için yaklaşan buluşmalardan birini seç. Tarih ve mekân değişiklikleri burada otomatik güncellenir.</p><div class="stats"><span class="stat">İlk buluşma ücretsiz</span><span class="stat">18 yaş ve üzeri</span><span class="stat">A2–B2+</span></div></div>
 <section class="grid" id="eventGrid" aria-live="polite"><div class="empty">Etkinlikler yükleniyor…</div></section>
-<div class="notice">Etkinlik tarihini, saatini veya mekânını değiştirmemiz gerekirse bu sayfada güncel bilgi gösterilir. Kayıt olmak için iletişim izni gerekir. İptal edilmiş ve geçmiş etkinliklere kayıt alınmaz.</div>
+<div class="notice">Etkinlik tarihini, saatini veya mekânını değiştirmemiz gerekirse bu sayfada güncel bilgi gösterilir. Kayıtlar ana Google formumuza yönlendirilir. Başvurular Google Sheets üzerinden değerlendirilir; kesin katılım için ilgili buluşmanın “Listede” alanında onay gerekir. İptal edilmiş ve geçmiş etkinliklere kayıt alınmaz.</div>
 </main>
 <dialog id="signupDialog" aria-labelledby="signupTitle">
 <form class="modal" id="signupForm">
@@ -95,9 +95,9 @@ function render(){
    const accepting=event.registration_enabled===true && seats>0 && new Date(event.start_at)>new Date();
    body.append(node('div','meta',seats>0?seats+' kişilik yer kaldı':'Kontenjan dolu'));
    const label=!event.registration_enabled?'Kayıtlar kapalı':seats<=0?'Kontenjan dolu':accepting?'Bu buluşmaya katıl':'Kayıt süresi sona erdi';
-   const btn=node('button','join',label);
-   btn.type='button';btn.disabled=!accepting;btn.onclick=()=>openSignup(event);
-   body.append(btn);card.append(body);grid.append(card);
+   const btn=node('button','join',accepting?'Google Form ile kayıt ol':label);
+   btn.type='button';btn.disabled=!accepting;btn.onclick=()=>window.open('https://forms.gle/qjYk7dYtV8Vhpud29','_blank','noopener,noreferrer');
+   body.append(btn);body.append(node('small','meta','Kayıt formu Google Sheets sistemimize bağlıdır. Etkinlik katılımın yönetici tarafından “Listede” işaretlenince kesinleşir.'));card.append(body);grid.append(card);
  }
 }
 function openSignup(event){
