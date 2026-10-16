@@ -38,12 +38,18 @@ async function fetchAll(table,selection){
  }
  return items;
 }
-async function loadAll(){
+async function loadAll(mode){
+ // Download only data necessary for the selected report.
+ const needEvents=mode!=='pricing';
+ const needRegs=mode==='events'||mode==='registrations'||mode==='all';
+ const needRules=mode==='all';
+ const needPrices=mode==='all'||mode==='pricing';
  const [events,registrations,rules,p]=await Promise.all([
-  fetchAll('esc_events',columns.events),
-  fetchAll('esc_event_registrations',columns.regs),
-  fetchAll('esc_event_rules',columns.rules),
-  A.state.db.from('esc_cms_settings').select('published_data').eq('key','event_config').maybeSingle()
+  needEvents?fetchAll('esc_events',columns.events):[],
+  needRegs?fetchAll('esc_event_registrations',columns.regs):[],
+  needRules?fetchAll('esc_event_rules',columns.rules):[],
+  needPrices?A.state.db.from('esc_cms_settings')
+    .select('published_data').eq('key','event_config').maybeSingle():{data:null,error:null}
  ]);
  if(p.error)throw new Error('Fiyatlar okunamadı: '+p.error.message);
  events.sort((a,b)=>String(a.start_at).localeCompare(String(b.start_at))||String(a.event_code).localeCompare(String(b.event_code)));
@@ -208,7 +214,7 @@ async function exportWorkbook(mode){
  buttons.forEach(b=>b.disabled=true);
  status.textContent='Supabase kayıtları okunuyor; Excel hazırlanıyor…';
  try{
-  const data=await loadAll(),selected=sheets(data,mode);
+  const data=await loadAll(mode),selected=sheets(data,mode);
   download(makeXlsx(selected),mode);
   status.textContent=selected.length+' sayfalı Excel indirildi. '+data.events.length+
    ' etkinlik, '+data.registrations.length+' katılımcı kaydı.';
