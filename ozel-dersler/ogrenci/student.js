@@ -12,7 +12,7 @@ const dateFormat=new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',day
 const timeFormat=new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
 const dayFormat=new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',weekday:'long'});
 let client,session=null,profile=null,bookings=[],currentTab='overview';
-let authMode='login',recoveryMode=false,weekOffset=0,loadingWeek=false,sending=false;
+let authMode='login',recoveryMode=false,weekOffset=0,loadingWeek=false,sending=false,onboardingRequired=true;
 let selected=new Map(),availabilityCache=new Map();
 const slotKey=(date,minute)=>date+'@'+minute;
 const isoStamp=date=>new Date(date+'T12:00:00Z');
@@ -46,10 +46,62 @@ function setSending(value){
  sending=value;
  for(const id of ['submitBookings','newBookingButton','refreshLessons','logout']){
   const e=$(id);if(!e)continue;
-  if(id==='submitBookings')e.disabled=value||!selected.size||!profile;
+  if(id==='submitBookings')e.disabled=value||!selected.size||!profile||onboardingRequired;
   else e.disabled=value;
  }
 }
+
+const validLessonFor=['self','child','family','other'];
+const validAgeGroups=['6-12','13-17','18+'];
+const validGoals=['Konuşma pratiği','Genel İngilizce','İş / Profesyonel İngilizce',
+ 'Akademik İngilizce','Sınav / okul desteği','Eğitim koçluğu'];
+
+function toggleLearnerFields(prefix){
+ const relation=$(prefix+'For').value;
+ const age=$(prefix+'Age').value;
+ const otherName=relation!=='' && relation!=='self';
+ const ageMinor=age==='6-12'||age==='13-17';
+ $(prefix+'LearnerWrap').hidden=!otherName;
+ $(prefix+'Learner').required=otherName;
+ if(!otherName)$(prefix+'Learner').value='';
+ $(prefix+'GuardianWrap').hidden=!ageMinor;
+ $(prefix+'Guardian').required=ageMinor;
+ if(!ageMinor)$(prefix+'Guardian').checked=false;
+}
+function collectStudentDetails(prefix){
+ const full_name=$(prefix+'Name').value.trim().replace(/\s+/g,' ');
+ const lesson_for=$(prefix+'For').value;
+ const learner_age_group=$(prefix+'Age').value;
+ const learner_name=lesson_for==='self'?full_name:$(prefix+'Learner').value.trim().replace(/\s+/g,' ');
+ const level=$(prefix+'Level').value;
+ const goal=$(prefix+'Goal').value;
+ const goal_detail=$(prefix+'GoalDetail').value.trim();
+ const guardian_confirmed=$(prefix+'Guardian').checked;
+ if(full_name.length<2||full_name.length>100||!validLessonFor.includes(lesson_for)||
+    !validAgeGroups.includes(learner_age_group)||learner_name.length<2||learner_name.length>100||
+    !levelOptions.includes(level)||!validGoals.includes(goal)||goal_detail.length>500)
+   throw Error('Ders kimin için, öğrenci adı, yaş grubu, seviye ve amaç alanlarını kontrol et.');
+ if(learner_age_group!=='18+'&&(lesson_for==='self'||!guardian_confirmed))
+   throw Error('18 yaş altındaki öğrenciler için velisi veya yasal vasisi adına hesap açılmalı ve veli onayı verilmelidir.');
+ return {full_name,lesson_for,learner_name,learner_age_group,level,goal,goal_detail,guardian_confirmed};
+}
+function populateProfile(){
+ const meta=session?.user?.user_metadata||{};
+ const source=profile||meta;
+ $('profileEmail').value=session?.user?.email||'';
+ $('profileName').value=source.full_name||'';
+ $('profileFor').value=validLessonFor.includes(source.lesson_for)?source.lesson_for:'';
+ $('profileLearner').value=source.learner_name||'';
+ $('profileAge').value=validAgeGroups.includes(source.learner_age_group)?source.learner_age_group:'';
+ $('profileLevel').value=levelOptions.includes(source.level)?source.level:'';
+ $('profileGoal').value=validGoals.includes(source.goal)?source.goal:'';
+ $('profileGoalDetail').value=source.goal_detail||'';
+ $('profileGuardian').checked=source.guardian_confirmed===true;
+ toggleLearnerFields('profile');
+ $('profileOnboardingIntro').hidden=!onboardingRequired;
+ $('profileSaveButton').textContent=onboardingRequired?'Öğrenci kaydını tamamla':'Bilgilerimi güncelle';
+}
+
 function updateAuthMode(mode){
  authMode=mode;
  recoveryMode=mode==='recovery';
@@ -98,16 +150,26 @@ async function loadState(){
  const result=await api('state');
  profile=result.profile||null;
  bookings=Array.isArray(result.bookings)?result.bookings:[];
- if(!profile && session?.user?.user_metadata?.full_name) $('profileName').value=String(session.user.user_metadata.full_name).slice(0,100);
+ onboardingRequired=Boolean(result.onboarding_required)||!profile?.onboarding_completed;
  showDashboard();
  renderOverview();
  renderProfile();
  renderSelected();
- if(!profile){setTab('profile');message('profileMessage','Ders rezervasyonu için önce profilini kaydet.');}
- else setTab(currentTab);
+ if(onboardingRequired){
+   setTab('profile');
+   message('profileMessage','Rezervasyondan önce öğrenci kaydını tamamla: ders kimin için, yaş grubu, İngilizce seviyesi ve ders alma amacı.',false);
+ }else setTab(currentTab);
 }
 function setTab(tab){
  if(!session)return;
+ if(onboardingRequired && tab!=='profile'){
+   tab='profile';
+   message('profileMessage','Ders takvimine geçmeden önce öğrenci kaydını tamamla.',false);
+ }
+ $('tabOverview').disabled=onboardingRequired;
+ $('tabBooking').disabled=onboardingRequired;
+ $('newBookingButton').disabled=onboardingRequired;
+ $('headerBooking').disabled=onboardingRequired;
  currentTab=tab;
  for(const key of ['overview','booking','profile']){
   const title=key[0].toUpperCase()+key.slice(1);
@@ -186,11 +248,7 @@ function renderLessonCard(b){
 }
 function renderProfile(){
  if(!session)return;
- $('profileEmail').value=session.user.email||'';
- $('profileName').value=profile?.full_name||$('profileName').value||
-    String(session.user.user_metadata?.full_name||'').slice(0,100);
- $('profileLevel').value=levelOptions.includes(profile?.level)?profile.level:'unsure';
- $('profileGoal').value=profile?.goal||'Konuşma pratiği';
+ populateProfile();
 }
 async function cancelLesson(id){
  if(sending||!confirm('Bu ders talebini iptal etmek istiyor musun?'))return;
@@ -334,7 +392,8 @@ async function repeatWeeklySelections(){
 }
 async function submitBatch(){
  if(sending)return;
- if(!profile){setTab('profile');message('profileMessage','Önce profilini kaydet.');return;}
+ if(!profile||onboardingRequired){setTab('profile');message('profileMessage','Önce öğrenci kayıt bilgilerini tamamla.');return;}
+ if(onboardingRequired){setTab('profile');message('profileMessage','Önce öğrenci kayıt bilgilerini tamamla.',true);return;}
  if(!selected.size){message('bookingMessage','En az bir saat seçmelisin.',true);return;}
  if(selected.size>Math.max(0,12-currentBookings().length)){
   message('bookingMessage','Aktif derslerinle birlikte en fazla 12 ileri tarihli ders talebi bulunabilir.',true);return;
@@ -373,31 +432,40 @@ async function signIn(event){
  finally{setSending(false);}
 }
 async function signUp(event){
- event.preventDefault();if(sending)return;
+ event.preventDefault();
+ if(sending)return;
  const password=$('registerPassword').value;
  if(password!==$('registerConfirm').value){
   message('authMessage','Şifreler eşleşmiyor.',true);return;
  }
- const name=$('registerName').value.trim().replace(/\s+/g,' ');
- if(name.length<2){message('authMessage','Ad soyad gir.');return;}
- if(!$('registerConsent').checked){message('authMessage','Kişisel veri onayını işaretlemelisin.',true);return;}
+ if(!$('registerConsent').checked){
+  message('authMessage','Kayıt ve iletişim onayını işaretlemelisin.',true);return;
+ }
+ let details;
+ try{details=collectStudentDetails('register');}
+ catch(error){message('authMessage',friendly(error),true);return;}
  try{
-  setSending(true);message('authMessage','Hesap oluşturuluyor...');
+  setSending(true);
+  message('authMessage','Öğrenci hesabın oluşturuluyor...');
   const {data,error}=await client.auth.signUp({
-   email:$('registerEmail').value.trim(),password,
-   options:{emailRedirectTo:siteUrl,data:{full_name:name}}
+   email:$('registerEmail').value.trim().toLowerCase(),password,
+   options:{emailRedirectTo:siteUrl,data:details}
   });
   if(error)throw error;
-  $('registerPassword').value='';$('registerConfirm').value='';
+  $('registerPassword').value='';
+  $('registerConfirm').value='';
   if(data.session){
    session=data.session;
-   await api('profile',{full_name:name,level:'unsure',goal:'Konuşma pratiği'});
-   await loadState();setTab('profile');
+   await api('profile',details);
+   currentTab='overview';
+   await loadState();
+   message('profileMessage','Öğrenci hesabın ve kayıt bilgilerin oluşturuldu.');
   }else{
-   message('authMessage','Hesap oluşturma isteği alındı. E-postana gelen doğrulama bağlantısını aç, ardından öğrenci panelinde giriş yap. Spam klasörünü de kontrol et.');
+   message('authMessage','Kayıt isteğin alındı. E-postana gelen doğrulama bağlantısını aç. Doğrulamadan sonra öğrenci bilgilerini onaylayıp ders seçebileceksin. Bu e-postayla zaten hesabın varsa Giriş yap bölümünden devam et.');
   }
- }catch(error){message('authMessage',friendly(error),true);}
- finally{setSending(false);}
+ }catch(error){
+  message('authMessage',friendly(error),true);
+ }finally{setSending(false);}
 }
 async function resetPassword(){
  if(sending)return;
@@ -433,22 +501,24 @@ async function savePassword(event){
 }
 async function saveProfile(event){
  event.preventDefault();if(sending)return;
- const full_name=$('profileName').value.trim(),level=$('profileLevel').value,goal=$('profileGoal').value;
- if(full_name.length<2||full_name.length>100){message('profileMessage','Geçerli bir ad soyad gir.',true);return;}
+ let details;
+ try{details=collectStudentDetails('profile');}
+ catch(error){message('profileMessage',friendly(error),true);return;}
  try{
-  setSending(true);message('profileMessage','Profil kaydediliyor...');
-  await api('profile',{full_name,level,goal});
-  profile={full_name,level,goal};
-  renderOverview();renderSelected();
-  message('profileMessage','Öğrenci profilin kaydedildi.');
+  setSending(true);message('profileMessage','Öğrenci bilgilerin kaydediliyor...');
+  await api('profile',details);
+  profile={...details,onboarding_completed:true};
+  onboardingRequired=false;
+  await loadState();
   setTab('booking');
+  message('bookingMessage','Öğrenci kaydın tamamlandı. Artık müsait saatlerden ders seçebilirsin.');
  }catch(error){message('profileMessage',friendly(error),true);}
  finally{setSending(false);}
 }
 async function logout(){
  if(sending)return;
  await client.auth.signOut();session=null;profile=null;bookings=[];
- selected.clear();availabilityCache.clear();currentTab='overview';recoveryMode=false;
+ selected.clear();availabilityCache.clear();currentTab='overview';recoveryMode=false;onboardingRequired=true;
  showAuth();message('authMessage','Çıkış yaptın.');
 }
 function bindEvents(){
@@ -459,6 +529,12 @@ function bindEvents(){
  $('resetPasswordButton').onclick=resetPassword;
  $('recoveryForm').addEventListener('submit',savePassword);
  $('profileForm').addEventListener('submit',saveProfile);
+ for(const prefix of ['register','profile']){
+   $(prefix+'For').addEventListener('change',()=>toggleLearnerFields(prefix));
+   $(prefix+'Age').addEventListener('change',()=>toggleLearnerFields(prefix));
+ }
+ toggleLearnerFields('register');
+ toggleLearnerFields('profile');
  $('logout').onclick=logout;
  $('headerBooking').onclick=()=>setTab(profile?'booking':'profile');
  $('newBookingButton').onclick=()=>setTab(profile?'booking':'profile');
