@@ -32,3 +32,9 @@
 .sp-email-verified span{font-weight:900}
 #resendVerificationButton{font-size:12px;justify-self:center}
 @media(max-width:650px){.sp-auth-secondary-actions{flex-direction:column;align-items:stretch}.sp-auth-secondary-actions .sp-link-button{padding:9px}}
+
+/* Booking receipt is shown immediately, independently of email delivery. */
+.sp-booking-receipt{background:#e8f6f0;border:1px solid #b4e2d2;border-radius:16px;padding:17px 19px;color:#165b54;margin:0 0 22px}
+.sp-booking-receipt strong{display:block;font-size:16px;font-weight:850}
+.sp-booking-receipt p{margin:7px 0;color:#477c75;font-size:12px;line-height:1.7}
+.sp-booking-receipt ul{margin:10px 0 0;padding-left:19px;font-size:12px;line-height:1.8}
