@@ -1,6 +1,6 @@
 # Eryaman Speaking Club — Website & Game Hub
 
-The website, Game Hub and education tools for **Eryaman Speaking Club**. The public site introduces the club and meetup experience; the Game Hub contains **32 browser-based speaking and conversation games**; the Educators area adds teacher accounts, classes and classroom tools; and a Supabase-backed management panel controls the live site.
+The website, Game Hub, private-lesson student dashboard and education tools for **Eryaman Speaking Club**. The public site introduces the club and meetup experience; the Game Hub contains **32 browser-based speaking and conversation games**; the Educators area adds teacher accounts, classes and classroom tools; and a Supabase-backed management panel controls the live site.
 
 ## Live links & access
 
@@ -13,6 +13,8 @@ The website, Game Hub and education tools for **Eryaman Speaking Club**. The pub
 | **Educators** | https://eryamanspeakingclub.com/educators/ | English teachers / schools | Teacher account |
 | **Join a class** | https://eryamanspeakingclub.com/join/ | Students | Class code + first name |
 | **Private lessons** | https://eryamanspeakingclub.com/ozel-dersler/ | Prospective students | Public |
+| **Private-lesson student panel** | https://eryamanspeakingclub.com/ozel-dersler/ogrenci/ | Private-lesson students | Individual Supabase Auth account |
+| **Private-lesson calendar management** | https://eryamanspeakingclub.com/ozel-dersler/yonetim/ | Gülsüm Yağmur Akdeniz / ESC admins | Authorized ESC manager account |
 | **Site management panel** | https://eryamanspeakingclub.com/admin/ | Site administrators | Supabase Auth + admin allow-list |
 | **Legacy Studio URL** | https://eryamanspeakingclub.com/esc-studio/ | Administrators | Redirects to the central admin panel |
 
@@ -37,16 +39,32 @@ Teachers use **https://eryamanspeakingclub.com/educators/**.
 - Teacher accounts store classes, student codes and lesson data in Supabase.
 - Each teacher should use their own account rather than sharing the site administrator account.
 
-### Student access
+### Classroom-game student access (separate from private lessons)
 
-Students do **not** need an e-mail address or account for normal classroom entry.
+Students do **not** need an e-mail address or account for **normal classroom entry using a class code**.
 
 1. Open **https://eryamanspeakingclub.com/join/**
 2. Enter the class code shown by the teacher.
 3. Enter a first name.
 4. Join the active class.
 
-The student join flow is deliberately separate from administrator and teacher authentication.
+The class-code join flow is separate from administrator, teacher and **private-lesson student** authentication.
+
+### Private-lesson student panel and teacher calendar (October 2026)
+
+- **Public teacher page:** https://eryamanspeakingclub.com/ozel-dersler/
+- **Student account, login and dashboard:** https://eryamanspeakingclub.com/ozel-dersler/ogrenci/
+- **Teacher/admin weekly availability:** https://eryamanspeakingclub.com/ozel-dersler/yonetim/
+
+**Student workflow:** create an individual e-mail/password account, confirm the e-mail if required, save full name / level / goal, browse Yağmur's actual weekly availability, choose **1–12 lessons in one transaction** across multiple weeks, and track pending, confirmed, completed or cancelled lessons in **Derslerim**. Confirmed lessons show the teacher's Google Meet link directly in the student dashboard; students can cancel future *pending* requests. Requests do not become confirmed lessons until the teacher approves them.
+
+**Teacher workflow:** use the existing authorized ESC manager account to enable/disable weekly hours, close individual dates, view student requests and approve them by attaching a valid Google Meet link. Multi-lesson requests use the same `esc_lesson_bookings` table, so students and the teacher see the same reservations. Existing no-account single-lesson inquiries and the general contact form on the public page remain available.
+
+**Security:** browser clients do not receive the Supabase service-role key; a verified student's bearer token is checked server-side before account-specific data is returned. The booking RPC is callable only by the service role. Database constraints prevent double-booked active hours. Multi-slot reservations are atomic and limited to 12 future active lessons per student.
+
+**E-mail delivery note:** lesson request, confirmation and reminder messages may be queued in `esc_lesson_mail_queue`, but automatic e-mail delivery requires a separately configured and verified mail sender. Do not assume those e-mails have been sent until delivery is tested. Account verification/password-reset messages use Supabase Auth settings. Add the student redirect URL to **Supabase → Authentication → URL Configuration** if confirmations do not land on the student page.
+
+These links are also linked from the public private-lesson page. No password or privileged API key belongs in this public repository.
 
 ### Management model
 
@@ -207,7 +225,9 @@ There is no npm build step or frontend framework.
 │   └── admin-structure.js
 ├── educators/                 # Teacher accounts, classes and classroom tools
 ├── join/                      # Student class-code entry
-├── ozel-dersler/              # Private-lesson landing page
+├── ozel-dersler/              # Public teacher profile + single-lesson inquiry
+│   ├── ogrenci/               # Student sign-in, profiles, multi-lesson booking and lessons
+│   └── yonetim/               # Authorized teacher calendar and approvals
 ├── esc-studio/                # Legacy redirect to /admin/#games
 ├── taboo/                     # Individual game folders
 ├── truth-or-dare/
