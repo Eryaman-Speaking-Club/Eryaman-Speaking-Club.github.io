@@ -8,7 +8,7 @@
   <meta name="robots" content="noindex,nofollow">
   <title>Öğrenci Paneli · Birebir İngilizce | Eryaman Speaking Club</title>
   <link rel="icon" href="/favicon.png" type="image/png">
-  <link rel="stylesheet" href="/ozel-dersler/ogrenci/student.css?v=20261027-emailflow-v2">
+  <link rel="stylesheet" href="/ozel-dersler/ogrenci/student.css?v=20261027-50m-request-v1">
 </head>
 <body>
   <header class="sp-header">
@@ -24,12 +24,13 @@
   </header>
 
   <main class="sp-main">
+    <div id="authLoading" class="sp-loading"><span class="sp-loading-spinner" aria-hidden="true"></span><strong>Hesabın kontrol ediliyor…</strong><small>Mevcut oturumun korunuyor.</small></div>
     <section class="sp-intro">
       <div class="sp-intro-copy">
         <span class="sp-eyebrow"><span></span> GÜLSÜM YAĞMUR AKDENİZ · BİREBİR ONLINE İNGİLİZCE</span>
         <h1>Derslerin, takvimin,<em> tek bir yerde.</em></h1>
         <p>Hesabını oluştur. Farklı günlerden sana uyan ders saatlerini seç. Yaklaşan derslerini ve katılım bağlantılarını istediğin zaman görüntüle.</p>
-        <div class="sp-intro-features"><span>Birden fazla ders seç</span><span>Takvimini takip et</span><span>Tek tıkla derse katıl</span></div>
+        <div class="sp-intro-features"><span>50 dakikalık dersler</span><span>Birden fazla ders seç</span><span>Takvimini takip et</span><span>Tek tıkla derse katıl</span></div>
       </div>
       <div class="sp-intro-visual" aria-hidden="true">
         <div class="sp-visual-label">HAFTALIK PLAN</div>
@@ -44,7 +45,7 @@
       </div>
     </section>
 
-    <section id="authSection" class="sp-auth-layout">
+    <section id="authSection" class="sp-auth-layout" hidden>
       <div class="sp-auth-description">
         <span class="sp-kicker">ÖĞRENCİ HESABI</span>
         <h2>İlk dersinden itibaren her şey düzenli olsun.</h2>
@@ -162,10 +163,12 @@
         <div id="upcomingLessons" class="sp-lesson-list"></div>
         <div class="sp-panel-head sp-mt"><div><span class="sp-kicker">GEÇMİŞ</span><h3>Geçmiş ve iptal edilen dersler</h3></div></div>
         <div id="historyLessons" class="sp-lesson-list"></div>
+        <div class="sp-panel-head sp-mt"><div><span class="sp-kicker">ÖZEL SAAT TALEPLERİM</span><h3>Takvim dışı saat istekleri</h3><p>Bu talepler henüz kesin rezervasyon değildir. Yağmur'un incelemesi beklenir.</p></div></div>
+        <div id="customTimeRequests" class="sp-lesson-list"></div>
       </section>
 
       <section id="viewBooking" class="sp-panel-view" hidden>
-        <div class="sp-panel-head"><div><span class="sp-kicker">HAFTALIK DERS TAKVİMİ</span><h3>Birden fazla dersini birlikte planla.</h3><p>Farklı gün ve haftalardan en fazla 12 müsait saat seçebilirsin. Öğretmen onayı sonrası rezervasyon kesinleşir.</p></div></div>
+        <div class="sp-panel-head"><div><span class="sp-kicker">HAFTALIK DERS TAKVİMİ</span><h3>Birden fazla dersini birlikte planla.</h3><p>Her ders 50 dakika sürer; saatler 10 dakikalık ara ile planlanır. Farklı gün ve haftalardan en fazla 12 müsait saat seçebilirsin. Rezervasyonlar öğretmen onayıyla kesinleşir.</p></div></div>
         <div class="sp-booking-layout">
           <div class="sp-calendar-card">
             <div class="sp-week-nav">
@@ -191,7 +194,23 @@
             <p id="bookingMessage" class="sp-feedback" role="status"></p>
             <p class="sp-smallprint">Ders talepleri ücretsiz rezervasyon isteği niteliğindedir; ödeme veya kesin onay anlamına gelmez.</p>
           </aside>
+
         </div>
+        <section id="alternativeRequest" class="sp-request-card" aria-labelledby="alternativeTitle">
+          <div class="sp-request-intro">
+            <span class="sp-kicker">İSTEDİĞİN SAAT GÖRÜNMÜYOR MU?</span>
+            <h3 id="alternativeTitle">Sana uygun bir saat öner.</h3>
+            <p>Takvim doluysa veya sana uygun saat açılmamışsa tarih ve saat talebi bırak. Bu bir <strong>kesin rezervasyon değildir</strong>; Yağmur talebini inceleyip iletişime geçebilir.</p>
+          </div>
+          <form id="timeRequestForm" class="sp-request-form">
+            <label>Hangi gün?<input id="timeRequestDate" type="date" lang="tr-TR" required></label>
+            <label>Hangi saat? (Türkiye saati)<select id="timeRequestHour" required></select></label>
+            <label class="sp-request-notes">Eklemek istediğin bilgi<textarea id="timeRequestNotes" maxlength="700" rows="2" placeholder="Örneğin: Salı 19.00'dan sonrası bana daha uygun."></textarea></label>
+            <label class="sp-checkline sp-request-consent"><input id="timeRequestConsent" type="checkbox" required> Talebimin değerlendirilmesi için iletişim bilgilerimin kullanılmasını kabul ediyorum.</label>
+            <button id="timeRequestSubmit" type="submit" class="sp-primary-button sp-request-action">+ Alternatif saat iste</button>
+            <p id="timeRequestMessage" class="sp-feedback" role="status" aria-live="polite"></p>
+          </form>
+        </section>
       </section>
 
       <section id="viewProfile" class="sp-panel-view" hidden>
@@ -243,6 +262,6 @@
   </main>
   <footer class="sp-footer"><span>Eryaman Speaking Club · Gülsüm Yağmur Akdeniz</span><a href="/ozel-dersler/">Özel ders sayfası</a><a href="mailto:eryamanspeakingclub@gmail.com">İletişim</a></footer>
   <script src="/esc-supabase-config.js"></script>
-  <script type="module" src="/ozel-dersler/ogrenci/student.js?v=20261027-emailflow-v2"></script>
+  <script type="module" src="/ozel-dersler/ogrenci/student.js?v=20261027-50m-request-v1"></script>
 </body>
 </html>
