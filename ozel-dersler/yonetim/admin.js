@@ -256,7 +256,12 @@ function render() {
     title.textContent = new Date(r.start_at).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul',dateStyle:'medium',timeStyle:'short'})+' — '+r.full_name;
     wrapper.append(title);
     const desc = document.createElement('small');
-    desc.textContent = r.email+' | '+r.level+' | '+r.goal+' | Durum: '+r.status+(r.notes ? ' | '+r.notes : '');
+    const relation = ({self:'Kendisi',child:'Çocuğu',family:'Ailesinden biri',other:'Başka biri'})[r.lesson_for] || 'Üyeliksiz başvuru';
+    const account = r.booked_by_name ? (' | Hesap sahibi: '+r.booked_by_name) : '';
+    const age = r.learner_age_group ? (' | Yaş grubu: '+r.learner_age_group) : '';
+    desc.textContent = 'Öğrenci: '+r.full_name+' | Kim için: '+relation+
+      account+age+' | İletişim: '+r.email+' | Seviye: '+r.level+' | Amaç: '+r.goal+
+      ' | Durum: '+r.status+(r.notes ? ' | Not: '+r.notes : '');
     wrapper.append(desc);
     if (['requested','confirmed'].includes(r.status)) {
       const actions = document.createElement('div');
