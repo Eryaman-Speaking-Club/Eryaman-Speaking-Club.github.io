@@ -28,6 +28,23 @@
 .esc-guest-note{font-size:12px;line-height:1.6;color:#95a8b9;margin:0}
 .esc-guest-note a{color:#79d4cd;text-decoration:underline}
 @media(max-width:700px){.esc-student-cta{align-items:stretch;flex-direction:column}.esc-student-cta a{text-align:center;width:100%}}
+
+.esc-public-alternative{display:flex;align-items:center;justify-content:space-between;gap:16px;
+ background:linear-gradient(120deg,#eaf8f5,#f4fafc);border:1px solid #b5e0d7;border-radius:16px;
+ padding:18px 20px;margin:16px 0;color:#143d53}
+.esc-public-alternative div{display:flex;flex-direction:column;gap:5px}
+.esc-public-alternative strong{font-size:16px;color:#0d3f52}
+.esc-public-alternative span{font-size:12px;color:#527989;line-height:1.6}
+.esc-public-alternative a{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;
+ background:linear-gradient(135deg,#0e4266,#0f777e);color:#fff!important;text-decoration:none!important;
+ border:1px solid #0f6275;border-radius:12px;padding:12px 17px;font-size:12px;font-weight:850;
+ box-shadow:0 5px 0 rgba(8,55,73,.15),0 12px 19px rgba(10,68,75,.11);
+ transition:transform .17s ease,box-shadow .17s ease}
+.esc-public-alternative a:hover{transform:translateY(-2px);box-shadow:0 7px 0 rgba(8,55,73,.1),0 14px 22px rgba(10,68,75,.16)}
+.esc-public-alternative a:focus-visible{outline:3px solid #26a7a2;outline-offset:3px}
+@media(max-width:700px){.esc-public-alternative{flex-direction:column;align-items:stretch}
+ .esc-public-alternative a{width:100%;white-space:normal;text-align:center}}
+
 </style>
 </head>
 <body>
@@ -118,7 +135,7 @@
  <div class="esc-booking-container">
   <span class="esc-booking-kicker">BİREBİR İNGİLİZCE · HAFTALIK PROGRAM</span>
   <h2 id="lessonCalendarTitle">Sana uygun ders saatini seç.</h2>
-  <p>Gülsüm Yağmur Akdeniz'in haftalık müsait saatlerini incele. Öğrenci hesabınla farklı gün ve haftalardan birden fazla ders seçebilir, onaylanan derslerine tek yerden katılabilirsin. Saatler Türkiye saatine göredir (GMT+3).</p>
+  <p>Gülsüm Yağmur Akdeniz'in haftalık müsait saatlerini incele. Öğrenci hesabınla farklı gün ve haftalardan birden fazla 50 dakikalık ders seçebilir, onaylanan derslerine tek yerden katılabilirsin. Saatler Türkiye saatine göredir (GMT+3).</p>
   <div class="esc-student-cta"><div><strong>Birden fazla ders mi planlamak istiyorsun?</strong><span>Öğrenci hesabı oluştur, derslerini toplu seç, randevularını ve Google Meet bağlantılarını panelinden takip et.</span></div><a href="/ozel-dersler/ogrenci/">Öğrenci paneline geç →</a></div>
   <div class="esc-week-toolbar"><button id="escPrevWeek" type="button" aria-label="Önceki hafta">‹</button><strong id="escWeekLabel">Haftalık uygunluk</strong><button id="escNextWeek" type="button" aria-label="Sonraki hafta">›</button></div>
   <div class="esc-week-grid" id="escLessonCalendar" aria-live="polite"><p>Takvim yükleniyor...</p></div>
@@ -133,7 +150,8 @@
    <button type="submit" id="escBookingSubmit">Ders talebi gönder</button>
    <p class="esc-booking-status" id="escBookingStatus" role="status"></p>
   </form>
-  <p class="esc-booking-help">Müsait saat göremiyorsan aşağıdaki genel başvuru formunu kullanabilirsin.</p>
+  <div class="esc-public-alternative"><div><strong>Takvimde sana uygun ders saati yok mu?</strong><span>50 dakikalık özel ders için istediğin gün ve saati öner. Yağmur müsaitliğine göre talebini değerlendirecek.</span></div><a href="/ozel-dersler/ogrenci/">+ Alternatif ders saati iste</a></div>
+  <p class="esc-booking-help">Hızlı tek ders başvurusu için aşağıdaki üyeliksiz formu kullanabilirsin.</p>
  </div>
 </section>
     <section class="application" id="basvuru">
