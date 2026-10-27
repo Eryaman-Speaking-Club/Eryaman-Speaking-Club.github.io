@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#082b4b">
+  <meta name="description" content="Eryaman Speaking Club özel ders öğrenci paneli. Hesap oluştur, birden fazla İngilizce dersi seç, randevularını takip et ve onaylanmış dersine Google Meet üzerinden katıl.">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Öğrenci Paneli · Birebir İngilizce | Eryaman Speaking Club</title>
+  <link rel="icon" href="/favicon.png" type="image/png">
+  <link rel="stylesheet" href="/ozel-dersler/ogrenci/student.css?v=20261027a">
+</head>
+<body>
+  <header class="sp-header">
+    <a class="sp-brand" href="/ozel-dersler/" aria-label="Eryaman Speaking Club özel ders sayfasına dön">
+      <span class="sp-brand-icon"><img src="/esc-center-symbol.webp" alt=""></span>
+      <span class="sp-brand-copy"><strong>Eryaman Speaking Club</strong><small>ÖZEL DERSLER · ÖĞRENCİ PANELİ</small></span>
+    </a>
+    <nav class="sp-header-nav" aria-label="Sayfa menüsü">
+      <a href="/ozel-dersler/">Yağmur'u tanı</a>
+      <button type="button" class="sp-header-button" id="headerBooking" hidden>Yeni ders seç</button>
+      <button type="button" class="sp-header-signout" id="logout" hidden>Çıkış yap</button>
+    </nav>
+  </header>
+
+  <main class="sp-main">
+    <section class="sp-intro">
+      <div class="sp-intro-copy">
+        <span class="sp-eyebrow"><span></span> GÜLSÜM YAĞMUR AKDENİZ · BİREBİR ONLINE İNGİLİZCE</span>
+        <h1>Derslerin, takvimin,<em> tek bir yerde.</em></h1>
+        <p>Hesabını oluştur. Farklı günlerden sana uyan ders saatlerini seç. Yaklaşan derslerini ve katılım bağlantılarını istediğin zaman görüntüle.</p>
+        <div class="sp-intro-features"><span>Birden fazla ders seç</span><span>Takvimini takip et</span><span>Tek tıkla derse katıl</span></div>
+      </div>
+      <div class="sp-intro-visual" aria-hidden="true">
+        <div class="sp-visual-label">HAFTALIK PLAN</div>
+        <div class="sp-visual-miniweek">
+          <div><small>PTS</small><span></span><span class="sp-filled"></span></div>
+          <div><small>SAL</small><span class="sp-filled"></span><span></span></div>
+          <div><small>ÇAR</small><span></span><span></span></div>
+          <div><small>PER</small><span class="sp-filled"></span><span></span></div>
+          <div><small>CUM</small><span></span><span class="sp-filled"></span></div>
+        </div>
+        <strong>Kendi hızında öğren.</strong><span>Randevularını kolayca planla.</span>
+      </div>
+    </section>
+
+    <section id="authSection" class="sp-auth-layout">
+      <div class="sp-auth-description">
+        <span class="sp-kicker">ÖĞRENCİ HESABI</span>
+        <h2>İlk dersinden itibaren her şey düzenli olsun.</h2>
+        <p>Bir kez hesap açman yeterli. Sonraki rezervasyonlarda adını, seviyeni ve hedefini tekrar tekrar doldurman gerekmez.</p>
+        <div class="sp-auth-benefit"><span class="sp-step-number">01</span><div><strong>Hesabını oluştur</strong><small>E-posta adresini doğrula ve giriş yap.</small></div></div>
+        <div class="sp-auth-benefit"><span class="sp-step-number">02</span><div><strong>Profilini tamamla</strong><small>Seviyeni ve İngilizce hedefini bir kez kaydet.</small></div></div>
+        <div class="sp-auth-benefit"><span class="sp-step-number">03</span><div><strong>Takvimini oluştur</strong><small>Bir işlemde birden fazla ders talep et.</small></div></div>
+      </div>
+      <div class="sp-auth-card">
+        <div class="sp-auth-tabs" role="tablist" aria-label="Hesap işlemleri">
+          <button type="button" id="loginTabButton" aria-selected="true" class="active">Giriş yap</button>
+          <button type="button" id="registerTabButton" aria-selected="false">Hesap oluştur</button>
+        </div>
+        <form id="loginForm" class="sp-form">
+          <h2>Tekrar hoş geldin.</h2><p>Öğrenci paneline giriş yap.</p>
+          <label>E-posta adresin<input type="email" id="loginEmail" autocomplete="email" required placeholder="ornek@email.com"></label>
+          <label>Şifren<input type="password" id="loginPassword" autocomplete="current-password" required placeholder="Şifren"></label>
+          <button class="sp-primary-button" type="submit">Öğrenci panelime gir</button>
+          <button class="sp-link-button" id="resetPasswordButton" type="button">Şifremi unuttum</button>
+        </form>
+        <form id="registerForm" class="sp-form" hidden>
+          <h2>Yeni hesabını oluştur.</h2><p>Rezervasyonlarını tek bir hesapta topla.</p>
+          <label>Adın ve soyadın<input type="text" id="registerName" autocomplete="name" maxlength="100" required placeholder="Ad Soyad"></label>
+          <label>E-posta adresin<input type="email" id="registerEmail" autocomplete="email" required placeholder="ornek@email.com"></label>
+          <label>Şifren<input type="password" id="registerPassword" autocomplete="new-password" minlength="8" required placeholder="En az 8 karakter"></label>
+          <label>Şifre (tekrar)<input type="password" id="registerConfirm" autocomplete="new-password" minlength="8" required></label>
+          <label class="sp-checkline"><input type="checkbox" id="registerConsent" required> Bilgilerimin öğrenci hesabı ve özel ders randevularımın yönetimi için işlenmesini kabul ediyorum.</label>
+          <button class="sp-primary-button" type="submit">Hesabımı oluştur</button>
+        </form>
+        <form id="recoveryForm" class="sp-form" hidden>
+          <h2>Yeni şifreni belirle.</h2>
+          <p>Gelen e-postadaki şifre sıfırlama bağlantısını açtığında bu ekranı kullanabilirsin.</p>
+          <label>Yeni şifre<input type="password" id="newPassword" autocomplete="new-password" minlength="8" required></label>
+          <label>Yeni şifre (tekrar)<input type="password" id="newPasswordAgain" autocomplete="new-password" minlength="8" required></label>
+          <button type="submit" class="sp-primary-button">Yeni şifremi kaydet</button>
+        </form>
+        <p id="authMessage" class="sp-feedback" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section id="dashboard" hidden>
+      <div class="sp-greeting">
+        <div><span class="sp-kicker">BENİM ÖZEL DERS ALANIM</span><h2 id="welcomeName">Hoş geldin.</h2><p id="welcomeSubtitle">İngilizce gelişim planını buradan yönetebilirsin.</p></div>
+        <button id="newBookingButton" class="sp-primary-button" type="button">+ Yeni ders planla</button>
+      </div>
+      <div class="sp-stats">
+        <div><span>Yaklaşan ders</span><strong id="statUpcoming">0</strong></div>
+        <div><span>Onay bekleyen</span><strong id="statRequested">0</strong></div>
+        <div><span>Tamamlanan ders</span><strong id="statCompleted">0</strong></div>
+      </div>
+      <nav class="sp-dashboard-tabs" aria-label="Öğrenci paneli bölümleri">
+        <button id="tabOverview" type="button" class="active" aria-selected="true">Derslerim</button>
+        <button id="tabBooking" type="button" aria-selected="false">Ders rezervasyonu</button>
+        <button id="tabProfile" type="button" aria-selected="false">Profilim</button>
+      </nav>
+
+      <section id="viewOverview" class="sp-panel-view">
+        <div class="sp-panel-head"><div><span class="sp-kicker">SIRADAKİ DERSİN</span><h3>Derslerine tek tıkla ulaş.</h3></div><button type="button" class="sp-secondary-button" id="refreshLessons">Yenile</button></div>
+        <div id="nextLesson" class="sp-next-lesson"></div>
+        <div class="sp-panel-head sp-mt"><div><span class="sp-kicker">DERS TAKİBİ</span><h3>Yaklaşan derslerim</h3></div></div>
+        <div id="upcomingLessons" class="sp-lesson-list"></div>
+        <div class="sp-panel-head sp-mt"><div><span class="sp-kicker">GEÇMİŞ</span><h3>Geçmiş ve iptal edilen dersler</h3></div></div>
+        <div id="historyLessons" class="sp-lesson-list"></div>
+      </section>
+
+      <section id="viewBooking" class="sp-panel-view" hidden>
+        <div class="sp-panel-head"><div><span class="sp-kicker">HAFTALIK DERS TAKVİMİ</span><h3>Birden fazla dersini birlikte planla.</h3><p>Farklı gün ve haftalardan en fazla 12 müsait saat seçebilirsin. Öğretmen onayı sonrası rezervasyon kesinleşir.</p></div></div>
+        <div class="sp-booking-layout">
+          <div class="sp-calendar-card">
+            <div class="sp-week-nav">
+              <button type="button" id="prevWeek" aria-label="Önceki hafta">‹</button>
+              <strong id="weekLabel">Haftalık program</strong>
+              <button type="button" id="nextWeek" aria-label="Sonraki hafta">›</button>
+            </div>
+            <div class="sp-week-grid" id="weekGrid" aria-live="polite"><p>Takvim yükleniyor...</p></div>
+            <div class="sp-legend"><span><i class="available"></i> Müsait</span><span><i class="selected"></i> Seçilen</span><span><i class="closed"></i> Dolu / Kapalı</span></div>
+            <p id="calendarNotice" class="sp-feedback" role="status"></p>
+          </div>
+          <aside class="sp-selection-card">
+            <span class="sp-kicker">DERS SEPETİM</span>
+            <h3><span id="selectedCount">0</span> ders seçtin</h3>
+            <p>İstersen farklı haftalara geçerek daha fazla saat ekleyebilirsin.</p>
+            <div id="selectedSlots" class="sp-selection-list"></div>
+            <button id="clearSelected" type="button" class="sp-link-button">Seçimleri temizle</button>
+            <label class="sp-note-label">Öğretmenine bir not (isteğe bağlı)<textarea id="bookingNotes" rows="3" maxlength="1000" placeholder="Örneğin: Speaking ve iş İngilizcesine odaklanmak istiyorum."></textarea></label>
+            <label class="sp-checkline"><input type="checkbox" id="bookingConsent"> Bilgilerimin ders taleplerimi değerlendirmek ve benimle iletişime geçmek için kullanılmasını kabul ediyorum.</label>
+            <button type="button" id="submitBookings" class="sp-primary-button" disabled>Seçtiğim dersleri talep et</button>
+            <p id="bookingMessage" class="sp-feedback" role="status"></p>
+            <p class="sp-smallprint">Ders talepleri ücretsiz rezervasyon isteği niteliğindedir; ödeme veya kesin onay anlamına gelmez.</p>
+          </aside>
+        </div>
+      </section>
+
+      <section id="viewProfile" class="sp-panel-view" hidden>
+        <div class="sp-panel-head"><div><span class="sp-kicker">KİŞİSEL AYARLAR</span><h3>Öğrenci profilim</h3><p>Bu bilgileri bir kez kaydedersen her ders başvurusunda yeniden doldurman gerekmez.</p></div></div>
+        <div class="sp-profile-card">
+          <form id="profileForm" class="sp-form">
+            <label>E-posta adresim<input id="profileEmail" type="email" readonly></label>
+            <label>Adım ve soyadım<input id="profileName" type="text" autocomplete="name" maxlength="100" required></label>
+            <div class="sp-form-two">
+              <label>İngilizce seviyem<select id="profileLevel" required><option value="unsure">Emin değilim</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1+</option></select></label>
+              <label>Öncelikli hedefim<select id="profileGoal" required><option>Konuşma pratiği</option><option>Genel İngilizce</option><option>İş / Profesyonel İngilizce</option><option>Akademik İngilizce</option><option>Sınav / okul desteği</option><option>Eğitim koçluğu</option></select></label>
+            </div>
+            <button type="submit" class="sp-primary-button">Profilimi kaydet</button>
+            <p id="profileMessage" class="sp-feedback" role="status"></p>
+          </form>
+        </div>
+      </section>
+    </section>
+  </main>
+  <footer class="sp-footer"><span>Eryaman Speaking Club · Gülsüm Yağmur Akdeniz</span><a href="/ozel-dersler/">Özel ders sayfası</a><a href="mailto:eryamanspeakingclub@gmail.com">İletişim</a></footer>
+  <script src="/esc-supabase-config.js"></script>
+  <script type="module" src="/ozel-dersler/ogrenci/student.js?v=20261027a"></script>
+</body>
+</html>
