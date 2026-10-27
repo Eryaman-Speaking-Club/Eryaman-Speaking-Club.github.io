@@ -8,7 +8,7 @@
   <meta name="robots" content="noindex,nofollow">
   <title>Öğrenci Paneli · Birebir İngilizce | Eryaman Speaking Club</title>
   <link rel="icon" href="/favicon.png" type="image/png">
-  <link rel="stylesheet" href="/ozel-dersler/ogrenci/student.css?v=20261027b">
+  <link rel="stylesheet" href="/ozel-dersler/ogrenci/student.css?v=20261027c">
 </head>
 <body>
   <header class="sp-header">
@@ -48,9 +48,9 @@
       <div class="sp-auth-description">
         <span class="sp-kicker">ÖĞRENCİ HESABI</span>
         <h2>İlk dersinden itibaren her şey düzenli olsun.</h2>
-        <p>Bir kez hesap açman yeterli. Sonraki rezervasyonlarda adını, seviyeni ve hedefini tekrar tekrar doldurman gerekmez.</p>
+        <p>Önce öğrenci bilgilerini kaydet. Dersi kendin, çocuğun veya bir yakınını için planlayabilirsin. Sonraki rezervasyonlarda aynı bilgileri yeniden girmen gerekmez.</p>
         <div class="sp-auth-benefit"><span class="sp-step-number">01</span><div><strong>Hesabını oluştur</strong><small>E-posta adresini doğrula ve giriş yap.</small></div></div>
-        <div class="sp-auth-benefit"><span class="sp-step-number">02</span><div><strong>Profilini tamamla</strong><small>Seviyeni ve İngilizce hedefini bir kez kaydet.</small></div></div>
+        <div class="sp-auth-benefit"><span class="sp-step-number">02</span><div><strong>Öğrenciyi tanımla</strong><small>Ders kimin için, seviyesi ve öğrenme amacı.</small></div></div>
         <div class="sp-auth-benefit"><span class="sp-step-number">03</span><div><strong>Takvimini oluştur</strong><small>Bir işlemde birden fazla ders talep et.</small></div></div>
       </div>
       <div class="sp-auth-card">
@@ -66,11 +66,58 @@
           <button class="sp-link-button" id="resetPasswordButton" type="button">Şifremi unuttum</button>
         </form>
         <form id="registerForm" class="sp-form" hidden>
-          <h2>Yeni hesabını oluştur.</h2><p>Rezervasyonlarını tek bir hesapta topla.</p>
+          <h2>Öğrenci kaydını oluştur.</h2><p>Hesap bilgilerinle birlikte ders alacak kişiyi ve hedefini belirt.</p>
           <label>Adın ve soyadın<input type="text" id="registerName" autocomplete="name" maxlength="100" required placeholder="Ad Soyad"></label>
           <label>E-posta adresin<input type="email" id="registerEmail" autocomplete="email" required placeholder="ornek@email.com"></label>
           <label>Şifren<input type="password" id="registerPassword" autocomplete="new-password" minlength="8" required placeholder="En az 8 karakter"></label>
           <label>Şifre (tekrar)<input type="password" id="registerConfirm" autocomplete="new-password" minlength="8" required></label>
+          <div class="sp-form-divider"><strong>Ders almak isteyen kişi</strong><span>Öğrenci bilgileri</span></div>
+          <label>Kim için özel ders almak istiyorsun?
+            <select id="registerFor" required>
+              <option value="" selected disabled>Seçiniz</option>
+              <option value="self">Kendim için</option>
+              <option value="child">Çocuğum için</option>
+              <option value="family">Ailemden / yakınlarımdan biri için</option>
+              <option value="other">Başka biri için</option>
+            </select>
+          </label>
+          <label id="registerLearnerWrap" hidden>Ders alacak kişinin adı soyadı
+            <input type="text" id="registerLearner" maxlength="100" placeholder="Öğrencinin adı soyadı">
+          </label>
+          <div class="sp-form-two">
+            <label>Öğrencinin yaş grubu
+              <select id="registerAge" required>
+                <option value="" selected disabled>Seçiniz</option>
+                <option value="6-12">6–12 yaş</option>
+                <option value="13-17">13–17 yaş</option>
+                <option value="18+">18 yaş ve üzeri</option>
+              </select>
+            </label>
+            <label>İngilizce seviyesi
+              <select id="registerLevel" required>
+                <option value="" selected disabled>Seçiniz</option>
+                <option value="unsure">Seviyesini bilmiyorum</option>
+                <option value="A1">A1 · Başlangıç</option><option value="A2">A2 · Temel</option>
+                <option value="B1">B1 · Orta</option><option value="B2">B2 · Orta üstü</option>
+                <option value="C1+">C1 ve üzeri</option>
+              </select>
+            </label>
+          </div>
+          <label>Ders alma amacı
+            <select id="registerGoal" required>
+              <option value="" selected disabled>Amaç seçiniz</option>
+              <option>Konuşma pratiği</option><option>Genel İngilizce</option>
+              <option>İş / Profesyonel İngilizce</option>
+              <option>Akademik İngilizce</option><option>Sınav / okul desteği</option>
+              <option>Eğitim koçluğu</option>
+            </select>
+          </label>
+          <label>Özel hedef veya açıklama (isteğe bağlı)
+            <textarea id="registerGoalDetail" maxlength="500" rows="2" placeholder="Örneğin: İş görüşmelerine hazırlanmak, okulda konuşma pratiği yapmak..."></textarea>
+          </label>
+          <label id="registerGuardianWrap" class="sp-checkline" hidden>
+            <input type="checkbox" id="registerGuardian"> 18 yaş altındaki öğrenci için veli veya yasal vasi olarak kayıt ve iletişim izni veriyorum.
+          </label>
           <label class="sp-checkline"><input type="checkbox" id="registerConsent" required> Bilgilerimin öğrenci hesabı ve özel ders randevularımın yönetimi için işlenmesini kabul ediyorum.</label>
           <button class="sp-primary-button" type="submit">Hesabımı oluştur</button>
         </form>
@@ -145,12 +192,42 @@
         <div class="sp-profile-card">
           <form id="profileForm" class="sp-form">
             <label>E-posta adresim<input id="profileEmail" type="email" readonly></label>
-            <label>Adım ve soyadım<input id="profileName" type="text" autocomplete="name" maxlength="100" required></label>
-            <div class="sp-form-two">
-              <label>İngilizce seviyem<select id="profileLevel" required><option value="unsure">Emin değilim</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1+</option></select></label>
-              <label>Öncelikli hedefim<select id="profileGoal" required><option>Konuşma pratiği</option><option>Genel İngilizce</option><option>İş / Profesyonel İngilizce</option><option>Akademik İngilizce</option><option>Sınav / okul desteği</option><option>Eğitim koçluğu</option></select></label>
+            <div id="profileOnboardingIntro" class="sp-onboarding-intro" hidden>
+              <strong>Öğrenci kaydını tamamla</strong>
+              <p>Mevcut hesabın hazır. Ders seçmeden önce dersin kimin için olduğunu, seviyesini ve öğrenme amacını kaydetmen gerekiyor.</p>
             </div>
-            <button type="submit" class="sp-primary-button">Profilimi kaydet</button>
+            <label>Hesap sahibi / iletişim kurulacak kişi<input id="profileName" type="text" autocomplete="name" maxlength="100" required></label>
+            <label>Özel ders kim için?
+              <select id="profileFor" required>
+                <option value="" selected disabled>Seçiniz</option>
+                <option value="self">Kendim için</option>
+                <option value="child">Çocuğum için</option>
+                <option value="family">Ailemden / yakınlarımdan biri için</option>
+                <option value="other">Başka biri için</option>
+              </select>
+            </label>
+            <label id="profileLearnerWrap" hidden>Dersi alacak kişinin adı soyadı
+              <input id="profileLearner" type="text" maxlength="100" placeholder="Öğrencinin adı soyadı">
+            </label>
+            <label>Öğrencinin yaş grubu
+              <select id="profileAge" required>
+                <option value="" selected disabled>Yaş grubu seçiniz</option>
+                <option value="6-12">6–12 yaş</option>
+                <option value="13-17">13–17 yaş</option>
+                <option value="18+">18 yaş ve üzeri</option>
+              </select>
+            </label>
+            <div class="sp-form-two">
+              <label>Öğrencinin İngilizce seviyesi<select id="profileLevel" required><option value="" selected disabled>Seçiniz</option><option value="unsure">Seviyesini bilmiyorum</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1+</option></select></label>
+              <label>Ders alma amacı<select id="profileGoal" required><option value="" selected disabled>Amaç seçiniz</option><option>Konuşma pratiği</option><option>Genel İngilizce</option><option>İş / Profesyonel İngilizce</option><option>Akademik İngilizce</option><option>Sınav / okul desteği</option><option>Eğitim koçluğu</option></select></label>
+            </div>
+            <label>Özel hedef veya açıklama (isteğe bağlı)
+              <textarea id="profileGoalDetail" rows="3" maxlength="500" placeholder="İngilizce öğrenme hedefi, sınav veya ihtiyaçlar..."></textarea>
+            </label>
+            <label id="profileGuardianWrap" class="sp-checkline" hidden>
+              <input type="checkbox" id="profileGuardian"> 18 yaş altı öğrenci için veli veya yasal vasi olarak kayıt ve iletişim izni veriyorum.
+            </label>
+            <button type="submit" class="sp-primary-button" id="profileSaveButton">Öğrenci kaydını tamamla</button>
             <p id="profileMessage" class="sp-feedback" role="status"></p>
           </form>
         </div>
@@ -159,6 +236,6 @@
   </main>
   <footer class="sp-footer"><span>Eryaman Speaking Club · Gülsüm Yağmur Akdeniz</span><a href="/ozel-dersler/">Özel ders sayfası</a><a href="mailto:eryamanspeakingclub@gmail.com">İletişim</a></footer>
   <script src="/esc-supabase-config.js"></script>
-  <script type="module" src="/ozel-dersler/ogrenci/student.js?v=20261027c"></script>
+  <script type="module" src="/ozel-dersler/ogrenci/student.js?v=20261027d"></script>
 </body>
 </html>
