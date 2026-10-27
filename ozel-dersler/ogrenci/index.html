@@ -8,7 +8,7 @@
   <meta name="robots" content="noindex,nofollow">
   <title>Öğrenci Paneli · Birebir İngilizce | Eryaman Speaking Club</title>
   <link rel="icon" href="/favicon.png" type="image/png">
-  <link rel="stylesheet" href="/ozel-dersler/ogrenci/student.css?v=20261027c">
+  <link rel="stylesheet" href="/ozel-dersler/ogrenci/student.css?v=20261027-emailflow-v1">
 </head>
 <body>
   <header class="sp-header">
@@ -63,7 +63,11 @@
           <label>E-posta adresin<input type="email" id="loginEmail" autocomplete="email" required placeholder="ornek@email.com"></label>
           <label>Şifren<input type="password" id="loginPassword" autocomplete="current-password" required placeholder="Şifren"></label>
           <button class="sp-primary-button" type="submit">Öğrenci panelime gir</button>
-          <button class="sp-link-button" id="resetPasswordButton" type="button">Şifremi unuttum</button>
+          <div class="sp-auth-secondary-actions">
+            <button class="sp-link-button" id="sendLoginLink" type="button">E-posta ile giriş bağlantısı gönder</button>
+            <button class="sp-link-button" id="resetPasswordButton" type="button">Şifremi unuttum</button>
+          </div>
+          <p class="sp-auth-info">Daha önce hesabın varsa yeniden kayıt açmana gerek yok. Giriş bağlantısı yalnızca mevcut hesaplara gönderilebilir.</p>
         </form>
         <form id="registerForm" class="sp-form" hidden>
           <h2>Öğrenci kaydını oluştur.</h2><p>Hesap bilgilerinle birlikte ders alacak kişiyi ve hedefini belirt.</p>
@@ -120,6 +124,8 @@
           </label>
           <label class="sp-checkline"><input type="checkbox" id="registerConsent" required> Bilgilerimin öğrenci hesabı ve özel ders randevularımın yönetimi için işlenmesini kabul ediyorum.</label>
           <button class="sp-primary-button" type="submit">Hesabımı oluştur</button>
+          <button id="resendVerificationButton" class="sp-link-button" type="button">Doğrulama e-postasını yeniden gönder</button>
+          <p class="sp-auth-info">Bu adreste zaten doğrulanmış bir hesabın varsa yeni onay e-postası gelmez; Giriş yap bölümünü kullan.</p>
         </form>
         <form id="recoveryForm" class="sp-form" hidden>
           <h2>Yeni şifreni belirle.</h2>
@@ -134,7 +140,7 @@
 
     <section id="dashboard" hidden>
       <div class="sp-greeting">
-        <div><span class="sp-kicker">BENİM ÖZEL DERS ALANIM</span><h2 id="welcomeName">Hoş geldin.</h2><p id="welcomeSubtitle">İngilizce gelişim planını buradan yönetebilirsin.</p></div>
+        <div><span class="sp-kicker">BENİM ÖZEL DERS ALANIM</span><h2 id="welcomeName">Hoş geldin.</h2><p id="welcomeSubtitle">İngilizce gelişim planını buradan yönetebilirsin.</p><span class="sp-email-verified" id="verifiedEmailLabel" hidden><span aria-hidden="true">✓</span> Hesap e-postası doğrulandı</span></div>
         <button id="newBookingButton" class="sp-primary-button" type="button">+ Yeni ders planla</button>
       </div>
       <div class="sp-stats">
@@ -236,6 +242,6 @@
   </main>
   <footer class="sp-footer"><span>Eryaman Speaking Club · Gülsüm Yağmur Akdeniz</span><a href="/ozel-dersler/">Özel ders sayfası</a><a href="mailto:eryamanspeakingclub@gmail.com">İletişim</a></footer>
   <script src="/esc-supabase-config.js"></script>
-  <script type="module" src="/ozel-dersler/ogrenci/student.js?v=20261027e"></script>
+  <script type="module" src="/ozel-dersler/ogrenci/student.js?v=20261027-emailflow-v1"></script>
 </body>
 </html>
