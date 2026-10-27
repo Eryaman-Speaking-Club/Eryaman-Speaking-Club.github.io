@@ -11,7 +11,7 @@ const levelOptions=['A1','A2','B1','B2','C1+','unsure'];
 const dateFormat=new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',day:'numeric',month:'long',year:'numeric'});
 const timeFormat=new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
 const dayFormat=new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',weekday:'long'});
-let client,session=null,profile=null,bookings=[],currentTab='overview';
+let client,session=null,profile=null,bookings=[],timeRequests=[],currentTab='overview';
 let authMode='login',recoveryMode=false,weekOffset=0,loadingWeek=false,sending=false,onboardingRequired=true;
 let selected=new Map(),availabilityCache=new Map(),lastBookingReceipt=null;
 const slotKey=(date,minute)=>date+'@'+minute;
@@ -116,6 +116,7 @@ function updateAuthMode(mode){
  message('authMessage','');
 }
 function showAuth(){
+ $('authLoading').hidden=true;
  $('dashboard').hidden=true;
  $('headerBooking').hidden=true;
  $('logout').hidden=true;
@@ -123,6 +124,7 @@ function showAuth(){
  updateAuthMode(recoveryMode?'recovery':authMode);
 }
 function showDashboard(){
+ $('authLoading').hidden=true;
  $('authSection').hidden=true;
  $('dashboard').hidden=false;
  $('headerBooking').hidden=false;
@@ -130,27 +132,45 @@ function showDashboard(){
  $('verifiedEmailLabel').hidden=!Boolean(session?.user?.email_confirmed_at);
 }
 async function api(action,body){
- if(!session?.access_token)throw Error('Lütfen tekrar giriş yap.');
- const controller=new AbortController();
- const timeout=setTimeout(()=>controller.abort(),18000);
- try{
-  const res=await fetch(studentApi+'?action='+encodeURIComponent(action),{
-   method:body===undefined?'GET':'POST',
-   headers:{'Authorization':'Bearer '+session.access_token,'apikey':config.anonKey,
-    ...(body===undefined?{}:{'Content-Type':'application/json'})},
-   ...(body===undefined?{}:{body:JSON.stringify(body)}),
-   signal:controller.signal
-  });
-  let data;try{data=await res.json();}catch{throw Error('Sunucu geçersiz yanıt gönderdi.');}
-  if(!res.ok)throw Error(data.error||'İşlem başarısız oldu.');
-  return data;
- }catch(error){if(error.name==='AbortError')throw Error('Bağlantı zaman aşımına uğradı. Tekrar dene.');throw error;}
- finally{clearTimeout(timeout);}
+ // Supabase Auth persists a refresh token across reloads. Re-read the
+ // current session instead of relying on a stale access token in memory.
+ const latest=await client.auth.getSession();
+ if(latest.data?.session)session=latest.data.session;
+ if(!session?.access_token)throw Error('Oturumunu yeniden açman gerekiyor.');
+ for(let attempt=0;attempt<2;attempt++){
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),18000);
+  try{
+   const res=await fetch(studentApi+'?action='+encodeURIComponent(action),{
+    method:body===undefined?'GET':'POST',
+    headers:{'Authorization':'Bearer '+session.access_token,'apikey':config.anonKey,
+      ...(body===undefined?{}:{'Content-Type':'application/json'})},
+    ...(body===undefined?{}:{body:JSON.stringify(body)}),
+    signal:controller.signal
+   });
+   if(res.status===401&&attempt===0){
+    const refreshed=await client.auth.refreshSession();
+    if(!refreshed.data?.session)throw Error('Oturum süresi doldu. Güvenli şekilde yeniden giriş yap.');
+    session=refreshed.data.session;
+    continue;
+   }
+   let data;
+   try{data=await res.json();}catch{throw Error('Sunucudan geçersiz yanıt alındı.');}
+   if(!res.ok)throw Error(data.error||'İşlem başarısız oldu.');
+   return data;
+  }catch(error){
+   if(error.name==='AbortError')throw Error('Bağlantı zaman aşımına uğradı. Tekrar deneyebilirsin, oturumun korunuyor.');
+   throw error;
+  }finally{clearTimeout(timeout);}
+ }
+ throw Error('İşlem tamamlanamadı.');
 }
 async function loadState(){
  const result=await api('state');
  profile=result.profile||null;
  bookings=Array.isArray(result.bookings)?result.bookings:[];
+ timeRequests=Array.isArray(result.time_requests)?result.time_requests:[];
+ $('sessionNotice').hidden=true;
  onboardingRequired=Boolean(result.onboarding_required)||!profile?.onboarding_completed;
  showDashboard();
  renderOverview();
@@ -212,6 +232,7 @@ function renderBookingReceipt(){
 
 function renderOverview(){
  renderBookingReceipt();
+ renderTimeRequests();
  const upcoming=currentBookings();
  const confirmed=upcoming.filter(b=>b.status==='confirmed');
  const pending=upcoming.filter(b=>b.status==='requested');
@@ -226,7 +247,7 @@ function renderOverview(){
  if(upcoming.length){
   const lesson=upcoming[0],link=meetUrl(lesson.meeting_url),day=dateFormat.format(new Date(lesson.start_at));
   next.innerHTML='<div class="sp-featured"><div><span class="sp-kicker">GÜLSÜM YAĞMUR AKDENİZ · 60 DAKİKA</span>'+
-   '<h4>'+esc(day)+' · '+esc(prettyTime(lesson.start_at))+'</h4>'+
+   '<h4>'+esc(day)+' · '+esc(prettyTime(lesson.start_at))+' · 50 dakika</h4>'+
    '<p>'+(lesson.full_name?'Öğrenci: '+esc(lesson.full_name)+' · ':'')+(lesson.status==='confirmed'?'Ders onaylandı. Katılım bağlantısına buradan ulaşabilirsin.':'Talep alındı. Yağmur’un onayı bekleniyor.')+
    '</p></div><div>'+ (lesson.status==='confirmed'&&link?
      '<a class="sp-primary-button" target="_blank" rel="noopener noreferrer" href="'+esc(link)+'">Google Meet’e katıl ↗</a>':
@@ -251,8 +272,8 @@ function renderLessonCard(b){
  const month=document.createElement('small');month.textContent=new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',month:'short'}).format(date);
  dayIcon.append(strong,month);wrap.append(dayIcon);
  const info=document.createElement('div');info.className='sp-lesson-info';
- const title=document.createElement('strong');title.textContent=dayFormat.format(date)+' · '+prettyTime(b.start_at)+' · 60 dakika';
- const meta=document.createElement('small');meta.textContent='Öğrenci: '+(b.full_name||profile?.learner_name||'Kayıtlı öğrenci')+' · Gülsüm Yağmur Akdeniz · Online birebir ders';
+ const title=document.createElement('strong');title.textContent=dayFormat.format(date)+' · '+prettyTime(b.start_at)+' · 50 dakika';
+ const meta=document.createElement('small');meta.textContent='Öğrenci: '+(b.full_name||profile?.learner_name||'Kayıtlı öğrenci')+' · Gülsüm Yağmur Akdeniz · 50 dakika online birebir ders';
  const badge=document.createElement('span');badge.className='sp-status '+b.status;badge.textContent=statusLabel(b.status);
  info.append(title,meta,badge);wrap.append(info);
  const actions=document.createElement('div');actions.className='sp-lesson-actions';
@@ -603,7 +624,7 @@ async function saveProfile(event){
 }
 async function logout(){
  if(sending)return;
- await client.auth.signOut();session=null;profile=null;bookings=[];
+ await client.auth.signOut();session=null;profile=null;bookings=[];timeRequests=[];
  selected.clear();availabilityCache.clear();lastBookingReceipt=null;currentTab='overview';recoveryMode=false;onboardingRequired=true;
  showAuth();message('authMessage','Çıkış yaptın.');
 }
