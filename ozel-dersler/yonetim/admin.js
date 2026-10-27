@@ -14,6 +14,125 @@ let snapshot = null;
 let recoveryMode = false;
 let busy = false;
 
+// Optimistic slot editor: keep user selections locally and send one batched request.
+const slotButtons = new Map();
+const slotDesired = new Map();
+const slotQueue = new Map();
+let slotSaving = false;
+let slotSaveTimer = null;
+let slotSaveError = false;
+let activeSlotBatch = [];
+
+const slotKey = (weekday,minute) => weekday+':'+minute;
+const savedSlotEnabled = (weekday,minute) =>
+  !!snapshot?.rules?.some(r => r.weekday===weekday && r.start_minute===minute && r.enabled);
+const currentSlotEnabled = (weekday,minute) => {
+  const key = slotKey(weekday,minute);
+  return slotDesired.has(key) ? slotDesired.get(key) : savedSlotEnabled(weekday,minute);
+};
+const slotUnsaved = () => slotQueue.size>0 || slotSaving || slotDesired.size>0;
+
+function showSlotSaveState() {
+  const status = el('slotSaveStatus');
+  const retry = el('retrySlots');
+  if (!status || !retry) return;
+  const count = slotDesired.size;
+  if (slotSaveError) {
+    status.textContent = count+' saat değişikliği kaydedilemedi. Seçimleriniz korunuyor; tekrar deneyin.';
+    status.dataset.state = 'error';
+    retry.hidden = false;
+  } else if (count || slotSaving || slotQueue.size) {
+    status.textContent = 'Değişiklikler arka planda kaydediliyor ('+Math.max(count,slotQueue.size+activeSlotBatch.length)+' saat)…';
+    status.dataset.state = 'saving';
+    retry.hidden = true;
+  } else {
+    status.textContent = 'Tüm müsaitlik değişiklikleri kaydedildi.';
+    status.dataset.state = 'saved';
+    retry.hidden = true;
+  }
+}
+function updateSlotButton(weekday,minute) {
+  const key = slotKey(weekday,minute);
+  const button = slotButtons.get(key);
+  if (!button) return;
+  const enabled = currentSlotEnabled(weekday,minute);
+  button.classList.toggle('active',enabled);
+  button.classList.toggle('pending',slotDesired.has(key));
+  button.setAttribute('aria-pressed',String(enabled));
+  button.title = (enabled ? 'Bu saati kapat' : 'Bu saati aç')+(slotDesired.has(key) ? ' (kaydediliyor)' : '');
+}
+function scheduleSlotSave() {
+  showSlotSaveState();
+  if (slotSaveError || slotSaving) return;
+  if (slotSaveTimer) clearTimeout(slotSaveTimer);
+  slotSaveTimer=setTimeout(()=>{
+    slotSaveTimer=null;
+    void flushSlotChanges();
+  },450);
+}
+function toggleSlot(weekday,minute) {
+  if (busy || !snapshot) return;
+  const key=slotKey(weekday,minute);
+  const enabled = !currentSlotEnabled(weekday,minute);
+  slotDesired.set(key,enabled);
+  slotQueue.set(key,{weekday,minute,enabled});
+  updateSlotButton(weekday,minute);  // immediate feedback, no calendar refresh
+  // Any new edit is a fresh reason to attempt saving again.
+  if (slotSaveError) slotSaveError=false;
+  scheduleSlotSave();
+}
+async function flushSlotChanges() {
+  if (slotSaving || !slotQueue.size || slotSaveError) return;
+  if (slotSaveTimer){clearTimeout(slotSaveTimer);slotSaveTimer=null;}
+  activeSlotBatch=[...slotQueue.values()];
+  slotQueue.clear();
+  slotSaving=true;
+  showSlotSaveState();
+  try {
+    const result = await api({op:'slots_bulk',changes:activeSlotBatch});
+    if (result.ok!==true || result.saved!==activeSlotBatch.length)
+      throw new Error('Sunucunun kayıt onayı alınamadı.');
+    // Only the slots in this batch change in the authoritative snapshot.
+    for (const item of activeSlotBatch) {
+      const existing = snapshot.rules.find(r=>r.weekday===item.weekday && r.start_minute===item.minute);
+      if (existing) existing.enabled=item.enabled;
+      else snapshot.rules.push({weekday:item.weekday,start_minute:item.minute,enabled:item.enabled});
+    }
+    // If newer clicks were made during the request, preserve their values.
+    for (const [key,change] of slotQueue) {
+      if (change.enabled===savedSlotEnabled(change.weekday,change.minute))slotQueue.delete(key);
+    }
+    for (const [key] of slotDesired) {
+      const parts=key.split(':').map(Number);
+      if (!slotQueue.has(key) && slotDesired.get(key)===savedSlotEnabled(parts[0],parts[1]))slotDesired.delete(key);
+    }
+    for (const item of activeSlotBatch) updateSlotButton(item.weekday,item.minute);
+    slotSaveError=false;
+  } catch(error) {
+    // Do not erase the user's edits on network/DB failure.
+    for (const item of activeSlotBatch) {
+      const key=slotKey(item.weekday,item.minute);
+      if (!slotQueue.has(key)) {
+        slotQueue.set(key,{...item,enabled:slotDesired.get(key)??item.enabled});
+      }
+    }
+    slotSaveError=true;
+    notice('Müsaitlik saatleri sunucuya kaydedilemedi. Tekrar dene butonunu kullan.',true);
+  } finally {
+    slotSaving=false;
+    activeSlotBatch=[];
+    showSlotSaveState();
+    if (!slotSaveError && slotQueue.size) scheduleSlotSave();
+  }
+}
+async function retrySlotChanges() {
+  if (slotSaving || !slotQueue.size) return;
+  slotSaveError=false;
+  showSlotSaveState();
+  await flushSlotChanges();
+}
+
+
 function notice(message, error = false) {
   const box = el('msg');
   box.textContent = message;
@@ -74,31 +193,39 @@ async function api(body) {
   return result;
 }
 async function reload() {
-  snapshot = null;
-  el('panel').hidden = true;
+  // A full refresh must not discard edits waiting for the background save.
+  if (slotUnsaved()) {
+    notice('Önce saat değişikliklerinin kaydedilmesini bekleyin. Gerekirse Tekrar dene butonunu kullanın.',true);
+    return;
+  }
+  if (!snapshot) el('panel').hidden=true;
   notice('Takvim bilgileri okunuyor...');
   const loaded = await api({op:'list'});
   if (!loaded || !Array.isArray(loaded.rules) || !Array.isArray(loaded.bookings))
     throw Error('Sunucu takvim verilerini eksik gönderdi.');
-  snapshot = loaded;
+  snapshot=loaded;
   render();
   setLoginVisibility();
   notice('Takvim ve başvurular güncellendi.');
 }
 async function mutation(input) {
-  if (busy) return;
+  if (busy || slotUnsaved()) {
+    notice('Saat değişiklikleri kaydedilirken diğer işlemleri başlatmayın.',true);
+    return;
+  }
   try {
     setBusy(true);
     notice('Kaydediliyor...');
     await api(input);
     await reload();
   } catch(error) {
-    notice(friendlyError(error), true);
+    notice(friendlyError(error),true);
   } finally { setBusy(false); }
 }
 function render() {
   const slots = el('slots');
   slots.replaceChildren();
+  slotButtons.clear();
   for (let weekday=1; weekday<=7; weekday++) {
     const col = document.createElement('div');
     col.className = 'day';
@@ -107,14 +234,13 @@ function render() {
     col.append(name);
     for (let hour=8; hour<=21; hour++) {
       const minute = hour*60;
-      const active = snapshot.rules.some(r=>r.weekday===weekday && r.start_minute===minute && r.enabled);
       const button = document.createElement('button');
-      button.className = 'slot'+(active?' active':'');
+      button.className='slot';
       button.type='button';
-      button.textContent = hourText(minute);
-      button.title = active ? 'Bu saati kapat' : 'Bu saati aç';
-      button.setAttribute('aria-pressed',String(active));
-      button.onclick = ()=>mutation({op:'slot',weekday,minute,enabled:!active});
+      button.textContent=hourText(minute);
+      slotButtons.set(slotKey(weekday,minute),button);
+      updateSlotButton(weekday,minute);
+      button.onclick=()=>toggleSlot(weekday,minute);
       col.append(button);
     }
     slots.append(col);
@@ -172,6 +298,7 @@ function render() {
     empty.textContent = 'Henüz özel ders başvurusu yapılmadı.';
     list.append(empty);
   }
+  showSlotSaveState();
 }
 async function login(event) {
   event?.preventDefault();
@@ -255,6 +382,7 @@ async function start() {
   el('recoveryForm').addEventListener('submit',savePassword);
   el('signOut').addEventListener('click',async()=>{await client.auth.signOut();session=null;snapshot=null;setLoginVisibility();notice('Çıkış yapıldı.');});
   el('reload').onclick=async()=>{try{await reload()}catch(e){notice(friendlyError(e),true)}};
+  el('retrySlots').onclick=retrySlotChanges;
   el('saveRecipient').onclick=()=>mutation({op:'settings',email:el('recipient').value.trim()});
   el('block').onclick=()=>mutation({op:'block',date:el('blockDate').value,minute:Number(el('blockHour').value),blocked:true});
   el('unblock').onclick=()=>mutation({op:'block',date:el('blockDate').value,minute:Number(el('blockHour').value),blocked:false});
