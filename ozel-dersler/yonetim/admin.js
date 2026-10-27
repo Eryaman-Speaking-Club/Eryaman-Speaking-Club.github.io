@@ -151,7 +151,7 @@ function recoverUrl() {
 }
 function setLoginVisibility() {
   const loggedIn = !!session && !recoveryMode;
-  el('panel').hidden = !loggedIn || !snapshot;
+  el('panel').hidden = !loggedIn;
   el('loginForm').hidden = loggedIn || recoveryMode;
   el('signOut').hidden = !loggedIn;
   el('recovery').hidden = !recoveryMode;
@@ -172,25 +172,35 @@ function friendlyError(error) {
   return msg || 'İşlem tamamlanamadı.';
 }
 async function api(body) {
-  if (!session?.access_token) throw Error('Oturum bulunamadı. Yeniden giriş yapın.');
-  const reply = await fetch(API, {
-    method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'Authorization':'Bearer '+session.access_token,
-      'apikey':cfg.anonKey
-    },
-    body:JSON.stringify(body)
-  });
-  let result;
-  try { result = await reply.json(); }
-  catch { throw Error('Sunucudan geçersiz cevap alındı.'); }
-  if (!reply.ok) {
-    if (reply.status === 401) throw Error('Oturumun süresi doldu. Lütfen tekrar giriş yap.');
-    if (reply.status === 403) throw Error('Bu hesabın takvimi yönetme yetkisi bulunamadı.');
-    throw Error(result?.error || 'Sunucu hatası ('+reply.status+')');
+  const latest=await client.auth.getSession();
+  if(latest.data?.session)session=latest.data.session;
+  if(!session?.access_token)throw Error('Yönetici oturumu bulunamadı. Giriş yapın.');
+  for(let attempt=0;attempt<2;attempt++){
+    const reply=await fetch(API,{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer '+session.access_token,
+        'apikey':cfg.anonKey
+      },
+      body:JSON.stringify(body)
+    });
+    if(reply.status===401&&attempt===0){
+      const refreshed=await client.auth.refreshSession();
+      if(!refreshed.data?.session)throw Error('Yönetici oturumunun süresi doldu. Yeniden giriş yapın.');
+      session=refreshed.data.session;
+      continue;
+    }
+    let result;
+    try{result=await reply.json();}
+    catch{throw Error('Sunucudan geçersiz cevap alındı.');}
+    if(!reply.ok){
+      if(reply.status===403)throw Error('Bu hesabın takvimi yönetme yetkisi bulunamadı.');
+      throw Error(result?.error||'Sunucu hatası ('+reply.status+')');
+    }
+    return result;
   }
-  return result;
+  throw Error('Yönetici isteği tamamlanamadı.');
 }
 async function reload() {
   // A full refresh must not discard edits waiting for the background save.
@@ -198,7 +208,6 @@ async function reload() {
     notice('Önce saat değişikliklerinin kaydedilmesini bekleyin. Gerekirse Tekrar dene butonunu kullanın.',true);
     return;
   }
-  if (!snapshot) el('panel').hidden=true;
   notice('Takvim bilgileri okunuyor...');
   const loaded = await api({op:'list'});
   if (!loaded || !Array.isArray(loaded.rules) || !Array.isArray(loaded.bookings))
@@ -222,6 +231,42 @@ async function mutation(input) {
     notice(friendlyError(error),true);
   } finally { setBusy(false); }
 }
+function renderTimeRequests(){
+  const list=el('timeRequests');
+  if(!list)return;
+  list.replaceChildren();
+  const requests=(snapshot?.time_requests||[]).filter(r=>r.status!=='cancelled');
+  if(!requests.length){
+    const p=document.createElement('p');p.textContent='Henüz takvim dışı saat talebi yok.';
+    list.append(p);return;
+  }
+  for(const req of requests){
+    const wrapper=document.createElement('article');wrapper.className='esc-request';
+    const title=document.createElement('strong');
+    title.textContent=new Date(req.preferred_date+'T12:00:00Z').toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric',timeZone:'Europe/Istanbul'})+
+      ' · '+hourText(req.preferred_minute)+' · 50 dk — '+req.learner_name;
+    wrapper.append(title);
+    const info=document.createElement('small');
+    info.textContent='İletişim: '+req.contact_email+' | Seviye: '+req.level+
+      ' | Amaç: '+req.goal+' | Durum: '+req.status+(req.notes?' | Not: '+req.notes:'');
+    wrapper.append(info);
+    if(req.status==='pending'){
+      const actions=document.createElement('div');actions.className='row';
+      const contacted=document.createElement('button');contacted.type='button';contacted.className='subtle';
+      contacted.textContent='İletişime geçildi olarak işaretle';
+      contacted.onclick=()=>mutation({op:'time_request',id:req.id,status:'contacted'});
+      const decline=document.createElement('button');decline.type='button';decline.className='danger';
+      decline.textContent='Uygun değil';
+      decline.onclick=()=>{
+        if(confirm('Bu alternatif saat talebini uygun değil olarak işaretlemek istiyor musunuz?'))
+          mutation({op:'time_request',id:req.id,status:'declined'});
+      };
+      actions.append(contacted,decline);wrapper.append(actions);
+    }
+    list.append(wrapper);
+  }
+}
+
 function render() {
   const slots = el('slots');
   slots.replaceChildren();
@@ -247,6 +292,13 @@ function render() {
   }
   el('recipient').value = snapshot.settings?.notification_email || DEFAULT_EMAIL;
   el('blocks').textContent = (snapshot.blocks || []).map(r=>r.lesson_date+' '+hourText(r.start_minute)).join(' • ') || 'Özel olarak kapatılan saat bulunmuyor.';
+  const mailState=el('mailDeliveryStatus');
+  if(mailState){
+    const pending=Number(snapshot.pending_lesson_emails||0)+Number(snapshot.pending_time_request_emails||0);
+    mailState.textContent='Otomatik e-posta gönderimi doğrulanmadı. Gönderim bekleyen mesaj: '+pending+
+      '. Ders talebi ve Meet bağlantıları öğretmen/öğrenci panellerinde saklanır; e-posta teslimatı garantilenmez.';
+  }
+  renderTimeRequests();
   const list = el('bookings');
   list.replaceChildren();
   for (const r of snapshot.bookings) {
@@ -320,13 +372,11 @@ async function login(event) {
     el('password').value = '';
     await reload();
   } catch(error) {
-    if (session) {
-      await client.auth.signOut().catch(()=>{});
-      session = null;
-    }
-    snapshot = null;
+    // A temporary database error must never sign out a valid account.
+    snapshot=null;
     setLoginVisibility();
-    notice(friendlyError(error), true);
+    notice(session ? ('Oturum açık. Yönetim bilgileri yüklenemedi: '+friendlyError(error))
+                   : friendlyError(error),true);
   } finally { setBusy(false); }
 }
 async function requestReset() {
@@ -395,6 +445,16 @@ async function start() {
     const o=document.createElement('option');o.value=String(hour*60);o.textContent=two(hour)+':00';el('blockHour').append(o);
   }
   el('blockDate').value = new Date().toLocaleDateString('sv-SE',{timeZone:'Europe/Istanbul'});
+  el('blockDate').min=el('blockDate').value;
+  el('blockDate').max=new Date(Date.now()+56*86400000).toLocaleDateString('sv-SE',{timeZone:'Europe/Istanbul'});
+  const updateDateHint=()=>{
+    const input=el('blockDate').value;
+    const d=new Date(input+'T12:00:00Z');
+    el('dateFriendly').textContent=Number.isNaN(d.getTime())?'Tarih seçiniz':
+      'Seçilen gün: '+d.toLocaleDateString('tr-TR',{timeZone:'Europe/Istanbul',weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  };
+  el('blockDate').addEventListener('change',updateDateHint);
+  updateDateHint();
   const {data,error}=await client.auth.getSession();
   if (error) throw error;
   session=data.session;
