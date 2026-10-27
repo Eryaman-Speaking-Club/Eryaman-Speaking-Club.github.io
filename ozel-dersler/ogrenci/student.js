@@ -205,7 +205,7 @@ function renderOverview(){
   const lesson=upcoming[0],link=meetUrl(lesson.meeting_url),day=dateFormat.format(new Date(lesson.start_at));
   next.innerHTML='<div class="sp-featured"><div><span class="sp-kicker">GÜLSÜM YAĞMUR AKDENİZ · 60 DAKİKA</span>'+
    '<h4>'+esc(day)+' · '+esc(prettyTime(lesson.start_at))+'</h4>'+
-   '<p>'+(lesson.status==='confirmed'?'Dersin onaylandı. Katılım bağlantına buradan ulaşabilirsin.':'Talebin alındı. Yağmur’un onayı bekleniyor.')+
+   '<p>'+(lesson.full_name?'Öğrenci: '+esc(lesson.full_name)+' · ':'')+(lesson.status==='confirmed'?'Ders onaylandı. Katılım bağlantısına buradan ulaşabilirsin.':'Talep alındı. Yağmur’un onayı bekleniyor.')+
    '</p></div><div>'+ (lesson.status==='confirmed'&&link?
      '<a class="sp-primary-button" target="_blank" rel="noopener noreferrer" href="'+esc(link)+'">Google Meet’e katıl ↗</a>':
      '<span class="sp-status '+esc(lesson.status)+'">'+esc(statusLabel(lesson.status))+'</span>')+'</div></div>';
@@ -230,7 +230,7 @@ function renderLessonCard(b){
  dayIcon.append(strong,month);wrap.append(dayIcon);
  const info=document.createElement('div');info.className='sp-lesson-info';
  const title=document.createElement('strong');title.textContent=dayFormat.format(date)+' · '+prettyTime(b.start_at)+' · 60 dakika';
- const meta=document.createElement('small');meta.textContent='Gülsüm Yağmur Akdeniz · Online birebir ders';
+ const meta=document.createElement('small');meta.textContent='Öğrenci: '+(b.full_name||profile?.learner_name||'Kayıtlı öğrenci')+' · Gülsüm Yağmur Akdeniz · Online birebir ders';
  const badge=document.createElement('span');badge.className='sp-status '+b.status;badge.textContent=statusLabel(b.status);
  info.append(title,meta,badge);wrap.append(info);
  const actions=document.createElement('div');actions.className='sp-lesson-actions';
