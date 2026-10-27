@@ -23,3 +23,12 @@
  .sp-form-divider{align-items:flex-start;flex-direction:column;gap:2px}
  .sp-auth-card .sp-form{gap:13px}
 }
+
+/* Account confirmation and passwordless sign-in feedback */
+.sp-auth-secondary-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:5px 10px}
+.sp-auth-secondary-actions .sp-link-button{padding:5px 8px;white-space:normal}
+.sp-auth-info{font-size:12px!important;color:#667f8e!important;line-height:1.5;margin:0}
+.sp-email-verified{display:inline-flex;align-items:center;gap:6px;margin-top:12px;color:#08786b;font-weight:800;font-size:12px;background:#e6f6ef;border:1px solid #b6e8d6;border-radius:99px;padding:5px 12px}
+.sp-email-verified span{font-weight:900}
+#resendVerificationButton{font-size:12px;justify-self:center}
+@media(max-width:650px){.sp-auth-secondary-actions{flex-direction:column;align-items:stretch}.sp-auth-secondary-actions .sp-link-button{padding:9px}}
