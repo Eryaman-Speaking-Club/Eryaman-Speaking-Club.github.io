@@ -1,0 +1,450 @@
+import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/+esm';
+
+const config=window.ESC_SUPABASE_CONFIG || {};
+const studentApi=(config.url||'')+'/functions/v1/esc-lesson-student';
+const publicApi=(config.url||'')+'/functions/v1/esc-private-lessons';
+const siteUrl=location.origin+'/ozel-dersler/ogrenci/';
+const $=id=>document.getElementById(id);
+const weekdays=['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
+const pad=n=>String(n).padStart(2,'0');
+const levelOptions=['A1','A2','B1','B2','C1+','unsure'];
+const dateFormat=new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',day:'numeric',month:'long',year:'numeric'});
+const timeFormat=new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+const dayFormat=new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',weekday:'long'});
+let client,session=null,profile=null,bookings=[],currentTab='overview';
+let authMode='login',recoveryMode=false,weekOffset=0,loadingWeek=false,sending=false;
+let selected=new Map(),availabilityCache=new Map();
+const slotKey=(date,minute)=>date+'@'+minute;
+const isoStamp=date=>new Date(date+'T12:00:00Z');
+const toIso=d=>d.toISOString().slice(0,10);
+const hourText=m=>pad(Math.floor(m/60))+':'+pad(m%60);
+const prettyDate=date=>dateFormat.format(isoStamp(date));
+const prettyTime=iso=>timeFormat.format(new Date(iso));
+const esc=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+function dateTodayIstanbul(){
+ const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Istanbul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+ const o=Object.fromEntries(parts.map(p=>[p.type,p.value]));
+ return o.year+'-'+o.month+'-'+o.day;
+}
+function weekMonday(offset){
+ const d=isoStamp(dateTodayIstanbul());
+ const dow=d.getUTCDay()||7;
+ d.setUTCDate(d.getUTCDate()-(dow-1)+offset*7);
+ return toIso(d);
+}
+function isoPlus(date,days){const d=isoStamp(date);d.setUTCDate(d.getUTCDate()+days);return toIso(d);}
+function message(id,value,error=false){const e=$(id);if(!e)return;e.textContent=value||'';e.classList.toggle('is-error',error);}
+function friendly(error){
+ const text=String(error?.message||error||'');
+ if(/invalid login credentials|invalid_credentials/i.test(text))return 'E-posta veya şifre hatalı. Şifremi unuttum bağlantısını kullanabilirsin.';
+ if(/email not confirmed/i.test(text))return 'Önce e-posta adresine gelen doğrulama bağlantısını aç.';
+ if(/rate limit|too many requests/i.test(text))return 'Çok fazla işlem denendi. Biraz sonra tekrar dene.';
+ if(/failed to fetch|network/i.test(text))return 'Sunucuya bağlanılamadı. Bağlantını kontrol et.';
+ return text || 'İşlem tamamlanamadı.';
+}
+function setSending(value){
+ sending=value;
+ for(const id of ['submitBookings','newBookingButton','refreshLessons','logout']){
+  const e=$(id);if(!e)continue;
+  if(id==='submitBookings')e.disabled=value||!selected.size||!profile;
+  else e.disabled=value;
+ }
+}
+function updateAuthMode(mode){
+ authMode=mode;
+ recoveryMode=mode==='recovery';
+ $('loginForm').hidden=mode!=='login';
+ $('registerForm').hidden=mode!=='register';
+ $('recoveryForm').hidden=mode!=='recovery';
+ const tabs=document.querySelector('.sp-auth-tabs');tabs.hidden=mode==='recovery';
+ $('loginTabButton').classList.toggle('active',mode==='login');
+ $('registerTabButton').classList.toggle('active',mode==='register');
+ $('loginTabButton').setAttribute('aria-selected',String(mode==='login'));
+ $('registerTabButton').setAttribute('aria-selected',String(mode==='register'));
+ message('authMessage','');
+}
+function showAuth(){
+ $('dashboard').hidden=true;
+ $('headerBooking').hidden=true;
+ $('logout').hidden=true;
+ $('authSection').hidden=false;
+ updateAuthMode(recoveryMode?'recovery':authMode);
+}
+function showDashboard(){
+ $('authSection').hidden=true;
+ $('dashboard').hidden=false;
+ $('headerBooking').hidden=false;
+ $('logout').hidden=false;
+}
+async function api(action,body){
+ if(!session?.access_token)throw Error('Lütfen tekrar giriş yap.');
+ const controller=new AbortController();
+ const timeout=setTimeout(()=>controller.abort(),18000);
+ try{
+  const res=await fetch(studentApi+'?action='+encodeURIComponent(action),{
+   method:body===undefined?'GET':'POST',
+   headers:{'Authorization':'Bearer '+session.access_token,'apikey':config.anonKey,
+    ...(body===undefined?{}:{'Content-Type':'application/json'})},
+   ...(body===undefined?{}:{body:JSON.stringify(body)}),
+   signal:controller.signal
+  });
+  let data;try{data=await res.json();}catch{throw Error('Sunucu geçersiz yanıt gönderdi.');}
+  if(!res.ok)throw Error(data.error||'İşlem başarısız oldu.');
+  return data;
+ }catch(error){if(error.name==='AbortError')throw Error('Bağlantı zaman aşımına uğradı. Tekrar dene.');throw error;}
+ finally{clearTimeout(timeout);}
+}
+async function loadState(){
+ const result=await api('state');
+ profile=result.profile||null;
+ bookings=Array.isArray(result.bookings)?result.bookings:[];
+ if(!profile && session?.user?.user_metadata?.full_name) $('profileName').value=String(session.user.user_metadata.full_name).slice(0,100);
+ showDashboard();
+ renderOverview();
+ renderProfile();
+ if(!profile){setTab('profile');message('profileMessage','Ders rezervasyonu için önce profilini kaydet.');}
+ else setTab(currentTab);
+}
+function setTab(tab){
+ if(!session)return;
+ currentTab=tab;
+ for(const key of ['overview','booking','profile']){
+  const title=key[0].toUpperCase()+key.slice(1);
+  $('view'+title).hidden=key!==tab;
+  $('tab'+title).classList.toggle('active',key===tab);
+  $('tab'+title).setAttribute('aria-selected',String(key===tab));
+ }
+ if(tab==='booking') void loadWeek();
+ if(tab==='profile')renderProfile();
+ document.querySelector('.sp-dashboard-tabs')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function statusLabel(status){
+ return ({requested:'Onay bekleniyor',confirmed:'Onaylandı',cancelled:'İptal edildi',completed:'Tamamlandı'})[status]||status;
+}
+function meetUrl(url){return /^https:\/\/meet\.google\.com\/[a-z0-9-]+\/?$/.test(url||'')?url:null;}
+function currentBookings(){
+ return bookings.filter(b=>new Date(b.start_at).getTime()>Date.now()&&
+     ['requested','confirmed'].includes(b.status)).sort((a,b)=>new Date(a.start_at)-new Date(b.start_at));
+}
+function renderOverview(){
+ const upcoming=currentBookings();
+ const confirmed=upcoming.filter(b=>b.status==='confirmed');
+ const pending=upcoming.filter(b=>b.status==='requested');
+ const completed=bookings.filter(b=>b.status==='completed');
+ const display=profile?.full_name||session?.user?.user_metadata?.full_name||'';
+ $('welcomeName').textContent=display?'Hoş geldin, '+display.split(/\s+/)[0]+'.':'Hoş geldin.';
+ $('welcomeSubtitle').textContent=profile?'Derslerini planla, takip et ve katılım bağlantılarını buradan aç.':'Ders takvimin için önce profilini tamamla.';
+ $('statUpcoming').textContent=String(confirmed.length);
+ $('statRequested').textContent=String(pending.length);
+ $('statCompleted').textContent=String(completed.length);
+ const next=$('nextLesson');next.replaceChildren();
+ if(upcoming.length){
+  const lesson=upcoming[0],link=meetUrl(lesson.meeting_url),day=dateFormat.format(new Date(lesson.start_at));
+  next.innerHTML='<div class="sp-featured"><div><span class="sp-kicker">GÜLSÜM YAĞMUR AKDENİZ · 60 DAKİKA</span>'+
+   '<h4>'+esc(day)+' · '+esc(prettyTime(lesson.start_at))+'</h4>'+
+   '<p>'+(lesson.status==='confirmed'?'Dersin onaylandı. Katılım bağlantına buradan ulaşabilirsin.':'Talebin alındı. Yağmur’un onayı bekleniyor.')+
+   '</p></div><div>'+ (lesson.status==='confirmed'&&link?
+     '<a class="sp-primary-button" target="_blank" rel="noopener noreferrer" href="'+esc(link)+'">Google Meet’e katıl ↗</a>':
+     '<span class="sp-status '+esc(lesson.status)+'">'+esc(statusLabel(lesson.status))+'</span>')+'</div></div>';
+ }else{
+  next.innerHTML='<div class="sp-empty">Yaklaşan dersin bulunmuyor. Yeni ders seçerek kendi haftalık programını oluşturabilirsin.<div><button type="button" class="sp-primary-button" id="emptyBooking">+ Ders seç</button></div></div>';
+  $('emptyBooking')?.addEventListener('click',()=>setTab(profile?'booking':'profile'));
+ }
+ const upList=$('upcomingLessons');upList.replaceChildren();
+ if(!upcoming.length){upList.innerHTML='<div class="sp-empty">Henüz kayıtlı ileri tarihli dersin yok.</div>';}
+ for(const lesson of upcoming)upList.append(renderLessonCard(lesson));
+ const history=bookings.filter(b=>!upcoming.includes(b)).sort((a,b)=>new Date(b.start_at)-new Date(a.start_at)).slice(0,20);
+ const historyList=$('historyLessons');historyList.replaceChildren();
+ if(!history.length)historyList.innerHTML='<div class="sp-empty">Geçmiş ders kaydı henüz yok.</div>';
+ for(const lesson of history)historyList.append(renderLessonCard(lesson));
+}
+function renderLessonCard(b){
+ const date=new Date(b.start_at);
+ const wrap=document.createElement('article');wrap.className='sp-lesson-card';
+ const dayIcon=document.createElement('div');dayIcon.className='sp-date-icon';
+ const strong=document.createElement('strong');strong.textContent=String(date.getDate());
+ const month=document.createElement('small');month.textContent=new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',month:'short'}).format(date);
+ dayIcon.append(strong,month);wrap.append(dayIcon);
+ const info=document.createElement('div');info.className='sp-lesson-info';
+ const title=document.createElement('strong');title.textContent=dayFormat.format(date)+' · '+prettyTime(b.start_at)+' · 60 dakika';
+ const meta=document.createElement('small');meta.textContent='Gülsüm Yağmur Akdeniz · Online birebir ders';
+ const badge=document.createElement('span');badge.className='sp-status '+b.status;badge.textContent=statusLabel(b.status);
+ info.append(title,meta,badge);wrap.append(info);
+ const actions=document.createElement('div');actions.className='sp-lesson-actions';
+ const link=meetUrl(b.meeting_url);
+ if(b.status==='confirmed'&&link){
+  const a=document.createElement('a');a.className='sp-meet-link';a.href=link;
+  a.target='_blank';a.rel='noopener noreferrer';a.textContent='Derse katıl ↗';actions.append(a);
+ }
+ if(b.status==='requested'&&date.getTime()>Date.now()){
+  const btn=document.createElement('button');btn.type='button';btn.className='sp-cancel-button';btn.textContent='Talebi iptal et';
+  btn.onclick=()=>cancelLesson(b.id);actions.append(btn);
+ }
+ if(actions.childNodes.length)wrap.append(actions);
+ return wrap;
+}
+function renderProfile(){
+ if(!session)return;
+ $('profileEmail').value=session.user.email||'';
+ $('profileName').value=profile?.full_name||$('profileName').value||
+    String(session.user.user_metadata?.full_name||'').slice(0,100);
+ $('profileLevel').value=levelOptions.includes(profile?.level)?profile.level:'unsure';
+ $('profileGoal').value=profile?.goal||'Konuşma pratiği';
+}
+async function cancelLesson(id){
+ if(sending||!confirm('Bu ders talebini iptal etmek istiyor musun?'))return;
+ try{setSending(true);await api('cancel',{id});await loadState();message('bookingMessage','Ders talebin iptal edildi.');}
+ catch(error){message('bookingMessage',friendly(error),true);alert(friendly(error));}
+ finally{setSending(false);}
+}
+async function loadWeek(force=false){
+ if(loadingWeek)return;
+ loadingWeek=true;
+ const from=weekMonday(weekOffset),to=isoPlus(from,6);
+ $('weekLabel').textContent=prettyDate(from)+' – '+prettyDate(to);
+ $('prevWeek').disabled=weekOffset===0;
+ $('nextWeek').disabled=weekOffset>=3;
+ const grid=$('weekGrid');
+ if(!availabilityCache.has(from)||force)grid.textContent='Takvim yükleniyor...';
+ message('calendarNotice','');
+ try{
+  let days=availabilityCache.get(from);
+  if(!days||force){
+   const reply=await fetch(publicApi+'?action=availability&from='+from,
+      {headers:{apikey:config.anonKey}});
+   const payload=await reply.json();
+   if(!reply.ok||!Array.isArray(payload.days))throw Error(payload.error||'Takvim şu anda yüklenemedi.');
+   days=payload.days;availabilityCache.set(from,days);
+  }
+  renderCalendar(days);
+ }catch(error){grid.innerHTML='<p class="sp-empty">Takvim yüklenemedi. Yeniden deneyin.</p>';message('calendarNotice',friendly(error),true);}
+ finally{loadingWeek=false;}
+}
+function renderCalendar(days){
+ const grid=$('weekGrid');grid.replaceChildren();
+ for(const day of days){
+  const d=isoStamp(day.date);
+  const col=document.createElement('div');col.className='sp-week-column';
+  const header=document.createElement('header');
+  const dow=document.createElement('strong');dow.textContent=weekdays[(d.getUTCDay()+6)%7];
+  const date=document.createElement('small');date.textContent=pad(d.getUTCDate())+'.'+pad(d.getUTCMonth()+1);
+  header.append(dow,date);col.append(header);
+  const slots=Array.isArray(day.slots)?day.slots:[];
+  if(!slots.length){const small=document.createElement('small');small.textContent='Müsaitlik açılmadı';col.append(small);}
+  for(const slot of slots){
+   const key=slotKey(day.date,slot.minute);
+   const button=document.createElement('button');button.type='button';button.className='sp-slot';
+   button.textContent=hourText(slot.minute);
+   const isSelected=selected.has(key);
+   button.classList.toggle('is-selected',isSelected);
+   button.classList.toggle('is-full',!slot.free && !isSelected);
+   button.disabled=!slot.free && !isSelected;
+   button.setAttribute('aria-pressed',String(isSelected));
+   button.setAttribute('aria-label',prettyDate(day.date)+' '+button.textContent+(isSelected?' seçildi':slot.free?' müsait':' dolu'));
+   button.onclick=()=>{
+    if(selected.has(key)){selected.delete(key);}
+    else{
+     if(selected.size>=12){message('calendarNotice','Tek seferde en fazla 12 saat seçebilirsin.',true);return;}
+     selected.set(key,{date:day.date,minute:slot.minute});
+     message('calendarNotice','');
+    }
+    button.classList.toggle('is-selected',selected.has(key));
+    button.setAttribute('aria-pressed',String(selected.has(key)));
+    renderSelected();
+   };
+   col.append(button);
+  }
+  grid.append(col);
+ }
+}
+function renderSelected(){
+ const items=[...selected.values()].sort((a,b)=>a.date.localeCompare(b.date)||a.minute-b.minute);
+ $('selectedCount').textContent=String(items.length);
+ const holder=$('selectedSlots');holder.replaceChildren();
+ if(!items.length){const p=document.createElement('p');p.className='sp-smallprint';p.textContent='Henüz saat seçmedin. Takvimden müsait saatlere dokun.';holder.append(p);}
+ for(const item of items){
+  const row=document.createElement('div');row.className='sp-selected-slot';
+  const text=document.createElement('span');text.textContent=prettyDate(item.date)+' · '+hourText(item.minute);
+  const remove=document.createElement('button');remove.type='button';remove.setAttribute('aria-label','Bu saati kaldır');remove.textContent='×';
+  remove.onclick=()=>{selected.delete(slotKey(item.date,item.minute));renderSelected();const days=availabilityCache.get(weekMonday(weekOffset));if(days)renderCalendar(days);};
+  row.append(text,remove);holder.append(row);
+ }
+ $('submitBookings').disabled=sending||!items.length||!profile;
+ $('submitBookings').textContent=items.length?'Seçtiğim '+items.length+' ders için talep gönder':'Önce ders saati seç';
+}
+async function submitBatch(){
+ if(sending)return;
+ if(!profile){setTab('profile');message('profileMessage','Önce profilini kaydet.');return;}
+ if(!selected.size){message('bookingMessage','En az bir saat seçmelisin.',true);return;}
+ if(!$('bookingConsent').checked){message('bookingMessage','İletişim iznini işaretlemelisin.',true);return;}
+ try{
+  setSending(true);
+  const items=[...selected.values()].sort((a,b)=>a.date.localeCompare(b.date)||a.minute-b.minute);
+  message('bookingMessage',items.length+' ders talebin kaydediliyor...');
+  const result=await api('reserve',{slots:items,notes:$('bookingNotes').value,consent:true});
+  if(!result.ok)throw Error('Ders talepleri kaydedilemedi.');
+  selected.clear();availabilityCache.clear();
+  $('bookingNotes').value='';$('bookingConsent').checked=false;
+  await loadState();renderSelected();
+  message('bookingMessage',String(result.count)+' ders talebin oluşturuldu. Onaylandıklarında Derslerim alanından ulaşabilirsin.');
+  setTab('overview');
+ }catch(error){
+  availabilityCache.clear();
+  message('bookingMessage',friendly(error),true);
+  await loadWeek(true);
+ }finally{setSending(false);renderSelected();}
+}
+async function signIn(event){
+ event.preventDefault();
+ if(sending)return;
+ try{
+  setSending(true);message('authMessage','Giriş yapılıyor...');
+  const {data,error}=await client.auth.signInWithPassword({
+   email:$('loginEmail').value.trim(),password:$('loginPassword').value
+  });
+  if(error)throw error;
+  if(!data.session)throw Error('Giriş oturumu oluşturulamadı.');
+  session=data.session;$('loginPassword').value='';
+  await loadState();
+ }catch(error){message('authMessage',friendly(error),true);}
+ finally{setSending(false);}
+}
+async function signUp(event){
+ event.preventDefault();if(sending)return;
+ const password=$('registerPassword').value;
+ if(password!==$('registerConfirm').value){
+  message('authMessage','Şifreler eşleşmiyor.',true);return;
+ }
+ const name=$('registerName').value.trim().replace(/\s+/g,' ');
+ if(name.length<2){message('authMessage','Ad soyad gir.');return;}
+ if(!$('registerConsent').checked){message('authMessage','Kişisel veri onayını işaretlemelisin.',true);return;}
+ try{
+  setSending(true);message('authMessage','Hesap oluşturuluyor...');
+  const {data,error}=await client.auth.signUp({
+   email:$('registerEmail').value.trim(),password,
+   options:{emailRedirectTo:siteUrl,data:{full_name:name}}
+  });
+  if(error)throw error;
+  $('registerPassword').value='';$('registerConfirm').value='';
+  if(data.session){
+   session=data.session;
+   await api('profile',{full_name:name,level:'unsure',goal:'Konuşma pratiği'});
+   await loadState();setTab('profile');
+  }else{
+   message('authMessage','Hesap oluşturma isteği alındı. E-postana gelen doğrulama bağlantısını aç, ardından öğrenci panelinde giriş yap. Spam klasörünü de kontrol et.');
+  }
+ }catch(error){message('authMessage',friendly(error),true);}
+ finally{setSending(false);}
+}
+async function resetPassword(){
+ if(sending)return;
+ const email=$('loginEmail').value.trim();
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+  message('authMessage','Önce geçerli e-posta adresini gir.',true);return;
+ }
+ try{
+  setSending(true);message('authMessage','Şifre yenileme bağlantısı hazırlanıyor...');
+  const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:siteUrl});
+  if(error)throw error;
+  message('authMessage','Şifre yenileme isteği alındı. E-posta kutunu ve spam klasörünü kontrol et.');
+ }catch(error){message('authMessage',friendly(error),true);}
+ finally{setSending(false);}
+}
+async function savePassword(event){
+ event.preventDefault();if(sending)return;
+ const password=$('newPassword').value;
+ if(password!==$('newPasswordAgain').value){
+  message('authMessage','Şifreler eşleşmiyor.',true);return;
+ }
+ try{
+  setSending(true);
+  const {error}=await client.auth.updateUser({password});
+  if(error)throw error;
+  await client.auth.signOut();
+  session=null;recoveryMode=false;authMode='login';
+  history.replaceState({},'',location.pathname);
+  showAuth();
+  message('authMessage','Şifren kaydedildi. Şimdi yeni şifrenle giriş yapabilirsin.');
+ }catch(error){message('authMessage',friendly(error),true);}
+ finally{setSending(false);}
+}
+async function saveProfile(event){
+ event.preventDefault();if(sending)return;
+ const full_name=$('profileName').value.trim(),level=$('profileLevel').value,goal=$('profileGoal').value;
+ if(full_name.length<2||full_name.length>100){message('profileMessage','Geçerli bir ad soyad gir.',true);return;}
+ try{
+  setSending(true);message('profileMessage','Profil kaydediliyor...');
+  await api('profile',{full_name,level,goal});
+  profile={full_name,level,goal};
+  renderOverview();renderSelected();
+  message('profileMessage','Öğrenci profilin kaydedildi.');
+  setTab('booking');
+ }catch(error){message('profileMessage',friendly(error),true);}
+ finally{setSending(false);}
+}
+async function logout(){
+ if(sending)return;
+ await client.auth.signOut();session=null;profile=null;bookings=[];
+ selected.clear();availabilityCache.clear();currentTab='overview';recoveryMode=false;
+ showAuth();message('authMessage','Çıkış yaptın.');
+}
+function bindEvents(){
+ $('loginTabButton').onclick=()=>updateAuthMode('login');
+ $('registerTabButton').onclick=()=>updateAuthMode('register');
+ $('loginForm').addEventListener('submit',signIn);
+ $('registerForm').addEventListener('submit',signUp);
+ $('resetPasswordButton').onclick=resetPassword;
+ $('recoveryForm').addEventListener('submit',savePassword);
+ $('profileForm').addEventListener('submit',saveProfile);
+ $('logout').onclick=logout;
+ $('headerBooking').onclick=()=>setTab(profile?'booking':'profile');
+ $('newBookingButton').onclick=()=>setTab(profile?'booking':'profile');
+ $('tabOverview').onclick=()=>setTab('overview');
+ $('tabBooking').onclick=()=>setTab('booking');
+ $('tabProfile').onclick=()=>setTab('profile');
+ $('refreshLessons').onclick=async()=>{
+  try{await loadState();}catch(error){message('bookingMessage',friendly(error),true);}
+ };
+ $('prevWeek').onclick=()=>{if(weekOffset>0&&!loadingWeek){weekOffset--;void loadWeek();}};
+ $('nextWeek').onclick=()=>{if(weekOffset<3&&!loadingWeek){weekOffset++;void loadWeek();}};
+ $('clearSelected').onclick=()=>{
+  selected.clear();renderSelected();
+  const days=availabilityCache.get(weekMonday(weekOffset));
+  if(days)renderCalendar(days);
+ };
+ $('submitBookings').onclick=submitBatch;
+ $('weekGrid').addEventListener('keydown',event=>{
+  if(event.key==='Escape'){selected.clear();renderSelected();const days=availabilityCache.get(weekMonday(weekOffset));if(days)renderCalendar(days);}
+ });
+}
+async function boot(){
+ bindEvents();renderSelected();
+ if(!config.url||!config.anonKey){showAuth();message('authMessage','Giriş hizmeti yapılandırılamadı.',true);return;}
+ client=createClient(config.url,config.anonKey,{
+  auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
+ });
+ const params=new URLSearchParams(location.hash.slice(1));
+ recoveryMode=params.get('type')==='recovery'||new URLSearchParams(location.search).get('type')==='recovery';
+ if(recoveryMode){authMode='recovery';showAuth();}
+ client.auth.onAuthStateChange((event,newSession)=>{
+  if(event==='PASSWORD_RECOVERY'){
+   recoveryMode=true;authMode='recovery';session=newSession;showAuth();
+   message('authMessage','Bağlantı doğrulandı. Yeni şifreni belirle.');
+  }else if(event==='TOKEN_REFRESHED')session=newSession;
+  else if(event==='SIGNED_OUT'){
+   session=null;
+   if(!recoveryMode)showAuth();
+  }
+ });
+ try{
+  const {data,error}=await client.auth.getSession();
+  if(error)throw error;
+  session=data.session;
+  if(recoveryMode){showAuth();return;}
+  if(session){await loadState();}
+  else showAuth();
+ }catch(error){
+  showAuth();message('authMessage',friendly(error),true);
+ }
+}
+boot().catch(error=>message('authMessage',friendly(error),true));
