@@ -192,6 +192,7 @@ function setTab(tab){
  $('newBookingButton').disabled=onboardingRequired;
  $('headerBooking').disabled=onboardingRequired;
  currentTab=tab;
+ try{sessionStorage.setItem('esc_student_tab',tab);}catch{}
  for(const key of ['overview','booking','profile']){
   const title=key[0].toUpperCase()+key.slice(1);
   $('view'+title).hidden=key!==tab;
@@ -200,7 +201,6 @@ function setTab(tab){
  }
  if(tab==='booking') void loadWeek();
  if(tab==='profile')renderProfile();
- document.querySelector('.sp-dashboard-tabs')?.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function statusLabel(status){
  return ({requested:'Onay bekleniyor',confirmed:'Onaylandı',cancelled:'İptal edildi',completed:'Tamamlandı'})[status]||status;
@@ -228,6 +228,68 @@ function renderBookingReceipt(){
   list.append(li);
  }
  box.append(list);
+}
+
+function renderTimeRequests(){
+ const list=$('customTimeRequests');
+ if(!list)return;
+ list.replaceChildren();
+ const requests=[...timeRequests].sort((a,b)=>b.preferred_date.localeCompare(a.preferred_date)||b.preferred_minute-a.preferred_minute);
+ if(!requests.length){
+  const empty=document.createElement('div');empty.className='sp-empty';
+  empty.textContent='Henüz alternatif saat talebin bulunmuyor.';
+  list.append(empty);return;
+ }
+ for(const r of requests){
+  const card=document.createElement('article');card.className='sp-time-request-row';
+  const info=document.createElement('div');
+  const heading=document.createElement('strong');
+  heading.textContent=prettyDate(r.preferred_date)+' · '+hourText(r.preferred_minute)+' · 50 dk';
+  const badge=document.createElement('span');
+  badge.className='sp-status '+(r.status==='pending'?'requested':r.status==='declined'?'cancelled':'completed');
+  badge.textContent=({pending:'Öğretmen değerlendirmesinde',contacted:'İletişime geçildi',declined:'Uygun değil',cancelled:'İptal edildi'})[r.status]||r.status;
+  const description=document.createElement('small');
+  description.textContent=(r.learner_name||'Öğrenci')+' · Bu saat henüz kesinleşmiş bir ders değildir.';
+  info.append(heading,description);card.append(info,badge);
+  if(r.status==='pending'){
+   const cancel=document.createElement('button');
+   cancel.type='button';cancel.className='sp-cancel-button';cancel.textContent='Talebi geri çek';
+   cancel.onclick=()=>cancelCustomTimeRequest(r.id);
+   card.append(cancel);
+  }
+  list.append(card);
+ }
+}
+async function cancelCustomTimeRequest(id){
+ if(sending||!confirm('Bu alternatif ders saati talebini geri çekmek istiyor musun?'))return;
+ try{
+  setSending(true);
+  await api('cancel_time_request',{id});
+  await loadState();
+ }catch(error){$('sessionNotice').hidden=false;$('sessionNoticeText').textContent=friendly(error);}
+ finally{setSending(false);}
+}
+async function submitCustomTimeRequest(event){
+ event.preventDefault();
+ if(sending||onboardingRequired||!session)return;
+ const date=$('timeRequestDate').value,minute=Number($('timeRequestHour').value);
+ if(!$('timeRequestConsent').checked){
+  message('timeRequestMessage','İletişim iznini onaylamalısın.',true);return;
+ }
+ try{
+  setSending(true);
+  $('timeRequestSubmit').disabled=true;
+  message('timeRequestMessage','Alternatif saat talebin kaydediliyor...');
+  const result=await api('time_request',{date,minute,notes:$('timeRequestNotes').value,consent:true});
+  if(!result.ok)throw Error('Talebin kaydedilemedi.');
+  $('timeRequestNotes').value='';$('timeRequestConsent').checked=false;
+  message('timeRequestMessage','Talebin kaydedildi ve öğretmen paneline düştü. Ders henüz onaylanmadı; otomatik e-posta gönderimi aktif değil.');
+  try{await loadState();}catch(err){
+   // A successful create must not be reported as failed due to the subsequent refresh.
+   $('sessionNotice').hidden=false;$('sessionNoticeText').textContent='Saat talebin kaydedildi ancak liste yenilenemedi. Oturumun açık.';
+  }
+ }catch(error){message('timeRequestMessage',friendly(error),true);}
+ finally{setSending(false);$('timeRequestSubmit').disabled=false;}
 }
 
 function renderOverview(){
@@ -319,6 +381,8 @@ async function loadWeek(force=false){
    days=payload.days;availabilityCache.set(from,days);
   }
   renderCalendar(days);
+  const freeSlots=days.reduce((n,d)=>n+(d.slots||[]).filter(slot=>slot.free).length,0);
+  if(!freeSlots)message('calendarNotice','Bu hafta müsait saat bulunmuyor. Aşağıdaki Alternatif saat iste bölümünden tercih ettiğin tarih ve saati önerebilirsin.');
  }catch(error){grid.innerHTML='<p class="sp-empty">Takvim yüklenemedi. Yeniden deneyin.</p>';message('calendarNotice',friendly(error),true);}
  finally{loadingWeek=false;}
 }
@@ -661,17 +725,40 @@ function bindEvents(){
   if(days)renderCalendar(days);
  };
  $('submitBookings').onclick=submitBatch;
+ $('timeRequestForm').addEventListener('submit',submitCustomTimeRequest);
+ $('retrySession').addEventListener('click',async()=>{
+  $('retrySession').disabled=true;
+  try{await loadState();}catch(e){$('sessionNotice').hidden=false;$('sessionNoticeText').textContent='Bağlantı hâlâ kurulamıyor: '+friendly(e);}
+  finally{$('retrySession').disabled=false;}
+ });
  $('repeatWeekly').onclick=repeatWeeklySelections;
+ const dateField=$('timeRequestDate');
+ const today=dateTodayIstanbul();
+ dateField.min=today;
+ dateField.max=isoPlus(today,56);
+ dateField.value=isoPlus(today,1);
+ for(let hour=8;hour<=21;hour++){
+  const option=document.createElement('option');option.value=String(hour*60);
+  option.textContent=pad(hour)+':00';$('timeRequestHour').append(option);
+ }
+ $('timeRequestHour').value=String(18*60);
  $('weekGrid').addEventListener('keydown',event=>{
   if(event.key==='Escape'){selected.clear();renderSelected();const days=availabilityCache.get(weekMonday(weekOffset));if(days)renderCalendar(days);}
  });
 }
 async function boot(){
- bindEvents();renderSelected();
- if(!config.url||!config.anonKey){showAuth();message('authMessage','Giriş hizmeti yapılandırılamadı.',true);return;}
+ bindEvents();
+ renderSelected();
+ if(!config.url||!config.anonKey){
+  showAuth();message('authMessage','Giriş hizmeti yapılandırılamadı.',true);return;
+ }
  client=createClient(config.url,config.anonKey,{
   auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
  });
+ try{
+  const tab=sessionStorage.getItem('esc_student_tab');
+  if(['overview','booking','profile'].includes(tab))currentTab=tab;
+ }catch{}
  const params=new URLSearchParams(location.hash.slice(1));
  recoveryMode=params.get('type')==='recovery'||new URLSearchParams(location.search).get('type')==='recovery';
  if(recoveryMode){authMode='recovery';showAuth();}
@@ -679,21 +766,30 @@ async function boot(){
   if(event==='PASSWORD_RECOVERY'){
    recoveryMode=true;authMode='recovery';session=newSession;showAuth();
    message('authMessage','Bağlantı doğrulandı. Yeni şifreni belirle.');
-  }else if(event==='TOKEN_REFRESHED')session=newSession;
-  else if(event==='SIGNED_OUT'){
+  }else if(event==='TOKEN_REFRESHED'){
+   session=newSession;
+  }else if(event==='SIGNED_OUT'){
    session=null;
    if(!recoveryMode)showAuth();
   }
  });
- try{
-  const {data,error}=await client.auth.getSession();
-  if(error)throw error;
-  session=data.session;
-  if(recoveryMode){showAuth();return;}
-  if(session){await loadState();}
-  else showAuth();
- }catch(error){
-  showAuth();message('authMessage',friendly(error),true);
+ let auth;
+ try{auth=await client.auth.getSession();}
+ catch(error){showAuth();message('authMessage','Oturum doğrulama isteği başarısız oldu: '+friendly(error),true);return;}
+ session=auth.data?.session||null;
+ if(recoveryMode){showAuth();return;}
+ if(!session){showAuth();return;}
+ // Never send an authenticated visitor back to the login page for
+ // transient Edge Function/network errors. Keep the valid session intact.
+ try{await loadState();}
+ catch(error){
+  showDashboard();
+  renderOverview();
+  renderProfile();
+  renderSelected();
+  setTab('profile');
+  $('sessionNotice').hidden=false;
+  $('sessionNoticeText').textContent='Oturumun açık, ancak bilgiler yüklenemedi. Yeniden bağlan ile tekrar dene: '+friendly(error);
  }
 }
 boot().catch(error=>message('authMessage',friendly(error),true));
