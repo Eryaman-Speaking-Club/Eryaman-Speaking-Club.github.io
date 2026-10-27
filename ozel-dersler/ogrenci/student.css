@@ -3,3 +3,23 @@
 .sp-repeat-button{width:100%;min-height:44px;border-radius:11px;border:1px solid #c6e6df;color:#0c706c;background:#e5f6f2;padding:11px 12px;font-size:12px;font-weight:850;text-align:center}
 .sp-repeat-button:hover:not(:disabled){background:#d0f0e9}
 .sp-repeat-button:disabled{opacity:.45}
+
+/* Complete registration and onboarding */
+.sp-form-divider{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  border-top:1px solid #dce6ed;padding-top:18px;margin-top:5px}
+.sp-form-divider strong{font-size:13px;color:#0c3859}
+.sp-form-divider span{font-size:11px;color:#75889b}
+.sp-form textarea{display:block;width:100%;min-height:75px;padding:12px 14px;resize:vertical;
+  border-radius:12px;border:1px solid #cbd9e4;background:#fff;color:#173652;line-height:1.5}
+.sp-form textarea:focus{outline:none;border-color:#2265aa;box-shadow:0 0 0 3px rgba(34,101,170,.12)}
+.sp-onboarding-intro{background:#eef7f5;border:1px solid #bfe5dc;border-radius:14px;padding:17px 19px}
+.sp-onboarding-intro strong{display:block;color:#0a655f;font-size:15px}
+.sp-onboarding-intro p{color:#487c79;font-size:12px;margin:6px 0 0;line-height:1.6}
+.sp-dashboard-tabs button:disabled{cursor:not-allowed;opacity:.35}
+#registerLearnerWrap[hidden],#registerGuardianWrap[hidden],
+#profileLearnerWrap[hidden],#profileGuardianWrap[hidden]{display:none!important}
+.sp-form input:invalid:not(:placeholder-shown):not([type=checkbox]){border-color:#d5a6af}
+@media(max-width:650px){
+ .sp-form-divider{align-items:flex-start;flex-direction:column;gap:2px}
+ .sp-auth-card .sp-form{gap:13px}
+}
