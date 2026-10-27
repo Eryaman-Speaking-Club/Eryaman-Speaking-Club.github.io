@@ -270,7 +270,62 @@ function renderSelected(){
   row.append(text,remove);holder.append(row);
  }
  $('submitBookings').disabled=sending||!items.length||!profile;
+ $('repeatWeekly').disabled=sending||repeatingWeeks||!items.length;
  $('submitBookings').textContent=items.length?'Seçtiğim '+items.length+' ders için talep gönder':'Önce ders saati seç';
+}
+let repeatingWeeks=false;
+async function repeatWeeklySelections(){
+ if(repeatingWeeks||sending)return;
+ const original=[...selected.values()];
+ if(!original.length){
+  message('calendarNotice','Önce tekrarlamak istediğin en az bir saat seç.',true);
+  return;
+ }
+ repeatingWeeks=true;
+ $('repeatWeekly').disabled=true;
+ message('calendarNotice','Sonraki haftaların müsaitliği kontrol ediliyor...');
+ try{
+  const lastDate=isoPlus(weekMonday(3),6);
+  const candidates=[];
+  const mondayFor=date=>{
+   const d=isoStamp(date);
+   d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7));
+   return toIso(d);
+  };
+  for(const item of original){
+   for(let offset=7;offset<=21;offset+=7){
+    const date=isoPlus(item.date,offset),key=slotKey(date,item.minute);
+    if(date<=lastDate && !selected.has(key))
+      candidates.push({date,minute:item.minute,from:mondayFor(date),key});
+   }
+  }
+  const weeks=[...new Set(candidates.map(x=>x.from))];
+  await Promise.all(weeks.map(async from=>{
+   if(availabilityCache.has(from))return;
+   const reply=await fetch(publicApi+'?action=availability&from='+from,
+      {headers:{apikey:config.anonKey}});
+   const payload=await reply.json();
+   if(!reply.ok||!Array.isArray(payload.days))throw Error('Haftalık müsaitlik sorgulanamadı.');
+   availabilityCache.set(from,payload.days);
+  }));
+  let added=0;
+  for(const item of candidates){
+   if(selected.size>=12)break;
+   const day=availabilityCache.get(item.from)?.find(d=>d.date===item.date);
+   const isFree=day?.slots?.some(slot=>slot.minute===item.minute&&slot.free===true);
+   if(isFree && !selected.has(item.key)){
+    selected.set(item.key,{date:item.date,minute:item.minute});
+    added++;
+   }
+  }
+  renderSelected();
+  const displayed=availabilityCache.get(weekMonday(weekOffset));
+  if(displayed)renderCalendar(displayed);
+  message('calendarNotice',added?
+    added+' yeni müsait saat eklendi. Onaylamak için sağdaki ders sepetini kullan.':
+    'Sonraki haftalarda aynı saatte ek müsait ders bulunamadı.');
+ }catch(error){message('calendarNotice',friendly(error),true);}
+ finally{repeatingWeeks=false;$('repeatWeekly').disabled=!selected.size;}
 }
 async function submitBatch(){
  if(sending)return;
@@ -413,6 +468,7 @@ function bindEvents(){
   if(days)renderCalendar(days);
  };
  $('submitBookings').onclick=submitBatch;
+ $('repeatWeekly').onclick=repeatWeeklySelections;
  $('weekGrid').addEventListener('keydown',event=>{
   if(event.key==='Escape'){selected.clear();renderSelected();const days=availabilityCache.get(weekMonday(weekOffset));if(days)renderCalendar(days);}
  });
