@@ -19,6 +19,16 @@
   <title>Online Birebir İngilizce Özel Ders | Gülsüm Yağmur Akdeniz</title>
   <link rel="stylesheet" href="../esc-brand.css?v=20260917">
   <link rel="stylesheet" href="./styles.css?v=20260922-stable-title">
+<style>
+.esc-student-cta{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:20px 0 27px;padding:20px 23px;border:1px solid #c8e4de;background:#e8f5f1;border-radius:18px;color:#133d56}
+.esc-student-cta div{display:flex;flex-direction:column;gap:5px}
+.esc-student-cta strong{font-size:16px;font-weight:850}
+.esc-student-cta span{font-size:13px;line-height:1.5;color:#527583}
+.esc-student-cta a{flex:none;background:#093553;color:#fff;padding:13px 18px;border-radius:12px;font-size:13px;font-weight:800;text-decoration:none}
+.esc-guest-note{font-size:12px;line-height:1.6;color:#95a8b9;margin:0}
+.esc-guest-note a{color:#79d4cd;text-decoration:underline}
+@media(max-width:700px){.esc-student-cta{align-items:stretch;flex-direction:column}.esc-student-cta a{text-align:center;width:100%}}
+</style>
 </head>
 <body>
   <header class="lesson-nav" id="top">
@@ -28,9 +38,9 @@
     </a>
     <nav class="lesson-links" aria-label="Özel ders menüsü">
       <a href="#egitmen">Eğitmen & ders sistemi</a>
-      <a href="#ders-takvimi">Ders Takvimi</a><a href="#basvuru">Başvuru</a>
+      <a href="#ders-takvimi">Ders Takvimi</a><a href="/ozel-dersler/ogrenci/">Öğrenci Paneli</a><a href="#basvuru">Başvuru</a>
     </nav>
-    <a class="nav-contact" href="#basvuru">Başvuru formu <span>↘</span></a>
+    <a class="nav-contact" href="/ozel-dersler/ogrenci/">Öğrenci girişi <span>↗</span></a>
     <button class="lesson-menu" type="button" aria-label="Menüyü aç" aria-expanded="false">☰</button>
   </header>
 
@@ -41,7 +51,7 @@
         <h1 class="stable-hero-title"><span class="hero-title-line">İngilizceyi</span><span class="hero-highlight-slot"><em class="rotating-highlight">rahatça</em></span><span class="hero-title-line hero-title-talk">konuş.</span></h1>
         <p class="hero-lead">Eryaman Speaking Club özel dersleri kapsamında Gülsüm Yağmur Akdeniz ile konuşma odaklı, birebir ve hedeflerine göre şekillenen online İngilizce dersleri.</p>
         <div class="hero-actions">
-          <a class="button primary" href="#basvuru">Kısa başvuru formunu doldur <span>→</span></a>
+          <a class="button primary" href="/ozel-dersler/ogrenci/">Öğrenci paneline git <span>→</span></a>
           <a class="button secondary" href="#egitmen">Eğitmen & sistemi gör</a>
         </div>
         <div class="hero-notes">
@@ -108,13 +118,14 @@
  <div class="esc-booking-container">
   <span class="esc-booking-kicker">BİREBİR İNGİLİZCE · HAFTALIK PROGRAM</span>
   <h2 id="lessonCalendarTitle">Sana uygun ders saatini seç.</h2>
-  <p>Gülsüm Yağmur Akdeniz'in müsait zamanlarını gör, sana uyan günü seç ve başvurunu gönder. Saatler Türkiye saatine göredir (GMT+3). Başvurun onaylandıktan sonra ders bağlantın e-posta ile paylaşılır.</p>
+  <p>Gülsüm Yağmur Akdeniz'in haftalık müsait saatlerini incele. Öğrenci hesabınla farklı gün ve haftalardan birden fazla ders seçebilir, onaylanan derslerine tek yerden katılabilirsin. Saatler Türkiye saatine göredir (GMT+3).</p>
+  <div class="esc-student-cta"><div><strong>Birden fazla ders mi planlamak istiyorsun?</strong><span>Öğrenci hesabı oluştur, derslerini toplu seç, randevularını ve Google Meet bağlantılarını panelinden takip et.</span></div><a href="/ozel-dersler/ogrenci/">Öğrenci paneline geç →</a></div>
   <div class="esc-week-toolbar"><button id="escPrevWeek" type="button" aria-label="Önceki hafta">‹</button><strong id="escWeekLabel">Haftalık uygunluk</strong><button id="escNextWeek" type="button" aria-label="Sonraki hafta">›</button></div>
   <div class="esc-week-grid" id="escLessonCalendar" aria-live="polite"><p>Takvim yükleniyor...</p></div>
   <div class="esc-booking-legend"><span><i class="is-open"></i> Müsait</span><span><i class="is-full"></i> Dolu / Kapalı</span></div>
   <div id="escSelected" class="esc-selected" hidden></div>
   <form class="esc-booking-form" id="escLessonBookingForm" hidden>
-   <h3>Seçtiğin saat için ders talebi gönder</h3>
+   <h3>Üyeliksiz tek ders talebi</h3><p class="esc-guest-note">Düzenli ders planı ve toplu rezervasyon için <a href="/ozel-dersler/ogrenci/">öğrenci panelini kullan</a>. Bu form yalnızca tek seferlik ön başvuru içindir.</p>
    <div class="esc-booking-fields"><label>Ad Soyad<input name="name" autocomplete="name" maxlength="100" required placeholder="Adınız Soyadınız"></label><label>E-posta<input name="email" type="email" autocomplete="email" maxlength="254" required placeholder="ornek@email.com"></label><label>İngilizce seviyesi<select name="level" required><option value="">Seç</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option value="C1+">C1+</option><option value="unsure">Emin değilim</option></select></label><label>Öğrenme hedefi<select name="goal" required><option value="">Seç</option><option>Konuşma pratiği</option><option>Genel İngilizce</option><option>Profesyonel İngilizce</option><option>Akademik İngilizce</option><option>Sınav hazırlığı</option><option>Eğitim koçluğu</option></select></label></div>
    <label>Eklemek istediğin not (isteğe bağlı)<textarea name="notes" rows="3" maxlength="1000"></textarea></label>
    <label class="esc-booking-consent"><input type="checkbox" name="consent" required> Ders talebimin değerlendirilmesi ve benimle e-posta üzerinden iletişime geçilmesi için verdiğim bilgilerin işlenmesine izin veriyorum.</label>
