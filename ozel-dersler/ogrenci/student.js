@@ -13,7 +13,7 @@ const timeFormat=new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',hou
 const dayFormat=new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',weekday:'long'});
 let client,session=null,profile=null,bookings=[],currentTab='overview';
 let authMode='login',recoveryMode=false,weekOffset=0,loadingWeek=false,sending=false,onboardingRequired=true;
-let selected=new Map(),availabilityCache=new Map();
+let selected=new Map(),availabilityCache=new Map(),lastBookingReceipt=null;
 const slotKey=(date,minute)=>date+'@'+minute;
 const isoStamp=date=>new Date(date+'T12:00:00Z');
 const toIso=d=>d.toISOString().slice(0,10);
@@ -190,7 +190,28 @@ function currentBookings(){
  return bookings.filter(b=>new Date(b.start_at).getTime()>Date.now()&&
      ['requested','confirmed'].includes(b.status)).sort((a,b)=>new Date(a.start_at)-new Date(b.start_at));
 }
+function renderBookingReceipt(){
+ const box=$('bookingReceipt');
+ if(!box)return;
+ box.replaceChildren();
+ box.hidden=!lastBookingReceipt;
+ if(!lastBookingReceipt)return;
+ const strong=document.createElement('strong');
+ strong.textContent=lastBookingReceipt.count+' ders talebin sisteme kaydedildi.';
+ const p=document.createElement('p');
+ p.textContent='Rezervasyonların henüz öğretmen tarafından onaylanmadı. Durumu Derslerim alanından takip edebilirsin. Otomatik e-posta teslimatı henüz etkin değil.';
+ box.append(strong,p);
+ const list=document.createElement('ul');
+ for(const slot of lastBookingReceipt.slots){
+  const li=document.createElement('li');
+  li.textContent=prettyDate(slot.date)+' · '+hourText(slot.minute);
+  list.append(li);
+ }
+ box.append(list);
+}
+
 function renderOverview(){
+ renderBookingReceipt();
  const upcoming=currentBookings();
  const confirmed=upcoming.filter(b=>b.status==='confirmed');
  const pending=upcoming.filter(b=>b.status==='requested');
@@ -393,29 +414,47 @@ async function repeatWeeklySelections(){
 }
 async function submitBatch(){
  if(sending)return;
- if(!profile||onboardingRequired){setTab('profile');message('profileMessage','Önce öğrenci kayıt bilgilerini tamamla.');return;}
- if(onboardingRequired){setTab('profile');message('profileMessage','Önce öğrenci kayıt bilgilerini tamamla.',true);return;}
- if(!selected.size){message('bookingMessage','En az bir saat seçmelisin.',true);return;}
- if(selected.size>Math.max(0,12-currentBookings().length)){
-  message('bookingMessage','Aktif derslerinle birlikte en fazla 12 ileri tarihli ders talebi bulunabilir.',true);return;
+ if(!profile||onboardingRequired){
+  setTab('profile');
+  message('profileMessage','Ders talebinden önce öğrenci kaydını tamamla.',true);
+  return;
  }
- if(!$('bookingConsent').checked){message('bookingMessage','İletişim iznini işaretlemelisin.',true);return;}
+ if(!selected.size){
+  message('bookingMessage','En az bir saat seçmelisin.',true);return;
+ }
+ if(selected.size>Math.max(0,12-currentBookings().length)){
+  message('bookingMessage','Aktif derslerinle birlikte en fazla 12 ileri tarihli ders talebi bulunabilir.',true);
+  return;
+ }
+ if(!$('bookingConsent').checked){
+  message('bookingMessage','İletişim iznini işaretlemelisin.',true);return;
+ }
+ const items=[...selected.values()].sort((a,b)=>a.date.localeCompare(b.date)||a.minute-b.minute);
  try{
   setSending(true);
-  const items=[...selected.values()].sort((a,b)=>a.date.localeCompare(b.date)||a.minute-b.minute);
   message('bookingMessage',items.length+' ders talebin kaydediliyor...');
+  // Request success is authoritative. A subsequent failed refresh must never
+  // falsely report that the already-inserted bookings were not saved.
   const result=await api('reserve',{slots:items,notes:$('bookingNotes').value,consent:true});
   if(!result.ok)throw Error('Ders talepleri kaydedilemedi.');
+  lastBookingReceipt={count:result.count,slots:items};
   selected.clear();availabilityCache.clear();
   $('bookingNotes').value='';$('bookingConsent').checked=false;
-  await loadState();renderSelected();
-  message('bookingMessage',String(result.count)+' ders talebin oluşturuldu. Onaylandıklarında Derslerim alanından ulaşabilirsin.');
-  setTab('overview');
+  try{
+   currentTab='overview';
+   await loadState();
+  }catch(error){
+   setTab('overview');
+   message('bookingMessage','Ders talebin kaydedildi ancak liste yenilenemedi. Derslerim sekmesinden yenilemeyi dene.',true);
+  }
+  renderBookingReceipt();
  }catch(error){
   availabilityCache.clear();
   message('bookingMessage',friendly(error),true);
-  await loadWeek(true);
- }finally{setSending(false);renderSelected();}
+  try{await loadWeek(true);}catch{ /* keep the original error visible */}
+ }finally{
+  setSending(false);renderSelected();
+ }
 }
 async function signIn(event){
  event.preventDefault();
@@ -565,7 +604,7 @@ async function saveProfile(event){
 async function logout(){
  if(sending)return;
  await client.auth.signOut();session=null;profile=null;bookings=[];
- selected.clear();availabilityCache.clear();currentTab='overview';recoveryMode=false;onboardingRequired=true;
+ selected.clear();availabilityCache.clear();lastBookingReceipt=null;currentTab='overview';recoveryMode=false;onboardingRequired=true;
  showAuth();message('authMessage','Çıkış yaptın.');
 }
 function bindEvents(){
