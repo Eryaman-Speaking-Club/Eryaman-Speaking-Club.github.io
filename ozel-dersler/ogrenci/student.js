@@ -44,7 +44,7 @@ function friendly(error){
 }
 function setSending(value){
  sending=value;
- for(const id of ['submitBookings','newBookingButton','refreshLessons','logout']){
+ for(const id of ['submitBookings','newBookingButton','refreshLessons','logout','resendVerificationButton','sendLoginLink','resetPasswordButton']){
   const e=$(id);if(!e)continue;
   if(id==='submitBookings')e.disabled=value||!selected.size||!profile||onboardingRequired;
   else e.disabled=value;
@@ -127,6 +127,7 @@ function showDashboard(){
  $('dashboard').hidden=false;
  $('headerBooking').hidden=false;
  $('logout').hidden=false;
+ $('verifiedEmailLabel').hidden=!Boolean(session?.user?.email_confirmed_at);
 }
 async function api(action,body){
  if(!session?.access_token)throw Error('Lütfen tekrar giriş yap.');
@@ -461,12 +462,58 @@ async function signUp(event){
    await loadState();
    message('profileMessage','Öğrenci hesabın ve kayıt bilgilerin oluşturuldu.');
   }else{
-   message('authMessage','Kayıt isteğin alındı. E-postana gelen doğrulama bağlantısını aç. Doğrulamadan sonra öğrenci bilgilerini onaylayıp ders seçebileceksin. Bu e-postayla zaten hesabın varsa Giriş yap bölümünden devam et.');
+   // Supabase may deliberately return an empty / obfuscated identity when
+   // the email is already registered. Never claim delivery unconditionally.
+   message('authMessage','Kayıt isteği işlendi. Yeni bir hesap açıldıysa doğrulama e-postası gönderilmesi istenmiştir. Bu adresle mevcut hesabın varsa yeniden onay gelmez: Giriş yap bölümünü kullan. E-posta gelmediyse Doğrulama e-postasını yeniden gönder seçeneğini deneyebilirsin.');
   }
  }catch(error){
   message('authMessage',friendly(error),true);
  }finally{setSending(false);}
 }
+async function resendVerificationEmail(){
+ if(sending)return;
+ const email=$('registerEmail').value.trim().toLowerCase();
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+  message('authMessage','Doğrulama için önce geçerli e-posta adresini yaz.',true);return;
+ }
+ try{
+  setSending(true);
+  message('authMessage','Doğrulama e-postası tekrar isteniyor...');
+  const {error}=await client.auth.resend({
+    type:'signup', email,
+    options:{emailRedirectTo:siteUrl}
+  });
+  if(error)throw error;
+  message('authMessage','Doğrulama e-postasını yeniden gönderme isteği Supabase tarafından kabul edildi. Gelen Kutusu, Spam ve Tanıtımlar klasörlerini kontrol et. Bu adres zaten doğrulanmışsa yeniden onay mesajı gerekmiyor; giriş yap.');
+ }catch(error){
+  const raw=String(error?.message||'');
+  if(/already confirmed|email.*confirm|already registered|signup is disabled/i.test(raw)){
+    message('authMessage','Bu e-posta adresindeki hesap zaten doğrulanmış olabilir. Kayıt yerine Giriş yap bölümünü seç.',false);
+  }else{
+    message('authMessage',friendly(error),true);
+  }
+ }finally{setSending(false);}
+}
+async function sendEmailLoginLink(){
+ if(sending)return;
+ const email=$('loginEmail').value.trim().toLowerCase();
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+  message('authMessage','Önce hesabına ait e-posta adresini yaz.',true);return;
+ }
+ try{
+  setSending(true);
+  message('authMessage','Tek kullanımlık giriş bağlantısı isteniyor...');
+  const {error}=await client.auth.signInWithOtp({
+   email,
+   options:{shouldCreateUser:false,emailRedirectTo:siteUrl}
+  });
+  if(error)throw error;
+  message('authMessage','Giriş bağlantısı gönderme isteği kabul edildi. Bu, yeni hesap onayı değildir; e-posta ile giriş yapmanı sağlar. Gelen Kutusu, Spam ve Tanıtımlar klasörlerini kontrol et.');
+ }catch(error){
+  message('authMessage',friendly(error),true);
+ }finally{setSending(false);}
+}
+
 async function resetPassword(){
  if(sending)return;
  const email=$('loginEmail').value.trim();
@@ -527,6 +574,8 @@ function bindEvents(){
  $('loginForm').addEventListener('submit',signIn);
  $('registerForm').addEventListener('submit',signUp);
  $('resetPasswordButton').onclick=resetPassword;
+ $('resendVerificationButton').onclick=resendVerificationEmail;
+ $('sendLoginLink').onclick=sendEmailLoginLink;
  $('recoveryForm').addEventListener('submit',savePassword);
  $('profileForm').addEventListener('submit',saveProfile);
  for(const prefix of ['register','profile']){
