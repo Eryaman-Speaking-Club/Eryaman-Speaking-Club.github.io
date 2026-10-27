@@ -553,7 +553,14 @@ async function signIn(event){
   if(!data.session)throw Error('Giriş oturumu oluşturulamadı.');
   session=data.session;$('loginPassword').value='';
   await loadState();
- }catch(error){message('authMessage',friendly(error),true);}
+ }catch(error){
+  if(session?.access_token){
+   showDashboard();renderOverview();renderProfile();renderSelected();
+   setTab('profile');
+   $('sessionNotice').hidden=false;
+   $('sessionNoticeText').textContent='Giriş başarılı, fakat öğrenci bilgileri şu anda yüklenemiyor. Yeniden bağlan ile devam et: '+friendly(error);
+  }else message('authMessage',friendly(error),true);
+ }
  finally{setSending(false);}
 }
 async function signUp(event){
@@ -591,7 +598,12 @@ async function signUp(event){
    message('authMessage','Kayıt isteği işlendi. Yeni bir hesap açıldıysa doğrulama e-postası gönderilmesi istenmiştir. Bu adresle mevcut hesabın varsa yeniden onay gelmez: Giriş yap bölümünü kullan. E-posta gelmediyse Doğrulama e-postasını yeniden gönder seçeneğini deneyebilirsin.');
   }
  }catch(error){
-  message('authMessage',friendly(error),true);
+  if(session?.access_token){
+   showDashboard();renderProfile();renderSelected();
+   setTab('profile');
+   $('sessionNotice').hidden=false;
+   $('sessionNoticeText').textContent='Hesabın açıldı, ancak kayıt bilgileri henüz tamamlanamadı. Yeniden dene: '+friendly(error);
+  }else message('authMessage',friendly(error),true);
  }finally{setSending(false);}
 }
 async function resendVerificationEmail(){
@@ -680,7 +692,10 @@ async function saveProfile(event){
   await api('profile',details);
   profile={...details,onboarding_completed:true};
   onboardingRequired=false;
-  await loadState();
+  try{await loadState();}catch(error){
+   $('sessionNotice').hidden=false;
+   $('sessionNoticeText').textContent='Öğrenci kaydın kaydedildi. Liste yenilenemedi: '+friendly(error);
+  }
   setTab('booking');
   message('bookingMessage','Öğrenci kaydın tamamlandı. Artık müsait saatlerden ders seçebilirsin.');
  }catch(error){message('profileMessage',friendly(error),true);}
