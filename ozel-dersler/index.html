@@ -28,7 +28,7 @@
     </a>
     <nav class="lesson-links" aria-label="Özel ders menüsü">
       <a href="#egitmen">Eğitmen & ders sistemi</a>
-      <a href="#basvuru">Başvuru</a>
+      <a href="#ders-takvimi">Ders Takvimi</a><a href="#basvuru">Başvuru</a>
     </nav>
     <a class="nav-contact" href="#basvuru">Başvuru formu <span>↘</span></a>
     <button class="lesson-menu" type="button" aria-label="Menüyü aç" aria-expanded="false">☰</button>
@@ -137,7 +137,27 @@
         </form>
       </div>
     </section>
-  </main>
+  <section class="esc-booking" id="ders-takvimi" aria-labelledby="lessonCalendarTitle">
+ <div class="esc-booking-container">
+  <span class="esc-booking-kicker">BİREBİR İNGİLİZCE · HAFTALIK PROGRAM</span>
+  <h2 id="lessonCalendarTitle">Sana uygun ders saatini seç.</h2>
+  <p>Gülsüm Yağmur Akdeniz'in müsait zamanlarını gör, sana uyan günü seç ve başvurunu gönder. Saatler Türkiye saatine göredir (GMT+3). Başvurun onaylandıktan sonra ders bağlantın e-posta ile paylaşılır.</p>
+  <div class="esc-week-toolbar"><button id="escPrevWeek" type="button" aria-label="Önceki hafta">‹</button><strong id="escWeekLabel">Haftalık uygunluk</strong><button id="escNextWeek" type="button" aria-label="Sonraki hafta">›</button></div>
+  <div class="esc-week-grid" id="escLessonCalendar" aria-live="polite"><p>Takvim yükleniyor...</p></div>
+  <div class="esc-booking-legend"><span><i class="is-open"></i> Müsait</span><span><i class="is-full"></i> Dolu / Kapalı</span></div>
+  <div id="escSelected" class="esc-selected" hidden></div>
+  <form class="esc-booking-form" id="escLessonBookingForm" hidden>
+   <h3>Seçtiğin saat için ders talebi gönder</h3>
+   <div class="esc-booking-fields"><label>Ad Soyad<input name="name" autocomplete="name" maxlength="100" required placeholder="Adınız Soyadınız"></label><label>E-posta<input name="email" type="email" autocomplete="email" maxlength="254" required placeholder="ornek@email.com"></label><label>İngilizce seviyesi<select name="level" required><option value="">Seç</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option value="C1+">C1+</option><option value="unsure">Emin değilim</option></select></label><label>Öğrenme hedefi<select name="goal" required><option value="">Seç</option><option>Konuşma pratiği</option><option>Genel İngilizce</option><option>Profesyonel İngilizce</option><option>Akademik İngilizce</option><option>Sınav hazırlığı</option><option>Eğitim koçluğu</option></select></label></div>
+   <label>Eklemek istediğin not (isteğe bağlı)<textarea name="notes" rows="3" maxlength="1000"></textarea></label>
+   <label class="esc-booking-consent"><input type="checkbox" name="consent" required> Ders talebimin değerlendirilmesi ve benimle e-posta üzerinden iletişime geçilmesi için verdiğim bilgilerin işlenmesine izin veriyorum.</label>
+   <input name="website" type="text" class="esc-booking-honey" tabindex="-1" autocomplete="off" aria-hidden="true">
+   <button type="submit" id="escBookingSubmit">Ders talebi gönder</button>
+   <p class="esc-booking-status" id="escBookingStatus" role="status"></p>
+  </form>
+  <p class="esc-booking-help">Müsait saat göremiyorsan aşağıdaki genel başvuru formunu kullanabilirsin.</p>
+ </div>
+</section>\n</main>
 
   <footer class="lesson-footer">
     <a class="esc-brand footer-brand" href="../" aria-label="Eryaman Speaking Club"><span class="esc-brand-mark"><img src="../esc-center-symbol.webp" alt=""></span><span class="esc-brand-title">Eryaman Speaking Club</span></a>
@@ -185,5 +205,5 @@
   <script src="/esc-supabase-config.js"></script>
   <script src="/esc-supabase.js?v=20261006-seo1"></script>
   <script src="/site-analytics.js?v=20260922"></script>
-</body>
+<link rel="stylesheet" href="/ozel-dersler/booking.css?v=20261027a">\n<script defer src="/ozel-dersler/booking.js?v=20261027a"></script>\n</body>
 </html>
