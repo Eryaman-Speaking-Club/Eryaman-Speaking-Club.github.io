@@ -102,6 +102,7 @@ async function loadState(){
  showDashboard();
  renderOverview();
  renderProfile();
+ renderSelected();
  if(!profile){setTab('profile');message('profileMessage','Ders rezervasyonu için önce profilini kaydet.');}
  else setTab(currentTab);
 }
@@ -162,7 +163,7 @@ function renderLessonCard(b){
  const date=new Date(b.start_at);
  const wrap=document.createElement('article');wrap.className='sp-lesson-card';
  const dayIcon=document.createElement('div');dayIcon.className='sp-date-icon';
- const strong=document.createElement('strong');strong.textContent=String(date.getDate());
+ const strong=document.createElement('strong');strong.textContent=new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',day:'numeric'}).format(date);
  const month=document.createElement('small');month.textContent=new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',month:'short'}).format(date);
  dayIcon.append(strong,month);wrap.append(dayIcon);
  const info=document.createElement('div');info.className='sp-lesson-info';
@@ -244,7 +245,8 @@ function renderCalendar(days){
    button.onclick=()=>{
     if(selected.has(key)){selected.delete(key);}
     else{
-     if(selected.size>=12){message('calendarNotice','Tek seferde en fazla 12 saat seçebilirsin.',true);return;}
+     const allowed=Math.max(0,12-currentBookings().length);
+     if(selected.size>=Math.min(12,allowed)){message('calendarNotice','Aktif derslerinle birlikte en fazla 12 dersin olabilir. Yeni ders kapasiten: '+allowed+'.',true);return;}
      selected.set(key,{date:day.date,minute:slot.minute});
      message('calendarNotice','');
     }
@@ -260,6 +262,8 @@ function renderCalendar(days){
 function renderSelected(){
  const items=[...selected.values()].sort((a,b)=>a.date.localeCompare(b.date)||a.minute-b.minute);
  $('selectedCount').textContent=String(items.length);
+ const allowance=Math.max(0,12-currentBookings().length);
+ $('bookingAllowance').textContent=allowance+' yeni ders talebi daha oluşturabilirsin (toplam en fazla 12 ileri tarihli aktif ders).';
  const holder=$('selectedSlots');holder.replaceChildren();
  if(!items.length){const p=document.createElement('p');p.className='sp-smallprint';p.textContent='Henüz saat seçmedin. Takvimden müsait saatlere dokun.';holder.append(p);}
  for(const item of items){
@@ -269,7 +273,7 @@ function renderSelected(){
   remove.onclick=()=>{selected.delete(slotKey(item.date,item.minute));renderSelected();const days=availabilityCache.get(weekMonday(weekOffset));if(days)renderCalendar(days);};
   row.append(text,remove);holder.append(row);
  }
- $('submitBookings').disabled=sending||!items.length||!profile;
+ $('submitBookings').disabled=sending||!items.length||!profile||items.length>allowance;
  $('repeatWeekly').disabled=sending||repeatingWeeks||!items.length;
  $('submitBookings').textContent=items.length?'Seçtiğim '+items.length+' ders için talep gönder':'Önce ders saati seç';
 }
@@ -309,8 +313,9 @@ async function repeatWeeklySelections(){
    availabilityCache.set(from,payload.days);
   }));
   let added=0;
+  const allowance=Math.max(0,12-currentBookings().length);
   for(const item of candidates){
-   if(selected.size>=12)break;
+   if(selected.size>=Math.min(12,allowance))break;
    const day=availabilityCache.get(item.from)?.find(d=>d.date===item.date);
    const isFree=day?.slots?.some(slot=>slot.minute===item.minute&&slot.free===true);
    if(isFree && !selected.has(item.key)){
@@ -331,6 +336,9 @@ async function submitBatch(){
  if(sending)return;
  if(!profile){setTab('profile');message('profileMessage','Önce profilini kaydet.');return;}
  if(!selected.size){message('bookingMessage','En az bir saat seçmelisin.',true);return;}
+ if(selected.size>Math.max(0,12-currentBookings().length)){
+  message('bookingMessage','Aktif derslerinle birlikte en fazla 12 ileri tarihli ders talebi bulunabilir.',true);return;
+ }
  if(!$('bookingConsent').checked){message('bookingMessage','İletişim iznini işaretlemelisin.',true);return;}
  try{
   setSending(true);
