@@ -74,7 +74,16 @@ The class-code join flow is separate from administrator, teacher and **private-l
 
 **Session stability:** student and teacher frontend clients persist Supabase Auth sessions, refresh expired access tokens, and no longer sign out a valid user after transient database/Edge Function errors. The student dashboard displays a retry action while retaining login state and remembers the active panel across page refreshes.
 
-**Current e-mail delivery limitation:** at the last check **no active ESC email bridge worker** was configured; six lesson messages were pending and none marked sent. Merely creating notification rows does not deliver mail. A verified SMTP/Gmail/transactional e-mail sender and background dispatcher (with delivery logs) must be configured before promising automatic lesson confirmation or reminders. Meanwhile, students and teachers must track outcomes in the dashboards, which show explicit on-screen acknowledgments.
+**Current e-mail delivery status (28 October 2026):** The private-lesson queue currently has **10 pending, 0 sent** messages, and the ESC email bridge currently has **0 enabled configurations**. No Gmail lesson notification is known to have been sent. Queue ingestion and a transactional claim/ack mechanism have been implemented, but actual delivery requires installation and authorization of the external Gmail worker. Do not display "email sent" without acknowledgement.
+
+**Private-lesson Gmail worker installation (admin action required):**
+
+1. Sign in to [Google Apps Script](https://script.google.com/) with the `eryamanspeakingclub@gmail.com` account and create a script project. Add the contents of [integrations/esc-lesson-gmail-worker.gs](integrations/esc-lesson-gmail-worker.gs). Do not paste an API secret into the GitHub repository or browser page.
+2. Run `escPrepareLessonBridge()` in Apps Script once. It generates a strong random secret and saves it privately as an Apps Script property. Copy **only the SHA-256 hex hash printed in the execution log**, not the actual token. The hash can be used by the administrator to configure `esc_email_bridge_config.token_hash` securely with enabled=true.
+3. After the matching server configuration is saved, run `escLessonMailHealth()` to verify authentication; run `escLessonSendTest()` and verify receipt in the Gmail inbox and Sent folder. Grant Google's requested email authorization.
+4. Run `escInstallLessonMailTrigger()` once. It installs a 5-minute trigger for `escLessonMailWorker`, which claims lesson or alternative-time messages, sends via `MailApp.sendEmail`, and acknowledges accepted send requests. Review `sending`, `uncertain` and `failed` items manually before any retry to avoid duplicates.
+
+**Important:** API acknowledgement or a `sent` database flag indicates acceptance by Gmail, **not guaranteed inbox placement**. The teacher must sign in to `/ozel-dersler/yonetim/` with the authorized `eryamanspeakingclub@gmail.com` account. A normal student's credentials correctly receive HTTP 403 and must never be granted teacher access as a workaround.
 
 **Booking fix (27 October 2026):** removed a database function's direct `auth.users` table read, which had caused SQL permission error `42501` for the service role. Supabase Auth JWT validation remains server-side in the student Edge Function. Verified that a three-slot booking succeeds in a transaction and rolled back the test records.
 
