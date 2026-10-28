@@ -56,9 +56,43 @@ const validAgeGroups=['6-12','13-17','18+'];
 const validGoals=['Konuşma pratiği','Genel İngilizce','İş / Profesyonel İngilizce',
  'Akademik İngilizce','Sınav / okul desteği','Eğitim koçluğu'];
 
+// Native radio inputs provide keyboard access. Hidden values keep the
+// existing authenticated enrollment payload and backend validation unchanged.
+function refreshChoiceCards(controlId){
+ const field=document.querySelector('[data-choice-control="'+controlId+'"]');
+ const source=$(controlId);
+ if(!field||!source)return;
+ const chosen=source.value;
+ const relation=controlId.endsWith('Age')?$(controlId.slice(0,-3)+'For')?.value:'';
+ for(const radio of field.querySelectorAll('input[type="radio"]')){
+   // A minor cannot register as their own account holder. Use a parent/guardian
+   // relation instead. Do not silently change a person's real age.
+   const invalidForSelf=controlId.endsWith('Age') && relation==='self' && radio.value!=='18+';
+   radio.disabled=invalidForSelf;
+   radio.checked=radio.value===chosen&&!invalidForSelf;
+   const card=radio.closest('.sp-choice-card');
+   if(card){
+     card.classList.toggle('is-selected',radio.checked);
+     card.classList.toggle('is-disabled',invalidForSelf);
+   }
+ }
+}
+function focusChoice(prefix,key,explanation){
+ const field=document.querySelector('[data-choice-control="'+prefix+key+'"]');
+ if(field){
+  field.classList.add('is-invalid');
+  const first=field.querySelector('input[type="radio"]:not(:disabled)');
+  first?.focus();
+ }
+ throw Error(explanation);
+}
 function toggleLearnerFields(prefix){
  const relation=$(prefix+'For').value;
- const age=$(prefix+'Age').value;
+ let age=$(prefix+'Age').value;
+ if(relation==='self' && age && age!=='18+'){
+   $(prefix+'Age').value='';
+   age='';
+ }
  const otherName=relation!=='' && relation!=='self';
  const ageMinor=age==='6-12'||age==='13-17';
  $(prefix+'LearnerWrap').hidden=!otherName;
@@ -67,6 +101,20 @@ function toggleLearnerFields(prefix){
  $(prefix+'GuardianWrap').hidden=!ageMinor;
  $(prefix+'Guardian').required=ageMinor;
  if(!ageMinor)$(prefix+'Guardian').checked=false;
+ const ageHint=$(prefix+'AgeHelp');
+ if(ageHint){
+   if(relation==='self'){
+     ageHint.dataset.state='notice';
+     ageHint.textContent='Kendim için seçtin: 18 yaş ve üzeri grubunu kullanmalısın. 18 yaş altı öğrenci için veli/vasi Çocuğum için veya uygun başka kişi seçeneğiyle kayıt oluşturmalıdır.';
+   }else if(ageMinor){
+     ageHint.dataset.state='notice';
+     ageHint.textContent='18 yaş altındaki öğrenci için veli veya yasal vasi onayı aşağıda istenecek. Hesap sahibi yetişkin olmalıdır.';
+   }else{
+     ageHint.dataset.state='neutral';
+     ageHint.textContent='Yaş grubunu seç. 18 yaş altındaki öğrenciler için veli veya yasal vasi kaydı gerekir.';
+   }
+ }
+ for(const key of ['For','Age','Level','Goal'])refreshChoiceCards(prefix+key);
 }
 function collectStudentDetails(prefix){
  const full_name=$(prefix+'Name').value.trim().replace(/\s+/g,' ');
@@ -77,12 +125,23 @@ function collectStudentDetails(prefix){
  const goal=$(prefix+'Goal').value;
  const goal_detail=$(prefix+'GoalDetail').value.trim();
  const guardian_confirmed=$(prefix+'Guardian').checked;
- if(full_name.length<2||full_name.length>100||!validLessonFor.includes(lesson_for)||
-    !validAgeGroups.includes(learner_age_group)||learner_name.length<2||learner_name.length>100||
-    !levelOptions.includes(level)||!validGoals.includes(goal)||goal_detail.length>500)
-   throw Error('Ders kimin için, öğrenci adı, yaş grubu, seviye ve amaç alanlarını kontrol et.');
- if(learner_age_group!=='18+'&&(lesson_for==='self'||!guardian_confirmed))
-   throw Error('18 yaş altındaki öğrenciler için velisi veya yasal vasisi adına hesap açılmalı ve veli onayı verilmelidir.');
+ if(full_name.length<2||full_name.length>100)throw Error('Geçerli bir ad ve soyad gir.');
+ if(!validLessonFor.includes(lesson_for))focusChoice(prefix,'For','Önce özel dersin kimin için olduğunu seç.');
+ if(lesson_for==='self'&&learner_age_group!=='18+')
+   focusChoice(prefix,'Age','Kendim için seçeneğinde yaş grubun 18 yaş ve üzeri olmalıdır. 18 yaş altı bir öğrenci için velisi veya yasal vasisi kayıt oluşturmalı.');
+ if(!validAgeGroups.includes(learner_age_group))
+   focusChoice(prefix,'Age','Öğrencinin yaş grubunu seç.');
+ if(learner_name.length<2||learner_name.length>100)
+   throw Error('Ders alacak kişinin adını ve soyadını gir.');
+ if(!levelOptions.includes(level))
+   focusChoice(prefix,'Level','Öğrencinin İngilizce seviyesini seç. Emin değilsen Seviyesini bilmiyorum seçeneğini kullan.');
+ if(!validGoals.includes(goal))
+   focusChoice(prefix,'Goal','Öğrencinin ders alma amacını seç.');
+ if(goal_detail.length>500)throw Error('Hedef açıklaması en fazla 500 karakter olmalıdır.');
+ if(learner_age_group!=='18+'&&!guardian_confirmed){
+   $(prefix+'Guardian').focus();
+   throw Error('18 yaşından küçük öğrenciler için veli veya yasal vasi onayı gereklidir.');
+ }
  return {full_name,lesson_for,learner_name,learner_age_group,level,goal,goal_detail,guardian_confirmed};
 }
 function populateProfile(){
@@ -717,6 +776,19 @@ function bindEvents(){
  $('sendLoginLink').onclick=sendEmailLoginLink;
  $('recoveryForm').addEventListener('submit',savePassword);
  $('profileForm').addEventListener('submit',saveProfile);
+ for(const field of document.querySelectorAll('[data-choice-control]')){
+   field.addEventListener('change',event=>{
+     const radio=event.target;
+     if(!radio?.matches?.('input[type="radio"]'))return;
+     const controlId=field.dataset.choiceControl;
+     const source=$(controlId);
+     if(!source||radio.disabled)return;
+     source.value=radio.value;
+     field.classList.remove('is-invalid');
+     refreshChoiceCards(controlId);
+     source.dispatchEvent(new Event('change',{bubbles:true}));
+   });
+ }
  for(const prefix of ['register','profile']){
    $(prefix+'For').addEventListener('change',()=>toggleLearnerFields(prefix));
    $(prefix+'Age').addEventListener('change',()=>toggleLearnerFields(prefix));
