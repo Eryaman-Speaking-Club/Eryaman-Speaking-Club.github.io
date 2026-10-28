@@ -120,3 +120,117 @@
 }
 @media(prefers-reduced-motion:reduce){.sp-loading-spinner{animation:none}
  .sp-primary-button,.sp-header-button,.sp-secondary-button,.sp-repeat-button,.sp-week-nav button,.sp-slot,.sp-dashboard-tabs button{transition:none}}
+
+/* Modern, accessible enrollment choice cards — October 28 */
+.sp-form .sp-choice-field{
+  border:0;margin:3px 0 4px;padding:0;min-width:0;
+}
+.sp-form .sp-choice-field legend{
+  display:block;width:100%;padding:0;margin:0 0 11px;
+  color:#294e68;font-size:13px;line-height:1.45;font-weight:850;letter-spacing:-.01em;
+}
+.sp-choice-grid{display:grid;gap:9px;width:100%;min-width:0}
+.sp-choice-grid-person{grid-template-columns:repeat(2,minmax(0,1fr))}
+.sp-choice-grid-age{grid-template-columns:repeat(3,minmax(0,1fr))}
+.sp-choice-grid-level{grid-template-columns:repeat(3,minmax(0,1fr))}
+.sp-choice-grid-goal{grid-template-columns:repeat(2,minmax(0,1fr))}
+.sp-form .sp-choice-card{
+  position:relative;display:flex;flex-direction:row;align-items:center;gap:9px;
+  min-width:0;min-height:71px;padding:12px 35px 12px 15px;
+  border:1.5px solid #d4e0e8;border-radius:15px;
+  background:linear-gradient(165deg,#fff 0%,#f8fbfd 100%);
+  box-shadow:0 3px 9px rgba(19,70,99,.045);
+  color:#21465e;text-align:left;font-weight:600;cursor:pointer;
+  transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease,background .16s ease;
+  overflow:hidden;isolation:isolate;
+}
+.sp-form .sp-choice-card .sp-choice-card-copy{
+  display:flex;flex-direction:column;gap:3px;min-width:0;flex:1;pointer-events:none;
+}
+.sp-form .sp-choice-card strong{
+  display:block;font-size:13px;font-weight:850;line-height:1.35;color:#173b56;
+  overflow-wrap:anywhere;
+}
+.sp-form .sp-choice-card small{
+  display:block;font-size:10px;font-weight:650;line-height:1.3;color:#70899a;
+  overflow-wrap:anywhere;
+}
+.sp-form .sp-choice-card:after{
+  content:"";position:absolute;right:13px;top:50%;transform:translateY(-50%);
+  width:17px;height:17px;border:1.5px solid #b9cbd6;border-radius:50%;
+  background:#fff;box-sizing:border-box;pointer-events:none;
+  transition:background .15s ease,border-color .15s ease;
+}
+.sp-form .sp-choice-card input[type="radio"],
+.sp-form .sp-choice-card input[type="radio"]:focus{
+  position:absolute!important;inset:0;width:100%!important;height:100%!important;
+  padding:0!important;margin:0!important;min-height:0!important;
+  border:0!important;border-radius:15px!important;
+  box-shadow:none!important;background:transparent!important;
+  outline:none!important;opacity:0;cursor:pointer;z-index:2;
+}
+.sp-form .sp-choice-card:not(.is-disabled):hover{
+  transform:translateY(-2px);
+  border-color:#8bc6c2;
+  box-shadow:0 9px 19px rgba(9,105,105,.1);
+  background:linear-gradient(150deg,#fff,#f0faf9);
+}
+.sp-form .sp-choice-card:focus-within{
+  outline:3px solid #3fb3ac;outline-offset:3px;
+}
+.sp-form .sp-choice-card.is-selected{
+  border-color:#138d82;background:linear-gradient(155deg,#effaf7,#e4f4f1);
+  box-shadow:0 0 0 1px rgba(18,135,123,.11),0 5px 16px rgba(11,106,96,.1);
+}
+.sp-form .sp-choice-card.is-selected strong{color:#075a58}
+.sp-form .sp-choice-card.is-selected small{color:#477e78}
+.sp-form .sp-choice-card.is-selected:after{
+  content:"✓";display:grid;place-items:center;
+  border-color:#078b80;background:#078b80;color:#fff;
+  font-size:11px;font-weight:900;
+}
+.sp-form .sp-choice-card.is-disabled{
+  opacity:.42;cursor:not-allowed;box-shadow:none;
+  background:#edf2f4;border-color:#d8e1e7;transform:none;
+}
+.sp-form .sp-choice-card.is-disabled input{cursor:not-allowed}
+.sp-form .sp-choice-field.is-invalid .sp-choice-grid{
+  border-radius:17px;outline:2px solid #c64b62;outline-offset:4px;
+}
+.sp-choice-grid-age .sp-choice-card{min-height:66px;padding:10px 26px 10px 11px}
+.sp-choice-grid-age .sp-choice-card strong{font-size:16px}
+.sp-choice-grid-age .sp-choice-card small{font-size:10px}
+.sp-choice-grid-age .sp-choice-card:after{right:8px;width:15px;height:15px}
+.sp-choice-grid-level .sp-choice-card{min-height:61px;padding:9px 31px 9px 13px}
+.sp-choice-grid-level .sp-choice-card strong{font-size:15px}
+.sp-choice-grid-goal .sp-choice-card{min-height:64px}
+.sp-choice-guidance{
+  padding:8px 1px 0;margin:0!important;
+  color:#648294;font-size:11px!important;font-weight:600!important;line-height:1.6;
+}
+.sp-choice-guidance[data-state="notice"]{
+  color:#086b68;
+}
+.sp-form .sp-choice-card:active:not(.is-disabled){transform:translateY(1px)}
+.sp-form .sp-choice-field+input[type="hidden"]{display:none!important}
+.sp-profile-card{border-radius:24px}
+.sp-auth-card{border-radius:24px}
+@media(max-width:690px){
+ .sp-choice-grid{gap:8px}
+ .sp-form .sp-choice-card{min-height:65px;padding:10px 30px 10px 12px;border-radius:13px}
+ .sp-form .sp-choice-card strong{font-size:12px}
+ .sp-form .sp-choice-card small{font-size:10px}
+ .sp-choice-grid-age .sp-choice-card{padding:10px 23px 10px 9px}
+ .sp-choice-grid-age .sp-choice-card strong{font-size:13px}
+}
+@media(max-width:440px){
+ .sp-choice-grid-level{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .sp-choice-grid-age{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .sp-choice-grid-person{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .sp-choice-grid-goal{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .sp-form .sp-choice-card{padding:11px 27px 11px 10px}
+ .sp-form .sp-choice-card:after{right:9px;width:15px;height:15px}
+}
+@media(prefers-reduced-motion:reduce){
+ .sp-form .sp-choice-card,.sp-form .sp-choice-card:after{transition:none}
+}
