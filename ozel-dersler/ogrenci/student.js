@@ -13,7 +13,7 @@ const timeFormat=new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',hou
 const dayFormat=new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',weekday:'long'});
 let client,session=null,profile=null,bookings=[],timeRequests=[],currentTab='overview';
 let authMode='login',recoveryMode=false,weekOffset=0,loadingWeek=false,sending=false,onboardingRequired=true;
-let selected=new Map(),availabilityCache=new Map(),lastBookingReceipt=null;
+let selected=new Map(),availabilityCache=new Map(),lastBookingReceipt=null,emailServiceEnabled=false;
 const slotKey=(date,minute)=>date+'@'+minute;
 const isoStamp=date=>new Date(date+'T12:00:00Z');
 const toIso=d=>d.toISOString().slice(0,10);
@@ -229,6 +229,7 @@ async function loadState(){
  profile=result.profile||null;
  bookings=Array.isArray(result.bookings)?result.bookings:[];
  timeRequests=Array.isArray(result.time_requests)?result.time_requests:[];
+ emailServiceEnabled=result.email_service_enabled===true;
  $('sessionNotice').hidden=true;
  onboardingRequired=Boolean(result.onboarding_required)||!profile?.onboarding_completed;
  showDashboard();
@@ -278,7 +279,7 @@ function renderBookingReceipt(){
  const strong=document.createElement('strong');
  strong.textContent=lastBookingReceipt.count+' ders talebin sisteme kaydedildi.';
  const p=document.createElement('p');
- p.textContent='Rezervasyonların henüz öğretmen tarafından onaylanmadı. Durumu Derslerim alanından takip edebilirsin. Otomatik e-posta teslimatı henüz etkin değil.';
+ p.textContent='Rezervasyonların henüz öğretmen tarafından onaylanmadı. Durumu Derslerim alanından takip edebilirsin. '+(emailServiceEnabled?'Bildirim e-postaları ayrıca gönderim sırasına alınıyor.':'E-posta gönderimi henüz yapılandırılıyor; talebin panelde kayıtlı.');
  box.append(strong,p);
  const list=document.createElement('ul');
  for(const slot of lastBookingReceipt.slots){
@@ -342,7 +343,7 @@ async function submitCustomTimeRequest(event){
   const result=await api('time_request',{date,minute,notes:$('timeRequestNotes').value,consent:true});
   if(!result.ok)throw Error('Talebin kaydedilemedi.');
   $('timeRequestNotes').value='';$('timeRequestConsent').checked=false;
-  message('timeRequestMessage','Talebin kaydedildi ve öğretmen paneline düştü. Ders henüz onaylanmadı; otomatik e-posta gönderimi aktif değil.');
+  message('timeRequestMessage','Talebin öğretmen paneline kaydedildi. Bildirim ayrıca e-posta kuyruğuna eklendi; öğretmen onayı bekleniyor.');
   try{await loadState();}catch(err){
    // A successful create must not be reported as failed due to the subsequent refresh.
    $('sessionNotice').hidden=false;$('sessionNoticeText').textContent='Saat talebin kaydedildi ancak liste yenilenemedi. Oturumun açık.';
