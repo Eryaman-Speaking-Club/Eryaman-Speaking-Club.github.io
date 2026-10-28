@@ -313,9 +313,21 @@ function render() {
   el('blocks').textContent = (snapshot.blocks || []).map(r=>r.lesson_date+' '+hourText(r.start_minute)).join(' • ') || 'Özel olarak kapatılan saat bulunmuyor.';
   const mailState=el('mailDeliveryStatus');
   if(mailState){
-    const pending=Number(snapshot.pending_lesson_emails||0)+Number(snapshot.pending_time_request_emails||0);
-    mailState.textContent='Otomatik e-posta gönderimi doğrulanmadı. Gönderim bekleyen mesaj: '+pending+
-      '. Ders talebi ve Meet bağlantıları öğretmen/öğrenci panellerinde saklanır; e-posta teslimatı garantilenmez.';
+    const info=snapshot.email_delivery||{};
+    const enabled=info.worker_enabled===true;
+    const pending=Number(info.pending??(Number(snapshot.pending_lesson_emails||0)+Number(snapshot.pending_time_request_emails||0)));
+    const accepted=Number(info.accepted_by_gmail||0);
+    const review=Number(info.manual_review||0);
+    const last=info.last_accepted_at
+      ?new Date(info.last_accepted_at).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul',dateStyle:'short',timeStyle:'short'})
+      :'henüz yok';
+    mailState.dataset.state=enabled?'configured':'unconfigured';
+    mailState.textContent=(enabled
+      ? 'Gmail köprüsü etkin. Gönderici zamanlayıcısının çalıştığını kontrol edin.'
+      : 'Gmail işleyicisi henüz yetkilendirilmedi. Otomatik e-posta gönderilmiyor.')+
+      ' Bekleyen: '+pending+' | Gmail gönderim kabulü: '+accepted+
+      ' | Manuel kontrol: '+review+' | Son kayıt: '+last+
+      '. Gelen kutusuna kesin teslim ayrıca doğrulanmalıdır.';
   }
   renderTimeRequests();
   const list = el('bookings');
