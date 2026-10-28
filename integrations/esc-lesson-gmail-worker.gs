@@ -106,6 +106,26 @@ function escRequireLessonMailSetup_(url,token){
     throw Error('ESC_EMAIL_BRIDGE_TOKEN Script Property is missing/invalid.');
   }
 }
+function escPrepareLessonBridge(){
+  // Run once from a Google Apps Script project owned by the ESC Gmail
+  // account. Only the SHA-256 digest is printed; the real secret is stored
+  // privately in Apps Script Script Properties.
+  const props=PropertiesService.getScriptProperties();
+  let token=props.getProperty('ESC_EMAIL_BRIDGE_TOKEN');
+  if(!token){
+    token=[Utilities.getUuid(),Utilities.getUuid(),Utilities.getUuid()]
+      .map(x=>x.replace(/-/g,'')).join('');
+    props.setProperty('ESC_EMAIL_BRIDGE_TOKEN',token);
+  }
+  props.setProperty('ESC_EMAIL_BRIDGE_URL',
+    'https://bshzakigvtyjilolsfjp.supabase.co/functions/v1/esc-email-bridge');
+  const bytes=Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,
+    token,Utilities.Charset.UTF_8);
+  const hex=bytes.map(byte=>('0'+(byte&255).toString(16)).slice(-2)).join('');
+  console.log('Copy this HASH (not the secret) into the Supabase configuration SQL:');
+  console.log(hex);
+  return hex;
+}
 function escLessonMailHealth(){
   const p=PropertiesService.getScriptProperties();
   const endpoint=p.getProperty('ESC_EMAIL_BRIDGE_URL');
