@@ -13,6 +13,8 @@ let session = null;
 let snapshot = null;
 let recoveryMode = false;
 let busy = false;
+let adminAuthorized = false;
+let adminPermissionChecked = false;
 
 // Optimistic slot editor: keep user selections locally and send one batched request.
 const slotButtons = new Map();
@@ -150,14 +152,22 @@ function recoverUrl() {
     || parsed.hash.includes('type=recovery');
 }
 function setLoginVisibility() {
-  const loggedIn = !!session && !recoveryMode;
-  el('panel').hidden = !loggedIn;
-  el('loginForm').hidden = loggedIn || recoveryMode;
-  el('signOut').hidden = !loggedIn;
-  el('recovery').hidden = !recoveryMode;
-  el('loginCaption').textContent = loggedIn
-    ? 'Yönetici hesabıyla giriş yapıldı.'
-    : 'Yönetici hesabınız için mevcut şifrenizi girin veya şifre sıfırlama bağlantısı isteyin.';
+  const signedIn=!!session&&!recoveryMode;
+  const allowed=signedIn&&adminAuthorized;
+  const denied=signedIn&&adminPermissionChecked&&!adminAuthorized;
+  el('panel').hidden=!allowed||!snapshot;
+  el('loginForm').hidden=signedIn||recoveryMode;
+  el('wrongAdminAccount').hidden=!denied;
+  el('signedInEmail').textContent=session?.user?.email||'bilinmeyen hesap';
+  el('signOut').hidden=!signedIn;
+  el('recovery').hidden=!recoveryMode;
+  el('loginCaption').textContent=allowed
+    ? 'Yetkili yönetici hesabı: '+(session.user.email||DEFAULT_EMAIL)
+    : denied
+      ? 'Lütfen yetkili ESC yönetici hesabına geçiş yapın.'
+      : signedIn
+        ? 'Hesabının yönetim yetkisi kontrol ediliyor.'
+        : 'Takvim için kayıtlı ESC yönetici hesabınla giriş yap.';
 }
 function friendlyError(error) {
   const msg = String(error?.message || error || '');
@@ -195,7 +205,14 @@ async function api(body) {
     try{result=await reply.json();}
     catch{throw Error('Sunucudan geçersiz cevap alındı.');}
     if(!reply.ok){
-      if(reply.status===403)throw Error('Bu hesabın takvimi yönetme yetkisi bulunamadı.');
+      if(reply.status===403){
+        adminAuthorized=false;
+        adminPermissionChecked=true;
+        snapshot=null;
+        setLoginVisibility();
+        throw Error('Bu hesabın yönetim yetkisi yok. '+(session?.user?.email||'')+
+          ' yerine yetkili ESC yönetici hesabıyla giriş yapın.');
+      }
       throw Error(result?.error||'Sunucu hatası ('+reply.status+')');
     }
     return result;
@@ -213,6 +230,8 @@ async function reload() {
   if (!loaded || !Array.isArray(loaded.rules) || !Array.isArray(loaded.bookings))
     throw Error('Sunucu takvim verilerini eksik gönderdi.');
   snapshot=loaded;
+  adminAuthorized=true;
+  adminPermissionChecked=true;
   render();
   setLoginVisibility();
   notice('Takvim ve başvurular güncellendi.');
@@ -369,6 +388,8 @@ async function login(event) {
     if (error) throw error;
     if (!data.session) throw Error('Giriş oturumu oluşturulamadı.');
     session = data.session;
+    adminAuthorized=false;
+    adminPermissionChecked=false;
     el('password').value = '';
     await reload();
   } catch(error) {
@@ -429,13 +450,26 @@ async function start() {
     if (event === 'SIGNED_OUT' && !recoveryMode) {
       session=null;
       snapshot=null;
+      adminAuthorized=false;
+      adminPermissionChecked=false;
       setLoginVisibility();
     }
   });
   el('loginForm').addEventListener('submit',login);
   el('forgot').addEventListener('click',requestReset);
   el('recoveryForm').addEventListener('submit',savePassword);
-  el('signOut').addEventListener('click',async()=>{await client.auth.signOut();session=null;snapshot=null;setLoginVisibility();notice('Çıkış yapıldı.');});
+  const logoutAdmin=async()=>{
+    await client.auth.signOut();
+    session=null;
+    snapshot=null;
+    adminAuthorized=false;
+    adminPermissionChecked=false;
+    el('email').value=DEFAULT_EMAIL;
+    setLoginVisibility();
+    notice('Önceki hesaptan çıkış yapıldı. Yetkili ESC yönetici hesabınla giriş yapabilirsin.');
+  };
+  el('signOut').addEventListener('click',logoutAdmin);
+  el('switchAdminAccount').addEventListener('click',logoutAdmin);
   el('reload').onclick=async()=>{try{await reload()}catch(e){notice(friendlyError(e),true)}};
   el('retrySlots').onclick=retrySlotChanges;
   el('saveRecipient').onclick=()=>mutation({op:'settings',email:el('recipient').value.trim()});
@@ -458,6 +492,8 @@ async function start() {
   const {data,error}=await client.auth.getSession();
   if (error) throw error;
   session=data.session;
+  adminAuthorized=false;
+  adminPermissionChecked=false;
   if (recoverUrl()) recoveryMode=true;
   setLoginVisibility();
   if (session && !recoveryMode) {
