@@ -1,3 +1,5 @@
+> **ARŞİV / KULLANILMIYOR (28 Ekim 2026):** Bu Gmail Apps Script yöntemi artık Eryaman Speaking Club özel dersleri için önerilen sistem değildir. Gmail hesabını bağlaman, Google API izinleri vermen veya ChatGPT'yi açık tutman gerekmiyor. Etkin sistem için **[bağımsız Supabase + Resend rehberini](./README-resend-mail.md)** kullan. Aşağıdaki eski talimatlar yalnızca geçmiş sürüm referansıdır.
+
 # Eryaman Speaking Club | Özel ders Gmail bildirimi
 
 **Amaç:** Öğrenci bir veya birden fazla 50 dakikalık ders talebini gönderdiğinde öğretmene eryamanspeakingclub@gmail.com üzerinden bilgilendirme gitmesi. Öğrenciye talep/teyit, Google Meet linki, iptal ve ders öncesi hatırlatmalar da kuyruğa alınır.
