@@ -8,7 +8,7 @@
   <meta name="robots" content="noindex,nofollow">
   <title>Öğrenci Paneli · Birebir İngilizce | Eryaman Speaking Club</title>
   <link rel="icon" href="/favicon.png" type="image/png">
-  <link rel="stylesheet" href="/ozel-dersler/ogrenci/student.css?v=20261027-50m-request-v1">
+  <link rel="stylesheet" href="/ozel-dersler/ogrenci/student.css?v=20261028-choice-cards-v1">
 </head>
 <body>
   <header class="sp-header">
@@ -77,46 +77,110 @@
           <label>Şifren<input type="password" id="registerPassword" autocomplete="new-password" minlength="8" required placeholder="En az 8 karakter"></label>
           <label>Şifre (tekrar)<input type="password" id="registerConfirm" autocomplete="new-password" minlength="8" required></label>
           <div class="sp-form-divider"><strong>Ders almak isteyen kişi</strong><span>Öğrenci bilgileri</span></div>
-          <label>Kim için özel ders almak istiyorsun?
-            <select id="registerFor" required>
-              <option value="" selected disabled>Seçiniz</option>
-              <option value="self">Kendim için</option>
-              <option value="child">Çocuğum için</option>
-              <option value="family">Ailemden / yakınlarımdan biri için</option>
-              <option value="other">Başka biri için</option>
-            </select>
-          </label>
+          <fieldset class="sp-choice-field" data-choice-control="registerFor">
+            <legend>Kim için özel ders almak istiyorsun?</legend>
+            <div class="sp-choice-grid sp-choice-grid-person">
+              <label class="sp-choice-card">
+                <input type="radio" name="registerForChoice" value="self" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>Kendim için</strong><small>18 yaş ve üzeri</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="registerForChoice" value="child" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>Çocuğum için</strong><small>Veli / vasi kaydı</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="registerForChoice" value="family" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>Ailemden biri</strong><small>Yakınım için</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="registerForChoice" value="other" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>Başka biri</strong><small>Bir öğrenci adına</small></span>
+              </label>
+            </div>
+          </fieldset>
+          <input id="registerFor" type="hidden" value="">
           <label id="registerLearnerWrap" hidden>Ders alacak kişinin adı soyadı
             <input type="text" id="registerLearner" maxlength="100" placeholder="Öğrencinin adı soyadı">
           </label>
-          <div class="sp-form-two">
-            <label>Öğrencinin yaş grubu
-              <select id="registerAge" required>
-                <option value="" selected disabled>Seçiniz</option>
-                <option value="6-12">6–12 yaş</option>
-                <option value="13-17">13–17 yaş</option>
-                <option value="18+">18 yaş ve üzeri</option>
-              </select>
-            </label>
-            <label>İngilizce seviyesi
-              <select id="registerLevel" required>
-                <option value="" selected disabled>Seçiniz</option>
-                <option value="unsure">Seviyesini bilmiyorum</option>
-                <option value="A1">A1 · Başlangıç</option><option value="A2">A2 · Temel</option>
-                <option value="B1">B1 · Orta</option><option value="B2">B2 · Orta üstü</option>
-                <option value="C1+">C1 ve üzeri</option>
-              </select>
-            </label>
-          </div>
-          <label>Ders alma amacı
-            <select id="registerGoal" required>
-              <option value="" selected disabled>Amaç seçiniz</option>
-              <option>Konuşma pratiği</option><option>Genel İngilizce</option>
-              <option>İş / Profesyonel İngilizce</option>
-              <option>Akademik İngilizce</option><option>Sınav / okul desteği</option>
-              <option>Eğitim koçluğu</option>
-            </select>
-          </label>
+          <fieldset class="sp-choice-field" data-choice-control="registerAge">
+            <legend>Öğrencinin yaş grubu</legend>
+            <div class="sp-choice-grid sp-choice-grid-age">
+              <label class="sp-choice-card">
+                <input type="radio" name="registerAgeChoice" value="6-12" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>6–12 yaş</strong><small>Çocuk</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="registerAgeChoice" value="13-17" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>13–17 yaş</strong><small>Genç</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="registerAgeChoice" value="18+" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>18+</strong><small>Yetişkin</small></span>
+              </label>
+            </div>
+            <p class="sp-choice-guidance" id="registerAgeHelp" aria-live="polite">18 yaşından küçük öğrenciler için velisi veya yasal vasisi başvuru yapmalıdır.</p>
+          </fieldset>
+          <input id="registerAge" type="hidden" value="">
+          <fieldset class="sp-choice-field" data-choice-control="registerLevel">
+            <legend>Öğrencinin İngilizce seviyesi</legend>
+            <div class="sp-choice-grid sp-choice-grid-level">
+              <label class="sp-choice-card">
+                <input type="radio" name="registerLevelChoice" value="unsure" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>Emin değilim</strong><small>Birlikte belirleyelim</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="registerLevelChoice" value="A1" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>A1</strong><small>Başlangıç</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="registerLevelChoice" value="A2" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>A2</strong><small>Temel</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="registerLevelChoice" value="B1" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>B1</strong><small>Orta</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="registerLevelChoice" value="B2" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>B2</strong><small>Orta üstü</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="registerLevelChoice" value="C1+" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>C1+</strong><small>İleri</small></span>
+              </label>
+            </div>
+          </fieldset>
+          <input id="registerLevel" type="hidden" value="">
+          <fieldset class="sp-choice-field" data-choice-control="registerGoal">
+            <legend>Ders alma amacı</legend>
+            <div class="sp-choice-grid sp-choice-grid-goal">
+              <label class="sp-choice-card">
+                <input type="radio" name="registerGoalChoice" value="Konuşma pratiği" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>Konuşma pratiği</strong><small>Speaking</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="registerGoalChoice" value="Genel İngilizce" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>Genel İngilizce</strong><small>Günlük kullanım</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="registerGoalChoice" value="İş / Profesyonel İngilizce" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>İş İngilizcesi</strong><small>Kariyer &amp; toplantılar</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="registerGoalChoice" value="Akademik İngilizce" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>Akademik İngilizce</strong><small>Akademik çalışmalar</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="registerGoalChoice" value="Sınav / okul desteği" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>Sınav / okul</strong><small>Hazırlık &amp; destek</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="registerGoalChoice" value="Eğitim koçluğu" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>Eğitim koçluğu</strong><small>Bireysel gelişim</small></span>
+              </label>
+            </div>
+          </fieldset>
+          <input id="registerGoal" type="hidden" value="">
           <label>Özel hedef veya açıklama (isteğe bağlı)
             <textarea id="registerGoalDetail" maxlength="500" rows="2" placeholder="Örneğin: İş görüşmelerine hazırlanmak, okulda konuşma pratiği yapmak..."></textarea>
           </label>
@@ -227,30 +291,110 @@
               <p>Mevcut hesabın hazır. Ders seçmeden önce dersin kimin için olduğunu, seviyesini ve öğrenme amacını kaydetmen gerekiyor.</p>
             </div>
             <label>Hesap sahibi / iletişim kurulacak kişi<input id="profileName" type="text" autocomplete="name" maxlength="100" required></label>
-            <label>Özel ders kim için?
-              <select id="profileFor" required>
-                <option value="" selected disabled>Seçiniz</option>
-                <option value="self">Kendim için</option>
-                <option value="child">Çocuğum için</option>
-                <option value="family">Ailemden / yakınlarımdan biri için</option>
-                <option value="other">Başka biri için</option>
-              </select>
-            </label>
+          <fieldset class="sp-choice-field" data-choice-control="profileFor">
+            <legend>Özel ders kim için?</legend>
+            <div class="sp-choice-grid sp-choice-grid-person">
+              <label class="sp-choice-card">
+                <input type="radio" name="profileForChoice" value="self" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>Kendim için</strong><small>18 yaş ve üzeri</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="profileForChoice" value="child" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>Çocuğum için</strong><small>Veli / vasi kaydı</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="profileForChoice" value="family" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>Ailemden biri</strong><small>Yakınım için</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="profileForChoice" value="other" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>Başka biri</strong><small>Bir öğrenci adına</small></span>
+              </label>
+            </div>
+          </fieldset>
+          <input id="profileFor" type="hidden" value="">
             <label id="profileLearnerWrap" hidden>Dersi alacak kişinin adı soyadı
               <input id="profileLearner" type="text" maxlength="100" placeholder="Öğrencinin adı soyadı">
             </label>
-            <label>Öğrencinin yaş grubu
-              <select id="profileAge" required>
-                <option value="" selected disabled>Yaş grubu seçiniz</option>
-                <option value="6-12">6–12 yaş</option>
-                <option value="13-17">13–17 yaş</option>
-                <option value="18+">18 yaş ve üzeri</option>
-              </select>
-            </label>
-            <div class="sp-form-two">
-              <label>Öğrencinin İngilizce seviyesi<select id="profileLevel" required><option value="" selected disabled>Seçiniz</option><option value="unsure">Seviyesini bilmiyorum</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1+</option></select></label>
-              <label>Ders alma amacı<select id="profileGoal" required><option value="" selected disabled>Amaç seçiniz</option><option>Konuşma pratiği</option><option>Genel İngilizce</option><option>İş / Profesyonel İngilizce</option><option>Akademik İngilizce</option><option>Sınav / okul desteği</option><option>Eğitim koçluğu</option></select></label>
+          <fieldset class="sp-choice-field" data-choice-control="profileAge">
+            <legend>Öğrencinin yaş grubu</legend>
+            <div class="sp-choice-grid sp-choice-grid-age">
+              <label class="sp-choice-card">
+                <input type="radio" name="profileAgeChoice" value="6-12" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>6–12 yaş</strong><small>Çocuk</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="profileAgeChoice" value="13-17" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>13–17 yaş</strong><small>Genç</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="profileAgeChoice" value="18+" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>18+</strong><small>Yetişkin</small></span>
+              </label>
             </div>
+            <p class="sp-choice-guidance" id="profileAgeHelp" aria-live="polite">18 yaşından küçük öğrenciler için velisi veya yasal vasisi başvuru yapmalıdır.</p>
+          </fieldset>
+          <input id="profileAge" type="hidden" value="">
+          <fieldset class="sp-choice-field" data-choice-control="profileLevel">
+            <legend>Öğrencinin İngilizce seviyesi</legend>
+            <div class="sp-choice-grid sp-choice-grid-level">
+              <label class="sp-choice-card">
+                <input type="radio" name="profileLevelChoice" value="unsure" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>Emin değilim</strong><small>Birlikte belirleyelim</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="profileLevelChoice" value="A1" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>A1</strong><small>Başlangıç</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="profileLevelChoice" value="A2" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>A2</strong><small>Temel</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="profileLevelChoice" value="B1" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>B1</strong><small>Orta</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="profileLevelChoice" value="B2" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>B2</strong><small>Orta üstü</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="profileLevelChoice" value="C1+" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>C1+</strong><small>İleri</small></span>
+              </label>
+            </div>
+          </fieldset>
+          <input id="profileLevel" type="hidden" value="">
+          <fieldset class="sp-choice-field" data-choice-control="profileGoal">
+            <legend>Ders alma amacı</legend>
+            <div class="sp-choice-grid sp-choice-grid-goal">
+              <label class="sp-choice-card">
+                <input type="radio" name="profileGoalChoice" value="Konuşma pratiği" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>Konuşma pratiği</strong><small>Speaking</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="profileGoalChoice" value="Genel İngilizce" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>Genel İngilizce</strong><small>Günlük kullanım</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="profileGoalChoice" value="İş / Profesyonel İngilizce" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>İş İngilizcesi</strong><small>Kariyer &amp; toplantılar</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="profileGoalChoice" value="Akademik İngilizce" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>Akademik İngilizce</strong><small>Akademik çalışmalar</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="profileGoalChoice" value="Sınav / okul desteği" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>Sınav / okul</strong><small>Hazırlık &amp; destek</small></span>
+              </label>
+              <label class="sp-choice-card">
+                <input type="radio" name="profileGoalChoice" value="Eğitim koçluğu" autocomplete="off">
+                <span class="sp-choice-card-copy"><strong>Eğitim koçluğu</strong><small>Bireysel gelişim</small></span>
+              </label>
+            </div>
+          </fieldset>
+          <input id="profileGoal" type="hidden" value="">
             <label>Özel hedef veya açıklama (isteğe bağlı)
               <textarea id="profileGoalDetail" rows="3" maxlength="500" placeholder="İngilizce öğrenme hedefi, sınav veya ihtiyaçlar..."></textarea>
             </label>
@@ -266,6 +410,6 @@
   </main>
   <footer class="sp-footer"><span>Eryaman Speaking Club · Gülsüm Yağmur Akdeniz</span><a href="/ozel-dersler/">Özel ders sayfası</a><a href="mailto:eryamanspeakingclub@gmail.com">İletişim</a></footer>
   <script src="/esc-supabase-config.js"></script>
-  <script type="module" src="/ozel-dersler/ogrenci/student.js?v=20261027-50m-request-v1"></script>
+  <script type="module" src="/ozel-dersler/ogrenci/student.js?v=20261028-choice-cards-v1"></script>
 </body>
 </html>
