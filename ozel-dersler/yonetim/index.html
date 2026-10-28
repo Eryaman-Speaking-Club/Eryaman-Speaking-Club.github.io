@@ -48,9 +48,27 @@ button:disabled{opacity:.45;box-shadow:none;cursor:not-allowed;transform:none}
  .slot-grid{gap:7px}}
 @media(prefers-reduced-motion:reduce){button{transition:none}}
 
+
+.esc-account-notice{
+  background:#fff7e8;border:1px solid #edcf8f;border-radius:14px;
+  margin:12px 0 17px;padding:15px 17px;color:#5f4611;font-size:13px;
+}
+.esc-account-notice strong{display:block;font-size:15px;color:#604210}
+.esc-account-notice p{margin:6px 0 11px;color:#745a2a;line-height:1.6}
+.esc-account-notice button{min-height:41px;padding:10px 15px}
+.esc-mail-help{font-size:12px!important;line-height:1.6;color:#607b8b!important;margin:12px 0 0}
+.esc-mail-help a{color:#0f6485;text-decoration:underline;text-underline-offset:2px;font-weight:850}
+.esc-mail-help a:focus-visible{outline:2px solid #26a7a2;outline-offset:2px}
+#wrongAdminAccount[hidden]{display:none!important}
+
 </style></head><body><header><strong>Eryaman Speaking Club · Özel Ders Yönetimi</strong><a href="/ozel-dersler/">Özel ders sayfasına dön</a></header><main><h1>Yağmur · Ders Takvimi</h1><p class="esc-teacher-intro">Haftalık müsaitlik saatlerini seç, başvuruları incele, Google Meet bağlantısı ekleyip dersleri onayla. Türkiye saati (GMT+3). <strong class="esc-duration-chip">50 dk ders + 10 dk ara</strong></p>
 <section id="login"><h2>Yönetici girişi</h2>
 <p id="loginCaption">Yönetici hesabınızla giriş yapın.</p>
+<div id="wrongAdminAccount" class="esc-account-notice" hidden role="alert">
+  <strong>Yönetici hesabıyla giriş yapılmamış</strong>
+  <p>Şu anda <span id="signedInEmail">başka bir hesap</span> ile oturum açık. Haftalık takvimi yalnızca yetkili yönetici hesabı düzenleyebilir.</p>
+  <button type="button" id="switchAdminAccount" class="subtle">Yönetici hesabıyla giriş yap</button>
+</div>
 <form id="loginForm" autocomplete="on">
   <div class="row">
     <label>E-posta adresi <input type="email" id="email" name="email" autocomplete="username" required value="eryamanspeakingclub@gmail.com"></label>
@@ -83,8 +101,9 @@ button:disabled{opacity:.45;box-shadow:none;cursor:not-allowed;transform:none}
 <div id="blocks" class="esc-closed-slots"></div></section>
 <section><h2>E-posta bildirimleri</h2><p>Yeni rezervasyon ve alternatif saat taleplerinin mesajları bu adrese hazırlanır. <strong>Otomatik gönderim henüz aktif değil.</strong> Gönderici bağlantısı kurulana kadar e-postanın ulaştığı varsayılmamalıdır.</p>
 <div class="row"><input id="recipient" type="email" style="flex:1;min-width:180px" aria-label="Bildirim alıcı e-posta"><button id="saveRecipient" type="button">Adresi kaydet</button></div>
-<div id="mailDeliveryStatus" class="esc-mail-status" role="status">E-posta gönderimi: yapılandırma gerekli</div></section></div>
+<div id="mailDeliveryStatus" class="esc-mail-status" role="status">E-posta gönderimi: yapılandırma gerekli</div>
+<p class="esc-mail-help">Ders başvuruları burada kaydedilir ve yönetici adresine e-posta olarak hazırlanır. Gmail'in mesajları gerçekten göndermesi için <a href="https://github.com/Eryaman-Speaking-Club/Eryaman-Speaking-Club.github.io/blob/main/integrations/README-private-lesson-email.md" target="_blank" rel="noopener noreferrer">Gmail işleyici kurulumunu</a> tamamlayın. Sadece kuyruğa eklenmesi, e-postanın gönderildiği anlamına gelmez.</p></section></div>
 <section><h2>Kesin saatli ders rezervasyonları <span class="esc-mini-chip">50 dakika</span></h2><p>Yeni rezervasyon talepleri o saati otomatik olarak kapatır. Öğretmen onayı için geçerli Google Meet bağlantısı ekle. Otomatik e-posta gönderimi henüz etkin değildir.</p><div id="bookings"></div></section>
 <section id="requestedTimeSection"><h2>Takvim dışı saat talepleri</h2><p>Öğrenci, açılmamış veya dolu bir saat için istekte bulunabilir. Bunlar <strong>kesin rezervasyon değildir</strong>. Uygunluk durumunu inceleyip öğrenciyle iletişime geç.</p><div id="timeRequests"></div></section></div><p id="msg" role="status"></p></main>
 <script src="/esc-supabase-config.js"></script>
-<script type="module" src="/ozel-dersler/yonetim/admin.js?v=20261027-50m-request-v1"></script></body></html>
+<script type="module" src="/ozel-dersler/yonetim/admin.js?v=20261028-mailbridge-v1"></script></body></html>
