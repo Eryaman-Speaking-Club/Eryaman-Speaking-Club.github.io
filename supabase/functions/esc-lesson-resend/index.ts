@@ -38,19 +38,18 @@ function safeProviderError(value:unknown){
      'API rejected request';
   return raw.replace(/re_[A-Za-z0-9]+/g,'[redacted]').slice(0,180);
 }
-async function acknowledge(queue:string,id:number,accepted:boolean,
+async function acknowledge(token:string,queue:string,id:number,accepted:boolean,
  providerId:string|null,httpStatus:number|null,errorText:string|null) {
   return Boolean(await rpc('esc_resend_dispatch_ack',{
-    p_token:dispatchToken,p_queue:queue,p_id:id,p_accepted:accepted,
+    p_token:token,p_queue:queue,p_id:id,p_accepted:accepted,
     p_provider_id:providerId,p_http_status:httpStatus,p_error:errorText
   }));
 }
-let dispatchToken = '';
 
 Deno.serve(async (req:Request) => {
   if(req.method!=='POST')return response(405,{ok:false,error:'Method not allowed'});
   // The long random token is created by SQL and never stored in GitHub.
-  dispatchToken=req.headers.get('x-esc-cron-token')||'';
+  const dispatchToken=req.headers.get('x-esc-cron-token')||'';
   if(!db||dispatchToken.length!==80)
     return response(401,{ok:false,error:'Unauthorized'});
   try {
@@ -93,7 +92,7 @@ Deno.serve(async (req:Request) => {
     const subject=String(row.subject||'').slice(0,160);
     const body=String(row.body||'').replace(/\\n/g,'\n').slice(0,15000);
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient)||!subject||!body){
-      await acknowledge(queue,id,false,null,null,'Invalid recipient or empty message').catch(()=>null);
+      await acknowledge(dispatchToken,queue,id,false,null,null,'Invalid recipient or empty message').catch(()=>null);
       manualReview++;
       continue;
     }
@@ -112,7 +111,7 @@ Deno.serve(async (req:Request) => {
     }catch(error){
       // Delivery is unknown after network failure: do NOT automatically retry.
       const explanation=error instanceof Error?error.name:'Network error';
-      await acknowledge(queue,id,false,null,null,'Uncertain provider response: '+explanation).catch(()=>null);
+      await acknowledge(dispatchToken,queue,id,false,null,null,'Uncertain provider response: '+explanation).catch(()=>null);
       manualReview++;
       clearTimeout(timeout);
       continue;
@@ -123,7 +122,7 @@ Deno.serve(async (req:Request) => {
     const providerId=typeof payload.id==='string'?payload.id:null;
     if(sendResponse.ok && providerId){
       try{
-        const didAck=await acknowledge(queue,id,true,providerId,sendResponse.status,null);
+        const didAck=await acknowledge(dispatchToken,queue,id,true,providerId,sendResponse.status,null);
         if(didAck)accepted++; else manualReview++;
       }catch{
         // Resend may already have accepted this email: leave the claim as
@@ -132,7 +131,7 @@ Deno.serve(async (req:Request) => {
       }
     }else{
       const reason=sendResponse.ok?'Provider accepted without an email ID':safeProviderError(payload);
-      await acknowledge(queue,id,false,null,sendResponse.status,reason).catch(()=>null);
+      await acknowledge(dispatchToken,queue,id,false,null,sendResponse.status,reason).catch(()=>null);
       manualReview++;
     }
   }
