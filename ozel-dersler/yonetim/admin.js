@@ -316,18 +316,20 @@ function render() {
     const info=snapshot.email_delivery||{};
     const enabled=info.worker_enabled===true;
     const pending=Number(info.pending??(Number(snapshot.pending_lesson_emails||0)+Number(snapshot.pending_time_request_emails||0)));
-    const accepted=Number(info.accepted_by_gmail||0);
+    const accepted=Number(info.accepted_by_provider||0);
+    const legacy=Number(info.legacy_pending||0);
     const review=Number(info.manual_review||0);
     const last=info.last_accepted_at
       ?new Date(info.last_accepted_at).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul',dateStyle:'short',timeStyle:'short'})
       :'henüz yok';
     mailState.dataset.state=enabled?'configured':'unconfigured';
     mailState.textContent=(enabled
-      ? 'Gmail köprüsü etkin. Gönderici zamanlayıcısının çalıştığını kontrol edin.'
-      : 'Gmail işleyicisi henüz yetkilendirilmedi. Otomatik e-posta gönderilmiyor.')+
-      ' Bekleyen: '+pending+' | Gmail gönderim kabulü: '+accepted+
-      ' | Manuel kontrol: '+review+' | Son kayıt: '+last+
-      '. Gelen kutusuna kesin teslim ayrıca doğrulanmalıdır.';
+      ? 'Resend e-posta servisi aktif. Sunucu otomatik gönderimi kontrol ediyor.'
+      : 'Resend henüz etkin değil. Alan adı ve sunucu API anahtarı doğrulanmalı.')+
+      ' Yeni bekleyen: '+pending+' | Eski kuyruk (otomatik gönderilmez): '+legacy+
+      ' | Resend kabulü: '+accepted+' | Manuel kontrol: '+review+
+      ' | Son kayıt: '+last+
+      '. Kabul, alıcının gelen kutusuna kesin teslim anlamına gelmez.';
   }
   renderTimeRequests();
   const list = el('bookings');
