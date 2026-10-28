@@ -61,11 +61,16 @@ Deno.serve(async (req:Request) => {
   const apiKey = Deno.env.get('ESC_RESEND_API_KEY') || '';
   const from = Deno.env.get('ESC_RESEND_FROM') || '';
   const activated = Deno.env.get('ESC_RESEND_ENABLED') === 'true';
-  const ready=activated && apiKey.startsWith('re_') && acceptableSender(from);
+  // Report only which setting is incomplete; never return or log secret values.
+  const setupIssues:string[]=[];
+  if(!apiKey.startsWith('re_'))setupIssues.push('ESC_RESEND_API_KEY is absent or invalid');
+  if(!acceptableSender(from))setupIssues.push('ESC_RESEND_FROM is absent or invalid');
+  if(!activated)setupIssues.push('ESC_RESEND_ENABLED must equal true');
+  const ready=setupIssues.length===0;
   try{
     await rpc('esc_resend_dispatch_heartbeat',{
       p_token:dispatchToken,p_ready:ready,
-      p_problem:ready ? null : 'Sender requires verified domain, API key and activation'
+      p_problem:ready ? null : setupIssues.join('; ')
     });
   }catch(error){
     console.error('ESC mail health database error',String(error).slice(0,100));
