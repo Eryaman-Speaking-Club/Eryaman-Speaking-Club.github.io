@@ -441,3 +441,6 @@
 
 /* Shared Games navigation and original calm background-music control. */
 (function(){if(document.querySelector('script[data-esc-game-extras]'))return;var s=document.createElement('script');s.src='/esc-game-extras.js?v=20261029-ui10';s.async=true;s.dataset.escGameExtras='1';document.head.appendChild(s);})();
+
+/* Game Master: shared sessions, voting and speaking tools. */
+(()=>{if(document.querySelector('script[data-esc-game-master]'))return;const node=document.createElement('script');node.src='/esc-game-master.js?v=20261029-mvp1';node.async=true;node.dataset.escGameMaster='1';document.head.appendChild(node)})();
