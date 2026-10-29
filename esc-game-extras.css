@@ -35,3 +35,6 @@
   .esc-calm-music-panel{border-radius:17px}
 }
 @media(prefers-reduced-motion:reduce){.esc-all-games-btn,.esc-calm-music-button{transition:none!important}}
+
+.esc-calm-test{width:100%;min-height:39px;border:1px solid #d6e2ee;border-radius:12px;background:#f5f9ff;color:#174878;cursor:pointer;font:700 12px system-ui,sans-serif;margin:3px 0 9px}
+.esc-calm-test:hover{background:#eaf3fc}
