@@ -9,11 +9,36 @@ const KEY='esc-gamemaster-session-v1';
 let client=null,session=null,data=null,timer=null,speechTimer=null,speechStarted=0,speechDeadline=0,remaining=60,boardPainting=false,boardPoints=[],lastBoardLength=-1,projector=false,view='players',requesting=false,lastFocused=null;
 let hostBtn=null,shade=null,stage=null,notifyEl=null,speechApi=null;
 let renderSignature='',qrVisible=false,boardInk='#174b82',boardThickness=3,transcript='',refreshQueued=false;
+let realtimeChannel=null,realtimeCode='',lastRealtimeWake=0;
 const q=s=>stage?.querySelector(s);const e=s=>document.createElement(s);
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function flash(msg){if(!notifyEl)return;notifyEl.textContent=msg;notifyEl.hidden=false;clearTimeout(flash.t);flash.t=setTimeout(()=>{notifyEl.hidden=true},3500)}
 async function db(){if(client)return client;client=await window.ESCSupabase?.getClient?.();if(!client)throw Error('Game service is not available');return client}
 async function rpc(name,args){const {data,error}=await (await db()).rpc(name,args);if(error)throw Error(error.message||'Game service unavailable');return data}
+function disconnectRealtime(){
+ const old=realtimeChannel;realtimeChannel=null;realtimeCode='';
+ if(old&&client)void client.removeChannel(old).catch(()=>{});
+}
+async function attachRealtime(){
+ if(!session)return;
+ const code=session.code;
+ if(realtimeChannel&&realtimeCode===code)return;
+ disconnectRealtime();
+ try{
+  const c=await db();
+  if(!session||session.code!==code)return;
+  const channel=c.channel('esc-gm-room:'+code,{config:{broadcast:{self:false}}});
+  channel.on('broadcast',{event:'refresh'},()=>{
+   if(document.hidden||Date.now()-lastRealtimeWake<900)return;
+   lastRealtimeWake=Date.now();void refresh();
+  }).subscribe();
+  realtimeChannel=channel;realtimeCode=code;
+ }catch(_){/* Periodic authenticated snapshots remain available. */}
+}
+async function notifyOthers(){
+ try{if(realtimeChannel)await realtimeChannel.send({type:'broadcast',event:'refresh',payload:{}})}
+ catch(_){/* Polling is the fallback. */}
+}
 function save(){try{if(session)sessionStorage.setItem(KEY,JSON.stringify(session));else sessionStorage.removeItem(KEY)}catch(_){}}
 function load(){try{const x=JSON.parse(sessionStorage.getItem(KEY)||'null');if(x&&/^[0-9A-F]{10}$/.test(x.code)&&/^[a-f0-9]{64}$/.test(x.token))session=x}catch(_){}}
 function queryRoom(){return(new URLSearchParams(location.search)).get('room')?.toUpperCase().slice(0,10)||''}
@@ -57,7 +82,7 @@ function render(force=false){
  const common='<div class="esc-gm-summary"><div><strong>Room '+escape(session.code)+'</strong><span>'+escape(LABEL(r.game))+' · Round '+r.round+'</span></div><button data-do="copy" title="Copy player link">Copy invite</button><button data-do="qr">Show QR</button></div><div class="esc-gm-tabs">'+tab('Players','players')+tab('Votes','votes')+tab('Whiteboard','board')+tab('Activities','activities')+tab('Summary','summary')+'</div>';
  let html='';
  if(view==='players'){
-  html='<div class="esc-gm-section"><div class="esc-gm-row"><h3>Players & scoreboard</h3>'+(controls?'<button data-do="nextTurn">Next player</button>':'')+'</div><div class="esc-gm-roster">'+players.map(p=>'<div class="esc-gm-player '+(r.currentTurn===p.id?'current':'')+'"><div class="esc-gm-avatar">'+escape(p.name.slice(0,1).toUpperCase())+'</div><div class="esc-gm-playername"><strong>'+escape(p.name)+(p.id===me.id?' (you)':'')+'</strong><small>Team '+escape(p.team||'—')+' · '+p.speakingSeconds+'s speaking</small></div><b>'+p.score+' pts</b>'+(controls?'<div class="esc-gm-steps"><button data-do="score" data-id="'+p.id+'" data-delta="-1" aria-label="Minus one point">−</button><button data-do="score" data-id="'+p.id+'" data-delta="1" aria-label="Add one point">+</button><button data-do="team" data-id="'+p.id+'">A/B</button><button data-do="turn" data-id="'+p.id+'">Turn</button></div>':'')+'</div>').join('')+'</div>'+(controls?'<div class="esc-gm-two"><label>Switch game<select id="gmGame">'+GAMES.map(x=>'<option value="'+x+'" '+(r.game===x?'selected':'')+'>'+LABEL(x)+'</option>').join('')+'</select></label><button data-do="changeGame">Change game</button></div><button data-do="newRound">Start next round</button>':'')+'</div>';
+  html='<div class="esc-gm-section"><div class="esc-gm-row"><h3>Players & scoreboard</h3>'+(controls?'<button data-do="nextTurn">Next player</button>':'')+'</div><div class="esc-gm-roster">'+players.map(p=>'<div class="esc-gm-player '+(r.currentTurn===p.id?'current':'')+'"><div class="esc-gm-avatar">'+escape(p.name.slice(0,1).toUpperCase())+'</div><div class="esc-gm-playername"><strong>'+escape(p.name)+(p.id===me.id?' (you)':'')+'</strong><small>Team '+escape(p.team||'—')+' · '+p.speakingSeconds+'s speaking</small></div><b>'+p.score+' pts</b>'+(controls?'<div class="esc-gm-steps"><button data-do="score" data-id="'+p.id+'" data-delta="-1" aria-label="Minus one point">−</button><button data-do="score" data-id="'+p.id+'" data-delta="1" aria-label="Add one point">+</button><button data-do="team" data-id="'+p.id+'">A/B</button><button data-do="turn" data-id="'+p.id+'">Turn</button>'+(p.id===me.id?'':'<button data-do="kick" data-id="'+p.id+'">Remove</button>')+'</div>':'')+'</div>').join('')+'</div>'+(controls?'<div class="esc-gm-two"><label>Switch game<select id="gmGame">'+GAMES.map(x=>'<option value="'+x+'" '+(r.game===x?'selected':'')+'>'+LABEL(x)+'</option>').join('')+'</select></label><button data-do="changeGame">Change game</button></div><button data-do="newRound">Start next round</button>':'')+'</div>';
  }else if(view==='votes'){
   const opts=Array.isArray(r.settings.voteOptions)?r.settings.voteOptions:['A','B'];
   html='<div class="esc-gm-section"><h3>Live poll</h3><p>'+escape(r.question||'Ask your group a question.')+'</p>'+(controls?'<label>Question<input id="gmPoll" maxlength="220" placeholder="What do you think?" value="'+escape(r.question)+'"></label><div class="esc-gm-two"><button data-do="poll" class="esc-gm-primary">Open voting</button><button data-do="closePoll">Close voting</button></div>':'')+'<div class="esc-gm-vote">'+opts.map(o=>'<button '+(!r.voteOpen?'disabled':'')+' data-do="vote" data-choice="'+escape(o)+'">'+escape(o)+'</button>').join('')+'</div><div class="esc-gm-results">'+opts.map(o=>'<div><span>'+escape(o)+'</span><div><i style="width:'+(sum?Math.round(100*(votes[o]||0)/sum):0)+'%"></i></div><b>'+Number(votes[o]||0)+'</b></div>').join('')+'</div><p>'+sum+' votes · '+(r.voteOpen?'Voting open':'Voting closed')+'</p></div>';
@@ -99,25 +124,31 @@ async function refresh(){
    if(!session||session.code!==code)return;
    if(!shade.hidden)flash(err.message);
    if(/expired|Invalid room|Invalid room access|Room membership required/i.test(err.message)){
-     session=null;data=null;renderSignature='';save();showWelcome();
+     disconnectRealtime();session=null;data=null;renderSignature='';save();showWelcome();
    }
  }finally{
    requesting=false;
    if(refreshQueued){refreshQueued=false;setTimeout(()=>{if(session)refresh()},50)}
  }
 }
-async function action(kind,payload={}){if(!session)throw Error('Join a room first');return rpc('esc_live_action',{p_code:session.code,p_token:session.token,p_kind:kind,p_payload:payload})}
+async function action(kind,payload={}){if(!session)throw Error('Join a room first');const result=await rpc('esc_live_action',{p_code:session.code,p_token:session.token,p_kind:kind,p_payload:payload});void notifyOthers();return result}
 function download(){const lines=['ESC Game Master · '+session.code,'Game: '+LABEL(data.room.game),'Rounds: '+data.room.round,'Players:'];data.players.forEach(p=>lines.push(p.name+' · '+p.score+' pts · '+p.speakingSeconds+' seconds'));const blob=new Blob([lines.join('\n')],{type:'text/plain'});const url=URL.createObjectURL(blob);const a=e('a');a.href=url;a.download='esc-game-master-summary.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 async function handle(btn){if(btn.disabled)return;btn.disabled=true;const kind=btn.dataset.do;const id=btn.dataset.id;try{
  if(kind==='create'||kind==='join'){
   const name=q('#gmName')?.value?.trim()||'';if(!name)throw Error('Enter your name');
   const x=kind==='create'?await rpc('esc_live_create',{p_name:name,p_game:slug()}):await rpc('esc_live_join',{p_name:name,p_code:q('#gmCode')?.value?.trim()||''});
-  session=x;data=null;renderSignature='';qrVisible=false;transcript='';save();view='players';await refresh();flash('Connected to room '+x.code);return;
+  session=x;data=null;renderSignature='';qrVisible=false;transcript='';save();view='players';await attachRealtime();void notifyOthers();await refresh();flash('Connected to room '+x.code);return;
  }
  if(kind==='joinForm'){showJoin();return}if(kind==='welcome'){showWelcome();return}
  if(kind==='copy'){await navigator.clipboard.writeText(roomUrl());flash('Invite link copied');return}
  if(kind==='qr'){qrVisible=!qrVisible;const old=stage.querySelector('.esc-gm-qr');if(old)old.remove();else showQrPanel();return}
- if(kind==='leave'){speechApi?.stop();speechApi=null;clearInterval(speechTimer);speechTimer=null;session=null;data=null;renderSignature='';qrVisible=false;transcript='';save();showWelcome();return}
+ if(kind==='leave'){
+  if(data?.me?.host&&!confirm('End this room for everyone and leave?'))return;
+  if(session)await action('leave');
+  speechApi?.stop();speechApi=null;clearInterval(speechTimer);speechTimer=null;
+  disconnectRealtime();session=null;data=null;renderSignature='';qrVisible=false;transcript='';
+  save();showWelcome();return;
+ }
  if(kind==='downloadSummary'){download();return}
  if(kind==='voiceStart'){
   const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -150,6 +181,7 @@ async function handle(btn){if(btn.disabled)return;btn.disabled=true;const kind=b
  const payload={};let target=kind;
  if(kind==='score'){payload.playerId=id;payload.delta=Number(btn.dataset.delta)}
  else if(kind==='team'){const p=data.players.find(x=>x.id===id);payload.playerId=id;payload.team=p.team==='A'?'B':p.team==='B'?'':'A'}
+ else if(kind==='kick'){const member=data.players.find(x=>x.id===id);if(!member||!confirm('Remove '+member.name+' from this room?'))return;payload.playerId=id}
  else if(kind==='turn'){payload.playerId=id}
  else if(kind==='nextTurn'){const ix=data.players.findIndex(p=>p.id===data.room.currentTurn);payload.playerId=data.players[(ix+1)%data.players.length]?.id;target='turn'}
  else if(kind==='changeGame'){payload.slug=q('#gmGame')?.value;target='game'}
@@ -181,7 +213,7 @@ function mount(){
  hostBtn=e('button');hostBtn.type='button';hostBtn.className='esc-gm-launch';hostBtn.textContent='Game Master';hostBtn.title='Players, voting, scoring and live collaboration';hostBtn.onclick=open;
  (top||document.body).appendChild(hostBtn);
  load();
- const url=queryRoom();if(url&&(!session||session.code!==url)){session=null;save();open();showJoin()}else if(session){refresh();if(location.pathname.startsWith('/play/'))open()}
+ const url=queryRoom();if(url&&(!session||session.code!==url)){disconnectRealtime();session=null;save();open();showJoin()}else if(session){refresh();if(location.pathname.startsWith('/play/'))open();void attachRealtime()}
  else if(location.pathname.startsWith('/play/')){open();showJoin()}
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&session)void refresh()});
  setInterval(()=>{if(session&&!document.hidden)void refresh()},3000);
