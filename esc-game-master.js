@@ -62,7 +62,7 @@ function render(force=false){
   const opts=Array.isArray(r.settings.voteOptions)?r.settings.voteOptions:['A','B'];
   html='<div class="esc-gm-section"><h3>Live poll</h3><p>'+escape(r.question||'Ask your group a question.')+'</p>'+(controls?'<label>Question<input id="gmPoll" maxlength="220" placeholder="What do you think?" value="'+escape(r.question)+'"></label><div class="esc-gm-two"><button data-do="poll" class="esc-gm-primary">Open voting</button><button data-do="closePoll">Close voting</button></div>':'')+'<div class="esc-gm-vote">'+opts.map(o=>'<button '+(!r.voteOpen?'disabled':'')+' data-do="vote" data-choice="'+escape(o)+'">'+escape(o)+'</button>').join('')+'</div><div class="esc-gm-results">'+opts.map(o=>'<div><span>'+escape(o)+'</span><div><i style="width:'+(sum?Math.round(100*(votes[o]||0)/sum):0)+'%"></i></div><b>'+Number(votes[o]||0)+'</b></div>').join('')+'</div><p>'+sum+' votes · '+(r.voteOpen?'Voting open':'Voting closed')+'</p></div>';
  }else if(view==='board'){
-  html='<div class="esc-gm-section"><div class="esc-gm-row"><h3>Shared Whiteboard</h3>'+(controls?'<button data-do="clearBoard">Clear</button>':'')+'</div><p>Draw with a mouse or finger. Everyone in the room sees the same board.</p><div class="esc-gm-canvas"><canvas id="gmBoard" width="720" height="400"></canvas></div><div class="esc-gm-row"><label>Ink <input type="color" id="gmInk" value="#174b82"></label><label>Size <input id="gmSize" type="range" min="1" max="12" value="3"></label></div></div>';
+  html='<div class="esc-gm-section"><div class="esc-gm-row"><h3>Shared Whiteboard</h3>'+(controls?'<button data-do="clearBoard">Clear</button>':'')+'</div><p>Draw with a mouse or finger. Everyone in the room sees the same board.</p><div class="esc-gm-canvas"><canvas id="gmBoard" width="720" height="400"></canvas></div><div class="esc-gm-row"><label>Ink <input type="color" id="gmInk" value="'+boardInk+'"></label><label>Size <input id="gmSize" type="range" min="1" max="12" value="'+boardThickness+'"></label></div></div>';
  }else if(view==='activities'){
   html='<div class="esc-gm-section"><h3>Speaking challenges</h3><p>'+escape(r.challenge||'Choose a challenge to get started.')+'</p><div class="esc-gm-two"><button data-do="challenge">Random challenge</button><button data-do="power">Power-up card</button></div>'+(controls?'<div class="esc-gm-row"><button data-do="mix">Start Game Mix</button><button data-do="projector">Projector mode</button></div>':'')+'<h4>Speaking practice</h4><div class="esc-gm-two"><button data-do="voiceStart">Start speech transcription</button><button data-do="voiceStop">Stop</button></div><textarea id="gmTranscript" aria-label="Local speaking transcript" placeholder="Speech appears here when supported by your browser." rows="3"></textarea><h4>Speaking timer</h4><div class="esc-gm-timer" id="gmTimer">'+remaining+'s</div><div class="esc-gm-three"><button data-do="timerStart">Start</button><button data-do="timerStop">Stop</button><button data-do="timerReset">Reset</button></div><p>Speaking time is self-reported; microphone recording is not required.</p></div>';
  }else if(view==='summary'){
@@ -71,6 +71,7 @@ function render(force=false){
  }
  stage.querySelector('.esc-gm-main').innerHTML=common+html+'<div class="esc-gm-footer"><span>'+escape(r.status==='active'?'● Session live':'● Session ended')+'</span><button data-do="leave">Leave room</button></div>';
  bindMain();
+ if(r.status!=='active')stage.querySelectorAll('[data-do]').forEach(b=>{if(!['downloadSummary','leave','copy','qr'].includes(b.dataset.do))b.disabled=true});
  if(view==='board')drawBoard();
  if(view==='activities'&&q('#gmTranscript'))q('#gmTranscript').value=transcript;
  if(r.game!==slug()&&!location.pathname.startsWith('/play/'))stage.querySelector('.esc-gm-summary')?.insertAdjacentHTML('beforeend','<a href="/'+encodeURIComponent(r.game)+'/?gm=1">Open current game</a>');
@@ -78,9 +79,33 @@ function render(force=false){
 }
 function pos(evt,canvas){const z=canvas.getBoundingClientRect();return [+(Math.max(0,Math.min(1,(evt.clientX-z.left)/z.width)).toFixed(4)),+(Math.max(0,Math.min(1,(evt.clientY-z.top)/z.height)).toFixed(4))]}
 function paint(ctx,path,w,h){const points=path.points;if(!Array.isArray(points)||points.length<2)return;ctx.beginPath();ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=Math.min(20,Math.max(1,Number(path.size)||3));ctx.strokeStyle=/^#[0-9a-f]{6}$/i.test(path.color)?path.color:'#174b82';points.forEach((p,i)=>{const x=Number(p[0])*w,y=Number(p[1])*h;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.stroke()}
-function drawBoard(){const canvas=q('#gmBoard');if(!canvas)return;const ctx=canvas.getContext('2d');ctx.clearRect(0,0,720,400);ctx.fillStyle='#fff';ctx.fillRect(0,0,720,400);(data.room.board||[]).forEach(p=>paint(ctx,p,720,400));if(boardPoints.length>1)paint(ctx,{points:boardPoints,color:q('#gmInk')?.value,size:Number(q('#gmSize')?.value)},720,400);lastBoardLength=(data.room.board||[]).length}
-function bindBoard(){const c=q('#gmBoard');if(!c)return;c.style.touchAction='none';c.onpointerdown=ev=>{boardPainting=true;boardPoints=[pos(ev,c)];c.setPointerCapture(ev.pointerId)};c.onpointermove=ev=>{if(!boardPainting)return;boardPoints.push(pos(ev,c));if(boardPoints.length>95)boardPoints.shift();drawBoard()};c.onpointerup=async ev=>{if(!boardPainting)return;boardPainting=false;boardPoints.push(pos(ev,c));const path={points:boardPoints,color:q('#gmInk')?.value||'#174b82',size:Number(q('#gmSize')?.value)||3};boardPoints=[];try{await action('board_add',path);await refresh()}catch(err){flash(err.message)}};c.onpointercancel=()=>{boardPainting=false;boardPoints=[];drawBoard()}}
-async function refresh(){if(!session||requesting)return;requesting=true;try{data=await rpc('esc_live_snapshot',{p_code:session.code,p_token:session.token});if(!shade.hidden)render()}catch(err){if(!shade.hidden)flash(err.message);if(/expired|Invalid room/i.test(err.message)){session=null;save();showWelcome()}}finally{requesting=false}}
+function drawBoard(){const canvas=q('#gmBoard');if(!canvas)return;const ctx=canvas.getContext('2d');ctx.clearRect(0,0,720,400);ctx.fillStyle='#fff';ctx.fillRect(0,0,720,400);(data.room.board||[]).forEach(p=>paint(ctx,p,720,400));if(boardPoints.length>1)paint(ctx,{points:boardPoints,color:boardInk,size:boardThickness},720,400);lastBoardLength=(data.room.board||[]).length}
+function bindBoard(){const c=q('#gmBoard');if(!c)return;
+ const ink=q('#gmInk'),size=q('#gmSize');
+ if(ink)ink.oninput=()=>{boardInk=ink.value};
+ if(size)size.oninput=()=>{boardThickness=Number(size.value)||3};
+ c.style.touchAction='none';c.onpointerdown=ev=>{boardPainting=true;boardPoints=[pos(ev,c)];c.setPointerCapture(ev.pointerId)};c.onpointermove=ev=>{if(!boardPainting)return;boardPoints.push(pos(ev,c));if(boardPoints.length>95)boardPoints=boardPoints.filter((_,i)=>i%2===0);drawBoard()};c.onpointerup=async ev=>{if(!boardPainting)return;boardPainting=false;boardPoints.push(pos(ev,c));const path={points:boardPoints,color:boardInk,size:boardThickness};boardPoints=[];try{await action('board_add',path);await refresh()}catch(err){flash(err.message)}};c.onpointercancel=()=>{boardPainting=false;boardPoints=[];drawBoard()}}
+async function refresh(){
+ if(!session)return;
+ if(requesting){refreshQueued=true;return}
+ requesting=true;
+ const code=session.code,token=session.token;
+ try{
+   const next=await rpc('esc_live_snapshot',{p_code:code,p_token:token});
+   if(!session||session.code!==code||session.token!==token)return;
+   data=next;
+   if(!shade.hidden)render();
+ }catch(err){
+   if(!session||session.code!==code)return;
+   if(!shade.hidden)flash(err.message);
+   if(/expired|Invalid room|Invalid room access|Room membership required/i.test(err.message)){
+     session=null;data=null;renderSignature='';save();showWelcome();
+   }
+ }finally{
+   requesting=false;
+   if(refreshQueued){refreshQueued=false;setTimeout(()=>{if(session)refresh()},50)}
+ }
+}
 async function action(kind,payload={}){if(!session)throw Error('Join a room first');return rpc('esc_live_action',{p_code:session.code,p_token:session.token,p_kind:kind,p_payload:payload})}
 function download(){const lines=['ESC Game Master · '+session.code,'Game: '+LABEL(data.room.game),'Rounds: '+data.room.round,'Players:'];data.players.forEach(p=>lines.push(p.name+' · '+p.score+' pts · '+p.speakingSeconds+' seconds'));const blob=new Blob([lines.join('\n')],{type:'text/plain'});const url=URL.createObjectURL(blob);const a=e('a');a.href=url;a.download='esc-game-master-summary.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 async function handle(btn){const kind=btn.dataset.do;const id=btn.dataset.id;try{
@@ -134,7 +159,8 @@ function mount(){
  load();
  const url=queryRoom();if(url&&(!session||session.code!==url)){session=null;save();open();showJoin()}else if(session){refresh();if(location.pathname.startsWith('/play/'))open()}
  else if(location.pathname.startsWith('/play/')){open();showJoin()}
- setInterval(()=>{if(session)refresh()},2500);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&session)void refresh()});
+ setInterval(()=>{if(session&&!document.hidden)void refresh()},3000);
 }
 window.ESCGameMaster={open,mount};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
