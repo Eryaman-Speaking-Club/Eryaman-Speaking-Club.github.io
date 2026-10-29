@@ -53,3 +53,5 @@
 .esc-gm-projector .game-hero,.esc-gm-projector .new-game-hero{font-size:1.2em}
 .esc-gm-projector .game-card,.esc-gm-projector .new-game-card{min-height:55vh}
 @media(max-width:720px){.esc-gm-dialog{border-radius:16px;max-height:92dvh}.esc-gm-main{padding:16px}.esc-gm-head{padding:15px}.esc-gm-player{gap:7px}.esc-gm-section h3{font-size:20px}.esc-gm-launch{min-height:38px;height:38px;padding:0 10px}}
+
+.esc-gm-qr{text-align:center;padding:12px;margin:12px auto;background:#fff;border:1px solid #dbe8f0;border-radius:14px}.esc-gm-qr img{display:block;margin:0 auto;max-width:100%;width:220px;height:220px}.esc-gm-qr p{font-size:11px;overflow-wrap:anywhere;color:#54778c}.esc-gm-section textarea{width:100%;resize:vertical;padding:12px;border:1px solid #d2e0ea;border-radius:12px;min-height:85px;color:#174369;font:13px/1.5 system-ui,sans-serif}
