@@ -6,7 +6,7 @@ const CHALLENGES=['Answer using the past tense.','Give three reasons.','Ask anot
 const POWERS=['Joker: skip one prompt','Extra 15 seconds','Double points: next correct answer','Switch player','Draw instead of explaining'];
 const MIX=[{slug:'question-roulette',mins:10},{slug:'taboo',mins:15},{slug:'debate-roulette',mins:15},{slug:'one-for-me-one-for-you',mins:20}];
 const KEY='esc-gamemaster-session-v1';
-let client=null,session=null,data=null,timer=null,speechTimer=null,speechStarted=0,remaining=60,boardPainting=false,boardPoints=[],lastBoardLength=-1,projector=false,view='players',requesting=false,lastFocused=null;
+let client=null,session=null,data=null,timer=null,speechTimer=null,speechStarted=0,speechDeadline=0,remaining=60,boardPainting=false,boardPoints=[],lastBoardLength=-1,projector=false,view='players',requesting=false,lastFocused=null;
 let hostBtn=null,shade=null,stage=null,notifyEl=null,speechApi=null;
 let renderSignature='',qrVisible=false,boardInk='#174b82',boardThickness=3,transcript='',refreshQueued=false;
 const q=s=>stage?.querySelector(s);const e=s=>document.createElement(s);
@@ -64,7 +64,7 @@ function render(force=false){
  }else if(view==='board'){
   html='<div class="esc-gm-section"><div class="esc-gm-row"><h3>Shared Whiteboard</h3>'+(controls?'<button data-do="clearBoard">Clear</button>':'')+'</div><p>Draw with a mouse or finger. Everyone in the room sees the same board.</p><div class="esc-gm-canvas"><canvas id="gmBoard" width="720" height="400"></canvas></div><div class="esc-gm-row"><label>Ink <input type="color" id="gmInk" value="'+boardInk+'"></label><label>Size <input id="gmSize" type="range" min="1" max="12" value="'+boardThickness+'"></label></div></div>';
  }else if(view==='activities'){
-  html='<div class="esc-gm-section"><h3>Speaking challenges</h3><p>'+escape(r.challenge||'Choose a challenge to get started.')+'</p><div class="esc-gm-two"><button data-do="challenge">Random challenge</button><button data-do="power">Power-up card</button></div>'+(controls?'<div class="esc-gm-row"><button data-do="mix">Start Game Mix</button><button data-do="projector">Projector mode</button></div>':'')+'<h4>Speaking practice</h4><div class="esc-gm-two"><button data-do="voiceStart">Start speech transcription</button><button data-do="voiceStop">Stop</button></div><textarea id="gmTranscript" aria-label="Local speaking transcript" placeholder="Speech appears here when supported by your browser." rows="3"></textarea><h4>Speaking timer</h4><div class="esc-gm-timer" id="gmTimer">'+remaining+'s</div><div class="esc-gm-three"><button data-do="timerStart">Start</button><button data-do="timerStop">Stop</button><button data-do="timerReset">Reset</button></div><p>Speaking time is self-reported; microphone recording is not required.</p></div>';
+  html='<div class="esc-gm-section"><h3>Speaking challenges</h3><p>'+escape(r.challenge||'Choose a challenge to get started.')+'</p>'+(controls?'<div class="esc-gm-two"><button data-do="challenge">Random challenge</button><button data-do="power">Power-up card</button></div><p>Power-up cards are optional instructions; the host awards points manually.</p><div class="esc-gm-row"><button data-do="mix">Next Game Mix step</button><button data-do="projector">Projector mode</button></div><p>Suggested 60-minute order: Icebreaker (10m), Taboo (15m), Debate (15m), One for Me (20m). Host advances steps manually.</p>':'')+'<h4>Speaking practice</h4><div class="esc-gm-two"><button data-do="voiceStart">Start speech transcription</button><button data-do="voiceStop">Stop</button></div><textarea id="gmTranscript" aria-label="Local speaking transcript" placeholder="Speech appears here when supported by your browser." rows="3"></textarea><h4>Speaking timer</h4><div class="esc-gm-timer" id="gmTimer">'+remaining+'s</div><div class="esc-gm-three"><button data-do="timerStart">Start</button><button data-do="timerStop">Stop</button><button data-do="timerReset">Reset</button></div><p>Speaking time is self-reported; microphone recording is not required.</p></div>';
  }else if(view==='summary'){
   const total=players.reduce((a,p)=>a+p.speakingSeconds,0);
   html='<div class="esc-gm-section"><h3>Session summary</h3><div class="esc-gm-stat"><b>'+players.length+'</b><span>Players</span></div><div class="esc-gm-stat"><b>'+r.round+'</b><span>Rounds</span></div><div class="esc-gm-stat"><b>'+Math.round(total/60)+'</b><span>Estimated speaking minutes</span></div><div class="esc-gm-stat"><b>'+players.reduce((a,p)=>a+p.score,0)+'</b><span>Total points</span></div><button data-do="downloadSummary">Download results</button>'+(controls?'<button data-do="endSession">End session</button>':'')+'</div>';
@@ -108,20 +108,44 @@ async function refresh(){
 }
 async function action(kind,payload={}){if(!session)throw Error('Join a room first');return rpc('esc_live_action',{p_code:session.code,p_token:session.token,p_kind:kind,p_payload:payload})}
 function download(){const lines=['ESC Game Master · '+session.code,'Game: '+LABEL(data.room.game),'Rounds: '+data.room.round,'Players:'];data.players.forEach(p=>lines.push(p.name+' · '+p.score+' pts · '+p.speakingSeconds+' seconds'));const blob=new Blob([lines.join('\n')],{type:'text/plain'});const url=URL.createObjectURL(blob);const a=e('a');a.href=url;a.download='esc-game-master-summary.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
-async function handle(btn){const kind=btn.dataset.do;const id=btn.dataset.id;try{
+async function handle(btn){if(btn.disabled)return;btn.disabled=true;const kind=btn.dataset.do;const id=btn.dataset.id;try{
  if(kind==='create'||kind==='join'){
   const name=q('#gmName')?.value?.trim()||'';if(!name)throw Error('Enter your name');
   const x=kind==='create'?await rpc('esc_live_create',{p_name:name,p_game:slug()}):await rpc('esc_live_join',{p_name:name,p_code:q('#gmCode')?.value?.trim()||''});
-  session=x;save();view='players';await refresh();flash('Connected to room '+x.code);return;
+  session=x;data=null;renderSignature='';qrVisible=false;transcript='';save();view='players';await refresh();flash('Connected to room '+x.code);return;
  }
  if(kind==='joinForm'){showJoin();return}if(kind==='welcome'){showWelcome();return}
  if(kind==='copy'){await navigator.clipboard.writeText(roomUrl());flash('Invite link copied');return}
  if(kind==='qr'){qrVisible=!qrVisible;const old=stage.querySelector('.esc-gm-qr');if(old)old.remove();else showQrPanel();return}
- if(kind==='leave'){session=null;data=null;save();showWelcome();return}
+ if(kind==='leave'){speechApi?.stop();speechApi=null;clearInterval(speechTimer);speechTimer=null;session=null;data=null;renderSignature='';qrVisible=false;transcript='';save();showWelcome();return}
  if(kind==='downloadSummary'){download();return}
- if(kind==='voiceStart'){const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;if(!Speech){flash('Speech recognition is not supported here');return}speechApi?.stop();speechApi=new Speech();speechApi.lang='en-US';speechApi.continuous=true;speechApi.interimResults=true;speechApi.onresult=ev=>{const text=[...ev.results].map(x=>x[0].transcript).join(' ');if(q('#gmTranscript'))q('#gmTranscript').value=text};speechApi.onerror=ev=>flash('Speech error: '+ev.error);speechApi.start();flash('Allow microphone access to transcribe your speech');return}
+ if(kind==='voiceStart'){
+  const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!Speech){flash('Speech recognition is not supported in this browser');return}
+  speechApi?.stop();
+  transcript='';
+  const recognition=new Speech();speechApi=recognition;
+  recognition.lang='en-US';recognition.continuous=true;recognition.interimResults=true;
+  recognition.onresult=ev=>{
+    transcript=[...ev.results].map(x=>x[0]?.transcript||'').join(' ');
+    if(q('#gmTranscript'))q('#gmTranscript').value=transcript;
+  };
+  recognition.onerror=ev=>flash('Speech recognition: '+ev.error);
+  recognition.onend=()=>{if(speechApi===recognition)speechApi=null};
+  recognition.start();flash('Allow microphone access to transcribe your speech');return;
+ }
  if(kind==='voiceStop'){speechApi?.stop();speechApi=null;return}
- if(kind==='timerStart'){if(speechTimer)return;remaining=Math.max(1,remaining);speechStarted=Date.now();speechTimer=setInterval(()=>{remaining=Math.max(0,remaining-1);if(q('#gmTimer'))q('#gmTimer').textContent=remaining+'s';if(!remaining)stopSpeaking()},1000);return}
+ if(kind==='timerStart'){
+  if(speechTimer)return;
+  if(remaining<1)remaining=60;
+  speechStarted=Date.now();speechDeadline=speechStarted+remaining*1000;
+  speechTimer=setInterval(()=>{
+    remaining=Math.max(0,Math.ceil((speechDeadline-Date.now())/1000));
+    if(q('#gmTimer'))q('#gmTimer').textContent=remaining+'s';
+    if(!remaining)void stopSpeaking();
+  },250);
+  return;
+ }
  if(kind==='timerStop'){await stopSpeaking();return}if(kind==='timerReset'){await stopSpeaking();remaining=60;if(q('#gmTimer'))q('#gmTimer').textContent='60s';return}
  const payload={};let target=kind;
  if(kind==='score'){payload.playerId=id;payload.delta=Number(btn.dataset.delta)}
@@ -136,14 +160,14 @@ async function handle(btn){const kind=btn.dataset.do;const id=btn.dataset.id;try
  else if(kind==='clearBoard'){target='board_clear';if(!confirm('Clear the shared Whiteboard?'))return}
  else if(kind==='challenge'){target='challenge';payload.text=CHALLENGES[Math.floor(Math.random()*CHALLENGES.length)]}
  else if(kind==='power'){target='challenge';payload.text=POWERS[Math.floor(Math.random()*POWERS.length)]}
- else if(kind==='projector'){document.body.classList.toggle('esc-gm-projector');flash('Projector view toggled');return}
- else if(kind==='mix'){target='game';payload.slug=MIX[Math.min(MIX.findIndex(x=>x.slug===data.room.game)+1,MIX.length-1)]?.slug||MIX[0].slug}
+ else if(kind==='projector'){const enabled=document.body.classList.toggle('esc-gm-projector');close();flash(enabled?'Projector mode enabled · ESC to exit':'Projector mode disabled');return}
+ else if(kind==='mix'){target='game';const i=MIX.findIndex(x=>x.slug===data.room.game);payload.slug=MIX[(i+1)%MIX.length]?.slug||MIX[0].slug}
  else if(kind==='endSession'){target='end';if(!confirm('End this session for all players?'))return}
  else return;
  await action(target,payload);await refresh();
- }catch(err){flash(err.message)}}
+ }catch(err){flash(err.message)}finally{btn.disabled=false}}
 async function stopSpeaking(){if(!speechTimer)return;clearInterval(speechTimer);speechTimer=null;const elapsed=Math.min(120,Math.floor((Date.now()-speechStarted)/1000));if(elapsed>0&&session){try{await action('speaking',{seconds:elapsed});await refresh()}catch(err){flash(err.message)}}}
-function bindMain(){stage.querySelectorAll('[data-do]').forEach(b=>b.onclick=()=>handle(b));stage.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{view=b.dataset.tab;render(true)});if(view==='board'&&data)bindBoard()}
+function bindMain(){stage.querySelectorAll('[data-do]').forEach(b=>b.onclick=()=>void handle(b));stage.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{view=b.dataset.tab;render(true)});if(view==='board'&&data)bindBoard()}
 function mount(){
  if(document.querySelector('.esc-gm-layer'))return;
  const css=e('link');css.rel='stylesheet';css.href='/esc-game-master.css?v=20261029-mvp1';document.head.appendChild(css);
@@ -152,7 +176,7 @@ function mount(){
  document.body.appendChild(shade);stage=shade.querySelector('.esc-gm-dialog');notifyEl=shade.querySelector('.esc-gm-toast');
  shade.querySelector('.esc-gm-close').onclick=close;
  shade.addEventListener('pointerdown',ev=>{if(ev.target===shade)close()});
- document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&!shade.hidden)close()});
+ document.addEventListener('keydown',ev=>{if(ev.key==='Escape'){if(!shade.hidden)close();else document.body.classList.remove('esc-gm-projector')}});
  const top=document.querySelector('.game-actions,.new-game-actions,.header-actions,.esc-display-actions,.hub-hero,.game-topbar,.new-game-topbar');
  hostBtn=e('button');hostBtn.type='button';hostBtn.className='esc-gm-launch';hostBtn.textContent='Game Master';hostBtn.title='Players, voting, scoring and live collaboration';hostBtn.onclick=open;
  (top||document.body).appendChild(hostBtn);
