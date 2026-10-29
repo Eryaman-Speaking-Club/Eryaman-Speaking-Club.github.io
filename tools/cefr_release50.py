@@ -6,6 +6,7 @@ from pathlib import Path
 import re
 ROOT=Path(__file__).resolve().parents[1]
 VERSION='20261012-norepeat2'
+GAME_CONTROLS_VERSION='20261029-audiofix3'  # Shared controls need a fresh browser cache key.
 EXTRA=['cefr50-conversation.js','cefr50-interpersonal.js','cefr50-activities.js','cefr50-structured.js','cefr-groups.js','cefr-clarity.js','cefr-quality.js','cefr-tip-guide.js']
 def once(s,old,new):
     if new in s:return s
@@ -29,6 +30,8 @@ for slug in slugs+['games','admin']:
     s=once(s,'</head>',tags+'</head>')
     for f in ['esc-content-editor.js','esc-new-games.js','esc-game-controls.js','esc-depth-pass.js','admin-data.js','app.js','round.js']:
         s=re.sub(r'('+re.escape(f)+r')\?[^"\']+',r'\1?v='+VERSION,s)
+    # The published HTML must not revert this shared script to the 20261012 cache key.
+    s=re.sub(r'(esc-game-controls\.js)\?[^"\']+',r'\1?v='+GAME_CONTROLS_VERSION,s)
     if 'data-speaking-release=' in s:
         s=re.sub(r'data-speaking-release="[^"]+"','data-speaking-release="'+VERSION+'"',s)
     else:
