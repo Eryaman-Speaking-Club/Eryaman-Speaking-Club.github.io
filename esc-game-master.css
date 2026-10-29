@@ -1,0 +1,55 @@
+
+.esc-gm-open{overflow:hidden}
+.esc-gm-launch{order:-8;display:inline-flex;align-items:center;justify-content:center;min-height:40px;height:40px;padding:0 13px;border-radius:11px;border:1px solid #cddfe9;background:#edf6ff;color:#194971;font:800 12px system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.esc-gm-launch:hover{background:#daeaf8}
+.esc-gm-layer{position:fixed;inset:0;background:rgba(9,29,52,.54);backdrop-filter:blur(6px);z-index:6900;display:grid;place-items:center;padding:14px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1d4064}
+.esc-gm-layer[hidden]{display:none!important}
+.esc-gm-dialog{width:min(760px,100%);max-height:min(92vh,880px);background:#fbfdff;border:1px solid #d7e4ed;border-radius:24px;box-shadow:0 24px 100px #071e3847;overflow:auto}
+.esc-gm-head{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;background:#143c68;color:white;z-index:2;padding:19px 23px;gap:16px}
+.esc-gm-head>div{display:grid;gap:2px}.esc-gm-head small{font-size:10px;letter-spacing:.13em;opacity:.74;font-weight:800}.esc-gm-head strong{font-size:23px;line-height:1.1;letter-spacing:-.03em}
+.esc-gm-close{color:white;background:#ffffff1c;border:1px solid #ffffff55;width:38px;height:38px;border-radius:11px;cursor:pointer;font-size:26px}
+.esc-gm-main{display:block;min-height:280px;padding:24px}
+.esc-gm-section{display:grid;gap:14px}
+.esc-gm-section h3{font-size:23px;line-height:1.15;margin:0;color:#12375d;letter-spacing:-.04em}
+.esc-gm-section h4{margin:4px 0 0}
+.esc-gm-section p{font-size:13px;color:#647c91;line-height:1.6;margin:0}
+.esc-gm-section label{display:grid;gap:6px;color:#315774;font-size:12px;font-weight:800;min-width:0}
+.esc-gm-section :is(input,select){font:600 14px system-ui,sans-serif;min-height:42px;border:1px solid #d2e0ea;border-radius:11px;padding:8px 11px;background:#fff;max-width:100%;min-width:0;color:#163d63}
+.esc-gm-section input[type=color]{padding:3px;width:58px}.esc-gm-section input[type=range]{min-height:30px}
+.esc-gm-section button,.esc-gm-footer button,.esc-gm-summary button{min-height:38px;padding:8px 12px;border-radius:11px;border:1px solid #ccdeea;background:white;color:#1d4a70;font:750 12px system-ui,sans-serif;cursor:pointer;white-space:normal}
+.esc-gm-section button:hover,.esc-gm-footer button:hover{background:#ecf4fa}
+.esc-gm-section button.esc-gm-primary{background:#174b7d;color:white;border-color:#174b7d}
+.esc-gm-overline{font-size:10px;letter-spacing:.14em;font-weight:900;color:#158786}
+.esc-gm-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:end;gap:10px}
+.esc-gm-three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.esc-gm-tabs{display:flex;overflow-x:auto;gap:6px;margin:14px 0 19px;padding-bottom:8px;border-bottom:1px solid #e0e9f0}
+.esc-gm-tabs button{border:1px solid #d7e5ee;background:white;color:#315b78;border-radius:10px;padding:9px 13px;font:750 12px system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.esc-gm-tabs button.active{background:#174b7d;color:white;border-color:#174b7d}
+.esc-gm-summary{background:#eef6fa;border:1px solid #d6e6ef;border-radius:15px;padding:13px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.esc-gm-summary>div{display:grid;gap:3px}.esc-gm-summary strong{font-size:16px}.esc-gm-summary span{color:#657c90;font-size:12px}
+.esc-gm-summary a{color:#196d98;font-size:12px}
+.esc-gm-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.esc-gm-roster{display:grid;gap:8px}
+.esc-gm-player{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px;background:white;border:1px solid #e0e8ef;border-radius:14px}
+.esc-gm-player.current{background:#f1fbf7;border-color:#a1cdbb}
+.esc-gm-avatar{width:33px;height:33px;display:grid;place-items:center;background:#e2f1f8;color:#245c77;font-weight:900;border-radius:11px}
+.esc-gm-playername{display:grid;gap:3px;flex:1 1 100px}.esc-gm-playername strong{font-size:12px}.esc-gm-playername small{font-size:10px;color:#748497}
+.esc-gm-player>b{font-size:12px;color:#12466d}.esc-gm-steps{display:flex;gap:3px;flex-wrap:wrap}.esc-gm-steps button{min-height:30px;padding:4px 8px}
+.esc-gm-vote{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.esc-gm-vote button{min-height:60px;font-size:18px;background:#eff6fa}
+.esc-gm-vote button:disabled{opacity:.45}
+.esc-gm-results{display:grid;gap:10px}
+.esc-gm-results>div{display:grid;grid-template-columns:45px minmax(0,1fr) 30px;align-items:center;gap:8px;font-size:12px}
+.esc-gm-results>div>div{height:13px;border-radius:99px;background:#e9f0f5;overflow:hidden}
+.esc-gm-results i{height:100%;background:#3e9e91;display:block;border-radius:99px}
+.esc-gm-canvas{overflow:hidden;border:1px solid #d9e5eb;border-radius:13px;background:#fff}
+.esc-gm-canvas canvas{width:100%;height:auto;display:block;cursor:crosshair;aspect-ratio:9/5}
+.esc-gm-timer{font-size:56px;font-weight:950;letter-spacing:-.04em;text-align:center;color:#174b7d}
+.esc-gm-stat{border:1px solid #dce8ef;border-radius:13px;padding:12px 15px;display:flex;align-items:center;justify-content:space-between;background:#fff}
+.esc-gm-stat b{font-size:23px;color:#123f69}.esc-gm-stat span{font-size:12px;color:#648098}
+.esc-gm-footer{margin-top:20px;padding-top:12px;border-top:1px solid #dae6ee;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11px;color:#338469}
+.esc-gm-toast{position:fixed;z-index:7001;bottom:25px;left:50%;transform:translateX(-50%);max-width:calc(100vw - 28px);background:#17476f;color:white;padding:12px 18px;border-radius:11px;font-size:12px;box-shadow:0 15px 35px #06172b55}
+.esc-gm-toast[hidden]{display:none}
+.esc-gm-projector .game-hero,.esc-gm-projector .new-game-hero{font-size:1.2em}
+.esc-gm-projector .game-card,.esc-gm-projector .new-game-card{min-height:55vh}
+@media(max-width:720px){.esc-gm-dialog{border-radius:16px;max-height:92dvh}.esc-gm-main{padding:16px}.esc-gm-head{padding:15px}.esc-gm-player{gap:7px}.esc-gm-section h3{font-size:20px}.esc-gm-launch{min-height:38px;height:38px;padding:0 10px}}
