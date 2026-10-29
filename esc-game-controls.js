@@ -435,3 +435,6 @@
   window.ESCFullscreen = { mount, toggle };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { mount(); mountHowToPlay(); mountAnswerHelp(); mountQuestionReport(); void loadAnswerTheme(); }); else { mount(); mountHowToPlay(); mountAnswerHelp(); mountQuestionReport(); void loadAnswerTheme(); }
 })();
+
+/* Load the ESC Whiteboard on every speaking game without changing game logic. */
+(function(){if(document.querySelector('script[data-esc-whiteboard]'))return;var s=document.createElement('script');s.src='/esc-whiteboard.js?v=20261029-whiteboard1';s.async=true;s.dataset.escWhiteboard='1';document.head.appendChild(s);})();
