@@ -286,54 +286,69 @@ function renderTimeRequests(){
   }
 }
 
-function render() {
-  const slots = el('slots');
-  slots.replaceChildren();
-  slotButtons.clear();
-  for (let weekday=1; weekday<=7; weekday++) {
-    const col = document.createElement('div');
-    col.className = 'day';
-    const name = document.createElement('strong');
-    name.textContent = dayNames[weekday-1];
-    col.append(name);
-    for (let hour=8; hour<=21; hour++) {
-      const minute = hour*60;
-      const button = document.createElement('button');
-      button.className='slot';
-      button.type='button';
-      button.textContent=hourText(minute);
-      slotButtons.set(slotKey(weekday,minute),button);
-      updateSlotButton(weekday,minute);
-      button.onclick=()=>toggleSlot(weekday,minute);
-      col.append(button);
+
+const lessonGroups = [
+  {key:'requested',label:'Bekleyen talepler',statuses:['requested']},
+  {key:'confirmed',label:'Onaylanan dersler',statuses:['confirmed']},
+  {key:'completed',label:'Tamamlanan dersler',statuses:['completed']},
+  {key:'cancelled',label:'İptal edilen dersler',statuses:['cancelled','rejected']}
+];
+let lessonTab='requested';
+let lessonWeekOffset=0;
+const lessonWeekStart = () => {
+  const d=new Date();
+  d.setHours(12,0,0,0);
+  d.setDate(d.getDate()-(d.getDay()+6)%7+lessonWeekOffset*7);
+  return d;
+};
+const lessonDateKey = date => new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Istanbul',year:'numeric',month:'2-digit',day:'2-digit'}).format(date);
+function renderLessonNavigation(){
+  const nav=el('lessonTabs');if(!nav)return;
+  nav.replaceChildren();
+  for(const group of lessonGroups){
+    const count=(snapshot.bookings||[]).filter(r=>group.statuses.includes(r.status)).length;
+    const btn=document.createElement('button');
+    btn.type='button';btn.className='subtle esc-lesson-tab'+(lessonTab===group.key?' active':'');
+    btn.textContent=group.label+' ('+count+')';
+    btn.setAttribute('aria-pressed',String(lessonTab===group.key));
+    btn.onclick=()=>{lessonTab=group.key;renderLessonNavigation();renderLessonBookings();};
+    nav.append(btn);
+  }
+}
+function renderLessonCalendar(){
+  const root=el('lessonCalendar');if(!root)return;
+  root.replaceChildren();
+  const start=lessonWeekStart();
+  const end=new Date(start);end.setDate(end.getDate()+6);
+  el('lessonWeekLabel').textContent=start.toLocaleDateString('tr-TR',{day:'numeric',month:'short'})+' – '+end.toLocaleDateString('tr-TR',{day:'numeric',month:'short',year:'numeric'});
+  for(let day=0;day<7;day++){
+    const date=new Date(start);date.setDate(start.getDate()+day);
+    const dateKey=lessonDateKey(date);
+    const col=document.createElement('div');col.className='esc-calendar-day';
+    const heading=document.createElement('strong');
+    heading.textContent=dayNames[day]+' '+date.getDate();col.append(heading);
+    const matches=(snapshot.bookings||[]).filter(r=>r.status==='confirmed'&&lessonDateKey(new Date(r.start_at))===dateKey)
+      .sort((a,b)=>new Date(a.start_at)-new Date(b.start_at));
+    for(const r of matches){
+      const card=document.createElement('div');card.className='esc-calendar-lesson';
+      card.textContent=new Date(r.start_at).toLocaleTimeString('tr-TR',{timeZone:'Europe/Istanbul',hour:'2-digit',minute:'2-digit'})+' · '+r.full_name+' (50 dk)';
+      card.title='Onaylanan ders';col.append(card);
     }
-    slots.append(col);
+    if(!matches.length){const p=document.createElement('small');p.textContent='Onaylanan ders yok';col.append(p);}
+    root.append(col);
   }
-  el('recipient').value = snapshot.settings?.notification_email || DEFAULT_EMAIL;
-  el('blocks').textContent = (snapshot.blocks || []).map(r=>r.lesson_date+' '+hourText(r.start_minute)).join(' • ') || 'Özel olarak kapatılan saat bulunmuyor.';
-  const mailState=el('mailDeliveryStatus');
-  if(mailState){
-    const info=snapshot.email_delivery||{};
-    const enabled=info.worker_enabled===true;
-    const pending=Number(info.pending??(Number(snapshot.pending_lesson_emails||0)+Number(snapshot.pending_time_request_emails||0)));
-    const accepted=Number(info.accepted_by_provider||0);
-    const legacy=Number(info.legacy_pending||0);
-    const review=Number(info.manual_review||0);
-    const last=info.last_accepted_at
-      ?new Date(info.last_accepted_at).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul',dateStyle:'short',timeStyle:'short'})
-      :'henüz yok';
-    mailState.dataset.state=enabled?'configured':'unconfigured';
-    mailState.textContent=(enabled
-      ? 'Resend e-posta servisi aktif. Sunucu otomatik gönderimi kontrol ediyor.'
-      : 'Resend henüz etkin değil. Alan adı ve sunucu API anahtarı doğrulanmalı.')+
-      ' Yeni bekleyen: '+pending+' | Eski kuyruk (otomatik gönderilmez): '+legacy+
-      ' | Resend kabulü: '+accepted+' | Manuel kontrol: '+review+
-      ' | Son kayıt: '+last+
-      '. Kabul, alıcının gelen kutusuna kesin teslim anlamına gelmez.';
-  }
-  renderTimeRequests();
-  const list = el('bookings');
+}
+function renderLessonBookings(){
+  const list=el('bookings');if(!list)return;
   list.replaceChildren();
+  const group=lessonGroups.find(g=>g.key===lessonTab);
+  const selected=(snapshot.bookings||[]).filter(r=>group.statuses.includes(r.status))
+    .sort((a,b)=>new Date(a.start_at)-new Date(b.start_at));
+  const old=(snapshot.bookings||[]);
+  snapshot.bookings=selected;
+  try{renderBookingCards(list);}finally{snapshot.bookings=old;}
+}
+function renderBookingCards(list) {
   for (const r of snapshot.bookings) {
     const wrapper = document.createElement('article');
     wrapper.className = 'booking';
@@ -388,8 +403,60 @@ function render() {
     empty.textContent = 'Henüz özel ders başvurusu yapılmadı.';
     list.append(empty);
   }
+}
+function render() {
+  const slots = el('slots');
+  slots.replaceChildren();
+  slotButtons.clear();
+  for (let weekday=1; weekday<=7; weekday++) {
+    const col = document.createElement('div');
+    col.className = 'day';
+    const name = document.createElement('strong');
+    name.textContent = dayNames[weekday-1];
+    col.append(name);
+    for (let hour=8; hour<=21; hour++) {
+      const minute = hour*60;
+      const button = document.createElement('button');
+      button.className='slot';
+      button.type='button';
+      button.textContent=hourText(minute);
+      slotButtons.set(slotKey(weekday,minute),button);
+      updateSlotButton(weekday,minute);
+      button.onclick=()=>toggleSlot(weekday,minute);
+      col.append(button);
+    }
+    slots.append(col);
+  }
+  el('recipient').value = snapshot.settings?.notification_email || DEFAULT_EMAIL;
+  el('blocks').textContent = (snapshot.blocks || []).map(r=>r.lesson_date+' '+hourText(r.start_minute)).join(' • ') || 'Özel olarak kapatılan saat bulunmuyor.';
+  const mailState=el('mailDeliveryStatus');
+  if(mailState){
+    const info=snapshot.email_delivery||{};
+    const enabled=info.worker_enabled===true;
+    const pending=Number(info.pending??(Number(snapshot.pending_lesson_emails||0)+Number(snapshot.pending_time_request_emails||0)));
+    const accepted=Number(info.accepted_by_provider||0);
+    const legacy=Number(info.legacy_pending||0);
+    const review=Number(info.manual_review||0);
+    const last=info.last_accepted_at
+      ?new Date(info.last_accepted_at).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul',dateStyle:'short',timeStyle:'short'})
+      :'henüz yok';
+    mailState.dataset.state=enabled?'configured':'unconfigured';
+    mailState.textContent=(enabled
+      ? 'Resend e-posta servisi aktif. Sunucu otomatik gönderimi kontrol ediyor.'
+      : 'Resend henüz etkin değil. Alan adı ve sunucu API anahtarı doğrulanmalı.')+
+      ' Yeni bekleyen: '+pending+' | Eski kuyruk (otomatik gönderilmez): '+legacy+
+      ' | Resend kabulü: '+accepted+' | Manuel kontrol: '+review+
+      ' | Son kayıt: '+last+
+      '. Kabul, alıcının gelen kutusuna kesin teslim anlamına gelmez.';
+  }
+  renderTimeRequests();
+  renderLessonNavigation();
+  renderLessonCalendar();
+  renderLessonBookings();
   showSlotSaveState();
 }
+el('lessonPrevWeek')?.addEventListener('click',()=>{lessonWeekOffset--;renderLessonCalendar();});
+el('lessonNextWeek')?.addEventListener('click',()=>{lessonWeekOffset++;renderLessonCalendar();});
 async function login(event) {
   event?.preventDefault();
   if (busy) return;
