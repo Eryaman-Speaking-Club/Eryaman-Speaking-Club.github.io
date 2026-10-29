@@ -3,22 +3,20 @@
   'use strict';
   if (window.ESCGameExtras) return;
 
-  const VERSION = '20261029-game-extras3';
+  const VERSION = '20261029-ui10';
   const STORAGE_KEY = 'esc-background-music-v1';
   const HUB_URL = '/games/';
   const TRACKS = {
-    piano: {
-      label: 'Soft Piano', caption: 'Gentle notes & slow melodies', tempo: 68,
-      chords: [[48,52,55,59], [45,48,52,55], [41,45,48,52], [43,47,50,55]]
-    },
-    ambient: {
-      label: 'Dreamy Ambient', caption: 'Airy, floating harmonies', tempo: 55,
-      chords: [[48,52,55,59], [41,45,48,52], [45,48,52,55], [43,47,50,55]]
-    },
-    lofi: {
-      label: 'Cozy Lo-Fi', caption: 'Warm keys & a gentle rhythm', tempo: 73,
-      chords: [[50,53,57,60], [46,50,53,57], [41,45,48,52], [48,52,55,59]]
-    }
+    piano: { label: "Soft Piano", caption: "Gentle piano-like keys and slow melodies", tempo: 68, mode: 'piano', chords: [[48,52,55,59],[45,48,52,55],[41,45,48,52],[43,47,50,55]] },
+    ambient: { label: "Dreamy Ambient", caption: "Floating, spacious harmonies", tempo: 55, mode: 'ambient', chords: [[48,52,55,59],[41,45,48,52],[45,48,52,55],[43,47,50,55]] },
+    lofi: { label: "Cozy Lo-Fi", caption: "Warm chords with a relaxed pulse", tempo: 73, mode: 'lofi', chords: [[50,53,57,60],[46,50,53,57],[41,45,48,52],[48,52,55,59]] },
+    rain: { label: "Rainy Afternoon", caption: "Soft droplets and dreamy descending notes", tempo: 61, mode: 'rain', chords: [[57,60,64,67],[53,57,60,64],[50,53,57,60],[52,55,59,62]] },
+    jazz: { label: "Café Jazz", caption: "Mellow extended chords and playful keys", tempo: 77, mode: 'jazz', chords: [[48,52,55,59],[45,49,52,55],[50,53,57,60],[43,47,50,53]] },
+    acoustic: { label: "Acoustic Breeze", caption: "Gentle plucked, guitar-like arpeggios", tempo: 76, mode: 'acoustic', chords: [[52,55,59,64],[48,52,55,60],[45,48,52,57],[47,50,54,59]] },
+    focus: { label: "Deep Focus", caption: "Minimal, steady notes for concentration", tempo: 63, mode: 'focus', chords: [[48,55,59,64],[45,52,57,60],[41,48,53,57],[43,50,55,59]] },
+    stars: { label: "Starlight", caption: "Delicate bells and ethereal harmonies", tempo: 58, mode: 'stars', chords: [[57,60,64,69],[53,57,60,65],[55,59,62,67],[52,55,59,64]] },
+    sunrise: { label: "Sunrise Chill", caption: "Warm, hopeful ascending melodies", tempo: 81, mode: 'sunrise', chords: [[48,52,55,60],[53,57,60,65],[45,48,52,57],[55,59,62,67]] },
+    night: { label: "Midnight Drift", caption: "Slow, deep atmospheric pulses", tempo: 54, mode: 'night', chords: [[45,48,52,57],[41,45,48,53],[43,47,50,55],[40,43,47,52]] }
   };
 
   const state = { track: 'piano', volume: 65, playing: false };
@@ -36,6 +34,7 @@
   let panel = null;
   let playButton = null;
   let trackSelect = null;
+  let trackCaption = null;
   let volumeSlider = null;
   let volumeValue = null;
   let musicStatus = null;
@@ -200,23 +199,43 @@
       }
     };
     for (let bar = 0; bar < 4; bar++) {
-      const chord = track.chords[bar];
-      const at = bar * beat * 4;
-      addNote(chord[0] - 12, at, beat * 3.8, 0.19, 'pad');
-      if (key === 'ambient') {
-        chord.forEach((note, index) => addNote(note + (index > 1 ? 12 : 0), at, beat * 3.9, index === 0 ? 0.065 : 0.05, 'pad'));
-        addNote(chord[2] + 24, at + beat * 1.7, beat * 1.8, 0.15, 'bell');
-      } else if (key === 'lofi') {
-        [1, 2, 3].forEach(index => {
-          addNote(chord[index] + 12, at, beat * 1.85, 0.11, 'pad');
-          addNote(chord[index] + 12, at + beat * 2.0, beat * 1.55, 0.09, 'pad');
-        });
-        addNote(chord[3] + 12, at + beat * 1.0, beat * 0.9, 0.20, 'key');
-        addNote(chord[2] + 12, at + beat * 3.0, beat * 0.9, 0.19, 'key');
+      const chord = track.chords[bar], at = bar * beat * 4, mode = track.mode;
+      // Ten original, locally synthesized patterns with different phrasing and dynamics.
+      addNote(chord[0] - 12, at, beat * 3.8, mode === 'night' ? .13 : .19, 'pad');
+      if (mode === 'ambient') {
+        chord.forEach((n,i)=>addNote(n+(i>1?12:0),at,beat*3.9,i===0?.065:.05,'pad'));
+        addNote(chord[2]+24,at+beat*1.7,beat*1.8,.15,'bell');
+      } else if (mode === 'lofi') {
+        [1,2,3].forEach(i=>{addNote(chord[i]+12,at,beat*1.85,.11,'pad');addNote(chord[i]+12,at+beat*2,beat*1.55,.09,'pad')});
+        addNote(chord[3]+12,at+beat,beat*.9,.2,'key');
+        addNote(chord[2]+12,at+beat*3,beat*.9,.19,'key');
+      } else if (mode === 'rain') {
+        [3,2,1,2,0,1].forEach((n,i)=>addNote(chord[n]+12,at+beat*i*.62,beat*.72,.18-(i%3)*.015,'bell'));
+        addNote(chord[1],at+beat*.6,beat*2.9,.055,'pad');
+      } else if (mode === 'jazz') {
+        chord.slice(1).forEach((n,i)=>addNote(n+12,at+beat*.18+i*.035,beat*1.7,.085,'pad'));
+        addNote(chord[1]+12,at+beat*1.42,beat*.76,.21,'key');
+        addNote(chord[3]+12,at+beat*2.72,beat*.86,.20,'key');
+        addNote(chord[0]-5,at+beat*2.18,beat*1.25,.11,'pad');
+      } else if (mode === 'acoustic') {
+        [0,2,1,3,2,1,0,2].forEach((n,i)=>addNote(chord[n]+12,at+beat*i*.48,beat*.64,.185-(i%2)*.03,'key'));
+        addNote(chord[1],at+beat*.9,beat*2.6,.055,'pad');
+      } else if (mode === 'focus') {
+        [1,2,1,3].forEach((n,i)=>addNote(chord[n]+12,at+beat*i,beat*1.1,.115,'pad'));
+        addNote(chord[0],at+beat*2,beat*1.5,.055,'pad');
+      } else if (mode === 'stars') {
+        chord.forEach((n,i)=>addNote(n+(i>1?12:0),at,beat*3.85,.048,'pad'));
+        addNote(chord[3]+24,at+beat*.65,beat*1.3,.155,'bell');
+        addNote(chord[2]+24,at+beat*2.72,beat*1.1,.15,'bell');
+      } else if (mode === 'sunrise') {
+        [0,1,2,3,2].forEach((n,i)=>addNote(chord[n]+12,at+beat*i*.78,beat*.95,.21,'key'));
+        addNote(chord[1],at+beat*.8,beat*2.8,.07,'pad');
+      } else if (mode === 'night') {
+        chord.forEach((n,i)=>addNote(n+(i>1?0:-12),at,beat*3.85,.045,'pad'));
+        addNote(chord[2]+12,at+beat*1.7,beat*1.85,.075,'bell');
       } else {
-        const sequence = [1, 2, 3, 2];
-        sequence.forEach((index, step) => addNote(chord[index] + 12, at + step * beat, beat * 1.13, 0.31, 'key'));
-        addNote(chord[1], at, beat * 3.75, 0.055, 'pad');
+        [1,2,3,2].forEach((n,i)=>addNote(chord[n]+12,at+i*beat,beat*1.13,.31,'key'));
+        addNote(chord[1],at,beat*3.75,.055,'pad');
       }
     }
     // Normalize to an audible, safe peak and crossfade the loop boundaries.
@@ -318,6 +337,7 @@
       playButton.classList.toggle('is-playing', state.playing);
     }
     if (trackSelect) trackSelect.value = state.track;
+    if (trackCaption) trackCaption.textContent = TRACKS[state.track].caption;
     if (volumeSlider) volumeSlider.value = String(state.volume);
     if (volumeValue) volumeValue.textContent = Math.round(state.volume) + '%';
     if (musicStatus) musicStatus.textContent = state.playing
@@ -376,6 +396,8 @@
     backLink.setAttribute('aria-label', 'Back to all games');
     backLink.title = 'Return to the games list';
     host.prepend(backLink);
+    if (header) header.classList.add('esc-ui-header');
+    host.classList.add('esc-ui-toolbar');
   }
   function mountPanel() {
     if (document.querySelector('.esc-calm-music-button')) return;
@@ -396,15 +418,16 @@
     panel.setAttribute('aria-label', 'Background music settings');
     panel.innerHTML = `
       <div class="esc-calm-music-heading">
-        <div><strong>Background music</strong><p>Calm sounds for your game</p></div>
+        <div><strong>Background music</strong><p>10 original calm soundscapes</p></div>
         <button type="button" class="esc-calm-close" aria-label="Close music settings">×</button>
       </div>
       <div class="esc-calm-main">
-        <button type="button" class="esc-calm-play" aria-pressed="false">Play music</button><button type="button" class="esc-calm-test">Test speaker sound</button>
+        <div class="esc-calm-player"><button type="button" class="esc-calm-prev" aria-label="Previous music track" title="Previous track">‹</button><button type="button" class="esc-calm-play" aria-pressed="false">Play music</button><button type="button" class="esc-calm-next" aria-label="Next music track" title="Next track">›</button></div><button type="button" class="esc-calm-test">Test speaker sound</button>
         <label class="esc-calm-field">Music style
           <select class="esc-calm-track" aria-label="Choose background music">
             ${Object.entries(TRACKS).map(([key, track]) => `<option value="${key}">${track.label}</option>`).join('')}
           </select>
+          <span class="esc-calm-track-caption">Gentle piano-like keys and slow melodies</span>
         </label>
         <label class="esc-calm-field esc-calm-volume-field"><span>Music volume <output class="esc-calm-volume-value">65%</output></span>
           <input type="range" class="esc-calm-volume" min="0" max="100" step="1" value="65" aria-label="Music volume">
@@ -415,22 +438,28 @@
     document.body.appendChild(panel);
     playButton = panel.querySelector('.esc-calm-play');
     trackSelect = panel.querySelector('.esc-calm-track');
+    trackCaption = panel.querySelector('.esc-calm-track-caption');
     volumeSlider = panel.querySelector('.esc-calm-volume');
     volumeValue = panel.querySelector('.esc-calm-volume-value');
     musicStatus = panel.querySelector('.esc-calm-status');
     panel.querySelector('.esc-calm-close').addEventListener('click', () => { closePanel(); musicButton.focus(); });
     playButton.addEventListener('click', () => { if (state.playing) stop(); else start(); });
     panel.querySelector('.esc-calm-test').addEventListener('click', testSound);
-    trackSelect.addEventListener('change', () => {
-      const next = trackSelect.value;
-      if (!Object.prototype.hasOwnProperty.call(TRACKS, next)) return;
-      if (state.track === next) return;
+    const chooseTrack = next => {
+      if (!Object.prototype.hasOwnProperty.call(TRACKS, next) || state.track === next) return;
       const wasPlaying = state.playing;
       if (wasPlaying) stop();
       state.track = next;
       persist();
       if (wasPlaying) start(); else updateUI();
-    });
+    };
+    const skipTrack = shift => {
+      const keys = Object.keys(TRACKS), index = keys.indexOf(state.track);
+      chooseTrack(keys[(index + shift + keys.length) % keys.length]);
+    };
+    trackSelect.addEventListener('change', () => chooseTrack(trackSelect.value));
+    panel.querySelector('.esc-calm-prev').addEventListener('click', () => skipTrack(-1));
+    panel.querySelector('.esc-calm-next').addEventListener('click', () => skipTrack(1));
     volumeSlider.addEventListener('input', () => {
       state.volume = Math.max(0, Math.min(100, Number(volumeSlider.value)));
       if (musicPlayer) musicPlayer.volume = Math.max(0, Math.min(1, Math.pow(state.volume / 100, 0.8)));

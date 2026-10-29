@@ -38,3 +38,89 @@
 
 .esc-calm-test{width:100%;min-height:39px;border:1px solid #d6e2ee;border-radius:12px;background:#f5f9ff;color:#174878;cursor:pointer;font:700 12px system-ui,sans-serif;margin:3px 0 9px}
 .esc-calm-test:hover{background:#eaf3fc}
+
+
+/* Unified ESC Games toolbar — 20261029-ui10. Keeps every game header compact. */
+header.esc-ui-header {
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  gap:12px!important;flex-wrap:wrap!important;min-height:70px!important;
+  padding-block:10px!important;box-sizing:border-box!important;
+}
+header.esc-ui-header > .esc-brand {flex:0 1 auto!important;min-width:0!important;max-width:100%!important}
+header.esc-ui-header .esc-brand-title {font-size:clamp(14px,1.65vw,20px)!important;letter-spacing:-.025em!important}
+header.esc-ui-header .esc-brand-mark {width:46px!important;height:46px!important;flex:0 0 46px!important}
+header.esc-ui-header > .esc-ui-toolbar {
+  display:flex!important;align-items:center!important;justify-content:flex-end!important;
+  flex:1 1 auto!important;gap:7px!important;flex-wrap:wrap!important;
+  margin:0 0 0 auto!important;min-width:0!important;width:auto!important;max-width:100%!important;
+}
+header.esc-ui-header .esc-ui-toolbar > * {
+  float:none!important;margin:0!important;flex-shrink:0!important;
+  box-sizing:border-box!important;vertical-align:middle!important;
+}
+header.esc-ui-header .esc-ui-toolbar > :is(a,button) {
+  min-height:40px!important;max-height:40px!important;border-radius:11px!important;
+  line-height:1.2!important;box-shadow:none!important;position:relative!important;
+}
+header.esc-ui-header .esc-ui-toolbar > :is(.game-action-btn,.admin-button,.new-game-back,.game-secondary) {
+  padding:0 11px!important;width:auto!important;min-width:0!important;
+  font-size:12px!important;white-space:nowrap!important;
+}
+header.esc-ui-header .esc-ui-toolbar > :is(.game-icon-btn,.new-game-icon,.icon-button,.esc-answer-help-btn,.esc-question-report-btn,[data-esc-fullscreen]) {
+  width:40px!important;height:40px!important;min-width:40px!important;max-width:40px!important;
+  min-height:40px!important;max-height:40px!important;padding:0!important;
+  flex:0 0 40px!important;font-size:19px!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+}
+header.esc-ui-header .esc-ui-toolbar > .esc-all-games-btn {
+  order:-30!important;display:inline-flex!important;min-height:40px!important;height:40px!important;
+  padding:0 12px!important;font:800 12px/1 system-ui,-apple-system,sans-serif!important;
+  background:#f0f6fa!important;border-color:#d7e5ec!important;color:#183d60!important;
+}
+header.esc-ui-header .esc-ui-toolbar > .esc-calm-music-button {
+  order:-20!important;height:40px!important;min-height:40px!important;
+  padding:0 12px!important;font:800 12px/1 system-ui,-apple-system,sans-serif!important;
+}
+header.esc-ui-header .esc-ui-toolbar > .esc-wb-launch {
+  order:-10!important;height:40px!important;min-height:40px!important;
+  padding:0 12px!important;font:800 12px/1 system-ui,-apple-system,sans-serif!important;
+}
+header.esc-ui-header .esc-ui-toolbar > :is(button,a):focus-visible {
+  outline:2px solid #e4a94f!important;outline-offset:2px!important;
+}
+.esc-calm-player {display:grid;grid-template-columns:40px minmax(0,1fr) 40px;gap:8px;align-items:center}
+.esc-calm-player > :is(.esc-calm-prev,.esc-calm-next) {
+  height:42px;border-radius:11px;border:1px solid #d6e2ec;background:#f6f9fc;
+  color:#1b4969;font:700 25px/1 system-ui,sans-serif;cursor:pointer;
+}
+.esc-calm-player > :is(.esc-calm-prev,.esc-calm-next):hover {background:#e7f1f8}
+.esc-calm-track-caption {display:block;margin:1px 0 0;font:500 11px/1.5 system-ui,sans-serif;color:#6e8294}
+.esc-calm-music-panel .esc-calm-main {gap:11px!important}
+.esc-calm-music-panel .esc-calm-test {margin:0!important;min-height:35px}
+@media(max-width:1150px) {
+  header.esc-ui-header {align-items:flex-start!important}
+  header.esc-ui-header > .esc-ui-toolbar {
+    flex-basis:100%!important;justify-content:flex-start!important;margin-left:0!important;
+  }
+}
+@media(max-width:720px) {
+  header.esc-ui-header {gap:9px!important;min-height:0!important;padding-block:8px 10px!important}
+  header.esc-ui-header .esc-brand-mark {width:38px!important;height:38px!important;flex-basis:38px!important}
+  header.esc-ui-header .esc-brand-title {font-size:14px!important}
+  header.esc-ui-header > .esc-ui-toolbar {justify-content:flex-start!important;gap:6px!important;row-gap:7px!important}
+  header.esc-ui-header .esc-ui-toolbar > :is(a,button) {
+    min-height:38px!important;max-height:38px!important;border-radius:10px!important;
+  }
+  header.esc-ui-header .esc-ui-toolbar > :is(.game-icon-btn,.new-game-icon,.icon-button,.esc-answer-help-btn,.esc-question-report-btn,[data-esc-fullscreen]) {
+    width:38px!important;min-width:38px!important;max-width:38px!important;
+    height:38px!important;min-height:38px!important;max-height:38px!important;flex-basis:38px!important;
+  }
+  header.esc-ui-header .esc-ui-toolbar > .esc-all-games-btn {height:38px!important;min-height:38px!important;padding:0 10px!important}
+  header.esc-ui-header .esc-ui-toolbar > .esc-calm-music-button {height:38px!important;min-height:38px!important;padding:0 10px!important}
+  header.esc-ui-header .esc-ui-toolbar > .esc-wb-launch {
+    width:38px!important;min-width:38px!important;height:38px!important;min-height:38px!important;padding:0!important;
+  }
+  header.esc-ui-header .esc-ui-toolbar > .esc-wb-launch .esc-wb-launch-label {display:none!important}
+  header.esc-ui-header .esc-ui-toolbar > .new-game-back {font-size:12px!important;width:auto!important}
+  header.esc-ui-header .esc-ui-toolbar > .new-game-back::after {content:none!important}
+}
