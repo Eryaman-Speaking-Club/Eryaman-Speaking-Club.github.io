@@ -7,7 +7,7 @@ const POWERS=['Joker: skip one prompt','Extra 15 seconds','Double points: next c
 const MIX=[{slug:'question-roulette',mins:10},{slug:'taboo',mins:15},{slug:'debate-roulette',mins:15},{slug:'one-for-me-one-for-you',mins:20}];
 const KEY='esc-gamemaster-session-v1';
 let client=null,session=null,data=null,timer=null,speechTimer=null,speechStarted=0,speechDeadline=0,remaining=60,boardPainting=false,boardPoints=[],lastBoardLength=-1,projector=false,view='players',requesting=false,lastFocused=null;
-let hostBtn=null,shade=null,stage=null,notifyEl=null,speechApi=null;
+let hostBtn=null,shade=null,stage=null,notifyEl=null,speechApi=null,projectorExit=null,mixBadge=null;
 let renderSignature='',qrVisible=false,boardInk='#174b82',boardThickness=3,transcript='',refreshQueued=false;
 let realtimeChannel=null,realtimeCode='',lastRealtimeWake=0,mixAdvancing=false;
 const q=s=>stage?.querySelector(s);const e=s=>document.createElement(s);
@@ -44,11 +44,18 @@ function load(){try{const x=JSON.parse(sessionStorage.getItem(KEY)||'null');if(x
 function queryRoom(){return(new URLSearchParams(location.search)).get('room')?.toUpperCase().slice(0,10)||''}
 function open(){if(!shade)return;lastFocused=document.activeElement;shade.hidden=false;document.body.classList.add('esc-gm-open');if(session){wrap('<div class="esc-gm-section"><h3>Connecting to your room…</h3><p>Loading the latest session state.</p></div>');void refresh()}else showWelcome();shade.querySelector('.esc-gm-close')?.focus()}
 function close(){if(!shade)return;speechApi?.stop();speechApi=null;shade.hidden=true;document.body.classList.remove('esc-gm-open');lastFocused?.focus?.()}
+function setProjector(enabled){document.body.classList.toggle('esc-gm-projector',enabled);try{sessionStorage.setItem('esc-gm-projector',enabled?'1':'0')}catch(_){}}
 function title(){return document.querySelector('main h1,.game-hero h1,.new-game-hero h1')?.textContent?.trim()||LABEL(location.pathname.split('/')[1]||'taboo')}
 function slug(){const g=location.pathname.split('/').filter(Boolean)[0];return GAMES.includes(g)?g:'taboo'}
 function wrap(html){stage.querySelector('.esc-gm-main').innerHTML=html;bindMain()}
 function showWelcome(){data=null;wrap('<div class="esc-gm-section"><div class="esc-gm-overline">NEW GAME SESSION</div><h3>Play together, even on different phones.</h3><p>Start a hosted session or join with a room code. No participant account required.</p><label>Your display name<input id="gmName" maxlength="40" placeholder="Enter your name" autocomplete="nickname"></label><div class="esc-gm-two"><button data-do="create" class="esc-gm-primary">Create room</button><button data-do="joinForm">Join a room</button></div></div>');}
 function showJoin(){wrap('<div class="esc-gm-section"><h3>Join game session</h3><p>Enter the code displayed on the host screen.</p><label>Room code<input id="gmCode" maxlength="10" placeholder="XXXXXXXXXX" value="'+escape(queryRoom())+'" autocapitalize="characters"></label><label>Your name<input id="gmName" maxlength="40" placeholder="Your name" autocomplete="nickname"></label><div class="esc-gm-two"><button data-do="join" class="esc-gm-primary">Join room</button><button data-do="welcome">Back</button></div></div>');}
+function updateSpeechStats(){
+ if(q('#gmTranscript'))q('#gmTranscript').value=transcript;
+ const words=(transcript.toLowerCase().match(/[a-z]+(?:'[a-z]+)?/g)||[]);
+ const stats=q('#gmSpeechStats');
+ if(stats)stats.textContent='Recognized words: '+words.length+' · Unique words: '+new Set(words).size;
+}
 function tab(label,which){return '<button class="'+(view===which?'active':'')+'" data-tab="'+which+'">'+label+'</button>'}
 function roomUrl(){return location.origin+'/play/?room='+encodeURIComponent(session.code)}
 function showQrPanel(){
@@ -97,7 +104,7 @@ function render(force=false){
       +'<p>Icebreaker 10m · Taboo 15m · Debate 15m · One for Me 20m. Timed transitions operate while the host tab stays open.</p></div>'
       +'<button data-do="projector">Projector mode</button>':'')
     +'<h4>Speaking practice</h4><div class="esc-gm-two"><button data-do="voiceStart">Start speech transcription</button><button data-do="voiceStop">Stop</button></div>'
-    +'<textarea id="gmTranscript" aria-label="Local speaking transcript" placeholder="Speech appears here when supported by your browser." rows="3"></textarea>'
+    +'<textarea id="gmTranscript" aria-label="Local speaking transcript" placeholder="Speech appears here when supported by your browser." rows="3"></textarea><p id="gmSpeechStats" class="esc-gm-speech-stats">Recognized words: 0 · Unique words: 0</p>'
     +'<h4>Speaking timer</h4><div class="esc-gm-timer" id="gmTimer">'+remaining+'s</div>'
     +'<div class="esc-gm-three"><button data-do="timerStart">Start</button><button data-do="timerStop">Stop</button><button data-do="timerReset">Reset</button></div>'
     +'<p>Speaking time is self-reported; a microphone is optional.</p></div>';
@@ -109,18 +116,21 @@ function render(force=false){
  bindMain();
  if(r.status!=='active')stage.querySelectorAll('[data-do]').forEach(b=>{if(!['downloadSummary','leave','copy','qr'].includes(b.dataset.do))b.disabled=true});
  if(view==='board')drawBoard();
- if(view==='activities'&&q('#gmTranscript'))q('#gmTranscript').value=transcript;
+ if(view==='activities')updateSpeechStats();
  if(r.game!==slug()&&!location.pathname.startsWith('/play/'))stage.querySelector('.esc-gm-summary')?.insertAdjacentHTML('beforeend','<a href="/'+encodeURIComponent(r.game)+'/?gm=1">Open current game</a>');
  showQrPanel();stage.scrollTop=rememberedScroll;updateMixCountdown();
 }
 function updateMixCountdown(){
  const info=data?.room?.settings;
  const node=q('#gmMixCountdown');
+ if(mixBadge)mixBadge.hidden=!info?.mix;
  if(!info?.mix)return;
  const deadline=Date.parse(info.mixEndsAt||'');
  if(!Number.isFinite(deadline))return;
  const seconds=Math.max(0,Math.ceil((deadline-Date.now())/1000));
- if(node)node.textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');
+ const clock=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');
+ if(node)node.textContent=clock;
+ if(mixBadge)mixBadge.textContent='Game Mix · '+clock+' · '+LABEL(data.room.game);
  if(!seconds&&data?.me?.host&&session&&!mixAdvancing&&!document.hidden){
    mixAdvancing=true;
    void action('mix_next').then(()=>refresh()).catch(err=>flash(err.message))
@@ -144,6 +154,10 @@ async function refresh(){
    const next=await rpc('esc_live_snapshot',{p_code:code,p_token:token});
    if(!session||session.code!==code||session.token!==token)return;
    data=next;
+   if(next.me?.host&&next.room?.settings?.mix&&!location.pathname.startsWith('/play/')&&
+      next.room.game!==slug()&&next.room.status==='active'&&!document.hidden){
+     location.replace('/'+encodeURIComponent(next.room.game)+'/?gm=1');return;
+   }
    if(!shade.hidden)render();
  }catch(err){
    if(!session||session.code!==code)return;
@@ -184,7 +198,7 @@ async function handle(btn){if(btn.disabled)return;btn.disabled=true;const kind=b
   recognition.lang='en-US';recognition.continuous=true;recognition.interimResults=true;
   recognition.onresult=ev=>{
     transcript=[...ev.results].map(x=>x[0]?.transcript||'').join(' ');
-    if(q('#gmTranscript'))q('#gmTranscript').value=transcript;
+    updateSpeechStats();
   };
   recognition.onerror=ev=>flash('Speech recognition: '+ev.error);
   recognition.onend=()=>{if(speechApi===recognition)speechApi=null};
@@ -217,7 +231,7 @@ async function handle(btn){if(btn.disabled)return;btn.disabled=true;const kind=b
  else if(kind==='clearBoard'){target='board_clear';if(!confirm('Clear the shared Whiteboard?'))return}
  else if(kind==='challenge'){target='challenge';payload.text=CHALLENGES[Math.floor(Math.random()*CHALLENGES.length)]}
  else if(kind==='power'){target='challenge';payload.text=POWERS[Math.floor(Math.random()*POWERS.length)]}
- else if(kind==='projector'){const enabled=document.body.classList.toggle('esc-gm-projector');close();flash(enabled?'Projector mode enabled · ESC to exit':'Projector mode disabled');return}
+ else if(kind==='projector'){setProjector(!document.body.classList.contains('esc-gm-projector'));close();return}
  else if(kind==='mixStart'){target='mix_start'}
  else if(kind==='mixNext'){target='mix_next';payload.force=true}
  else if(kind==='mixStop'){target='mix_stop'}
@@ -235,10 +249,16 @@ function mount(){
  document.body.appendChild(shade);stage=shade.querySelector('.esc-gm-dialog');notifyEl=shade.querySelector('.esc-gm-toast');
  shade.querySelector('.esc-gm-close').onclick=close;
  shade.addEventListener('pointerdown',ev=>{if(ev.target===shade)close()});
- document.addEventListener('keydown',ev=>{if(ev.key==='Escape'){if(!shade.hidden)close();else document.body.classList.remove('esc-gm-projector')}});
+ document.addEventListener('keydown',ev=>{if(ev.key==='Escape'){if(!shade.hidden)close();else setProjector(false)}});
  const top=document.querySelector('.game-actions,.new-game-actions,.header-actions,.esc-display-actions,.hub-hero,.game-topbar,.new-game-topbar');
  hostBtn=e('button');hostBtn.type='button';hostBtn.className='esc-gm-launch';hostBtn.textContent='Game Master';hostBtn.title='Players, voting, scoring and live collaboration';hostBtn.onclick=open;
  (top||document.body).appendChild(hostBtn);
+ if(location.pathname.startsWith('/play/'))hostBtn.hidden=true;
+ projectorExit=e('button');projectorExit.type='button';projectorExit.className='esc-gm-exit-projector';
+ projectorExit.textContent='Exit projector ×';projectorExit.onclick=()=>setProjector(false);document.body.appendChild(projectorExit);
+ mixBadge=e('button');mixBadge.type='button';mixBadge.className='esc-gm-mix-indicator';
+ mixBadge.hidden=true;mixBadge.onclick=()=>{view='activities';open()};document.body.appendChild(mixBadge);
+ try{if(sessionStorage.getItem('esc-gm-projector')==='1')setProjector(true)}catch(_){}
  load();
  const url=queryRoom();if(url&&(!session||session.code!==url)){disconnectRealtime();session=null;save();open();showJoin()}else if(session){refresh();if(location.pathname.startsWith('/play/'))open();void attachRealtime()}
  else if(location.pathname.startsWith('/play/')){open();showJoin()}
