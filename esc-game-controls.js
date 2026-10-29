@@ -440,4 +440,4 @@
 (function(){if(document.querySelector('script[data-esc-whiteboard]'))return;var s=document.createElement('script');s.src='/esc-whiteboard.js?v=20261029-whiteboard1';s.async=true;s.dataset.escWhiteboard='1';document.head.appendChild(s);})();
 
 /* Shared Games navigation and original calm background-music control. */
-(function(){if(document.querySelector('script[data-esc-game-extras]'))return;var s=document.createElement('script');s.src='/esc-game-extras.js?v=20261029-game-extras2';s.async=true;s.dataset.escGameExtras='1';document.head.appendChild(s);})();
+(function(){if(document.querySelector('script[data-esc-game-extras]'))return;var s=document.createElement('script');s.src='/esc-game-extras.js?v=20261029-game-extras3';s.async=true;s.dataset.escGameExtras='1';document.head.appendChild(s);})();
