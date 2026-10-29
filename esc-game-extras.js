@@ -3,7 +3,7 @@
   'use strict';
   if (window.ESCGameExtras) return;
 
-  const VERSION = '20261029-game-extras1';
+  const VERSION = '20261029-game-extras2';
   const STORAGE_KEY = 'esc-background-music-v1';
   const HUB_URL = '/games/';
   const TRACKS = {
@@ -21,7 +21,7 @@
     }
   };
 
-  const state = { track: 'piano', volume: 32, playing: false };
+  const state = { track: 'piano', volume: 45, playing: false };
   let audio = null;
   let output = null;
   let scheduleTimer = null;
@@ -51,7 +51,17 @@
   }
   const midiHz = midi => 440 * Math.pow(2, (midi - 69) / 12);
 
-  // Entirely original, quietly synthesized loops: no external audio stream or music licence required.
+  // Music gains are independent of the game's sound-effect gain patch.
+  // Using native GainNode avoids an effect-volume multiplier that could mute the music.
+  function makeMusicGain(ctx, gain = 1) {
+    try { if (typeof window.GainNode === 'function') return new window.GainNode(ctx, { gain }); } catch (_) {}
+    const node = ctx.createGain();
+    node.gain.value = gain;
+    return node;
+  }
+  const musicVolume = value => value <= 0 ? 0 : Math.pow(value / 100, 0.75) * 0.68;
+
+  // Entirely original, gently synthesized loops: no external stream or licence required.
   function voice(midi, at, duration, kind, velocity = 1) {
     if (!audio || !output) return;
     const ctx = audio;
@@ -61,8 +71,8 @@
     const attack = isPad ? 0.55 : isBell ? 0.018 : 0.014;
     const sustain = isPad ? Math.max(1.1, duration) : isBell ? Math.max(0.75, duration) : Math.max(0.6, duration);
     const release = isPad ? 1.65 : isBell ? 1.12 : 0.72;
-    const peak = (isPad ? 0.0052 : isBell ? 0.0068 : kind === 'bass' ? 0.0105 : 0.0095) * velocity;
-    const envelope = ctx.createGain();
+    const peak = (isPad ? 0.07 : isBell ? 0.09 : kind === 'bass' ? 0.12 : 0.13) * velocity;
+    const envelope = makeMusicGain(ctx);
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
     filter.frequency.value = isPad ? 1000 : isBell ? 2450 : kind === 'bass' ? 520 : 1750;
@@ -88,8 +98,8 @@
     harmonic.type = isPad ? 'triangle' : 'sine';
     harmonic.frequency.setValueAtTime(midiHz(midi) * (isBell ? 2 : 1), start);
     harmonic.detune.value = isPad ? 4 : -3;
-    const harmonicLevel = ctx.createGain();
-    // Setting .value avoids intercepting the site's existing game-effect gain automation.
+    const harmonicLevel = makeMusicGain(ctx);
+    // A low-level harmonic to soften the fundamental note.
     harmonicLevel.gain.value = isPad ? 0.22 : isBell ? 0.19 : 0.17;
     harmonic.connect(harmonicLevel);
     harmonicLevel.connect(filter);
@@ -182,17 +192,17 @@
     try {
       const ctx = new AudioContextClass();
       audio = ctx;
-      output = ctx.createGain();
-      output.gain.value = (state.volume / 100) * 0.32;
+      output = makeMusicGain(ctx, musicVolume(state.volume));
       output.connect(ctx.destination);
       stepIndex = 0;
       nextNoteAt = ctx.currentTime + 0.08;
       state.playing = true;
       tick();
       scheduleTimer = window.setInterval(tick, 95);
-      // A user-initiated click starts music. Modern browsers block audio autoplay.
+      // This is called directly from the Play button: browsers require that user gesture.
+      ctx.onstatechange = () => { if (audio === ctx) updateUI(); };
       const result = ctx.resume();
-      if (result && typeof result.catch === 'function') result.catch(() => {
+      if (result && typeof result.then === 'function') result.then(() => { if (audio === ctx) updateUI(); }).catch(() => {
         if (audio === ctx) {
           stop();
           if (musicStatus) musicStatus.textContent = 'Tap Play to enable audio in your browser.';
@@ -218,7 +228,7 @@
     if (volumeSlider) volumeSlider.value = String(state.volume);
     if (volumeValue) volumeValue.textContent = Math.round(state.volume) + '%';
     if (musicStatus) musicStatus.textContent = state.playing
-      ? 'Playing ' + TRACKS[state.track].label + ' softly in the background.'
+      ? (audio?.state === 'running' ? 'Playing ' + TRACKS[state.track].label + ' in the background.' : 'Enabling browser audio…')
       : 'Paused · Press Play when you are ready.';
   }
 
@@ -303,8 +313,8 @@
             ${Object.entries(TRACKS).map(([key, track]) => `<option value="${key}">${track.label}</option>`).join('')}
           </select>
         </label>
-        <label class="esc-calm-field esc-calm-volume-field"><span>Music volume <output class="esc-calm-volume-value">32%</output></span>
-          <input type="range" class="esc-calm-volume" min="0" max="100" step="1" value="32" aria-label="Music volume">
+        <label class="esc-calm-field esc-calm-volume-field"><span>Music volume <output class="esc-calm-volume-value">45%</output></span>
+          <input type="range" class="esc-calm-volume" min="0" max="100" step="1" value="45" aria-label="Music volume">
         </label>
         <div class="esc-calm-status" role="status" aria-live="polite">Paused · Press Play when you are ready.</div>
         <p class="esc-calm-footnote">Separate from game sound effects. Music starts only when you press Play.</p>
@@ -330,8 +340,8 @@
     volumeSlider.addEventListener('input', () => {
       state.volume = Math.max(0, Math.min(100, Number(volumeSlider.value)));
       if (output && audio) {
-        try { output.gain.setTargetAtTime((state.volume / 100) * 0.32, audio.currentTime, 0.045); }
-        catch (_) { output.gain.value = (state.volume / 100) * 0.32; }
+        try { output.gain.setTargetAtTime(musicVolume(state.volume), audio.currentTime, 0.045); }
+        catch (_) { output.gain.value = musicVolume(state.volume); }
       }
       persist(); updateUI();
     });
