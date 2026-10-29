@@ -9,7 +9,7 @@ const KEY='esc-gamemaster-session-v1';
 let client=null,session=null,data=null,timer=null,speechTimer=null,speechStarted=0,speechDeadline=0,remaining=60,boardPainting=false,boardPoints=[],lastBoardLength=-1,projector=false,view='players',requesting=false,lastFocused=null;
 let hostBtn=null,shade=null,stage=null,notifyEl=null,speechApi=null;
 let renderSignature='',qrVisible=false,boardInk='#174b82',boardThickness=3,transcript='',refreshQueued=false;
-let realtimeChannel=null,realtimeCode='',lastRealtimeWake=0;
+let realtimeChannel=null,realtimeCode='',lastRealtimeWake=0,mixAdvancing=false;
 const q=s=>stage?.querySelector(s);const e=s=>document.createElement(s);
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function flash(msg){if(!notifyEl)return;notifyEl.textContent=msg;notifyEl.hidden=false;clearTimeout(flash.t);flash.t=setTimeout(()=>{notifyEl.hidden=true},3500)}
@@ -89,7 +89,18 @@ function render(force=false){
  }else if(view==='board'){
   html='<div class="esc-gm-section"><div class="esc-gm-row"><h3>Shared Whiteboard</h3>'+(controls?'<button data-do="clearBoard">Clear</button>':'')+'</div><p>Draw with a mouse or finger. Everyone in the room sees the same board.</p><div class="esc-gm-canvas"><canvas id="gmBoard" width="720" height="400"></canvas></div><div class="esc-gm-row"><label>Ink <input type="color" id="gmInk" value="'+boardInk+'"></label><label>Size <input id="gmSize" type="range" min="1" max="12" value="'+boardThickness+'"></label></div></div>';
  }else if(view==='activities'){
-  html='<div class="esc-gm-section"><h3>Speaking challenges</h3><p>'+escape(r.challenge||'Choose a challenge to get started.')+'</p>'+(controls?'<div class="esc-gm-two"><button data-do="challenge">Random challenge</button><button data-do="power">Power-up card</button></div><p>Power-up cards are optional instructions; the host awards points manually.</p><div class="esc-gm-row"><button data-do="mix">Next Game Mix step</button><button data-do="projector">Projector mode</button></div><p>Suggested 60-minute order: Icebreaker (10m), Taboo (15m), Debate (15m), One for Me (20m). Host advances steps manually.</p>':'')+'<h4>Speaking practice</h4><div class="esc-gm-two"><button data-do="voiceStart">Start speech transcription</button><button data-do="voiceStop">Stop</button></div><textarea id="gmTranscript" aria-label="Local speaking transcript" placeholder="Speech appears here when supported by your browser." rows="3"></textarea><h4>Speaking timer</h4><div class="esc-gm-timer" id="gmTimer">'+remaining+'s</div><div class="esc-gm-three"><button data-do="timerStart">Start</button><button data-do="timerStop">Stop</button><button data-do="timerReset">Reset</button></div><p>Speaking time is self-reported; microphone recording is not required.</p></div>';
+  const mix=Boolean(r.settings?.mix);
+  html='<div class="esc-gm-section"><h3>Speaking challenges</h3><p>'+escape(r.challenge||'Choose a challenge to get started.')+'</p>'
+    +(controls?'<div class="esc-gm-two"><button data-do="challenge">Random challenge</button><button data-do="power">Power-up card</button></div><p>Power-up cards are optional tasks. The host awards points manually.</p>'
+      +'<div class="esc-gm-mix">'+(mix?'<strong>Game Mix running · Step '+(Number(r.settings.mixStep||0)+1)+'/4</strong><div class="esc-gm-mix-clock" id="gmMixCountdown">--:--</div><div class="esc-gm-two"><button data-do="mixNext">Skip to next game</button><button data-do="mixStop">Stop Game Mix</button></div>'
+       :'<button data-do="mixStart" class="esc-gm-primary">Start 60-minute Game Mix</button>')
+      +'<p>Icebreaker 10m · Taboo 15m · Debate 15m · One for Me 20m. Timed transitions operate while the host tab stays open.</p></div>'
+      +'<button data-do="projector">Projector mode</button>':'')
+    +'<h4>Speaking practice</h4><div class="esc-gm-two"><button data-do="voiceStart">Start speech transcription</button><button data-do="voiceStop">Stop</button></div>'
+    +'<textarea id="gmTranscript" aria-label="Local speaking transcript" placeholder="Speech appears here when supported by your browser." rows="3"></textarea>'
+    +'<h4>Speaking timer</h4><div class="esc-gm-timer" id="gmTimer">'+remaining+'s</div>'
+    +'<div class="esc-gm-three"><button data-do="timerStart">Start</button><button data-do="timerStop">Stop</button><button data-do="timerReset">Reset</button></div>'
+    +'<p>Speaking time is self-reported; a microphone is optional.</p></div>';
  }else if(view==='summary'){
   const total=players.reduce((a,p)=>a+p.speakingSeconds,0);
   html='<div class="esc-gm-section"><h3>Session summary</h3><div class="esc-gm-stat"><b>'+players.length+'</b><span>Players</span></div><div class="esc-gm-stat"><b>'+r.round+'</b><span>Rounds</span></div><div class="esc-gm-stat"><b>'+Math.round(total/60)+'</b><span>Estimated speaking minutes</span></div><div class="esc-gm-stat"><b>'+players.reduce((a,p)=>a+p.score,0)+'</b><span>Total points</span></div><button data-do="downloadSummary">Download results</button>'+(controls?'<button data-do="endSession">End session</button>':'')+'</div>';
@@ -100,7 +111,21 @@ function render(force=false){
  if(view==='board')drawBoard();
  if(view==='activities'&&q('#gmTranscript'))q('#gmTranscript').value=transcript;
  if(r.game!==slug()&&!location.pathname.startsWith('/play/'))stage.querySelector('.esc-gm-summary')?.insertAdjacentHTML('beforeend','<a href="/'+encodeURIComponent(r.game)+'/?gm=1">Open current game</a>');
- showQrPanel();stage.scrollTop=rememberedScroll;
+ showQrPanel();stage.scrollTop=rememberedScroll;updateMixCountdown();
+}
+function updateMixCountdown(){
+ const info=data?.room?.settings;
+ const node=q('#gmMixCountdown');
+ if(!info?.mix)return;
+ const deadline=Date.parse(info.mixEndsAt||'');
+ if(!Number.isFinite(deadline))return;
+ const seconds=Math.max(0,Math.ceil((deadline-Date.now())/1000));
+ if(node)node.textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');
+ if(!seconds&&data?.me?.host&&session&&!mixAdvancing&&!document.hidden){
+   mixAdvancing=true;
+   void action('mix_next').then(()=>refresh()).catch(err=>flash(err.message))
+     .finally(()=>{mixAdvancing=false});
+ }
 }
 function pos(evt,canvas){const z=canvas.getBoundingClientRect();return [+(Math.max(0,Math.min(1,(evt.clientX-z.left)/z.width)).toFixed(4)),+(Math.max(0,Math.min(1,(evt.clientY-z.top)/z.height)).toFixed(4))]}
 function paint(ctx,path,w,h){const points=path.points;if(!Array.isArray(points)||points.length<2)return;ctx.beginPath();ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=Math.min(20,Math.max(1,Number(path.size)||3));ctx.strokeStyle=/^#[0-9a-f]{6}$/i.test(path.color)?path.color:'#174b82';points.forEach((p,i)=>{const x=Number(p[0])*w,y=Number(p[1])*h;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.stroke()}
@@ -193,7 +218,9 @@ async function handle(btn){if(btn.disabled)return;btn.disabled=true;const kind=b
  else if(kind==='challenge'){target='challenge';payload.text=CHALLENGES[Math.floor(Math.random()*CHALLENGES.length)]}
  else if(kind==='power'){target='challenge';payload.text=POWERS[Math.floor(Math.random()*POWERS.length)]}
  else if(kind==='projector'){const enabled=document.body.classList.toggle('esc-gm-projector');close();flash(enabled?'Projector mode enabled · ESC to exit':'Projector mode disabled');return}
- else if(kind==='mix'){target='game';const i=MIX.findIndex(x=>x.slug===data.room.game);payload.slug=MIX[(i+1)%MIX.length]?.slug||MIX[0].slug}
+ else if(kind==='mixStart'){target='mix_start'}
+ else if(kind==='mixNext'){target='mix_next';payload.force=true}
+ else if(kind==='mixStop'){target='mix_stop'}
  else if(kind==='endSession'){target='end';if(!confirm('End this session for all players?'))return}
  else return;
  await action(target,payload);await refresh();
@@ -217,6 +244,7 @@ function mount(){
  else if(location.pathname.startsWith('/play/')){open();showJoin()}
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&session)void refresh()});
  setInterval(()=>{if(session&&!document.hidden)void refresh()},3000);
+ setInterval(()=>{if(session&&!document.hidden)updateMixCountdown()},1000);
 }
 window.ESCGameMaster={open,mount};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
