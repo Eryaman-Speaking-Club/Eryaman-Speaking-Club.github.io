@@ -3,7 +3,7 @@
   'use strict';
   if (window.ESCGameExtras) return;
 
-  const VERSION = '20261029-game-extras2';
+  const VERSION = '20261029-game-extras3';
   const STORAGE_KEY = 'esc-background-music-v1';
   const HUB_URL = '/games/';
   const TRACKS = {
@@ -21,8 +21,12 @@
     }
   };
 
-  const state = { track: 'piano', volume: 45, playing: false };
+  const state = { track: 'piano', volume: 65, playing: false };
   let audio = null;
+  let musicPlayer = null;
+  let testPlayer = null;
+  const audioUrls = new Map();
+  let testUrl = null;
   let output = null;
   let scheduleTimer = null;
   let nextNoteAt = 0;
@@ -166,55 +170,144 @@
     }
   }
 
-  function stop() {
-    if (scheduleTimer !== null) clearInterval(scheduleTimer);
-    scheduleTimer = null;
-    state.playing = false;
-    const oldAudio = audio;
-    const oldOutput = output;
-    audio = null;
-    output = null;
-    if (oldAudio) {
-      try { oldOutput?.gain.setTargetAtTime(0, oldAudio.currentTime, 0.055); }
-      catch (_) { /* Already suspended/closed. */ }
-      window.setTimeout(() => { try { void oldAudio.close().catch(() => {}); } catch (_) {} }, 350);
+
+  // A browser-native media element gives reliable volume and playback on phones,
+  // Safari and muted game-effect setups. Every track is synthesized locally.
+  function createWav(key) {
+    const sampleRate = 22050;
+    const track = TRACKS[key];
+    const beat = 60 / track.tempo;
+    const duration = beat * 16;
+    const count = Math.ceil(duration * sampleRate);
+    const pcm = new Float32Array(count);
+    const TAU = Math.PI * 2;
+    const addNote = (midi, at, length, strength, voiceType) => {
+      const hz = midiHz(midi);
+      const begin = Math.max(0, Math.floor(at * sampleRate));
+      const end = Math.min(count, Math.ceil((at + length) * sampleRate));
+      const attack = voiceType === 'pad' ? 0.28 : 0.025;
+      const release = voiceType === 'pad' ? 0.8 : 0.45;
+      for (let i = begin; i < end; i++) {
+        const t = i / sampleRate - at;
+        const envIn = Math.min(1, Math.max(0, t / attack));
+        const envOut = Math.min(1, Math.max(0, (length - t) / release));
+        const decay = voiceType === 'pad' ? 1 : Math.exp(-t * (voiceType === 'bell' ? 0.82 : 0.40));
+        const phase = TAU * hz * t;
+        const tone = voiceType === 'pad'
+          ? Math.sin(phase) + 0.18 * Math.sin(phase * 2)
+          : Math.sin(phase) + 0.31 * Math.sin(phase * 2) + 0.07 * Math.sin(phase * 3);
+        pcm[i] += strength * envIn * envOut * decay * tone;
+      }
+    };
+    for (let bar = 0; bar < 4; bar++) {
+      const chord = track.chords[bar];
+      const at = bar * beat * 4;
+      addNote(chord[0] - 12, at, beat * 3.8, 0.19, 'pad');
+      if (key === 'ambient') {
+        chord.forEach((note, index) => addNote(note + (index > 1 ? 12 : 0), at, beat * 3.9, index === 0 ? 0.065 : 0.05, 'pad'));
+        addNote(chord[2] + 24, at + beat * 1.7, beat * 1.8, 0.15, 'bell');
+      } else if (key === 'lofi') {
+        [1, 2, 3].forEach(index => {
+          addNote(chord[index] + 12, at, beat * 1.85, 0.11, 'pad');
+          addNote(chord[index] + 12, at + beat * 2.0, beat * 1.55, 0.09, 'pad');
+        });
+        addNote(chord[3] + 12, at + beat * 1.0, beat * 0.9, 0.20, 'key');
+        addNote(chord[2] + 12, at + beat * 3.0, beat * 0.9, 0.19, 'key');
+      } else {
+        const sequence = [1, 2, 3, 2];
+        sequence.forEach((index, step) => addNote(chord[index] + 12, at + step * beat, beat * 1.13, 0.31, 'key'));
+        addNote(chord[1], at, beat * 3.75, 0.055, 'pad');
+      }
     }
+    // Normalize to an audible, safe peak and crossfade the loop boundaries.
+    let peak = 0;
+    for (let i = 0; i < count; i++) peak = Math.max(peak, Math.abs(pcm[i]));
+    const scale = peak > 0 ? 0.65 / peak : 0;
+    const fade = Math.floor(sampleRate * 0.10);
+    const bytes = new ArrayBuffer(44 + count * 2);
+    const view = new DataView(bytes);
+    const label = (offset, value) => { for (let i = 0; i < value.length; i++) view.setUint8(offset + i, value.charCodeAt(i)); };
+    label(0, 'RIFF'); view.setUint32(4, 36 + count * 2, true);
+    label(8, 'WAVE'); label(12, 'fmt ');
+    view.setUint32(16, 16, true); view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true); view.setUint16(24, 1, true);
+    view.setUint32(24, sampleRate, true); view.setUint32(28, sampleRate * 2, true);
+    view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+    label(36, 'data'); view.setUint32(40, count * 2, true);
+    for (let i = 0; i < count; i++) {
+      const edge = Math.min(1, i / fade, (count - 1 - i) / fade);
+      const sample = Math.max(-1, Math.min(1, pcm[i] * scale * Math.max(0, edge)));
+      view.setInt16(44 + i * 2, Math.round(sample * 32767), true);
+    }
+    return URL.createObjectURL(new Blob([bytes], { type: 'audio/wav' }));
+  }
+  function trackUrl(key) {
+    if (!audioUrls.has(key)) audioUrls.set(key, createWav(key));
+    return audioUrls.get(key);
+  }
+  function stop() {
+    const player = musicPlayer;
+    musicPlayer = null;
+    if (player) { try { player.pause(); player.currentTime = 0; player.src = ''; } catch (_) {} }
+    state.playing = false;
     updateUI();
   }
-
   function start() {
     if (state.playing) return;
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContextClass) {
-      if (musicStatus) musicStatus.textContent = 'Music is not supported in this browser.';
-      return;
-    }
     try {
-      const ctx = new AudioContextClass();
-      audio = ctx;
-      output = makeMusicGain(ctx, musicVolume(state.volume));
-      output.connect(ctx.destination);
-      stepIndex = 0;
-      nextNoteAt = ctx.currentTime + 0.08;
+      const player = new Audio(trackUrl(state.track));
+      player.loop = true;
+      player.preload = 'auto';
+      player.volume = Math.max(0, Math.min(1, Math.pow(state.volume / 100, 0.8)));
+      musicPlayer = player;
       state.playing = true;
-      tick();
-      scheduleTimer = window.setInterval(tick, 95);
-      // This is called directly from the Play button: browsers require that user gesture.
-      ctx.onstatechange = () => { if (audio === ctx) updateUI(); };
-      const result = ctx.resume();
-      if (result && typeof result.then === 'function') result.then(() => { if (audio === ctx) updateUI(); }).catch(() => {
-        if (audio === ctx) {
-          stop();
-          if (musicStatus) musicStatus.textContent = 'Tap Play to enable audio in your browser.';
-        }
+      player.addEventListener('playing', () => { if (musicPlayer === player) updateUI(); });
+      player.addEventListener('error', () => {
+        if (musicPlayer !== player) return;
+        stop();
+        if (musicStatus) musicStatus.textContent = 'Audio failed to load. Please refresh and try again.';
+      });
+      const result = player.play();
+      if (result?.then) result.then(() => { if (musicPlayer === player) updateUI(); }).catch(error => {
+        if (musicPlayer !== player) return;
+        stop();
+        if (musicStatus) musicStatus.textContent = error?.name === 'NotAllowedError'
+          ? 'Browser blocked audio. Tap Play again and allow sound for this tab.'
+          : 'Could not play music. Check the browser tab sound setting.';
       });
       updateUI();
     } catch (_) {
       stop();
-      if (musicStatus) musicStatus.textContent = 'Music could not start in this browser.';
+      if (musicStatus) musicStatus.textContent = 'Could not start audio. Please refresh the game.';
     }
   }
-
+  function testSound() {
+    try {
+      if (!testUrl) {
+        const rate = 22050, count = rate;
+        const bytes = new ArrayBuffer(44 + count * 2), data = new DataView(bytes);
+        const text = (at, value) => { for (let i = 0; i < value.length; i++) data.setUint8(at + i, value.charCodeAt(i)); };
+        text(0,'RIFF'); data.setUint32(4, 36 + count * 2, true); text(8,'WAVE'); text(12,'fmt ');
+        data.setUint32(16,16,true);data.setUint16(20,1,true);data.setUint16(22,1,true);
+        data.setUint32(24,rate,true);data.setUint32(28,rate*2,true);data.setUint16(32,2,true);
+        data.setUint16(34,16,true);text(36,'data');data.setUint32(40,count*2,true);
+        for (let i=0;i<count;i++) {
+          const t=i/rate;
+          const env=Math.min(1,t/.025, Math.max(0,(0.95-t)/.24));
+          const value=.42*env*(Math.sin(2*Math.PI*660*t)+.24*Math.sin(2*Math.PI*880*t));
+          data.setInt16(44+i*2,Math.round(Math.max(-1,Math.min(1,value))*32767),true);
+        }
+        testUrl = URL.createObjectURL(new Blob([bytes],{type:'audio/wav'}));
+      }
+      testPlayer?.pause();
+      const player = new Audio(testUrl);
+      testPlayer = player;
+      player.volume = 0.85;
+      const done = player.play();
+      if (musicStatus) musicStatus.textContent = 'Playing test chime… If you hear nothing, check tab mute and device volume.';
+      done?.catch?.(() => { if (musicStatus) musicStatus.textContent = 'Browser blocked test sound. Check the tab permissions.'; });
+    } catch (_) { if (musicStatus) musicStatus.textContent = 'Audio test unavailable. Check your browser output.'; }
+  }
   function updateUI() {
     if (!musicButton) return;
     musicButton.classList.toggle('is-playing', state.playing);
@@ -228,7 +321,7 @@
     if (volumeSlider) volumeSlider.value = String(state.volume);
     if (volumeValue) volumeValue.textContent = Math.round(state.volume) + '%';
     if (musicStatus) musicStatus.textContent = state.playing
-      ? (audio?.state === 'running' ? 'Playing ' + TRACKS[state.track].label + ' in the background.' : 'Enabling browser audio…')
+      ? (musicPlayer && !musicPlayer.paused && musicPlayer.readyState >= 2 ? 'Playing ' + TRACKS[state.track].label + ' · Adjust your device volume if quiet.' : 'Starting music…')
       : 'Paused · Press Play when you are ready.';
   }
 
@@ -307,14 +400,14 @@
         <button type="button" class="esc-calm-close" aria-label="Close music settings">×</button>
       </div>
       <div class="esc-calm-main">
-        <button type="button" class="esc-calm-play" aria-pressed="false">Play music</button>
+        <button type="button" class="esc-calm-play" aria-pressed="false">Play music</button><button type="button" class="esc-calm-test">Test speaker sound</button>
         <label class="esc-calm-field">Music style
           <select class="esc-calm-track" aria-label="Choose background music">
             ${Object.entries(TRACKS).map(([key, track]) => `<option value="${key}">${track.label}</option>`).join('')}
           </select>
         </label>
-        <label class="esc-calm-field esc-calm-volume-field"><span>Music volume <output class="esc-calm-volume-value">45%</output></span>
-          <input type="range" class="esc-calm-volume" min="0" max="100" step="1" value="45" aria-label="Music volume">
+        <label class="esc-calm-field esc-calm-volume-field"><span>Music volume <output class="esc-calm-volume-value">65%</output></span>
+          <input type="range" class="esc-calm-volume" min="0" max="100" step="1" value="65" aria-label="Music volume">
         </label>
         <div class="esc-calm-status" role="status" aria-live="polite">Paused · Press Play when you are ready.</div>
         <p class="esc-calm-footnote">Separate from game sound effects. Music starts only when you press Play.</p>
@@ -327,6 +420,7 @@
     musicStatus = panel.querySelector('.esc-calm-status');
     panel.querySelector('.esc-calm-close').addEventListener('click', () => { closePanel(); musicButton.focus(); });
     playButton.addEventListener('click', () => { if (state.playing) stop(); else start(); });
+    panel.querySelector('.esc-calm-test').addEventListener('click', testSound);
     trackSelect.addEventListener('change', () => {
       const next = trackSelect.value;
       if (!Object.prototype.hasOwnProperty.call(TRACKS, next)) return;
@@ -339,10 +433,7 @@
     });
     volumeSlider.addEventListener('input', () => {
       state.volume = Math.max(0, Math.min(100, Number(volumeSlider.value)));
-      if (output && audio) {
-        try { output.gain.setTargetAtTime(musicVolume(state.volume), audio.currentTime, 0.045); }
-        catch (_) { output.gain.value = musicVolume(state.volume); }
-      }
+      if (musicPlayer) musicPlayer.volume = Math.max(0, Math.min(1, Math.pow(state.volume / 100, 0.8)));
       persist(); updateUI();
     });
     panel.addEventListener('keydown', event => {
@@ -356,7 +447,7 @@
     window.addEventListener('resize', positionPanel);
     window.addEventListener('scroll', positionPanel, true);
     document.addEventListener('visibilitychange', () => { if (document.hidden && state.playing) stop(); });
-    window.addEventListener('pagehide', () => { if (state.playing) stop(); });
+    window.addEventListener('pagehide', () => { if (state.playing) stop(); for (const url of audioUrls.values()) URL.revokeObjectURL(url); if (testUrl) URL.revokeObjectURL(testUrl); });
     updateUI();
   }
 
@@ -376,7 +467,7 @@
     mountPanel();
   }
 
-  window.ESCGameExtras = { mount, pause: stop, isPlaying: () => state.playing };
+  window.ESCGameExtras = { mount, pause: stop, isPlaying: () => state.playing, audioStatus: () => ({ playing: state.playing, playerPaused: musicPlayer?.paused, playerReadyState: musicPlayer?.readyState, volume: musicPlayer?.volume, track: state.track }) }; 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount, { once: true });
   else mount();
 })();
