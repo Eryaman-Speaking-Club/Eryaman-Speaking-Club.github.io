@@ -243,7 +243,7 @@ async function stopSpeaking(){if(!speechTimer)return;clearInterval(speechTimer);
 function bindMain(){stage.querySelectorAll('[data-do]').forEach(b=>b.onclick=()=>void handle(b));stage.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{view=b.dataset.tab;render(true)});if(view==='board'&&data)bindBoard()}
 function mount(){
  if(document.querySelector('.esc-gm-layer'))return;
- const css=e('link');css.rel='stylesheet';css.href='/esc-game-master.css?v=20261029-mvp1';document.head.appendChild(css);
+ const css=e('link');css.rel='stylesheet';css.href='/esc-game-master.css?v=20261029-mvp3';document.head.appendChild(css);
  shade=e('div');shade.className='esc-gm-layer';shade.hidden=true;
  shade.innerHTML='<div class="esc-gm-dialog" role="dialog" aria-modal="true" aria-label="ESC Game Master"><header class="esc-gm-head"><div><small>ERYAMAN SPEAKING CLUB</small><strong>Game Master</strong></div><button type="button" class="esc-gm-close" aria-label="Close">×</button></header><main class="esc-gm-main"></main></div><div class="esc-gm-toast" hidden></div>';
  document.body.appendChild(shade);stage=shade.querySelector('.esc-gm-dialog');notifyEl=shade.querySelector('.esc-gm-toast');
