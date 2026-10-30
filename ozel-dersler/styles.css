@@ -501,3 +501,76 @@
     letter-spacing:-.035em;
   }
 }
+
+
+/* 2026-10-30 · Yağmur private lessons: customized learning, professions and guide */
+.lesson-detail{padding-top:12px;padding-bottom:94px}
+.lesson-detail-head,.lesson-expertise-head{display:grid;grid-template-columns:1.12fr .88fr;gap:55px;align-items:end;margin-bottom:27px}
+.lesson-detail-head h2,.lesson-expertise-head h2{color:var(--navy);font-size:clamp(35px,4.5vw,58px);letter-spacing:-.055em;line-height:1.06;margin:13px 0 0}
+.lesson-detail-head>p,.lesson-expertise-head>p{font-size:15px;line-height:1.78;color:#647b90;margin:0 0 4px}
+.lesson-detail-grid{display:grid;grid-template-columns:1.14fr .86fr;gap:17px}
+.lesson-detail-plan,.lesson-detail-facts{border-radius:28px;padding:32px 34px}
+.lesson-detail-plan{background:#f5f9fc;border:1px solid #dce8ef}
+.lesson-detail-facts{background:linear-gradient(150deg,#0a2a48,#144973);color:#fff;border:1px solid #184364}
+.lesson-detail-eyebrow{font-size:10px;font-weight:950;letter-spacing:.1em;color:var(--blue);text-transform:uppercase}
+.lesson-detail-facts .lesson-detail-eyebrow{color:#82d8d3}
+.lesson-detail-plan h3,.lesson-detail-facts h3,.lesson-focus h3,.lesson-topics h3{font-size:clamp(23px,2.5vw,30px);line-height:1.13;letter-spacing:-.038em;margin:12px 0 22px;color:var(--navy)}
+.lesson-detail-facts h3{color:#fff}
+.lesson-detail-steps{padding:0;margin:0;list-style:none;display:grid;gap:19px}
+.lesson-detail-steps li{display:grid;grid-template-columns:38px 1fr;align-items:start;gap:13px}
+.lesson-detail-steps li>span{display:grid;place-items:center;background:#e2f4f1;border-radius:12px;color:#147e82;font-size:12px;font-weight:950;width:37px;height:37px}
+.lesson-detail-steps strong{color:#143750;font-size:15px;line-height:1.4}
+.lesson-detail-steps p{margin:5px 0 0;color:#5b7185;line-height:1.65;font-size:13px}
+.lesson-detail-facts dl{margin:4px 0 20px;display:grid;gap:0}
+.lesson-detail-facts dl>div{display:grid;grid-template-columns:106px 1fr;gap:12px;align-items:start;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.15)}
+.lesson-detail-facts dt{color:#a3c6d8;font-size:12px;font-weight:700}
+.lesson-detail-facts dd{margin:0;color:#fff;font-size:14px;font-weight:800;line-height:1.45}
+.lesson-detail-facts>p{font-size:13px;color:#c2d7e4;line-height:1.68;margin:0}
+.lesson-focus{margin-top:19px;padding:27px 31px;display:grid;grid-template-columns:.82fr 1.18fr;gap:32px;background:#fff;border:1px solid #e0e9f0;border-radius:24px}
+.lesson-focus h3{margin-bottom:10px}
+.lesson-focus-intro p{font-size:13px;line-height:1.7;color:#657d90;margin:0}
+.lesson-focus-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;column-gap:20px;row-gap:0;align-content:center}
+.lesson-focus-list li{position:relative;padding:11px 0 11px 20px;border-bottom:1px solid #edf1f4;color:#31516b;font-size:13px;font-weight:750;line-height:1.4}
+.lesson-focus-list li:before{content:"";position:absolute;left:0;top:17px;width:7px;height:7px;border-radius:50%;background:var(--teal)}
+.lesson-expertise{background:linear-gradient(180deg,#f4f8fb,#fff 92%);padding:88px 0 98px;border-top:1px solid #e7eff4}
+.lesson-expertise-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.lesson-expertise-grid article{background:#fff;border:1px solid #e0e9f0;border-radius:21px;padding:23px 24px;min-width:0}
+.lesson-expertise-num{color:#159b9c;font-size:11px;font-weight:950;letter-spacing:.12em}
+.lesson-expertise-grid h3{margin:12px 0 11px;font-size:19px;letter-spacing:-.03em;line-height:1.2;color:#0b2b47}
+.lesson-expertise-grid p{margin:0;color:#667c8f;line-height:1.66;font-size:13px}
+.lesson-expertise-footnote{margin:15px 0 0;color:#6d8191;font-size:12px;line-height:1.6}
+.lesson-topics{margin-top:32px;display:grid;grid-template-columns:.83fr 1.17fr;gap:30px;align-items:center;padding:28px 31px;border-radius:23px;background:#edf5f7}
+.lesson-topics h3{margin:9px 0 8px}
+.lesson-topics p{color:#657f8c;line-height:1.6;font-size:13px;margin:0}
+.lesson-topics ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:9px}
+.lesson-topics li{font-size:12px;font-weight:800;color:#28516a;background:#fff;border:1px solid #d8e8ed;border-radius:999px;padding:10px 13px;line-height:1.3}
+.lesson-guide{margin-top:24px;display:flex;justify-content:space-between;gap:25px;align-items:center;padding:29px 33px;border-radius:25px;background:linear-gradient(125deg,#092440,#144b6e);color:#fff}
+.lesson-guide-kicker{display:block;color:#83ddd1;font-size:10px;letter-spacing:.12em;font-weight:900}
+.lesson-guide h3{font-size:28px;letter-spacing:-.035em;margin:9px 0 8px;color:#fff;line-height:1.15}
+.lesson-guide p{max-width:730px;font-size:13px;line-height:1.65;color:#c6d7e2;margin:0}
+.lesson-guide-link{flex:none;white-space:nowrap;background:#fff;color:#0a3955;border-radius:13px;padding:15px 19px;font-size:13px;font-weight:900;display:inline-flex;gap:9px;align-items:center}
+.lesson-guide-link:hover{background:#e4f7f2}
+.lesson-guide-link:focus-visible{outline:3px solid #82ddd4;outline-offset:4px}
+@media(max-width:1000px){
+ .lesson-detail-head,.lesson-expertise-head{gap:25px}
+ .lesson-detail-grid{grid-template-columns:1fr 1fr}
+ .lesson-detail-plan,.lesson-detail-facts{padding:26px}
+ .lesson-expertise-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:760px){
+ .lesson-detail{padding-top:0;padding-bottom:66px}
+ .lesson-expertise{padding:65px 0 70px}
+ .lesson-detail-head,.lesson-expertise-head,.lesson-detail-grid,.lesson-focus,.lesson-topics{grid-template-columns:1fr}
+ .lesson-detail-head,.lesson-expertise-head{gap:13px}
+ .lesson-detail-head h2,.lesson-expertise-head h2{font-size:clamp(34px,9vw,49px)}
+ .lesson-detail-plan,.lesson-detail-facts,.lesson-focus,.lesson-topics{padding:24px 22px;border-radius:22px}
+ .lesson-focus{gap:18px}
+ .lesson-guide{flex-direction:column;align-items:stretch;padding:25px 23px}
+ .lesson-guide-link{align-self:flex-start;white-space:normal}
+}
+@media(max-width:530px){
+ .lesson-focus-list,.lesson-expertise-grid{grid-template-columns:1fr}
+ .lesson-detail-facts dl>div{grid-template-columns:94px 1fr}
+ .lesson-expertise-grid article{padding:20px}
+ .lesson-guide-link{width:100%;justify-content:center;text-align:center}
+}
