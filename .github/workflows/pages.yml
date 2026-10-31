@@ -45,7 +45,8 @@ jobs:
           test -f ozel-dersler/index.html
           test -f ozel-dersler/ogrenme-rehberi/index.html
           test -f ozel-dersler/ogrenme-rehberi.html
-          grep -q 'href="/ozel-dersler/ogrenme-rehberi/"' ozel-dersler/index.html
+          grep -Eq 'href="/ozel-dersler/ogrenme-rehberi(/|[.]html)"' ozel-dersler/index.html
+          grep -q '<main class="guide-paper">' ozel-dersler/ogrenme-rehberi.html
           grep -q '<main class="guide-paper">' ozel-dersler/ogrenme-rehberi/index.html
       - name: Configure Pages
         uses: actions/configure-pages@v5
