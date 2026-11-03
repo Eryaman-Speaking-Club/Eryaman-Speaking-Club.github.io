@@ -109,6 +109,7 @@
     if (window.fbq) window.fbq = function() {};
   }
   function save(analytics, marketing) {
+    const wasMarketing = !!preferences?.marketing;
     preferences = {analytics: !!analytics, marketing: !!marketing, updated_at: new Date().toISOString()};
     try { localStorage.setItem(key, JSON.stringify(preferences)); } catch (_) {}
     const dialog = document.getElementById('esc-consent-panel');
@@ -117,6 +118,7 @@
     if (preferences.marketing) startMetaPixel();
     else if (window.__ESC_META_PIXEL_STARTED__) stopMetaPixel();
     window.dispatchEvent(new CustomEvent('esc:consent-changed', {detail:{...preferences}}));
+    if (wasMarketing && !preferences.marketing) location.reload();
   }
   function showPreferences() {
     if (document.getElementById('esc-consent-panel')) return;
@@ -128,7 +130,7 @@
     panel.innerHTML = `<strong style="display:block;font-size:17px;margin-bottom:8px">ESC · Gizlilik tercihleri</strong>
       <p style="margin:0 0 12px">Zorunlu işlevler dışında, siteyi geliştirmek için ziyaret ve tıklama istatistikleri tutmak; ileride izinli reklamlarla yeniden ulaşabilmek için ayrı tercihler istiyoruz. Kabul etmeseniz de siteyi kullanabilirsiniz.</p>
       <label style="display:block;margin:8px 0"><input id="esc-consent-analytics" type="checkbox"> Ziyaret ve tıklama analizi (Supabase)</label>
-      <label style="display:block;margin:8px 0"><input id="esc-consent-marketing" type="checkbox"> Yeniden hedefleme / pazarlama (şu anda aktif değil)</label>
+      <label style="display:block;margin:8px 0"><input id="esc-consent-marketing" type="checkbox"> Instagram/Facebook yeniden hedefleme (Meta Pixel)</label>
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:15px">
         <button type="button" data-esc-consent="reject">Tümünü reddet</button>
         <button type="button" data-esc-consent="selected">Seçimimi kaydet</button>
