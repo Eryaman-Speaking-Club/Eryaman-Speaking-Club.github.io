@@ -33,7 +33,7 @@
   })();
 
   async function send(eventName, extra={}) {
-    if (!allowed.has(eventName) || !window.ESCSupabase?.getClient) return;
+    if (!preferences?.analytics || !allowed.has(eventName) || !window.ESCSupabase?.getClient) return;
     try {
       const client = await window.ESCSupabase.getClient();
       if (!client) return;
