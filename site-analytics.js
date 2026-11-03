@@ -1,8 +1,24 @@
 (() => {
   'use strict';
-  if (window.__ESC_ANALYTICS_STARTED__) return;
-  window.__ESC_ANALYTICS_STARTED__ = true;
-
+  // No analytics session identifiers or third-party advertising scripts run before consent.
+  if (window.__ESC_CONSENT_INITIALIZED__) return;
+  window.__ESC_CONSENT_INITIALIZED__ = true;
+  const key = 'esc_cookie_preferences_v1';
+  function read() {
+    try {
+      const p = JSON.parse(localStorage.getItem(key) || 'null');
+      return p && typeof p.analytics === 'boolean' && typeof p.marketing === 'boolean' ? p : null;
+    } catch (_) { return null; }
+  }
+  let preferences = read();
+  window.ESCCookieConsent = {
+    getPreferences: () => preferences ? {...preferences} : null,
+    openSettings: showPreferences
+  };
+  window.ESCAnalytics = {track: () => Promise.resolve()};
+  function startAnalytics() {
+    if (window.__ESC_ANALYTICS_STARTED__) return;
+    window.__ESC_ANALYTICS_STARTED__ = true;
   const allowed = new Set(['page_view','cta_click','scroll_50','scroll_90']);
   const sessionKey = 'esc_analytics_session';
   let sessionId = sessionStorage.getItem(sessionKey);
@@ -70,4 +86,61 @@
     if (pct >= .9 && !fired.has('90')) { fired.add('90'); send('scroll_90'); window.removeEventListener('scroll', onScroll); }
   }
   window.addEventListener('scroll', onScroll, {passive:true});
+
+  }
+  function save(analytics, marketing) {
+    preferences = {analytics: !!analytics, marketing: !!marketing, updated_at: new Date().toISOString()};
+    try { localStorage.setItem(key, JSON.stringify(preferences)); } catch (_) {}
+    const dialog = document.getElementById('esc-consent-panel');
+    if (dialog) dialog.remove();
+    if (preferences.analytics) startAnalytics();
+    // Advertising pixels deliberately remain disabled until an ESC-owned account,
+    // a privacy notice, and an approved pixel ID have been configured.
+    window.dispatchEvent(new CustomEvent('esc:consent-changed', {detail:{...preferences}}));
+  }
+  function showPreferences() {
+    if (document.getElementById('esc-consent-panel')) return;
+    const panel = document.createElement('section');
+    panel.id = 'esc-consent-panel';
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-label', 'Çerez tercihleri');
+    panel.style.cssText = 'position:fixed;bottom:16px;left:16px;right:16px;max-width:540px;z-index:2147483647;background:#fff;color:#16263b;padding:20px;border:1px solid #b9c5d4;border-radius:14px;box-shadow:0 10px 40px #0005;font:14px/1.5 system-ui,sans-serif';
+    panel.innerHTML = `<strong style="display:block;font-size:17px;margin-bottom:8px">ESC · Gizlilik tercihleri</strong>
+      <p style="margin:0 0 12px">Zorunlu işlevler dışında, siteyi geliştirmek için ziyaret ve tıklama istatistikleri tutmak; ileride izinli reklamlarla yeniden ulaşabilmek için ayrı tercihler istiyoruz. Kabul etmeseniz de siteyi kullanabilirsiniz.</p>
+      <label style="display:block;margin:8px 0"><input id="esc-consent-analytics" type="checkbox"> Ziyaret ve tıklama analizi (Supabase)</label>
+      <label style="display:block;margin:8px 0"><input id="esc-consent-marketing" type="checkbox"> Yeniden hedefleme / pazarlama (şu anda aktif değil)</label>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:15px">
+        <button type="button" data-esc-consent="reject">Tümünü reddet</button>
+        <button type="button" data-esc-consent="selected">Seçimimi kaydet</button>
+        <button type="button" data-esc-consent="accept">Tümünü kabul et</button>
+      </div>`;
+    panel.querySelectorAll('button').forEach(btn => {
+      btn.style.cssText = 'padding:9px 12px;border:1px solid #7789a2;border-radius:8px;cursor:pointer;background:#f4f7fb;color:#16263b;font:inherit';
+      btn.addEventListener('click', () => {
+        const action = btn.dataset.escConsent;
+        save(action === 'accept' || (action === 'selected' && panel.querySelector('#esc-consent-analytics').checked),
+             action === 'accept' || (action === 'selected' && panel.querySelector('#esc-consent-marketing').checked));
+      });
+    });
+    panel.querySelector('#esc-consent-analytics').checked = !!preferences?.analytics;
+    panel.querySelector('#esc-consent-marketing').checked = !!preferences?.marketing;
+    document.body.appendChild(panel);
+  }
+  function installSettingsLink() {
+    if (document.getElementById('esc-cookie-settings')) return;
+    const link = document.createElement('button');
+    link.id = 'esc-cookie-settings';
+    link.type = 'button';
+    link.textContent = 'Çerez tercihleri';
+    link.style.cssText = 'position:fixed;bottom:0;right:0;z-index:1000;background:#fff;color:#243953;border:1px solid #ccd4df;border-radius:6px 0 0 0;padding:4px 8px;font:11px system-ui;cursor:pointer';
+    link.addEventListener('click', showPreferences);
+    document.body.appendChild(link);
+  }
+  function init() {
+    installSettingsLink();
+    if (preferences?.analytics) startAnalytics();
+    if (!preferences) showPreferences();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once:true});
+  else init();
 })();
