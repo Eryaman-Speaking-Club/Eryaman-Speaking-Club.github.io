@@ -88,14 +88,34 @@
   window.addEventListener('scroll', onScroll, {passive:true});
 
   }
+  // Meta Pixel loads only after explicit marketing consent. Never add a noscript pixel.
+  function startMetaPixel() {
+    if (!preferences?.marketing || window.__ESC_META_PIXEL_STARTED__) return;
+    window.__ESC_META_PIXEL_STARTED__ = true;
+    !function(f,b,e,v,n,t,x) {
+      if(f.fbq)return;
+      n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;
+      n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];
+      t=b.createElement(e);t.async=!0;t.src=v;
+      x=b.getElementsByTagName(e)[0];x.parentNode.insertBefore(t,x);
+    }(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    window.fbq('init', '1667598808341200');
+    window.fbq('track', 'PageView');
+  }
+  function stopMetaPixel() {
+    // Existing third-party cookies cannot be deleted reliably by this site.
+    // Prevent any further Pixel calls and require a page reload for fresh consent.
+    if (window.fbq) window.fbq = function() {};
+  }
   function save(analytics, marketing) {
     preferences = {analytics: !!analytics, marketing: !!marketing, updated_at: new Date().toISOString()};
     try { localStorage.setItem(key, JSON.stringify(preferences)); } catch (_) {}
     const dialog = document.getElementById('esc-consent-panel');
     if (dialog) dialog.remove();
     if (preferences.analytics) startAnalytics();
-    // Advertising pixels deliberately remain disabled until an ESC-owned account,
-    // a privacy notice, and an approved pixel ID have been configured.
+    if (preferences.marketing) startMetaPixel();
+    else if (window.__ESC_META_PIXEL_STARTED__) stopMetaPixel();
     window.dispatchEvent(new CustomEvent('esc:consent-changed', {detail:{...preferences}}));
   }
   function showPreferences() {
@@ -139,6 +159,7 @@
   function init() {
     installSettingsLink();
     if (preferences?.analytics) startAnalytics();
+    if (preferences?.marketing) startMetaPixel();
     if (!preferences) showPreferences();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once:true});
