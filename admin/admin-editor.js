@@ -232,7 +232,7 @@
     if(!doc)return {score:0,checks:[]};
     const canonical=seo.canonical||doc.querySelector('link[rel="canonical"]')?.href||'';
     const robots=readMeta(doc,'meta[name="robots"]');
-    const indexable=seo.indexable!==false&&!/\\bnoindex\\b/i.test(robots);
+    const indexable=seo.indexable!==false&&!/\bnoindex\b/i.test(robots);
     const geo=geoAuditFromDoc(doc,current,canonical,indexable,seo.title,seo.description);
     return {score:geo.score,checks:geo.checks};
   }
@@ -447,7 +447,7 @@
     const ogDescription=String(custom.og_description||meta('meta[property="og:description"]')||'').trim();
     const ogImage=String(custom.og_image||meta('meta[property="og:image"]')||'').trim();
     const robots=meta('meta[name="robots"]');
-    const indexable=custom.indexable!==undefined?custom.indexable:!/\\bnoindex\\b/i.test(robots);
+    const indexable=custom.indexable!==undefined?custom.indexable:!/\bnoindex\b/i.test(robots);
     const h1=String(doc.querySelector('h1')?.textContent||'').trim();
     let score=0;
     if(title.length>=20)score+=20;
