@@ -32,6 +32,8 @@ jobs:
         run: node tests/seo-geo-regression.cjs
       - name: Validate readable game guides and structured metadata
         run: node tests/geo-game-pages.cjs
+      - name: Validate Ankara local search landing pages
+        run: node tests/ankara-local-seo.cjs
 
   deploy:
     if: github.event_name != 'pull_request'
