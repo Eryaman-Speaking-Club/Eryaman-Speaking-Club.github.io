@@ -26,9 +26,12 @@ jobs:
         run: node tests/cefr-check.cjs
       - name: Validate Game Master and all 32 game routes
         run: node tests/esc-ui-smoke.cjs
+      - name: Validate SEO and GEO audit rules
+        run: node tests/seo-geo-regression.cjs
 
   deploy:
-    name: Publish static website independently
+    needs: validate-games
+    name: Publish static website after checks pass
     runs-on: ubuntu-latest
     environment:
       name: github-pages
