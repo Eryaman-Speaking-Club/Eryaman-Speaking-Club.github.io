@@ -95,7 +95,8 @@
       '<td>' + clean([row.device_type,row.operating_system,row.browser].filter(Boolean).join(' / ')) + '</td>' +
       '<td>' + fmt(row.browser_language) + '</td>' +
       '<td>' + clean(sourceName(row.referrer_host)) + '</td>' +
-      '<td>' + clean(scope(row)) + '</td></tr>'
+      '<td>' + clean(scope(row)) + '</td>' +
+      '<td><button type="button" class="icon-btn" data-esc-session="' + clean(row.session_id) + '">İncele</button></td></tr>'
     ).join('');
     const all = rows.filter(r=>r.consent_scope==='all').length;
     return '<section class="card esc-visitor-panel"><div class="card-head"><div>' +
@@ -108,8 +109,74 @@
       '<section class="card"><div class="card-head"><div><h2>Son 20 izinli ziyaretçi oturumu</h2>' +
       '<p class="muted">IP adresleri 7 gün sonra temizlenir. Diğer bilgiler en fazla 90 gün tutulur.</p></div></div>' +
       '<div class="table-wrap"><table><thead><tr><th>Zaman</th><th>IP</th><th>Tahmini konum</th>' +
-      '<th>İnternet sağlayıcısı</th><th>Cihaz / tarayıcı</th><th>Dil</th><th>Kaynak</th><th>Çerez tercihi</th>' +
+      '<th>İnternet sağlayıcısı</th><th>Cihaz / tarayıcı</th><th>Dil</th><th>Kaynak</th><th>Çerez tercihi</th><th>İncele</th>' +
       '</tr></thead><tbody>' + table + '</tbody></table></div></section>';
+  }
+
+
+  function clickHistory(clicks, visitors, days) {
+    const map = new Map((visitors || []).map(row => [row.session_id,row]));
+    const sorted = [...clicks].sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at));
+    const rows = sorted.map((event,index) => {
+      const visitor = map.get(event.session_id);
+      const location = visitor ?
+        [visitor.city,visitor.country].filter(Boolean).join(', ') || 'Bilinmiyor' : 'Eski kayıt / bilinmiyor';
+      return '<tr><td>' + clean(dateTime(event.created_at)) + '</td>' +
+        '<td>' + clean(event.page_path || '/') + '</td>' +
+        '<td>' + clean(actionName(event.target || event.mode)) + '</td>' +
+        '<td>' + clean(sourceName(event.referrer_host)) + '</td>' +
+        '<td>' + clean(location) + '</td>' +
+        '<td>' + (event.session_id ? '<button type="button" class="icon-btn" data-esc-session="' +
+          clean(event.session_id) + '">Oturumu incele</button>' : '—') + '</td></tr>';
+    }).join('');
+    return '<section class="card"><div class="card-head"><div>'+
+      '<h2>Tıklayan ziyaretçiler · Tek tek kayıtlar</h2>' +
+      '<p class="muted">Son '+days+' gündeki takip edilen bağlantı tıklamaları. Her satırda "Oturumu incele" ile gezinme geçmişini görebilirsin.</p>'+
+      '</div><span class="pill live">'+number(sorted.length)+' tıklama</span></div>'+
+      (sorted.length?'<div class="table-wrap"><table><thead><tr>'+
+      '<th>Ne zaman?</th><th>Hangi sayfada?</th><th>Neye tıkladı?</th><th>Nereden geldi?</th>'+
+      '<th>Tahmini konum</th><th>Oturum</th></tr></thead><tbody>'+rows+'</tbody></table></div>':
+      '<p class="muted">Bu dönemde takip edilmiş bağlantı tıklaması bulunmuyor.</p>')+
+      '<p class="esc-analytics-small">Eski kayıtlardaki IP ve cihaz bilgileri geriye dönük elde edilemez. Analiz izni olmayan ziyaretçiler bu listede yer almaz. Oturum bir kişiye eşit değildir.</p>'+
+      '</section>';
+  }
+  function inspectSession(sessionId, visitors, events) {
+    const visitor=(visitors || []).find(row=>row.session_id===sessionId);
+    const timeline=events.filter(row=>row.session_id===sessionId)
+      .sort((a,b)=>Date.parse(a.created_at)-Date.parse(b.created_at));
+    const location=visitor?
+      [visitor.city,visitor.region,visitor.country].filter(Boolean).join(', ')||'Bilinmiyor':
+      'Ek profil yok (önceki kayıt / izin bilgisi bulunamadı)';
+    const fields=visitor?[
+      ['İlk ziyaret',dateTime(visitor.first_seen_at)],
+      ['Son ziyaret',dateTime(visitor.last_seen_at)],
+      ['Çerez izni', visitor.consent_scope==='all'?'Tümünü kabul etti':'Yalnızca ziyaret analizi'],
+      ['IP adresi',visitor.ip_address||'Saklama süresi doldu / alınamadı'],
+      ['Tahmini konum',location],
+      ['İnternet sağlayıcısı',visitor.provider||'Bilinmiyor'],
+      ['Cihaz türü',visitor.device_type||'Bilinmiyor'],
+      ['Tarayıcı ve sistem',[visitor.browser,visitor.operating_system].filter(Boolean).join(' / ')],
+      ['Dil / saat dilimi',[visitor.browser_language,visitor.browser_timezone].filter(Boolean).join(' / ')],
+      ['Ekran',visitor.screen_width&&visitor.screen_height ? visitor.screen_width+' × '+visitor.screen_height : 'Bilinmiyor'],
+      ['VPN',visitor.vpn_detected==null?'Bilinmiyor':visitor.vpn_detected?'Olası':'Hayır / tahmini'],
+      ['Trafik kaynağı',sourceName(visitor.referrer_host)]
+    ]:[['Kayıt bilgisi','Yalnızca eski ziyaret olayı var; IP, konum ve cihaz profili mevcut değil.']];
+    const metadata=fields.map(([k,v])=>'<div class="esc-analytics-detail">'+
+      '<span>'+clean(k)+'</span><strong>'+clean(v||'—')+'</strong></div>').join('');
+    const typeNames={page_view:'Sayfa açılışı',cta_click:'Bağlantıya tıklama',
+      scroll_50:'%50 kaydırma',scroll_90:'%90 kaydırma'};
+    const actionRows=timeline.map(row=>'<tr>'+
+      '<td>'+clean(dateTime(row.created_at))+'</td>'+
+      '<td>'+clean(typeNames[row.event_name]||row.event_name)+'</td>'+
+      '<td>'+clean(row.page_path||'/')+'</td>'+
+      '<td>'+clean(row.target ? actionName(row.target) : '—')+'</td>'+
+      '</tr>').join('');
+    A.openModal('<h2>Anonim oturum · '+clean(String(sessionId).slice(0,8))+'</h2>'+
+      '<p class="muted">Bu bir kişi kimliği değildir. Aynı ziyaretçi başka bir oturumda farklı kodla görünebilir.</p>'+
+      '<div class="esc-analytics-details" style="margin:12px 0 18px">'+metadata+'</div>'+
+      '<h3>Bu oturumda kaydedilen hareketler ('+number(timeline.length)+')</h3>'+
+      (timeline.length?'<div class="table-wrap"><table><thead><tr><th>Zaman</th><th>Olay</th><th>Sayfa</th><th>Bağlantı</th></tr></thead><tbody>'+
+       actionRows+'</tbody></table></div>':'<p class="muted">Bu dönemde oturum hareketi kaydı bulunamadı.</p>'));
   }
 
   async function dashboard(requestedDays = 30) {
@@ -228,6 +295,10 @@
       '<p><strong>Form tıklamaları:</strong> Katılım bağlantısına tıklamak, formu doldurmak veya buluşmaya kayıt olmak anlamına gelmez.</p>' +
       '</section>';
     $('#panel').querySelector('.esc-analytics-stats')?.insertAdjacentHTML('afterend', visitorSummary(visitors || [], days));
+    $('#panel').insertAdjacentHTML('beforeend', clickHistory(clicks,visitors || [],days));
+    document.querySelectorAll('#panel [data-esc-session]').forEach(button => {
+      button.addEventListener('click',()=>inspectSession(button.dataset.escSession,visitors || [],events));
+    });
     document.querySelectorAll('#panel [data-analytics-period]').forEach(button => button.addEventListener('click', async () => {
       const value = Number(button.dataset.analyticsPeriod);
       if (value === days) return;
