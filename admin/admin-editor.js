@@ -337,7 +337,7 @@
     workingData=normalizeData(fresh.draft_data);
     workingSeo=clone(fresh.draft_seo||{});
     A.notifyIndexNow?.(fresh.path||'/');
-    if(!quiet)toast('Yayınlandı · SEO/GEO güncellemesi arama sistemlerine bildirildi');
+    if(!quiet)toast('Yayınlandı · IndexNow bildirimi denendi (indekslenme doğrulanmadı)');
     return pageId;
   }
   async function publishWorkingNow(label='Değişiklik'){
@@ -563,6 +563,7 @@
     $('#panel').querySelectorAll('[data-restore]').forEach(b=>b.onclick=async()=>{if(!confirm('Bu sürümü yeni taslak olarak geri yüklemek istiyor musun?'))return;const {error}=await A.state.db.rpc('esc_cms_restore_revision',{p_revision_id:+b.dataset.restore});if(error)alert(error.message);else{toast('Sürüm taslağa geri yüklendi');historyView()}});
   }
 
+  A.openSeoEditor=renderEditor;
   A.register('siteEditor',()=>renderEditor());
   A.register('seo',seoCenter);
   A.register('pages',pagesView);
