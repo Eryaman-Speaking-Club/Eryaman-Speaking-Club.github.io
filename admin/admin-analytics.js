@@ -55,6 +55,63 @@
       '<em>' + number(value) + '</em></div>'
     ).join('') + '</div>';
   }
+
+  function visitorSummary(rows, days) {
+    const fmt = x => x == null || x === '' ? '—' : clean(x);
+    const place = row => [row.city, row.region, row.country].filter(Boolean).map(x=>String(x)).join(', ') || 'Bilinmiyor';
+    const flag = (value) => value === true ? 'Evet (tahmini)' : value === false ? 'Hayır (tahmini)' : 'Bilinmiyor';
+    const scope = row => row.consent_scope === 'all' ? 'Tüm çerezler' : 'Ziyaret analizi';
+    if (!rows.length) {
+      return '<section class="card"><div class="card-head"><div><h2>İzinli ziyaretçiler · IP ve cihaz bilgileri</h2>' +
+        '<p class="muted">Henüz yeni çerez izniyle kaydedilmiş ziyaretçi ayrıntısı bulunmuyor.</p>' +
+        '</div></div><p class="muted">Yeni çerez ekranında ziyaret analizine izin verilirse bu bölüm dolmaya başlayacak. Geçmiş ziyaretler için IP bilgisi geriye dönük elde edilemez.</p></section>';
+    }
+    const latest = rows[0];
+    const summaryFields = [
+      ['Son ziyaret', dateTime(latest.last_seen_at)],
+      ['IP adresi', latest.ip_address || '7 gün sonra silinir / bulunamadı'],
+      ['Tahmini konum', place(latest)],
+      ['İnternet sağlayıcısı', latest.provider || 'Bilinmiyor'],
+      ['Cihaz', [latest.device_type, latest.operating_system].filter(Boolean).join(' · ')],
+      ['Tarayıcı', latest.browser],
+      ['Dil / saat dilimi', [latest.browser_language, latest.browser_timezone].filter(Boolean).join(' · ')],
+      ['Ekran', latest.screen_width && latest.screen_height ? latest.screen_width + ' × ' + latest.screen_height : 'Bilinmiyor'],
+      ['VPN', flag(latest.vpn_detected)],
+      ['Proxy', flag(latest.proxy_detected)],
+      ['Geldiği kaynak', sourceName(latest.referrer_host)],
+      ['Çerez izni', scope(latest)],
+      ['Oturum kodu', String(latest.session_id || '').slice(0,8)]
+    ];
+    const cards = summaryFields.map(([label,value]) =>
+      '<div class="esc-analytics-detail"><span>' + clean(label) +
+      '</span><strong title="' + fmt(value) + '">' + fmt(value) + '</strong></div>'
+    ).join('');
+    const recent = rows.slice(0, 20);
+    const table = recent.map(row =>
+      '<tr><td>' + clean(dateTime(row.last_seen_at)) + '</td>' +
+      '<td><code>' + fmt(row.ip_address) + '</code></td>' +
+      '<td>' + clean(place(row)) + '</td>' +
+      '<td>' + fmt(row.provider) + '</td>' +
+      '<td>' + clean([row.device_type,row.operating_system,row.browser].filter(Boolean).join(' / ')) + '</td>' +
+      '<td>' + fmt(row.browser_language) + '</td>' +
+      '<td>' + clean(sourceName(row.referrer_host)) + '</td>' +
+      '<td>' + clean(scope(row)) + '</td></tr>'
+    ).join('');
+    const all = rows.filter(r=>r.consent_scope==='all').length;
+    return '<section class="card esc-visitor-panel"><div class="card-head"><div>' +
+      '<h2>En son izin veren ziyaretçi</h2>' +
+      '<p class="muted">Yalnızca ziyaret analizini kabul eden kişilerin anonim oturumları</p>' +
+      '</div><span class="pill published">Son '+days+' gün · '+number(rows.length)+' oturum</span></div>' +
+      '<div class="esc-analytics-details">' + cards + '</div>' +
+      '<p class="esc-analytics-small">Görüntülenen '+number(rows.length)+' oturumun '+number(all)+' tanesi tüm çerezlere izin vermiş. Aynı kişi birden fazla oturum oluşturabilir. IP tabanlı konum tahmini yanlış olabilir; VPN verisi bulunmuyorsa varsayım yapılmaz.</p>' +
+      '</section>' +
+      '<section class="card"><div class="card-head"><div><h2>Son 20 izinli ziyaretçi oturumu</h2>' +
+      '<p class="muted">IP adresleri 7 gün sonra temizlenir. Diğer bilgiler en fazla 90 gün tutulur.</p></div></div>' +
+      '<div class="table-wrap"><table><thead><tr><th>Zaman</th><th>IP</th><th>Tahmini konum</th>' +
+      '<th>İnternet sağlayıcısı</th><th>Cihaz / tarayıcı</th><th>Dil</th><th>Kaynak</th><th>Çerez tercihi</th>' +
+      '</tr></thead><tbody>' + table + '</tbody></table></div></section>';
+  }
+
   async function dashboard(requestedDays = 30) {
     const days = [7, 30, 90].includes(Number(requestedDays)) ? Number(requestedDays) : 30;
     const since = new Date(Date.now() - days * 86400000).toISOString();
@@ -75,6 +132,9 @@
       if (batch === maxBatches - 1) isCapped = true;
     }
 
+    const {data:visitors, error:visitorError} = await A.state.db.from('esc_visitor_sessions')
+      .select('*').gte('last_seen_at', since).order('last_seen_at', {ascending:false}).limit(400);
+    if (visitorError) throw visitorError;
     const views = events.filter(row => row.event_name === 'page_view');
     const clicks = events.filter(row => row.event_name === 'cta_click');
     const scroll50 = events.filter(row => row.event_name === 'scroll_50');
@@ -161,14 +221,14 @@
       '<th>Sayfa</th><th>Hedef</th><th>Kaynak</th></tr></thead><tbody>' + recentRows +
       '</tbody></table></div>' : '<p class="muted">Kayıt bulunamadı.</p>') + '</section>' +
       '<section class="card esc-analytics-privacy"><h2>Bu rapor neyi göstermez?</h2>' +
-      '<p>Site analizine izin veren tarayıcılardan olay bilgisi gönderilir. Bu tabloya ad, soyad, e-posta, ' +
-      'telefon numarası veya IP alanı yazılmaz. Oturum kimliği kişiyi tanımlamaz; farklı oturumlar aynı kişiye ait olabilir.</p>' +
-      '<p><strong>Çerez kabul / ret sayıları:</strong> Tercihler tarayıcıda tutuluyor; bugün için kabul ve ret toplamları veritabanında sayılmıyor.</p>' +
+      '<p>İzin veren ziyaretçilerin IP, tahmini konum ve cihaz bilgileri yukarıdaki yöneticiye özel listede görülebilir. Ad, soyad ve telefon numarası bu analizle elde edilmez.</p>' +
+      '<p><strong>Çerez tercihleri:</strong> Analize izin veren oturumların tercihleri gösterilir. Reddeden ziyaretçiler için oturum profili tutulmaz.</p>' +
       '<p><strong>Meta Pixel:</strong> Pazarlama izni verilirse Meta tarafına PageView gönderiliyor. ' +
       'Meta raporları bu Supabase panelinden ayrı incelenir.</p>' +
       '<p><strong>Form tıklamaları:</strong> Katılım bağlantısına tıklamak, formu doldurmak veya buluşmaya kayıt olmak anlamına gelmez.</p>' +
       '</section>';
-    $$('#panel [data-analytics-period]').forEach(button => button.addEventListener('click', async () => {
+    $('#panel').insertAdjacentHTML('beforeend', visitorSummary(visitors || [], days));
+    $('#panel [data-analytics-period]').forEach(button => button.addEventListener('click', async () => {
       const value = Number(button.dataset.analyticsPeriod);
       if (value === days) return;
       $('#panel').innerHTML = '<div class="card"><div class="empty">İstatistikler yükleniyor…</div></div>';
