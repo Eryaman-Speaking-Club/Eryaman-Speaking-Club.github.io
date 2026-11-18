@@ -111,6 +111,14 @@
     if (href.includes('/games') || link.closest('.game-showcase,.all-games-banner')) return ['games','games'];
     if (href.includes('/ozel-dersler')) return ['private_lessons','private_lessons'];
     if (href.includes('forms.gle')) return [text.includes('online') ? 'online_registration' : 'registration','other'];
+    // Track internal navigation without collecting form contents, URL queries or page fragments.
+    try {
+      const url=new URL(href,location.href);
+      if(url.origin===location.origin && ['http:','https:'].includes(url.protocol)){
+        if(url.pathname===location.pathname && url.hash) return ['section_navigation','other'];
+        return ['page:'+url.pathname.slice(0,145),'other'];
+      }
+    } catch (_) {}
     return null;
   }
 
