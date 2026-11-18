@@ -1,0 +1,7 @@
+.esc-kvkk-notice{width:min(1130px,calc(100% - 32px));margin:35px auto 42px;padding:22px clamp(18px,3vw,30px);display:flex;justify-content:space-between;align-items:center;gap:24px;border:1px solid #dbe5eb;border-radius:22px;background:#f7fafc;color:#173550;box-shadow:0 8px 22px rgba(8,31,59,.04)}
+.esc-kvkk-notice .esc-kvkk-kicker{display:block;letter-spacing:.12em;font-size:10px;color:#1b7786;font-weight:900;margin-bottom:7px}
+.esc-kvkk-notice p{font-size:13px;line-height:1.7;margin:0;max-width:770px;color:#516b80}
+.esc-kvkk-notice a{color:#155d8e;text-decoration:underline;text-underline-offset:3px;font-weight:800}
+.esc-kvkk-notice .esc-kvkk-link{white-space:nowrap;flex-shrink:0;text-decoration:none;border:1px solid #c7dbe7;background:#fff;border-radius:13px;padding:12px 15px;font-size:12px}
+.esc-kvkk-notice .esc-kvkk-link:hover,.esc-kvkk-notice a:hover{color:#0c4770}
+@media(max-width:750px){.esc-kvkk-notice{flex-direction:column;align-items:flex-start;margin:20px auto 26px;padding:18px 19px}.esc-kvkk-notice .esc-kvkk-link{white-space:normal}}
