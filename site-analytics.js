@@ -11,6 +11,31 @@
     } catch (_) { return null; }
   }
   let preferences = read();
+  const bannerDefaults = {
+    title:'Çerezleri Kullanıyoruz',
+    description:'Deneyiminizi iyileştirmek, site kullanımını analiz etmek ve reklamları ölçmek için çerezler kullanıyoruz. Tercihlerinizi istediğiniz zaman değiştirebilirsiniz.',
+    link_label:'Çerez Politikası',
+    accept_label:'Çerezleri kabul et',
+    reject_label:'Reddet',
+    settings_label:'Tercihler'
+  };
+  const bannerCopy = {...bannerDefaults};
+  async function loadBannerCopy() {
+    try {
+      const client = await window.ESCSupabase?.getClient?.();
+      if(!client) return;
+      const {data,error} = await client.from('esc_cookie_banner')
+        .select('title,description,link_label,accept_label,reject_label,settings_label')
+        .eq('id',true).maybeSingle();
+      if(error || !data) return;
+      for(const [key,defaultValue] of Object.entries(bannerDefaults)) {
+        const value = data[key];
+        if(typeof value==='string' && value.trim().length>0 && value.length<=600) {
+          bannerCopy[key]=value.trim();
+        } else bannerCopy[key]=defaultValue;
+      }
+    } catch (_) {}
+  }
   window.ESCCookieConsent = {
     getPreferences: () => preferences ? {...preferences} : null,
     openSettings: showPreferences
@@ -163,21 +188,27 @@
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-label', 'Çerez tercihleri');
     panel.style.cssText = 'position:fixed;bottom:16px;left:16px;right:16px;max-width:530px;z-index:2147483647;background:#fff;color:#192e44;padding:22px;border:1px solid #cddde5;border-radius:16px;box-shadow:0 16px 46px #001b3340;font:14px/1.55 system-ui,-apple-system,sans-serif';
-    panel.innerHTML = '<strong style="display:block;font-size:19px;letter-spacing:-.025em;margin-bottom:7px">Çerezleri kabul ediyor musunuz?</strong>' +
-      '<p style="margin:0 0 9px;color:#425a6e">Sitemizi geliştirmek için çerezlerden yararlanıyoruz. İzin verirseniz IP adresiniz, yaklaşık konumunuz, cihaz bilgileriniz ve ziyaret hareketleriniz analiz edilebilir. Reklam çerezlerine ayrıca karar verebilirsiniz.</p>' +
-      '<a href="/gizlilik-ve-cerezler/" style="display:inline-block;margin-bottom:13px;color:#175ca8;text-underline-offset:2px;font-size:12px">Gizlilik ve çerez bilgileri</a>' +
+    panel.innerHTML = '<strong id="esc-banner-title" style="display:block;font-size:19px;letter-spacing:-.025em;margin-bottom:7px"></strong>' +
+      '<p id="esc-banner-description" style="margin:0 0 9px;color:#425a6e"></p>' +
+      '<a id="esc-banner-link" href="/gizlilik-ve-cerezler/" style="display:inline-block;margin-bottom:13px;color:#175ca8;text-underline-offset:2px;font-size:12px"></a>' +
       '<div id="esc-consent-options" hidden style="margin:4px 0 14px;padding:13px;border:1px solid #dbe5ec;border-radius:11px;background:#f7fafc">' +
         '<strong style="font-size:12px">Çerez tercihlerinizi seçin</strong>' +
         '<p style="margin:4px 0 9px;font-size:12px;color:#516579">Zorunlu çerezler siteyi çalıştırır. Diğerleri isteğe bağlıdır.</p>' +
-        '<label style="display:flex;align-items:start;gap:9px;margin:10px 0;font-size:13px"><input id="esc-consent-analytics" type="checkbox" style="margin-top:4px"> Ziyaret analizi (IP, yaklaşık konum, cihaz ve kullanım bilgileri)</label>' +
-        '<label style="display:flex;align-items:start;gap:9px;margin:10px 0;font-size:13px"><input id="esc-consent-marketing" type="checkbox" style="margin-top:4px"> Reklam ve yeniden hedefleme çerezleri</label>' +
+        '<label style="display:flex;align-items:start;gap:9px;margin:10px 0;font-size:13px"><input id="esc-consent-analytics" type="checkbox" style="margin-top:4px"> Ziyaret analizi ve kullanım istatistikleri</label>' +
+        '<label style="display:flex;align-items:start;gap:9px;margin:10px 0;font-size:13px"><input id="esc-consent-marketing" type="checkbox" style="margin-top:4px"> Reklam çerezleri</label>' +
         '<button type="button" data-esc-consent="selected">Seçimimi kaydet</button>' +
       '</div>' +
       '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px" id="esc-consent-actions">' +
-        '<button type="button" data-esc-consent="accept">Çerezleri kabul et</button>' +
-        '<button type="button" data-esc-consent="reject">Reddet</button>' +
-        '<button type="button" data-esc-consent="preferences">Tercihler</button>' +
+        '<button type="button" data-esc-consent="accept"></button>' +
+        '<button type="button" data-esc-consent="reject"></button>' +
+        '<button type="button" data-esc-consent="preferences"></button>' +
       '</div>';
+    panel.querySelector('#esc-banner-title').textContent = bannerCopy.title;
+    panel.querySelector('#esc-banner-description').textContent = bannerCopy.description;
+    panel.querySelector('#esc-banner-link').textContent = bannerCopy.link_label;
+    panel.querySelector('[data-esc-consent="accept"]').textContent = bannerCopy.accept_label;
+    panel.querySelector('[data-esc-consent="reject"]').textContent = bannerCopy.reject_label;
+    panel.querySelector('[data-esc-consent="preferences"]').textContent = bannerCopy.settings_label;
     panel.querySelectorAll('button').forEach(btn => {
       btn.style.cssText = 'padding:10px 8px;min-height:43px;border:1px solid #8197aa;border-radius:10px;cursor:pointer;background:#eff4f8;color:#163452;font:600 12px/1.25 system-ui,-apple-system,sans-serif';
       btn.addEventListener('click', () => {
@@ -212,7 +243,11 @@
     installSettingsLink();
     if (preferences?.analytics) startAnalytics();
     if (preferences?.marketing) startMetaPixel();
-    if (!preferences) showPreferences();
+    const initCopy=loadBannerCopy();
+    if(!preferences){
+      Promise.race([initCopy,new Promise(resolve=>setTimeout(resolve,1800))])
+        .finally(()=>showPreferences());
+    }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once:true});
   else init();
