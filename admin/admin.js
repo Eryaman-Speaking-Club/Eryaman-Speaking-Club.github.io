@@ -87,7 +87,7 @@
 
   async function render(view){
     state.currentView=view;
-    const titles={dashboard:'Genel Bakış',siteEditor:'Canlı Site Editörü',seo:'SEO & GEO Merkezi',pages:'Sayfalar & Bölümler',navigation:'Navigasyon & Footer',pageBuilder:'Page Builder',events:'Fiyatlar & Site Ayarları',dynamicEvents:'Etkinlik ve Katılım Merkezi',emailAutomation:'E-posta Otomasyonu',sheetsSync:'Google Sheets Bağlantısı',exports:'Excel Raporları',games:'Oyunlar',educators:'Educators',media:'Medya Kütüphanesi',analytics:'Site İstatistikleri',history:'Sürüm Geçmişi',team:'Yönetici Ekibi',settings:'Ayarlar'};
+    const titles={dashboard:'Genel Bakış',siteEditor:'Canlı Site Editörü',seo:'SEO & GEO Merkezi',pages:'Sayfalar & Bölümler',navigation:'Navigasyon & Footer',pageBuilder:'Page Builder',events:'Fiyatlar & Site Ayarları',dynamicEvents:'Etkinlik ve Katılım Merkezi',emailAutomation:'E-posta Otomasyonu',sheetsSync:'Google Sheets Bağlantısı',exports:'Excel Raporları',games:'Oyunlar',educators:'Educators',media:'Medya Kütüphanesi',analytics:'Site İstatistikleri',history:'Sürüm Geçmişi',team:'Yönetici Ekibi',cookies:'Çerez Uyarısı',settings:'Ayarlar'};
     $('#viewTitle').textContent=titles[view]||view;
     $('#panel').innerHTML='<div class="card"><div class="empty">Yükleniyor…</div></div>';
     try{
