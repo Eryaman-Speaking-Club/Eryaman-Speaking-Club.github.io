@@ -4,7 +4,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const sitemap=fs.readFileSync('sitemap.xml','utf8');
 const paths=[...sitemap.matchAll(/<loc>https:\/\/eryamanspeakingclub\.com\/([^<]+)<\/loc>/g)]
- .map(m=>m[1]).filter(p=>!['en/','events/','ozel-dersler/','educators/','games/'].includes(p));
+ .map(m=>m[1]).filter(p=>!['en/','events/','ozel-dersler/','educators/','games/','kvkk/','en/kvkk/','gizlilik-ve-cerezler/'].includes(p));
 assert.equal(paths.length,32,'Expected 32 speaking game URLs');
 const descriptions=new Map();
 for(const path of paths){
