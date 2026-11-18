@@ -1,0 +1,24 @@
+/* ESC admin analytics: additive styling, does not affect other site modules */
+.esc-analytics-toolbar{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:14px;margin-bottom:17px}
+.esc-analytics-toolbar h2{font-size:26px;line-height:1.2;color:var(--navy);letter-spacing:-.03em;margin:9px 0 4px}
+.esc-analytics-toolbar p{font-size:12px;margin:0}
+.esc-analytics-filters{display:flex;flex-wrap:wrap;gap:7px}
+.esc-analytics-filters .btn{font-size:11px;padding:9px 11px}
+.esc-analytics-stats{margin-bottom:16px}
+.esc-analytics-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.esc-analytics-grid>.card{min-width:0;margin:0}
+.esc-analytics-grid .card-head{align-items:flex-start}
+.esc-analytics-grid .card-head p{font-size:11px}
+.esc-analytics-bars .bar-row{grid-template-columns:minmax(90px,185px) minmax(40px,1fr) 45px}
+.esc-analytics-bars .bar-row b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.esc-analytics-small{font-size:10px;color:var(--muted);margin:12px 0 0}
+.esc-analytics-privacy{font-size:12px;line-height:1.65;color:#58718a}
+.esc-analytics-privacy h2{font-size:18px;color:var(--navy);margin:0 0 10px}
+.esc-analytics-privacy p{margin:9px 0}
+.esc-analytics-trend{display:grid;grid-template-columns:repeat(14,minmax(0,1fr));align-items:end;min-height:200px;gap:6px;overflow-x:auto}
+.esc-analytics-trend-day{display:flex;flex-direction:column;align-items:center;gap:7px;height:190px;min-width:0}
+.esc-analytics-trend-number,.esc-analytics-trend-date{font-size:9px;color:#7890a6;white-space:nowrap}
+.esc-analytics-trend-track{position:relative;width:100%;flex:1;border-radius:8px 8px 0 0;background:#f0f5f8;overflow:hidden}
+.esc-analytics-trend-track i{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(180deg,var(--teal),var(--blue));border-radius:6px 6px 0 0}
+@media(max-width:1080px){.esc-analytics-grid{grid-template-columns:1fr}}
+@media(max-width:720px){.esc-analytics-toolbar{align-items:start}.esc-analytics-grid .bar-row{grid-template-columns:100px minmax(35px,1fr) 37px}.esc-analytics-trend{gap:3px}.esc-analytics-trend-number,.esc-analytics-trend-date{font-size:7px}}
