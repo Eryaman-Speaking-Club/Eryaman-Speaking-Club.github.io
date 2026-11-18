@@ -81,7 +81,7 @@
 
     check('seo', title.length >= 20, 18, 'HTML title eksik veya çok kısa', 'Her sayfanın ilk HTML yanıtında özgün ve açıklayıcı bir title kullan.', 'high');
     check('seo', description.length >= 50, 18, 'Meta açıklama eksik veya çok kısa', 'İlk HTML yanıtına sayfayı özgün şekilde özetleyen bir meta description ekle.', 'high');
-    check('seo', canonicalOk || (deliberatelyExcluded && alternateCanonical), 20, 'Canonical adres uyuşmuyor', 'HTTPS canonical adresini bu sayfanın gerçek, indekslenebilir URL adresiyle eşleştir.', 'high');
+    check('seo', canonicalOk || deliberatelyExcluded, 20, 'Canonical adres uyuşmuyor', 'HTTPS canonical adresini bu sayfanın gerçek, indekslenebilir URL adresiyle eşleştir.', 'high');
     check('seo', !!ogTitle && !!ogDescription, 10, 'Sosyal paylaşım başlığı/açıklaması eksik', 'Open Graph başlık ve açıklamasını görünür sayfa içeriğiyle uyumlu ekle.', 'medium');
     check('seo', validHttps(ogImage), 8, 'Open Graph görseli eksik', 'Herkese açık HTTPS adresinde, sayfayla ilgili bir paylaşım görseli kullan.', 'low');
     check('seo', h1Elements.length === 1, 10, 'H1 sayısı uygun değil', 'Sayfanın ana konusunu anlatan tek bir H1 başlığı kullan.', 'high');
@@ -93,7 +93,7 @@
     check('geo', mainText.length >= 180, 15, 'Taranabilir açıklayıcı metin az', 'Görünür HTML içinde özgün, doğrulanabilir açıklama ve kullanım bilgisi ekle.', 'medium');
     check('geo', /Eryaman Speaking Club/i.test(bodyText), 15, 'Marka adı görünür metinde bulunamadı', 'Sayfanın kullanıcıya görünen içeriğinde Eryaman Speaking Club kimliğini açık kullan.', 'medium');
     check('geo', title.length >= 20 && description.length >= 50, 10, 'Sayfanın başlık/açıklama bağlamı zayıf', 'Sayfa başlığı ve özetini belirgin konu ve arama niyetiyle uyumlu yaz.', 'medium');
-    check('geo', canonicalOk || (deliberatelyExcluded && alternateCanonical), 10, 'Kaynak URL net değil', 'Bu sayfanın doğru HTTPS canonical adresini ilk HTML içine koy.', 'high');
+    check('geo', canonicalOk || deliberatelyExcluded, 10, 'Kaynak URL net değil', 'Bu sayfanın doğru HTTPS canonical adresini ilk HTML içine koy.', 'high');
     check('geo', !!root?.querySelector('h2, h3, a[href]'), 5, 'İçerik başlıkları veya iç bağlantılar eksik', 'İlgili alt başlık ve doğal iç bağlantılar kullan.', 'low');
     check('geo', schema.valid > 0, 5, 'Yapılandırılmış veri bulunamadı (isteğe bağlı)', 'Yalnız sayfaya ve görünür içeriğe uygun Schema.org JSON-LD varsa ekle; her sayfada zorunlu değil.', 'low');
 
