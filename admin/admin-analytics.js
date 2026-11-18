@@ -228,7 +228,7 @@
       '<p><strong>Form tıklamaları:</strong> Katılım bağlantısına tıklamak, formu doldurmak veya buluşmaya kayıt olmak anlamına gelmez.</p>' +
       '</section>';
     $('#panel').querySelector('.esc-analytics-stats')?.insertAdjacentHTML('afterend', visitorSummary(visitors || [], days));
-    $('#panel [data-analytics-period]').forEach(button => button.addEventListener('click', async () => {
+    document.querySelectorAll('#panel [data-analytics-period]').forEach(button => button.addEventListener('click', async () => {
       const value = Number(button.dataset.analyticsPeriod);
       if (value === days) return;
       $('#panel').innerHTML = '<div class="card"><div class="empty">İstatistikler yükleniyor…</div></div>';
