@@ -76,3 +76,8 @@
 .geo-status.warn>span{background:#ffe9d7;color:#a35d1e}
 @media(max-width:1050px){.geo-global-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.geo-global-grid{grid-template-columns:1fr}.geo-explainer{flex-direction:column}.seo-dual-score{width:100%}.seo-dual-score .seo-score{flex:1}}
+
+/* SEO/GEO audit v2 - isolated diagnostics */
+.seo-v2-note{font-size:11px;line-height:1.7;color:#647a8b;background:#f4f7fa;border-radius:12px;padding:12px 14px;margin:13px 0 17px}
+.seo-v2-table{min-width:840px}.seo-v2-table td{font-size:11px;min-width:78px}.seo-v2-table td:first-child{min-width:160px}.seo-v2-table td:nth-child(6){min-width:200px}.seo-v2-path{display:block;color:#8699a8;margin-top:5px;line-height:1.45;word-break:break-word}
+.seo-v2-issue-list{display:grid;gap:10px;margin:20px 0}.seo-v2-issue{display:grid;grid-template-columns:70px minmax(0,1fr);align-items:start;gap:12px;border:1px solid #e0e8ee;padding:12px;border-radius:13px}.seo-v2-issue .pill{justify-content:center}.seo-v2-issue strong{display:block;font-size:12px;color:#102840}.seo-v2-issue small{display:block;margin-top:6px;color:#72869a;line-height:1.55}.seo-v2-modal-actions{margin-top:20px}.seo-v2-footnote{font-size:10px;color:#8293a3;margin-top:15px;line-height:1.5}
