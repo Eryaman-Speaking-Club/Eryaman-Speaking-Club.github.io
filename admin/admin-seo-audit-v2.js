@@ -54,11 +54,13 @@
     const description = readMeta(doc, 'meta[name="description"]');
     const canonical = tidy(doc.querySelector('link[rel="canonical"]')?.getAttribute('href'));
     const canonicalOk = validHttps(canonical) && toPath(canonical) === toPath(page.path);
+    const alternateCanonical = validHttps(canonical) && toPath(canonical) !== toPath(page.path);
     const robots = [readMeta(doc, 'meta[name="robots"]'), readMeta(doc, 'meta[name="googlebot"]'), tidy(headerRobots)].join(', ');
     const htmlNoindex = /\bnoindex\b/i.test(robots);
     const cmsSeo = page.published_seo || {};
     const cmsNoindex = cmsSeo.indexable === false;
     const indexable = !htmlNoindex && !cmsNoindex;
+    const deliberatelyExcluded = htmlNoindex && (alternateCanonical || toPath(page.path) === '/join/');
     const root = doc.querySelector('main') || doc.body;
     const mainText = cleanText(root);
     const bodyText = cleanText(doc.body);
@@ -79,11 +81,11 @@
 
     check('seo', title.length >= 20, 18, 'HTML title eksik veya çok kısa', 'Her sayfanın ilk HTML yanıtında özgün ve açıklayıcı bir title kullan.', 'high');
     check('seo', description.length >= 50, 18, 'Meta açıklama eksik veya çok kısa', 'İlk HTML yanıtına sayfayı özgün şekilde özetleyen bir meta description ekle.', 'high');
-    check('seo', canonicalOk, 20, 'Canonical adres uyuşmuyor', 'HTTPS canonical adresini bu sayfanın gerçek, indekslenebilir URL adresiyle eşleştir.', 'high');
+    check('seo', canonicalOk || (deliberatelyExcluded && alternateCanonical), 20, 'Canonical adres uyuşmuyor', 'HTTPS canonical adresini bu sayfanın gerçek, indekslenebilir URL adresiyle eşleştir.', 'high');
     check('seo', !!ogTitle && !!ogDescription, 10, 'Sosyal paylaşım başlığı/açıklaması eksik', 'Open Graph başlık ve açıklamasını görünür sayfa içeriğiyle uyumlu ekle.', 'medium');
     check('seo', validHttps(ogImage), 8, 'Open Graph görseli eksik', 'Herkese açık HTTPS adresinde, sayfayla ilgili bir paylaşım görseli kullan.', 'low');
     check('seo', h1Elements.length === 1, 10, 'H1 sayısı uygun değil', 'Sayfanın ana konusunu anlatan tek bir H1 başlığı kullan.', 'high');
-    check('seo', indexable, 10, 'Noindex sinyali tespit edildi', 'Bu sayfa aramada görünmeli ise ilk HTML ve CMS robots ayarını kontrol et.', 'critical');
+    check('seo', indexable || deliberatelyExcluded, 10, 'Noindex sinyali tespit edildi', 'Bu sayfa aramada görünmeli ise ilk HTML ve CMS robots ayarını kontrol et.', 'critical');
     check('seo', html.length > 100 && !!doc.body, 6, 'HTML içeriği yetersiz', 'Sayfa ilk yanıtının gerçek HTML içerdiğinden emin ol.', 'high');
 
     check('geo', !!h1, 15, 'Ana konu başlığı eksik', 'İçeriğin ana sorusunu H1 ile açıkça belirt.', 'high');
@@ -91,7 +93,7 @@
     check('geo', mainText.length >= 180, 15, 'Taranabilir açıklayıcı metin az', 'Görünür HTML içinde özgün, doğrulanabilir açıklama ve kullanım bilgisi ekle.', 'medium');
     check('geo', /Eryaman Speaking Club/i.test(bodyText), 15, 'Marka adı görünür metinde bulunamadı', 'Sayfanın kullanıcıya görünen içeriğinde Eryaman Speaking Club kimliğini açık kullan.', 'medium');
     check('geo', title.length >= 20 && description.length >= 50, 10, 'Sayfanın başlık/açıklama bağlamı zayıf', 'Sayfa başlığı ve özetini belirgin konu ve arama niyetiyle uyumlu yaz.', 'medium');
-    check('geo', canonicalOk, 10, 'Kaynak URL net değil', 'Bu sayfanın doğru HTTPS canonical adresini ilk HTML içine koy.', 'high');
+    check('geo', canonicalOk || (deliberatelyExcluded && alternateCanonical), 10, 'Kaynak URL net değil', 'Bu sayfanın doğru HTTPS canonical adresini ilk HTML içine koy.', 'high');
     check('geo', !!root?.querySelector('h2, h3, a[href]'), 5, 'İçerik başlıkları veya iç bağlantılar eksik', 'İlgili alt başlık ve doğal iç bağlantılar kullan.', 'low');
     check('geo', schema.valid > 0, 5, 'Yapılandırılmış veri bulunamadı (isteğe bağlı)', 'Yalnız sayfaya ve görünür içeriğe uygun Schema.org JSON-LD varsa ekle; her sayfada zorunlu değil.', 'low');
 
@@ -118,7 +120,7 @@
 
     return {
       page, title, description, canonical, robots, h1, intro, schema, indexable,
-      htmlNoindex, scores, issues, status: 200, error: '', sitemap: null
+      htmlNoindex, deliberatelyExcluded, scores, issues, status: 200, error: '', sitemap: null
     };
   }
 
@@ -181,7 +183,7 @@
   function appendSitemapIssues(reports, global) {
     if (!global.sitemapOk) return;
     reports.forEach(report => {
-      if (report.error) return;
+      if (report.error || !report.indexable) return;
       report.sitemap = global.sitemapPaths.has(toPath(report.page.path));
       if (!report.sitemap) report.issues.push({
         kind: 'SITEMAP', severity: 'medium', label: 'Sitemap içinde bulunamadı',
@@ -216,10 +218,10 @@
         esc(severityText[issue.severity] || 'Kontrol') + '</span><div><strong>' + esc(issue.label) + '</strong>' +
         '<small>' + esc(issue.kind) + ' · ' + esc(issue.fix) + '</small></div></div>'
       ).join('') + '</div>' : '<div class="notice">Bu otomatik taramada önemli eksik görünmüyor.</div>') +
-      '<div class="row-actions seo-v2-modal-actions"><button class="btn primary" id="seoV2Edit">Sayfayı düzenle</button>' +
+      '<div class="row-actions seo-v2-modal-actions">' + (report.page.external ? '' : '<button class="btn primary" id="seoV2Edit">Sayfayı düzenle</button>') +
       '<a class="icon-btn" href="' + esc(siteUrl(report.page.path)) + '" target="_blank" rel="noopener">Sayfayı aç</a></div>'
     );
-    $('#seoV2Edit').onclick = () => { A.closeModal(); openEditor(report.page.id); };
+    if ($('#seoV2Edit')) $('#seoV2Edit').onclick = () => { A.closeModal(); openEditor(report.page.id); };
   }
 
   function exportCsv(reports) {
@@ -250,11 +252,12 @@
     if (!root) return;
     lastReport = reports;
     const available = reports.filter(r => !r.error);
-    const average = kind => available.length ? Math.round(available.reduce((sum, r) => sum + r.scores[kind], 0) / available.length) : 0;
-    const priority = reports.filter(r => importance(r) >= 3).length;
+    const publicPages = available.filter(r => r.indexable);
+    const average = kind => publicPages.length ? Math.round(publicPages.reduce((sum, r) => sum + r.scores[kind], 0) / publicPages.length) : 0;
+    const priority = reports.filter(r => !r.deliberatelyExcluded && importance(r) >= 3).length;
     const indexable = available.filter(r => r.indexable).length;
     const blocked = available.length - indexable;
-    const missingSitemap = reports.filter(r => r.sitemap === false).length;
+    const missingSitemap = reports.filter(r => r.indexable && r.sitemap === false).length;
     const failed = reports.length - available.length;
     root.innerHTML =
       '<div class="geo-explainer"><div><span class="pill live">SEO + GEO</span><h3>Arama görünürlüğü · teknik denetim</h3>' +
@@ -311,7 +314,7 @@
           '<td>' + (issue ? '<strong>' + esc(issue.label) + '</strong><small class="seo-v2-path">' + esc(severityText[issue.severity]) +
           ' · ' + r.issues.length + ' kontrol</small>' : '<span class="pill published">Temel kontroller geçti</span>') + '</td>' +
           '<td><div class="row-actions"><button class="icon-btn" data-seo-v2-detail="' + esc(r.page.id) + '">Ayrıntılar</button>' +
-          '<button class="icon-btn" data-seo-v2-edit="' + esc(r.page.id) + '">Düzenle</button></div></td></tr>';
+          (r.page.external ? '' : '<button class="icon-btn" data-seo-v2-edit="' + esc(r.page.id) + '">Düzenle</button>') + '</div></td></tr>';
       }).join('') || '<tr><td colspan="7"><div class="empty">Bu filtreyle eşleşen sayfa yok.</div></td></tr>';
       $('#seoV2Rows').querySelectorAll('[data-seo-v2-detail]').forEach(btn => {
         btn.onclick = () => { const r = reports.find(x => String(x.page.id) === btn.dataset.seoV2Detail); if (r) showDetails(r); };
@@ -338,6 +341,7 @@
         .eq('active', true).eq('page_kind', 'static').order('category').order('name');
       if (error) throw error;
       const pages = data || [];
+      if (!pages.some(p => toPath(p.path) === '/events/')) pages.push({id:null,name:'Etkinlik Takvimi',path:'/events/',category:'events',published_seo:{},external:true});
       const reports = new Array(pages.length);
       let cursor = 0;
       const worker = async () => {
