@@ -227,7 +227,7 @@
       'Meta raporları bu Supabase panelinden ayrı incelenir.</p>' +
       '<p><strong>Form tıklamaları:</strong> Katılım bağlantısına tıklamak, formu doldurmak veya buluşmaya kayıt olmak anlamına gelmez.</p>' +
       '</section>';
-    $('#panel').insertAdjacentHTML('beforeend', visitorSummary(visitors || [], days));
+    $('#panel').querySelector('.esc-analytics-stats')?.insertAdjacentHTML('afterend', visitorSummary(visitors || [], days));
     $('#panel [data-analytics-period]').forEach(button => button.addEventListener('click', async () => {
       const value = Number(button.dataset.analyticsPeriod);
       if (value === days) return;
