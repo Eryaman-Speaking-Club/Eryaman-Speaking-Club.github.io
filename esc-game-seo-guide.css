@@ -1,0 +1,6 @@
+/* Public, accessible game instructions in the first HTML response. */
+.esc-game-guide{clear:both;max-width:960px;margin:24px auto 12px;padding:18px 20px;border:1px solid rgba(93,127,158,.25);border-radius:16px;background:rgba(248,251,253,.96);color:#1f3650;font:inherit;line-height:1.65}
+.esc-game-guide h2{font-size:clamp(17px,2.5vw,20px);line-height:1.35;margin:0 0 9px;color:#102940}
+.esc-game-guide p{font-size:clamp(13px,1.6vw,15px);line-height:1.6;margin:6px 0 10px;color:#38546b}
+.esc-game-guide a{font-size:13px;font-weight:700;color:#176aa4;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:640px){.esc-game-guide{margin:18px 10px 10px;padding:15px}}
