@@ -30,6 +30,8 @@ jobs:
         run: node tests/esc-ui-smoke.cjs
       - name: Validate SEO and GEO audit rules
         run: node tests/seo-geo-regression.cjs
+      - name: Validate readable game guides and structured metadata
+        run: node tests/geo-game-pages.cjs
 
   deploy:
     if: github.event_name != 'pull_request'
