@@ -25,5 +25,7 @@ for(const [html,locale] of [[privacy,'tr'],[privacyEn,'en']]) {
   assert(/<h2>1\./.test(html) && /<h2>8\./.test(html),'Policy missing sections');
   assert(html.includes('KVKK'),'Legal basis missing');
 }
+assert(home.includes('class="esc-kvkk-hero-note"') && en.includes('class="esc-kvkk-hero-note"'),'Pre-registration notice missing');
+assert(read('sitemap.xml').includes('https://eryamanspeakingclub.com/kvkk/') && read('sitemap.xml').includes('https://eryamanspeakingclub.com/en/kvkk/'),'Privacy sitemap URLs missing');
 assert(read('esc-kvkk-home.css').includes('@media'),'Missing mobile styles');
 console.log('KVKK notices, footers, event consent, contact links and bilingual policy validation passed.');

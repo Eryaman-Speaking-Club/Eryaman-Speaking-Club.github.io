@@ -5,3 +5,5 @@
 .esc-kvkk-notice .esc-kvkk-link{white-space:nowrap;flex-shrink:0;text-decoration:none;border:1px solid #c7dbe7;background:#fff;border-radius:13px;padding:12px 15px;font-size:12px}
 .esc-kvkk-notice .esc-kvkk-link:hover,.esc-kvkk-notice a:hover{color:#0c4770}
 @media(max-width:750px){.esc-kvkk-notice{flex-direction:column;align-items:flex-start;margin:20px auto 26px;padding:18px 19px}.esc-kvkk-notice .esc-kvkk-link{white-space:normal}}
+
+.esc-kvkk-hero-note{font-size:11px;color:#5b7188;line-height:1.6;margin:7px 0 9px}.esc-kvkk-hero-note a{color:#175b8b;font-weight:800;text-decoration:underline;text-underline-offset:2px}
