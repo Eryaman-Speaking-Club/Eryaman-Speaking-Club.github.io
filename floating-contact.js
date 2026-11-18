@@ -219,7 +219,7 @@
           <textarea name="message" required placeholder="What would you like to ask us about?"></textarea>
         </label>
         <button class="esc-contact-submit" type="submit">Prepare email & send ↗</button>
-        <div class="esc-contact-note">Because GitHub Pages is static, the message opens ready to send in your device’s default email app.</div>
+        <div class="esc-contact-note">Because GitHub Pages is static, the message opens ready to send in your device’s default email app. See our <a href="/en/kvkk/" target="_blank" rel="noopener noreferrer">Personal Data Notice</a>.</div>
       </form>
     </section>
   ` : `
@@ -243,7 +243,7 @@
           <textarea name="message" required placeholder="Bize ne hakkında yazmak istiyorsun?"></textarea>
         </label>
         <button class="esc-contact-submit" type="submit">E-postayı hazırla & gönder ↗</button>
-        <div class="esc-contact-note">GitHub Pages statik çalıştığı için mesaj cihazındaki varsayılan e-posta uygulamasında gönderime hazır açılır.</div>
+        <div class="esc-contact-note">Mesajınız e-posta uygulamanızda gönderime hazırlanır. Kişisel verilerin işlenmesi hakkında <a href="/kvkk/" target="_blank" rel="noopener noreferrer">KVKK Aydınlatma Metni</a>'ni inceleyebilirsiniz.</div>
       </form>
     </section>
   `;
